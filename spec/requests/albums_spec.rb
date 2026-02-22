@@ -54,12 +54,26 @@ RSpec.describe 'Albums', type: :request do # rubocop:disable Metrics/BlockLength
   end
 
   describe 'GET /albums/:id' do
-    let!(:album) { Album.create!(title: 'Test Album', artist: 'Test Artist') }
+    let(:album) do
+      Album.create!(title: 'Test Album', artist: 'Test Artist', release_year: 2023, genre: 'Rock')
+    end
 
-    it 'returns http success' do
-      get album_path(album)
-      expect(response).to have_http_status(:success)
-      expect(response.body).to include('Test Album')
+    context 'when the album exists' do
+      it 'returns http success and displays album details' do
+        get album_path(album)
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include('Test Album')
+        expect(response.body).to include('Test Artist')
+        expect(response.body).to include('2023')
+        expect(response.body).to include('Rock')
+      end
+    end
+
+    context 'when the album does not exist' do
+      it 'returns http not found' do
+        get album_path(id: -1)
+        expect(response).to have_http_status(:not_found)
+      end
     end
   end
 
