@@ -1,5 +1,16 @@
 <h1>New Comic</h1>
 <%= form_for @comic do |f| %>
+  <% if @comic.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@comic.errors.count, "error") %> prohibited this comic from being saved:</h2>
+      <ul>
+      <% @comic.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
   <div>
     <%= f.label :title %>
     <%= f.text_field :title %>

@@ -38,15 +38,34 @@ RSpec.describe 'WrestlingEvents', type: :request do # rubocop:disable Metrics/Bl
   end
 
   describe 'GET /wrestling_events/:id' do
-    it 'renders the show template' do
-      wrestling_event = WrestlingEvent.create!(title: 'WrestleMania')
-      get wrestling_event_path(wrestling_event)
-      expect(response).to have_http_status(200)
-      expect(response.body).to include('WrestleMania')
+    context 'when the event exists' do
+      let(:wrestling_event) do
+        WrestlingEvent.create!(title: 'WrestleMania 40',
+                               promotion: 'WWE',
+                               date: Date.new(2024, 4, 6),
+                               venue: 'Lincoln Financial Field')
+      end
+
+      it 'renders the show template and displays all attributes' do
+        get wrestling_event_path(wrestling_event)
+        expect(response).to have_http_status(200)
+        expect(response.body).to include('WrestleMania 40')
+        expect(response.body).to include('WWE')
+        expect(response.body).to include('2024-04-06')
+        expect(response.body).to include('Lincoln Financial Field')
+      end
+    end
+
+    context 'when the event does not exist' do
+      it 'returns a 404 status' do
+        get wrestling_event_path(id: -1)
+        expect(response).to have_http_status(:not_found)
+      end
     end
   end
 
   describe 'POST /wrestling_events' do
+    # Security verification: Ensure create action requires login
     context 'when logged in' do
       before do
         post login_path, params: { session: { email: user.email, password: user.password } }

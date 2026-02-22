@@ -32,6 +32,14 @@ RSpec.describe 'Movies', type: :request do
     end
   end
 
+  describe 'GET /movies/new' do
+    it 'returns http success' do
+      get new_movie_path
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include('New Movie')
+    end
+  end
+
   describe 'POST /movies' do
     let(:user) do
       User.create!(name: 'Test User', email: 'test@example.com', password: 'password', password_confirmation: 'password')
@@ -45,6 +53,11 @@ RSpec.describe 'Movies', type: :request do
     end
 
     context 'when logged in' do
+      let(:user) do
+        User.create(name: 'Example User', email: 'user@example.com', password: 'password',
+                    password_confirmation: 'password')
+      end
+
       before do
         post login_path, params: { session: { email: user.email, password: user.password } }
       end
