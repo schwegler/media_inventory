@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class InventoryController < ApplicationController
+  before_action :logged_in_user, only: %i[new create]
+
   def index
     @resources = resource_class.page(params[:page])
     instance_variable_set("@#{resource_name.pluralize}", @resources)

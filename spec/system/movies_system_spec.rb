@@ -7,18 +7,31 @@ RSpec.describe 'Movies Management', type: :system do
     driven_by(:rack_test)
   end
 
-  it 'enables me to create a movie' do
-    visit new_movie_path
+  context 'when logged in' do
+    let(:user) do
+      User.create!(name: 'Test User', email: 'test@example.com', password: 'password', password_confirmation: 'password')
+    end
 
-    fill_in 'Title', with: 'Inception'
-    fill_in 'Director', with: 'Christopher Nolan'
-    fill_in 'Release year', with: '2010'
-    fill_in 'Rating', with: '5'
+    before do
+      visit login_path
+      fill_in 'Email', with: user.email
+      fill_in 'Password', with: user.password
+      click_button 'Log in'
+    end
 
-    click_button 'Create Movie'
+    it 'enables me to create a movie' do
+      visit new_movie_path
 
-    expect(page).to have_text('Inception')
-    expect(page).to have_text('Director: Christopher Nolan')
+      fill_in 'Title', with: 'Inception'
+      fill_in 'Director', with: 'Christopher Nolan'
+      fill_in 'Release year', with: '2010'
+      fill_in 'Rating', with: '5'
+
+      click_button 'Create Movie'
+
+      expect(page).to have_text('Inception')
+      expect(page).to have_text('Director: Christopher Nolan')
+    end
   end
 
   it 'displays a list of movies' do
