@@ -65,6 +65,7 @@ RSpec.describe 'WrestlingEvents', type: :request do # rubocop:disable Metrics/Bl
   end
 
   describe 'POST /wrestling_events' do
+    # Security verification: Ensure create action requires login
     context 'when logged in' do
       before do
         post login_path, params: { session: { email: user.email, password: user.password } }
