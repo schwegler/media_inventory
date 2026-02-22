@@ -1,5 +1,15 @@
 <h1>New TV Show</h1>
 <%= form_for @tv_show do |f| %>
+  <% if @tv_show.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@tv_show.errors.count, "error") %> prohibited this tv show from being saved:</h2>
+      <ul>
+      <% @tv_show.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
   <div>
     <%= f.label :title %>
     <%= f.text_field :title %>
