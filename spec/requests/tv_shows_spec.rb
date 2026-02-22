@@ -58,6 +58,11 @@ RSpec.describe 'TvShows', type: :request do
         post tv_shows_path, params: { tv_show: { title: '' } }
         expect(response).to have_http_status(:unprocessable_content)
       end
+
+      it 'displays an error message' do
+        post tv_shows_path, params: { tv_show: { title: '' } }
+        expect(response.body).to include('Title can&#39;t be blank')
+      end
     end
   end
 end
