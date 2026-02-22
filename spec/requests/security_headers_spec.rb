@@ -19,7 +19,7 @@ RSpec.describe 'Security Headers', type: :request do
     it 'includes a nonce for scripts' do
       get root_path
       csp = response.headers['Content-Security-Policy']
-      expect(csp).to match(/script-src 'self' 'nonce-[a-zA-Z0-9+\/=]+'/)
+      expect(csp).to match(%r{script-src 'self' 'nonce-[a-zA-Z0-9+/=]+'})
     end
   end
 end
