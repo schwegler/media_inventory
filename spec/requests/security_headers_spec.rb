@@ -21,5 +21,17 @@ RSpec.describe 'Security Headers', type: :request do
       csp = response.headers['Content-Security-Policy']
       expect(csp).to match(%r{script-src 'self' 'nonce-[a-zA-Z0-9+/=]+'})
     end
+
+    it 'sets the Permissions-Policy header' do
+      get root_path
+      pp = response.headers['Permissions-Policy'] || response.headers['Feature-Policy']
+      expect(pp).to be_present
+      expect(pp).to include("camera 'none'")
+      expect(pp).to include("gyroscope 'none'")
+      expect(pp).to include("microphone 'none'")
+      expect(pp).to include("usb 'none'")
+      expect(pp).to include("fullscreen 'self'")
+      expect(pp).to include("payment 'none'")
+    end
   end
 end
