@@ -35,9 +35,14 @@ RSpec.describe User, type: :model do
     it { should_not be_valid }
   end
 
-  describe 'when name is too long' do
+  describe 'when name is longer than 50 characters' do
     before { @user.name = 'a' * 51 }
     it { should_not be_valid }
+  end
+
+  describe 'when name is exactly 50 characters' do
+    before { @user.name = 'a' * 50 }
+    it { should be_valid }
   end
 
   describe 'when email is not present' do
