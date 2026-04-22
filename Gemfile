@@ -30,7 +30,7 @@ group :development, :test do
 
   gem 'brakeman'
   gem 'bundler-audit'
-  gem 'rspec-rails', '~> 6.0'
+  gem 'rspec-rails', '~> 8.0'
   gem 'rubocop'
 end
 
