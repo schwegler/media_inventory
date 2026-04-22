@@ -51,6 +51,6 @@ end
 
 gem 'bcrypt', '~> 3.1'
 
-gem 'will_paginate', '3.3.1'
+gem 'will_paginate', '4.0.1'
 
 gem 'kaminari', '~> 1.2'
