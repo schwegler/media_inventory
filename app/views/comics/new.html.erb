@@ -31,5 +31,9 @@
     <%= f.label :artist %>
     <%= f.text_field :artist %>
   </div>
+  <div>
+    <%= f.label :is_public, "Make Public?" %>
+    <%= f.check_box :is_public %>
+  </div>
   <%= f.submit %>
 <% end %>

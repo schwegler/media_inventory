@@ -16,5 +16,9 @@
     <%= f.label :venue %>
     <%= f.text_field :venue %>
   </div>
+  <div>
+    <%= f.label :is_public, "Make Public?" %>
+    <%= f.check_box :is_public %>
+  </div>
   <%= f.submit %>
 <% end %>

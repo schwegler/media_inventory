@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_16_212545) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_22_171128) do
   create_table "albums", force: :cascade do |t|
     t.string "title"
     t.string "artist"
@@ -18,6 +18,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_16_212545) do
     t.string "genre"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "user_id"
+    t.boolean "is_public", default: false
+    t.index ["user_id"], name: "index_albums_on_user_id"
   end
 
   create_table "comics", force: :cascade do |t|
@@ -28,6 +31,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_16_212545) do
     t.string "artist"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "user_id"
+    t.boolean "is_public", default: false
+    t.index ["user_id"], name: "index_comics_on_user_id"
   end
 
   create_table "movies", force: :cascade do |t|
@@ -37,6 +43,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_16_212545) do
     t.string "rating"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "user_id"
+    t.boolean "is_public", default: false
+    t.index ["user_id"], name: "index_movies_on_user_id"
   end
 
   create_table "tv_shows", force: :cascade do |t|
@@ -46,15 +55,20 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_16_212545) do
     t.string "network"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "user_id"
+    t.boolean "is_public", default: false
+    t.index ["user_id"], name: "index_tv_shows_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|
     t.string "name"
     t.string "email"
-    t.string "password_digest"
     t.boolean "admin", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "login_token"
+    t.datetime "login_token_sent_at"
+    t.datetime "confirmed_at"
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
@@ -65,6 +79,14 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_16_212545) do
     t.string "venue"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "user_id"
+    t.boolean "is_public", default: false
+    t.index ["user_id"], name: "index_wrestling_events_on_user_id"
   end
 
+  add_foreign_key "albums", "users"
+  add_foreign_key "comics", "users"
+  add_foreign_key "movies", "users"
+  add_foreign_key "tv_shows", "users"
+  add_foreign_key "wrestling_events", "users"
 end

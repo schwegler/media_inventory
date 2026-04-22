@@ -15,6 +15,7 @@ class InventoryController < ApplicationController
 
   def create
     @resource = resource_class.new(resource_params)
+    @resource.user = current_user
     instance_variable_set("@#{resource_name}", @resource)
     if @resource.save
       redirect_to @resource

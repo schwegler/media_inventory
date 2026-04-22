@@ -4,8 +4,7 @@ require 'spec_helper'
 
 RSpec.describe 'Movies Management', type: :system do
   let!(:user) do
-    User.create(name: 'Example User', email: 'user@example.com', password: 'password',
-                password_confirmation: 'password')
+    User.create(name: 'Example User', email: 'user@example.com', confirmed_at: Time.current)
   end
 
   before do
@@ -15,8 +14,12 @@ RSpec.describe 'Movies Management', type: :system do
   it 'enables me to create a movie' do
     visit login_path
     fill_in 'Email', with: user.email
-    fill_in 'Password', with: user.password
     click_button 'Log in'
+
+    user.reload
+    # Email is hidden on verify_otp page, so we don't fill it
+    fill_in 'One-Time Password', with: user.login_token
+    click_button 'Verify'
 
     visit new_movie_path
 

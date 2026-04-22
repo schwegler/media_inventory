@@ -1,0 +1,16 @@
+<h1>Verify OTP</h1>
+
+<div class="row">
+  <div class="col-md-6 col-md-offset-3">
+    <p>Please enter the OTP sent to <strong><%= @email %></strong></p>
+
+    <%= form_with(url: verify_otp_path, local: true) do |f| %>
+      <%= f.hidden_field :email, value: @email %>
+
+      <%= f.label :token, "One-Time Password" %>
+      <%= f.text_field :token, class: 'form-control', required: true %>
+
+      <%= f.submit "Verify", class: "btn btn-primary" %>
+    <% end %>
+  </div>
+</div>

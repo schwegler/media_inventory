@@ -4,10 +4,7 @@ require 'rails_helper'
 
 RSpec.describe 'WrestlingEvents', type: :request do # rubocop:disable Metrics/BlockLength
   let!(:user) do
-    User.create!(name: 'Test User',
-                 email: 'test@example.com',
-                 password: 'password',
-                 password_confirmation: 'password')
+    User.create!(name: 'Test User', email: 'test@example.com')
   end
 
   describe 'GET /wrestling_events' do
@@ -20,7 +17,11 @@ RSpec.describe 'WrestlingEvents', type: :request do # rubocop:disable Metrics/Bl
   describe 'GET /wrestling_events/new' do
     context 'when logged in' do
       before do
-        post login_path, params: { session: { email: user.email, password: user.password } }
+        post login_path, params: { session: { email: user.email } }
+        user.reload
+        post verify_otp_path, params: { email: user.email, token: user.login_token }
+          user.reload
+          post verify_otp_path, params: { email: user.email, token: user.login_token }
       end
 
       it 'renders the new template' do
@@ -40,10 +41,12 @@ RSpec.describe 'WrestlingEvents', type: :request do # rubocop:disable Metrics/Bl
   describe 'GET /wrestling_events/:id' do
     context 'when the event exists' do
       let(:wrestling_event) do
-        WrestlingEvent.create!(title: 'WrestleMania 40',
-                               promotion: 'WWE',
-                               date: Date.new(2024, 4, 6),
-                               venue: 'Lincoln Financial Field')
+          WrestlingEvent.create!(
+            title: 'WrestleMania 40',
+            promotion: 'WWE',
+            date: Date.new(2024, 4, 6),
+            venue: 'Lincoln Financial Field'
+          )
       end
 
       it 'renders the show template and displays all attributes' do
@@ -68,7 +71,11 @@ RSpec.describe 'WrestlingEvents', type: :request do # rubocop:disable Metrics/Bl
     # Security verification: Ensure create action requires login
     context 'when logged in' do
       before do
-        post login_path, params: { session: { email: user.email, password: user.password } }
+        post login_path, params: { session: { email: user.email } }
+        user.reload
+        post verify_otp_path, params: { email: user.email, token: user.login_token }
+          user.reload
+          post verify_otp_path, params: { email: user.email, token: user.login_token }
       end
 
       it 'creates a new wrestling_event' do

@@ -26,5 +26,9 @@
     <%= f.label :network %>
     <%= f.text_field :network %>
   </div>
+  <div>
+    <%= f.label :is_public, "Make Public?" %>
+    <%= f.check_box :is_public %>
+  </div>
   <%= f.submit %>
 <% end %>

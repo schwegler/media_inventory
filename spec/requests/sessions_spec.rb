@@ -1,12 +1,11 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
+require 'rails_helper'
 # rubocop:disable Metrics/BlockLength
 
 RSpec.describe 'Authentication', type: :request do
-  let(:user) do
-    User.create(name: 'Example User', email: 'user@example.com', password: 'password',
-                password_confirmation: 'password')
+  let!(:user) do
+    User.create!(name: 'Example User', email: 'user@example.com', confirmed_at: Time.current)
   end
 
   describe 'login page' do
@@ -22,34 +21,44 @@ RSpec.describe 'Authentication', type: :request do
   end
 
   describe 'valid login' do
-    before do
-      post login_path, params: { session: { email: user.email, password: user.password } }
+    it 'creates a token and redirects to OTP verification for existing user' do
+      post login_path, params: { session: { email: user.email } }
+      expect(response).to redirect_to(verify_otp_path)
+      user.reload
+      expect(user.login_token).to be_present
     end
 
-    it 'redirects to the user page' do
-      expect(response).to redirect_to(user)
-    end
+    it 'logs the user in successfully after providing valid OTP' do
+      post login_path, params: { session: { email: user.email } }
+      user.reload
+      post verify_otp_path, params: { email: user.email, token: user.login_token }
 
-    it 'logs the user in' do
       expect(session[:user_id]).to eq(user.id)
+      expect(response).to redirect_to(user)
     end
   end
 
   describe 'invalid login' do
-    before { post login_path, params: { session: { email: 'user@example.com', password: 'invalid' } } }
+    before do
+      post login_path, params: { session: { email: user.email } }
+      user.reload
+      post verify_otp_path, params: { email: user.email, token: 'invalid' }
+    end
 
-    it 'renders the new template' do
-      expect(response.body).to include('Log in')
+    it 'renders the verify_otp template' do
+      expect(response.body).to include('Verify OTP')
     end
 
     it 'displays an error message' do
-      expect(response.body).to include('Invalid email/password combination')
+      expect(response.body).to include('Invalid or expired OTP')
     end
   end
 
   describe 'logout' do
     before do
-      post login_path, params: { session: { email: user.email, password: user.password } }
+      post login_path, params: { session: { email: user.email } }
+      user.reload
+      post verify_otp_path, params: { email: user.email, token: user.login_token }
       delete logout_path
     end
 
@@ -64,14 +73,15 @@ RSpec.describe 'Authentication', type: :request do
 
   describe 'session fixation' do
     it 'rotates the session id after successful login' do
-      post login_path, params: { session: { email: 'invalid', password: 'invalid' } }
-      initial_session_id = session.id
-      expect(initial_session_id).not_to be_nil
+      get login_path
+      post login_path, params: { session: { email: user.email } }
+      initial_session_id = request.session.id
 
-      post login_path, params: { session: { email: user.email, password: user.password } }
+      user.reload
+      post verify_otp_path, params: { email: user.email, token: user.login_token }
 
       expect(session[:user_id]).to eq(user.id)
-      expect(session.id).not_to eq(initial_session_id)
+      expect(request.session.id).not_to eq(initial_session_id)
     end
   end
 end
