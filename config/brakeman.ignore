@@ -2,19 +2,19 @@
   "ignored_warnings": [
     {
       "warning_type": "Unmaintained Dependency",
-      "warning_code": 120,
-      "fingerprint": "d84924377155b41e094acae7404ec2e521629d86f97b0ff628e3d1b263f8101c",
-      "check_name": "EOLRails",
-      "message": "Support for Rails 7.1.6 ended on 2025-10-01",
-      "file": "Gemfile.lock",
-      "line": 194,
+      "warning_code": 121,
+      "fingerprint": "edf687f759ec9765bd5db185dbc615c80af77d6e7e19386fc42934e7a80307af",
+      "check_name": "EOLRuby",
+      "message": "Support for Ruby 3.2.3 ended on 2026-03-31",
+      "file": ".ruby-version",
+      "line": 1,
       "link": "https://brakemanscanner.org/docs/warning_types/unmaintained_dependency/",
       "code": null,
       "render_path": null,
       "location": null,
       "user_input": null,
       "confidence": "High",
-      "note": "Ignoring Rails EOL for this task as major version upgrade is out of scope."
+      "note": "Ignoring Ruby EOL for this task as version upgrade requires env upgrade."
     }
   ],
   "updated": "2026-02-16 09:00:00 +0000",
