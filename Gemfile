@@ -26,7 +26,7 @@ gem 'rdoc', '>= 6.5.1.1'
 
 group :development, :test do
   # Use sqlite3 as the database for Active Record
-  gem 'sqlite3', '~> 1.7'
+  gem 'sqlite3', '~> 2.9'
 
   gem 'brakeman'
   gem 'bundler-audit'
