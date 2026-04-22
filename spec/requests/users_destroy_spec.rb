@@ -29,8 +29,8 @@ RSpec.describe 'Users destroy', type: :request do
   context 'as non-admin user' do
     before do
       post login_path, params: { session: { email: user.email } }
-        user.reload
-        post verify_otp_path, params: { email: user.email, token: user.login_token }
+      user.reload
+      post verify_otp_path, params: { email: user.email, token: user.login_token }
     end
 
     it 'redirects to the root url' do
@@ -48,8 +48,8 @@ RSpec.describe 'Users destroy', type: :request do
   context 'as admin user' do
     before do
       post login_path, params: { session: { email: admin.email } }
-        admin.reload
-        post verify_otp_path, params: { email: admin.email, token: admin.login_token }
+      admin.reload
+      post verify_otp_path, params: { email: admin.email, token: admin.login_token }
     end
 
     it 'deletes the user' do

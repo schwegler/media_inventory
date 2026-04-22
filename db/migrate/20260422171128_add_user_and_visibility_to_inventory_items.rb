@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddUserAndVisibilityToInventoryItems < ActiveRecord::Migration[7.1]
   def change
     %i[albums comics movies tv_shows wrestling_events].each do |table|

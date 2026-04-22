@@ -7,7 +7,7 @@ SampleApp::Application.routes.draw do
   post   '/login',   to: 'sessions#create'
   get    '/verify_otp', to: 'sessions#verify_otp'
   post   '/verify_otp', to: 'sessions#verify_otp'
-  delete '/logout',  to: 'sessions#destroy'
+  delete '/logout', to: 'sessions#destroy'
   resources :users
 
   resources :comics

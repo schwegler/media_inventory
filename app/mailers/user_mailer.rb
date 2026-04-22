@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UserMailer < ApplicationMailer
   # Subject can be set in your I18n file at config/locales/en.yml
   # with the following lookup:
@@ -6,6 +8,6 @@ class UserMailer < ApplicationMailer
   #
   def otp_email(user)
     @user = user
-    mail to: user.email, subject: "Your One-Time Password"
+    mail to: user.email, subject: 'Your One-Time Password'
   end
 end

@@ -51,8 +51,8 @@ RSpec.describe 'Comics', type: :request do
         post login_path, params: { session: { email: user.email } }
         user.reload
         post verify_otp_path, params: { email: user.email, token: user.login_token }
-          user.reload
-          post verify_otp_path, params: { email: user.email, token: user.login_token }
+        user.reload
+        post verify_otp_path, params: { email: user.email, token: user.login_token }
       end
 
       it 'returns a successful response' do
@@ -100,8 +100,8 @@ RSpec.describe 'Comics', type: :request do
         post login_path, params: { session: { email: user.email } }
         user.reload
         post verify_otp_path, params: { email: user.email, token: user.login_token }
-          user.reload
-          post verify_otp_path, params: { email: user.email, token: user.login_token }
+        user.reload
+        post verify_otp_path, params: { email: user.email, token: user.login_token }
       end
 
       it 'creates a new comic' do

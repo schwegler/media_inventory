@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CollectionsController < ApplicationController
   def show
     @user = User.find(params[:user_id])

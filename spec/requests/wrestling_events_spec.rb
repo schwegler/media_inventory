@@ -20,8 +20,8 @@ RSpec.describe 'WrestlingEvents', type: :request do # rubocop:disable Metrics/Bl
         post login_path, params: { session: { email: user.email } }
         user.reload
         post verify_otp_path, params: { email: user.email, token: user.login_token }
-          user.reload
-          post verify_otp_path, params: { email: user.email, token: user.login_token }
+        user.reload
+        post verify_otp_path, params: { email: user.email, token: user.login_token }
       end
 
       it 'renders the new template' do
@@ -41,12 +41,12 @@ RSpec.describe 'WrestlingEvents', type: :request do # rubocop:disable Metrics/Bl
   describe 'GET /wrestling_events/:id' do
     context 'when the event exists' do
       let(:wrestling_event) do
-          WrestlingEvent.create!(
-            title: 'WrestleMania 40',
-            promotion: 'WWE',
-            date: Date.new(2024, 4, 6),
-            venue: 'Lincoln Financial Field'
-          )
+        WrestlingEvent.create!(
+          title: 'WrestleMania 40',
+          promotion: 'WWE',
+          date: Date.new(2024, 4, 6),
+          venue: 'Lincoln Financial Field'
+        )
       end
 
       it 'renders the show template and displays all attributes' do
@@ -74,8 +74,8 @@ RSpec.describe 'WrestlingEvents', type: :request do # rubocop:disable Metrics/Bl
         post login_path, params: { session: { email: user.email } }
         user.reload
         post verify_otp_path, params: { email: user.email, token: user.login_token }
-          user.reload
-          post verify_otp_path, params: { email: user.email, token: user.login_token }
+        user.reload
+        post verify_otp_path, params: { email: user.email, token: user.login_token }
       end
 
       it 'creates a new wrestling_event' do

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CleanupUnconfirmedUsersJob < ApplicationJob
   queue_as :default
 
@@ -5,8 +7,8 @@ class CleanupUnconfirmedUsersJob < ApplicationJob
     user = User.find_by(id: user_id)
     return unless user
 
-    if user.confirmed_at.nil? && user.created_at <= 45.minutes.ago
-      user.destroy
-    end
+    return unless user.confirmed_at.nil? && user.created_at <= 45.minutes.ago
+
+    user.destroy
   end
 end
