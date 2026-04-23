@@ -1,0 +1,40 @@
+<h1><%= @user.name %>'s Collection</h1>
+
+<% if @user.confirmed_at.nil? %>
+  <p>This user's collection is not public because their account is unconfirmed.</p>
+<% else %>
+  <h2>Albums</h2>
+  <ul>
+    <% @albums.each do |album| %>
+      <li><%= link_to album.title, album %></li>
+    <% end %>
+  </ul>
+
+  <h2>Comics</h2>
+  <ul>
+    <% @comics.each do |comic| %>
+      <li><%= link_to comic.title, comic %></li>
+    <% end %>
+  </ul>
+
+  <h2>Movies</h2>
+  <ul>
+    <% @movies.each do |movie| %>
+      <li><%= link_to movie.title, movie %></li>
+    <% end %>
+  </ul>
+
+  <h2>TV Shows</h2>
+  <ul>
+    <% @tv_shows.each do |tv_show| %>
+      <li><%= link_to tv_show.title, tv_show %></li>
+    <% end %>
+  </ul>
+
+  <h2>Wrestling Events</h2>
+  <ul>
+    <% @wrestling_events.each do |event| %>
+      <li><%= link_to event.title, event %></li>
+    <% end %>
+  </ul>
+<% end %>

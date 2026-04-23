@@ -1,0 +1,14 @@
+=> Booting Puma
+=> Rails 7.2.3.1 application starting in test
+=> Run `bin/rails server --help` for more startup options
+Puma starting in single mode...
+* Puma version: 8.0.0 ("Into the Arena")
+* Ruby version: ruby 3.2.3 (2024-01-18 revision 52bb2ac0a6) [x86_64-linux-gnu]
+*  Min threads: 0
+*  Max threads: 5
+*  Environment: test
+*          PID: 2328615
+* Listening on http://0.0.0.0:3000
+Use Ctrl-C to stop
+- Gracefully stopping, waiting for requests to finish
+Exiting

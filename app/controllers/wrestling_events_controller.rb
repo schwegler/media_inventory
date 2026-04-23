@@ -4,6 +4,6 @@ class WrestlingEventsController < InventoryController
   private
 
   def resource_params
-    params.require(:wrestling_event).permit(:title, :promotion, :date, :venue)
+    params.require(:wrestling_event).permit(:title, :promotion, :date, :venue, :is_public)
   end
 end

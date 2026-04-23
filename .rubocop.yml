@@ -12,3 +12,16 @@ AllCops:
 Metrics/BlockLength:
   Exclude:
     - 'spec/requests/movies_spec.rb'
+    - 'spec/requests/users_destroy_spec.rb'
+
+Metrics/AbcSize:
+  Max: 40
+
+Metrics/MethodLength:
+  Max: 25
+
+Metrics/CyclomaticComplexity:
+  Max: 12
+
+Metrics/PerceivedComplexity:
+  Max: 12

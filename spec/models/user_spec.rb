@@ -5,17 +5,16 @@ require 'spec_helper'
 # rubocop:disable Metrics/BlockLength
 RSpec.describe User, type: :model do
   before do
-    @user = User.new(name: 'Example User', email: 'user@example.com',
-                     password: 'password', password_confirmation: 'password')
+    @user = User.new(name: 'Example User', email: 'user@example.com')
   end
 
   subject { @user }
 
   it { should respond_to(:name) }
   it { should respond_to(:email) }
-  it { should respond_to(:password_digest) }
-  it { should respond_to(:password) }
-  it { should respond_to(:password_confirmation) }
+  it { should_not respond_to(:password_digest) }
+  it { should_not respond_to(:password) }
+  it { should_not respond_to(:password_confirmation) }
   it { should respond_to(:admin) }
 
   it { should be_valid }
@@ -50,16 +49,6 @@ RSpec.describe User, type: :model do
     it { should_not be_valid }
   end
 
-  describe 'when password is not present' do
-    before { @user.password = @user.password_confirmation = ' ' }
-    it { should_not be_valid }
-  end
-
-  describe 'when password is too short' do
-    before { @user.password = @user.password_confirmation = 'a' * 5 }
-    it { should_not be_valid }
-  end
-
   describe 'when email format is invalid' do
     it 'should be invalid' do
       addresses = %w[user@foo,com user_at_foo.org example.user@foo.
@@ -87,7 +76,6 @@ RSpec.describe User, type: :model do
       user_with_same_email = @user.dup
       user_with_same_email.save
     end
-
     it { should_not be_valid }
   end
 
@@ -97,7 +85,6 @@ RSpec.describe User, type: :model do
       user_with_same_email.email = @user.email.upcase
       user_with_same_email.save
     end
-
     it { should_not be_valid }
   end
 end

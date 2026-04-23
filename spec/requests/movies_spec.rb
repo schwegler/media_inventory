@@ -4,8 +4,7 @@ require 'spec_helper'
 
 RSpec.describe 'Movies', type: :request do
   let!(:user) do
-    User.create(name: 'Example User', email: 'user@example.com', password: 'password',
-                password_confirmation: 'password')
+    User.create(name: 'Example User', email: 'user@example.com')
   end
 
   describe 'GET /movies' do
@@ -47,7 +46,11 @@ RSpec.describe 'Movies', type: :request do
 
     context 'when logged in' do
       before do
-        post login_path, params: { session: { email: user.email, password: user.password } }
+        post login_path, params: { session: { email: user.email } }
+        user.reload
+        post verify_otp_path, params: { email: user.email, token: user.login_token }
+        user.reload
+        post verify_otp_path, params: { email: user.email, token: user.login_token }
       end
 
       it 'returns http success' do
@@ -67,7 +70,11 @@ RSpec.describe 'Movies', type: :request do
 
     context 'when logged in' do
       before do
-        post login_path, params: { session: { email: user.email, password: user.password } }
+        post login_path, params: { session: { email: user.email } }
+        user.reload
+        post verify_otp_path, params: { email: user.email, token: user.login_token }
+        user.reload
+        post verify_otp_path, params: { email: user.email, token: user.login_token }
       end
 
       context 'with valid parameters' do

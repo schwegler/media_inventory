@@ -1,0 +1,9 @@
+<h1>One-Time Password</h1>
+
+<p>Hi <%= @user.name %>,</p>
+
+<p>Your one-time password (OTP) to log in is:</p>
+
+<h2><%= @user.login_token %></h2>
+
+<p>This code will expire in 45 minutes.</p>

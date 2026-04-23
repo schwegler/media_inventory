@@ -6,6 +6,25 @@ class User < ApplicationRecord
   validates :email, presence: true, length: { maximum: 255 },
                     format: { with: URI::MailTo::EMAIL_REGEXP },
                     uniqueness: { case_sensitive: false }
-  has_secure_password
-  validates :password, presence: true, length: { minimum: 6 }
+
+  has_many :albums, dependent: :destroy
+  has_many :comics, dependent: :destroy
+  has_many :movies, dependent: :destroy
+  has_many :tv_shows, dependent: :destroy
+  has_many :wrestling_events, dependent: :destroy
+
+  after_create :schedule_cleanup_unconfirmed
+
+  def generate_login_token
+    update(
+      login_token: SecureRandom.hex(10),
+      login_token_sent_at: Time.current
+    )
+  end
+
+  private
+
+  def schedule_cleanup_unconfirmed
+    CleanupUnconfirmedUsersJob.set(wait: 45.minutes).perform_later(id)
+  end
 end
