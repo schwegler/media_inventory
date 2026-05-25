@@ -21,7 +21,7 @@ gem 'turbolinks'
 
 # Constrain dependencies to avoid compilation issues with native extensions
 # gem 'irb', '1.6.2'
-gem 'psych', '5.0.1'
+gem 'psych', '5.3.1'
 gem 'rdoc', '>= 6.5.1.1'
 
 group :development, :test do
