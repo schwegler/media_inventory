@@ -7,11 +7,11 @@ class User < ApplicationRecord
                     format: { with: URI::MailTo::EMAIL_REGEXP },
                     uniqueness: { case_sensitive: false }
 
-  has_many :albums, dependent: :destroy
-  has_many :comics, dependent: :destroy
-  has_many :movies, dependent: :destroy
-  has_many :tv_shows, dependent: :destroy
-  has_many :wrestling_events, dependent: :destroy
+  has_many :albums
+  has_many :comics
+  has_many :movies
+  has_many :tv_shows
+  has_many :wrestling_events
 
   after_create :schedule_cleanup_unconfirmed
 

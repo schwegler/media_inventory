@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_22_171128) do
+ActiveRecord::Schema[7.2].define(version: 2026_05_25_055232) do
   create_table "albums", force: :cascade do |t|
     t.string "title"
     t.string "artist"
@@ -84,9 +84,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_22_171128) do
     t.index ["user_id"], name: "index_wrestling_events_on_user_id"
   end
 
-  add_foreign_key "albums", "users"
-  add_foreign_key "comics", "users"
-  add_foreign_key "movies", "users"
-  add_foreign_key "tv_shows", "users"
-  add_foreign_key "wrestling_events", "users"
+  add_foreign_key "albums", "users", on_delete: :cascade
+  add_foreign_key "comics", "users", on_delete: :cascade
+  add_foreign_key "movies", "users", on_delete: :cascade
+  add_foreign_key "tv_shows", "users", on_delete: :cascade
+  add_foreign_key "wrestling_events", "users", on_delete: :cascade
 end
