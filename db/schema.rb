@@ -10,77 +10,77 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_05_25_055232) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_25_055232) do
   create_table "albums", force: :cascade do |t|
-    t.string "title"
     t.string "artist"
-    t.integer "release_year"
-    t.string "genre"
     t.datetime "created_at", null: false
+    t.string "genre"
+    t.boolean "is_public", default: false
+    t.integer "release_year"
+    t.string "title"
     t.datetime "updated_at", null: false
     t.integer "user_id"
-    t.boolean "is_public", default: false
     t.index ["user_id"], name: "index_albums_on_user_id"
   end
 
   create_table "comics", force: :cascade do |t|
-    t.string "title"
-    t.integer "issue_number"
-    t.string "publisher"
-    t.string "writer"
     t.string "artist"
     t.datetime "created_at", null: false
+    t.boolean "is_public", default: false
+    t.integer "issue_number"
+    t.string "publisher"
+    t.string "title"
     t.datetime "updated_at", null: false
     t.integer "user_id"
-    t.boolean "is_public", default: false
+    t.string "writer"
     t.index ["user_id"], name: "index_comics_on_user_id"
   end
 
   create_table "movies", force: :cascade do |t|
-    t.string "title"
-    t.string "director"
-    t.integer "release_year"
-    t.string "rating"
     t.datetime "created_at", null: false
+    t.string "director"
+    t.boolean "is_public", default: false
+    t.string "rating"
+    t.integer "release_year"
+    t.string "title"
     t.datetime "updated_at", null: false
     t.integer "user_id"
-    t.boolean "is_public", default: false
     t.index ["user_id"], name: "index_movies_on_user_id"
   end
 
   create_table "tv_shows", force: :cascade do |t|
-    t.string "title"
-    t.integer "season"
-    t.integer "episode"
-    t.string "network"
     t.datetime "created_at", null: false
+    t.integer "episode"
+    t.boolean "is_public", default: false
+    t.string "network"
+    t.integer "season"
+    t.string "title"
     t.datetime "updated_at", null: false
     t.integer "user_id"
-    t.boolean "is_public", default: false
     t.index ["user_id"], name: "index_tv_shows_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|
-    t.string "name"
-    t.string "email"
     t.boolean "admin", default: false
+    t.datetime "confirmed_at"
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.string "email"
     t.string "login_token"
     t.datetime "login_token_sent_at"
-    t.datetime "confirmed_at"
+    t.string "name"
+    t.datetime "updated_at", null: false
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
   create_table "wrestling_events", force: :cascade do |t|
-    t.string "title"
-    t.string "promotion"
-    t.date "date"
-    t.string "venue"
     t.datetime "created_at", null: false
+    t.date "date"
+    t.boolean "is_public", default: false
+    t.string "promotion"
+    t.string "title"
     t.datetime "updated_at", null: false
     t.integer "user_id"
-    t.boolean "is_public", default: false
+    t.string "venue"
     t.index ["user_id"], name: "index_wrestling_events_on_user_id"
   end
 
