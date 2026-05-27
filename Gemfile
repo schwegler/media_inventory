@@ -55,4 +55,4 @@ gem 'will_paginate', '3.3.1'
 
 gem 'kaminari', '~> 1.2'
 
-gem "rails-controller-testing", "~> 1.0", :group => :test
+gem 'rails-controller-testing', '~> 1.0', group: :test

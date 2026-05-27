@@ -1,5 +1,22 @@
-<h1><%= @album.title %></h1>
-<p>Artist: <%= @album.artist %></p>
-<p>Release Year: <%= @album.release_year %></p>
-<p>Genre: <%= @album.genre %></p>
-<%= link_to 'Back', albums_path %>
+<div class="details-card">
+  <h2><%= @album.title %></h2>
+  
+  <div class="detail-row">
+    <strong>Artist:</strong>
+    <span><%= @album.artist %></span>
+  </div>
+  
+  <div class="detail-row">
+    <strong>Release Year:</strong>
+    <span><%= @album.release_year %></span>
+  </div>
+  
+  <div class="detail-row">
+    <strong>Genre:</strong>
+    <span><%= @album.genre %></span>
+  </div>
+
+  <div class="actions">
+    <%= link_to 'Back', albums_path, class: 'btn btn-secondary' %>
+  </div>
+</div>

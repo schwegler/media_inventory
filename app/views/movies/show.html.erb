@@ -1,5 +1,22 @@
-<h1><%= @movie.title %></h1>
-<p>Director: <%= @movie.director %></p>
-<p>Release Year: <%= @movie.release_year %></p>
-<p>Rating: <%= @movie.rating %></p>
-<%= link_to 'Back', movies_path %>
+<div class="details-card">
+  <h2><%= @movie.title %></h2>
+  
+  <div class="detail-row">
+    <strong>Director:</strong>
+    <span><%= @movie.director %></span>
+  </div>
+  
+  <div class="detail-row">
+    <strong>Release Year:</strong>
+    <span><%= @movie.release_year %></span>
+  </div>
+  
+  <div class="detail-row">
+    <strong>Rating:</strong>
+    <span><%= @movie.rating %></span>
+  </div>
+
+  <div class="actions">
+    <%= link_to 'Back', movies_path, class: 'btn btn-secondary' %>
+  </div>
+</div>
