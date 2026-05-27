@@ -17,7 +17,7 @@ RSpec.describe InventoryController, type: :controller do # rubocop:disable Metri
         new(id: id, is_public: true)
       end
 
-      def save
+      def save # rubocop:disable Naming/PredicateMethod
         if title.nil?
           errors.add(:title, "can't be blank")
           return false
