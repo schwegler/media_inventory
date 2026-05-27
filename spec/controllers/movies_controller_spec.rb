@@ -5,16 +5,22 @@ require 'rails_helper'
 RSpec.describe MoviesController, type: :controller do
   describe 'GET #index' do
     it 'returns a success response' do
-      get :index
+      movies = double('movies')
+      allow(Movie).to receive(:page).with('1').and_return(movies)
+
+      get :index, params: { page: '1' }
+
       expect(response).to be_successful
     end
   end
 
   describe 'GET #show' do
-    let(:movie) { Movie.create!(title: 'Test Movie') }
-
     it 'returns a success response' do
-      get :show, params: { id: movie.id }
+      movie = double('movie')
+      allow(Movie).to receive(:find).with('1').and_return(movie)
+
+      get :show, params: { id: '1' }
+
       expect(response).to be_successful
     end
   end
@@ -23,10 +29,10 @@ RSpec.describe MoviesController, type: :controller do
     let(:params) do
       ActionController::Parameters.new(
         movie: {
-          title: 'The Matrix',
-          director: 'Wachowskis',
-          release_year: 1999,
-          rating: 'R',
+          title: 'Inception',
+          director: 'Christopher Nolan',
+          release_year: 2010,
+          rating: 'PG-13',
           is_public: true,
           malicious_param: 'hack'
         }
@@ -40,10 +46,10 @@ RSpec.describe MoviesController, type: :controller do
     it 'permits valid attributes' do
       permitted = controller.send(:resource_params)
       expect(permitted.to_h).to eq(
-        'title' => 'The Matrix',
-        'director' => 'Wachowskis',
-        'release_year' => 1999,
-        'rating' => 'R',
+        'title' => 'Inception',
+        'director' => 'Christopher Nolan',
+        'release_year' => 2010,
+        'rating' => 'PG-13',
         'is_public' => true
       )
     end
