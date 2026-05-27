@@ -5,8 +5,8 @@ require 'spec_helper'
 
 RSpec.describe 'Comics', type: :request do
   describe 'GET /comics' do
-    let!(:comic1) { Comic.create!(title: 'Amazing Spider-Man', issue_number: 1, publisher: 'Marvel') }
-    let!(:comic2) { Comic.create!(title: 'Detective Comics', issue_number: 27, publisher: 'DC') }
+    let!(:comic1) { Comic.create!(title: 'Amazing Spider-Man', is_public: true, issue_number: 1, publisher: 'Marvel') }
+    let!(:comic2) { Comic.create!(title: 'Detective Comics', is_public: true, issue_number: 27, publisher: 'DC') }
 
     it 'returns a successful response' do
       get comics_path
@@ -63,7 +63,7 @@ RSpec.describe 'Comics', type: :request do
   end
 
   describe 'GET /comics/:id' do
-    let!(:comic) { Comic.create!(title: 'Batman', issue_number: 1, publisher: 'DC') }
+    let!(:comic) { Comic.create!(title: 'Batman', is_public: true, issue_number: 1, publisher: 'DC') }
 
     it 'returns a successful response' do
       get comic_path(comic)

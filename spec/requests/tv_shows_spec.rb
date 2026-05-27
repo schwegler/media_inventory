@@ -53,7 +53,7 @@ RSpec.describe 'TvShows', type: :request do
 
   describe 'GET /tv_shows/:id' do
     it 'returns http success and displays the title' do
-      tv_show = TvShow.create!(title: 'Breaking Bad')
+      tv_show = TvShow.create!(title: 'Breaking Bad', is_public: true)
       get tv_show_path(tv_show)
       expect(response).to have_http_status(200)
       expect(response.body).to include('Breaking Bad')

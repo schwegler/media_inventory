@@ -58,7 +58,7 @@ RSpec.describe 'Albums', type: :request do # rubocop:disable Metrics/BlockLength
 
   describe 'GET /albums/:id' do
     let(:album) do
-      Album.create!(title: 'Test Album', artist: 'Test Artist', release_year: 2023, genre: 'Rock')
+      Album.create!(title: 'Test Album', is_public: true, artist: 'Test Artist', release_year: 2023, genre: 'Rock')
     end
 
     context 'when the album exists' do

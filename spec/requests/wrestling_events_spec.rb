@@ -45,7 +45,8 @@ RSpec.describe 'WrestlingEvents', type: :request do # rubocop:disable Metrics/Bl
           title: 'WrestleMania 40',
           promotion: 'WWE',
           date: Date.new(2024, 4, 6),
-          venue: 'Lincoln Financial Field'
+          venue: 'Lincoln Financial Field',
+          is_public: true
         )
       end
 
