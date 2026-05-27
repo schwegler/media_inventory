@@ -1,20 +1,8 @@
-<div class="page-header">
-  <h1>Comics</h1>
-  <%= link_to 'New Comic', new_comic_path, class: 'btn' %>
-</div>
-
-<ul class="media-grid">
+<h1>Comics</h1>
+<%= link_to 'New Comic', new_comic_path %>
+<ul>
   <% @comics.each do |comic| %>
-    <li class="media-card">
-      <div class="card-icon">📚</div>
-      <div class="card-content">
-        <h3><%= link_to comic.title, comic %></h3>
-        <span class="card-meta">Writer: <%= comic.writer %></span>
-      </div>
-    </li>
+    <li><%= link_to comic.title, comic %></li>
   <% end %>
 </ul>
-
-<div class="pagination-wrapper">
-  <%= paginate @comics %>
-</div>
+<%= paginate @comics %>

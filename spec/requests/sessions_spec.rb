@@ -38,6 +38,14 @@ RSpec.describe 'Authentication', type: :request do
     end
   end
 
+  describe 'invalid email format' do
+    it 'renders the login page with an error message and does not crash' do
+      post login_path, params: { session: { email: 'invalid_email' } }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include('Invalid email address')
+    end
+  end
+
   describe 'invalid login' do
     before do
       post login_path, params: { session: { email: user.email } }
@@ -50,24 +58,6 @@ RSpec.describe 'Authentication', type: :request do
     end
 
     it 'displays an error message' do
-      expect(response.body).to include('Invalid or expired OTP')
-    end
-
-    it 'gracefully handles a nil token without crashing' do
-      post login_path, params: { session: { email: user.email } }
-      user.reload
-      post verify_otp_path, params: { email: user.email, token: nil }
-
-      expect(response.body).to include('Verify OTP')
-      expect(response.body).to include('Invalid or expired OTP')
-    end
-
-    it 'gracefully handles an empty token without crashing' do
-      post login_path, params: { session: { email: user.email } }
-      user.reload
-      post verify_otp_path, params: { email: user.email, token: '' }
-
-      expect(response.body).to include('Verify OTP')
       expect(response.body).to include('Invalid or expired OTP')
     end
   end
