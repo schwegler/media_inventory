@@ -29,7 +29,7 @@ RSpec.describe SessionsController, type: :controller do
 
     context 'with existing user' do
       it 'generates token and redirects to verify_otp' do
-        expect(UserMailer).to receive_message_chain(:otp_email, :deliver_now)
+        expect(UserMailer).to receive_message_chain(:otp_email, :deliver_later)
 
         post :create, params: { session: { email: user.email } }
 
