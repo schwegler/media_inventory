@@ -1,20 +1,9 @@
-<div class="page-header">
-  <h1>Wrestling Events</h1>
-  <%= link_to 'New Wrestling Event', new_wrestling_event_path, class: 'btn' %>
-</div>
-
-<ul class="media-grid">
-  <% @wrestling_events.each do |wrestling_event| %>
-    <li class="media-card">
-      <div class="card-icon">🤼</div>
-      <div class="card-content">
-        <h3><%= link_to wrestling_event.title, wrestling_event %></h3>
-        <span class="card-meta">Venue: <%= wrestling_event.venue %></span>
-      </div>
-    </li>
+<h1>Wrestling Events</h1>
+<%= link_to 'New Wrestling Event', new_wrestling_event_path %>
+<ul>
+  <% @wrestling_events.each do |event| %>
+    <li><%= link_to event.title, event %></li>
   <% end %>
 </ul>
 
-<div class="pagination-wrapper">
-  <%= paginate @wrestling_events %>
-</div>
+<%= paginate @wrestling_events %>

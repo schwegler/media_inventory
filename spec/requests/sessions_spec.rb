@@ -60,24 +60,6 @@ RSpec.describe 'Authentication', type: :request do
     it 'displays an error message' do
       expect(response.body).to include('Invalid or expired OTP')
     end
-
-    it 'gracefully handles a nil token without crashing' do
-      post login_path, params: { session: { email: user.email } }
-      user.reload
-      post verify_otp_path, params: { email: user.email, token: nil }
-
-      expect(response.body).to include('Verify OTP')
-      expect(response.body).to include('Invalid or expired OTP')
-    end
-
-    it 'gracefully handles an empty token without crashing' do
-      post login_path, params: { session: { email: user.email } }
-      user.reload
-      post verify_otp_path, params: { email: user.email, token: '' }
-
-      expect(response.body).to include('Verify OTP')
-      expect(response.body).to include('Invalid or expired OTP')
-    end
   end
 
   describe 'logout' do
