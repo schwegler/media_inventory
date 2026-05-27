@@ -1,17 +1,20 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe InventoryController, type: :controller do
   let(:dummy_model) do
     Class.new do
       include ActiveModel::Model
+
       attr_accessor :id, :user, :title
 
-      def self.page(page)
+      def self.page(_page)
         [:page_data]
       end
 
       def self.find(id)
-        new(id: id)
+        new(id:)
       end
 
       def save
@@ -32,14 +35,14 @@ RSpec.describe InventoryController, type: :controller do
       end
 
       def model_name
-        ActiveModel::Name.new(self, nil, "Comic")
+        ActiveModel::Name.new(self, nil, 'Comic')
       end
     end
   end
 
   # We use testing base behavior via ComicsController to avoid routing issues with
   # AnonymousController routing
-  describe "controller actions via ComicsController" do
+  describe 'controller actions via ComicsController' do
     controller(ComicsController) do
       # Override the private methods to use our DummyModel to avoid DB calls
       # and easily control behavior
@@ -48,7 +51,7 @@ RSpec.describe InventoryController, type: :controller do
       end
 
       def resource_name
-        "comic"
+        'comic'
       end
 
       def resource_params
@@ -60,11 +63,11 @@ RSpec.describe InventoryController, type: :controller do
     end
 
     before do
-      stub_const("DummyModel", dummy_model)
+      stub_const('DummyModel', dummy_model)
     end
 
-    describe "GET #index" do
-      it "assigns @resources and specific pluralized instance variable" do
+    describe 'GET #index' do
+      it 'assigns @resources and specific pluralized instance variable' do
         get :index
         expect(controller.instance_variable_get(:@resources)).to eq([:page_data])
         expect(controller.instance_variable_get(:@comics)).to eq([:page_data])
@@ -72,8 +75,8 @@ RSpec.describe InventoryController, type: :controller do
       end
     end
 
-    describe "GET #new" do
-      it "assigns a new resource and specific instance variable" do
+    describe 'GET #new' do
+      it 'assigns a new resource and specific instance variable' do
         get :new
         expect(controller.instance_variable_get(:@resource)).to be_a(DummyModel)
         expect(controller.instance_variable_get(:@comic)).to be_a(DummyModel)
@@ -81,36 +84,36 @@ RSpec.describe InventoryController, type: :controller do
       end
     end
 
-    describe "GET #show" do
-      it "assigns the requested resource and specific instance variable" do
-        get :show, params: { id: "1" }
+    describe 'GET #show' do
+      it 'assigns the requested resource and specific instance variable' do
+        get :show, params: { id: '1' }
 
         resource = controller.instance_variable_get(:@resource)
         expect(resource).to be_a(DummyModel)
-        expect(resource.id).to eq("1")
+        expect(resource.id).to eq('1')
 
         comic_var = controller.instance_variable_get(:@comic)
         expect(comic_var).to be_a(DummyModel)
-        expect(comic_var.id).to eq("1")
+        expect(comic_var.id).to eq('1')
 
         expect(response).to have_http_status(:success)
       end
     end
 
-    describe "POST #create" do
+    describe 'POST #create' do
       let(:user) { double('User') }
 
       before do
         allow(controller).to receive(:current_user).and_return(user)
       end
 
-      context "with valid params" do
-        it "creates a new resource, assigns user, and redirects" do
-          post :create, params: { comic: { title: "Test Title" } }
+      context 'with valid params' do
+        it 'creates a new resource, assigns user, and redirects' do
+          post :create, params: { comic: { title: 'Test Title' } }
 
           resource = controller.instance_variable_get(:@resource)
           expect(resource).to be_a(DummyModel)
-          expect(resource.title).to eq("Test Title")
+          expect(resource.title).to eq('Test Title')
           expect(resource.user).to eq(user)
 
           # Since it's comics controller, it redirects to the comic
@@ -118,8 +121,8 @@ RSpec.describe InventoryController, type: :controller do
         end
       end
 
-      context "with invalid params" do
-        it "fails to save and renders new with unprocessable_content status" do
+      context 'with invalid params' do
+        it 'fails to save and renders new with unprocessable_content status' do
           # Stub out the render method to avoid missing template error
           # We just care about the status and that it renders new
           allow(controller).to receive(:render).and_call_original
@@ -141,32 +144,32 @@ RSpec.describe InventoryController, type: :controller do
     end
   end
 
-  describe "private methods" do
+  describe 'private methods' do
     # For private methods of InventoryController we can test an unmodified instance
-    let(:unmodified_controller) { InventoryController.new }
+    let(:unmodified_controller) { described_class.new }
 
-    describe "#resource_class" do
-      it "constantizes the controller name" do
-        allow(unmodified_controller).to receive(:controller_name).and_return("albums")
+    describe '#resource_class' do
+      it 'constantizes the controller name' do
+        allow(unmodified_controller).to receive(:controller_name).and_return('albums')
         expect(unmodified_controller.send(:resource_class)).to eq(Album)
       end
     end
 
-    describe "#resource_name" do
-      it "singularizes the controller name" do
-        allow(unmodified_controller).to receive(:controller_name).and_return("albums")
-        expect(unmodified_controller.send(:resource_name)).to eq("album")
+    describe '#resource_name' do
+      it 'singularizes the controller name' do
+        allow(unmodified_controller).to receive(:controller_name).and_return('albums')
+        expect(unmodified_controller.send(:resource_name)).to eq('album')
       end
     end
 
-    describe "#failure_status" do
-      it "returns :unprocessable_content" do
+    describe '#failure_status' do
+      it 'returns :unprocessable_content' do
         expect(unmodified_controller.send(:failure_status)).to eq(:unprocessable_content)
       end
     end
 
-    describe "#resource_params" do
-      it "raises NotImplementedError" do
+    describe '#resource_params' do
+      it 'raises NotImplementedError' do
         expect { unmodified_controller.send(:resource_params) }.to raise_error(NotImplementedError)
       end
     end
