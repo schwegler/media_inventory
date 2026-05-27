@@ -16,12 +16,18 @@ class SessionsController < ApplicationController
     else
       # Since we don't prompt for name on login, we'll use part of the email as the name to satisfy validations
       name = email.split('@').first.truncate(50)
-      user = User.create!(email: email, name: name)
-      user.generate_login_token
-      UserMailer.otp_email(user).deliver_now
+      user = User.new(email: email, name: name)
 
-      session[:login_email] = user.email
-      flash[:info] = 'Account created! Please confirm your email within 45 minutes by entering the OTP sent to you.'
+      if user.save
+        user.generate_login_token
+        UserMailer.otp_email(user).deliver_now
+
+        session[:login_email] = user.email
+        flash[:info] = 'Account created! Please confirm your email within 45 minutes by entering the OTP sent to you.'
+      else
+        flash.now[:danger] = 'Invalid email address.'
+        return render 'new', status: :unprocessable_content
+      end
     end
     redirect_to verify_otp_path
   end

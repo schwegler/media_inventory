@@ -38,6 +38,14 @@ RSpec.describe 'Authentication', type: :request do
     end
   end
 
+  describe 'invalid email format' do
+    it 'renders the login page with an error message and does not crash' do
+      post login_path, params: { session: { email: 'invalid_email' } }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include('Invalid email address')
+    end
+  end
+
   describe 'invalid login' do
     before do
       post login_path, params: { session: { email: user.email } }
