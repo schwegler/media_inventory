@@ -1,9 +1,20 @@
-<h1>TV Shows</h1>
-<%= link_to 'New TV Show', new_tv_show_path %>
-<ul>
+<div class="page-header">
+  <h1>TV Shows</h1>
+  <%= link_to 'New TV Show', new_tv_show_path, class: 'btn' %>
+</div>
+
+<ul class="media-grid">
   <% @tv_shows.each do |tv_show| %>
-    <li><%= link_to tv_show.title, tv_show %></li>
+    <li class="media-card">
+      <div class="card-icon">📺</div>
+      <div class="card-content">
+        <h3><%= link_to tv_show.title, tv_show %></h3>
+        <span class="card-meta">Network: <%= tv_show.network %></span>
+      </div>
+    </li>
   <% end %>
 </ul>
 
-<%= paginate @tv_shows %>
+<div class="pagination-wrapper">
+  <%= paginate @tv_shows %>
+</div>
