@@ -11,8 +11,10 @@ AllCops:
 
 Metrics/BlockLength:
   Exclude:
+    - 'spec/requests/collections_spec.rb'
     - 'spec/requests/movies_spec.rb'
     - 'spec/requests/users_destroy_spec.rb'
+    - 'spec/controllers/inventory_controller_spec.rb'
 
 Metrics/AbcSize:
   Max: 40
@@ -25,3 +27,7 @@ Metrics/CyclomaticComplexity:
 
 Metrics/PerceivedComplexity:
   Max: 12
+
+Naming/PredicateMethod:
+  Exclude:
+    - 'spec/controllers/inventory_controller_spec.rb'

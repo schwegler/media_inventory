@@ -1,5 +1,22 @@
-<h1><%= @wrestling_event.title %></h1>
-<p>Promotion: <%= @wrestling_event.promotion %></p>
-<p>Date: <%= @wrestling_event.date %></p>
-<p>Venue: <%= @wrestling_event.venue %></p>
-<%= link_to 'Back', wrestling_events_path %>
+<div class="details-card">
+  <h2><%= @wrestling_event.title %></h2>
+  
+  <div class="detail-row">
+    <strong>Promotion:</strong>
+    <span><%= @wrestling_event.promotion %></span>
+  </div>
+  
+  <div class="detail-row">
+    <strong>Date:</strong>
+    <span><%= @wrestling_event.date %></span>
+  </div>
+  
+  <div class="detail-row">
+    <strong>Venue:</strong>
+    <span><%= @wrestling_event.venue %></span>
+  </div>
+
+  <div class="actions">
+    <%= link_to 'Back', wrestling_events_path, class: 'btn btn-secondary' %>
+  </div>
+</div>

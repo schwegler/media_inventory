@@ -1,5 +1,22 @@
-<h1><%= @tv_show.title %></h1>
-<p>Season: <%= @tv_show.season %></p>
-<p>Episode: <%= @tv_show.episode %></p>
-<p>Network: <%= @tv_show.network %></p>
-<%= link_to 'Back', tv_shows_path %>
+<div class="details-card">
+  <h2><%= @tv_show.title %></h2>
+  
+  <div class="detail-row">
+    <strong>Season:</strong>
+    <span><%= @tv_show.season %></span>
+  </div>
+  
+  <div class="detail-row">
+    <strong>Episode:</strong>
+    <span><%= @tv_show.episode %></span>
+  </div>
+  
+  <div class="detail-row">
+    <strong>Network:</strong>
+    <span><%= @tv_show.network %></span>
+  </div>
+
+  <div class="actions">
+    <%= link_to 'Back', tv_shows_path, class: 'btn btn-secondary' %>
+  </div>
+</div>
