@@ -7,6 +7,11 @@
   <%= csrf_meta_tags %>
 </head>
 <body>
+  <div id="offline-banner" class="offline-banner">
+    <span class="offline-indicator-dot"></span>
+    <span id="offline-banner-text">Offline Mode | Submissions will be saved locally</span>
+  </div>
+
   <header>
     <nav>
       <ul class="nav-links">
@@ -22,6 +27,9 @@
         <% else %>
           <li><%= link_to "Log in", login_path %></li>
         <% end %>
+        <li id="nav-sync-item" style="display: none; align-self: center;">
+          <span class="nav-sync-badge" id="nav-sync-badge" title="Click to view pending items">0 pending</span>
+        </li>
       </ul>
     </nav>
   </header>
@@ -38,6 +46,18 @@
     <p>&copy; 2024 Sample App</p>
   </div>
 </footer>
+
+<div id="offline-toast-container" class="offline-toast-container"></div>
+
+<div id="pending-sync-panel" class="pending-sync-panel">
+  <div class="panel-header">
+    <span>Pending Sync Items</span>
+    <button class="close-btn" id="close-pending-panel">&times;</button>
+  </div>
+  <div class="panel-body" id="pending-sync-list">
+    <div class="empty-state">No pending items to sync.</div>
+  </div>
+</div>
 
 </body>
 </html>

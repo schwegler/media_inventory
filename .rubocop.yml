@@ -11,6 +11,7 @@ AllCops:
 
 Metrics/BlockLength:
   Exclude:
+    - 'spec/requests/collections_spec.rb'
     - 'spec/requests/movies_spec.rb'
     - 'spec/requests/users_destroy_spec.rb'
 
