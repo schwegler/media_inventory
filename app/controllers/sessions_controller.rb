@@ -11,22 +11,24 @@ class SessionsController < ApplicationController
 
     if user
       user.generate_login_token
-      UserMailer.otp_email(user).deliver_later
+      UserMailer.otp_email(user).deliver_now
       session[:login_email] = user.email
     else
       # Since we don't prompt for name on login, we'll use part of the email as the name to satisfy validations
       name = email.split('@').first.truncate(50)
-      user = User.create!(email: email, name: name)
-      user.generate_login_token
-      UserMailer.otp_email(user).deliver_later
+      user = User.new(email: email, name: name)
 
-      session[:login_email] = user.email
-      flash[:info] = 'Account created! Please confirm your email within 45 minutes by entering the OTP sent to you.'
+      if user.save
+        user.generate_login_token
+        UserMailer.otp_email(user).deliver_now
+
+        session[:login_email] = user.email
+        flash[:info] = 'Account created! Please confirm your email within 45 minutes by entering the OTP sent to you.'
+      else
+        flash.now[:danger] = 'Invalid email address.'
+        return render 'new', status: :unprocessable_content
+      end
     end
-
-    user.generate_login_token
-    UserMailer.otp_email(user).deliver_now
-    session[:login_email] = user.email
     redirect_to verify_otp_path
   end
 
@@ -41,9 +43,7 @@ class SessionsController < ApplicationController
     token = params[:token]
     user = User.find_by(email: email)
 
-    if user && user.login_token.present? && token.present? &&
-       ActiveSupport::SecurityUtils.secure_compare(user.login_token, token) &&
-       user.login_token_sent_at && user.login_token_sent_at > 45.minutes.ago
+    if user && user.login_token == token && user.login_token_sent_at && user.login_token_sent_at > 45.minutes.ago
       user.update(confirmed_at: Time.current, login_token: nil, login_token_sent_at: nil)
       reset_session
       log_in user
