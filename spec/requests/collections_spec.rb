@@ -67,7 +67,7 @@ RSpec.describe 'Collections', type: :request do
         get "/collections/#{user.id}"
 
         expect(response.body).not_to include('Public Album')
-        expect(response.body).to include("This user&#39;s collection is not public because their account is unconfirmed.")
+        expect(response.body).to include('This user&#39;s collection is not public because their account is unconfirmed.')
       end
     end
   end
