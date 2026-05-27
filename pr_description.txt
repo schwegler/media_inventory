@@ -1,0 +1,4 @@
+🎯 **What:** The code health issue addressed was the duplicated authentication logic (OTP generation, mail delivery, and setting the session) inside the `if/else` user block in `SessionsController#create`.
+💡 **Why:** This refactoring simplifies the `create` action by keeping the code DRY (Don't Repeat Yourself), enhancing maintainability, and making the flow easier to read.
+✅ **Verification:** Ran `rubocop` to ensure there were no formatting issues and tested the change thoroughly by running the `spec/requests/sessions_spec.rb` and the full RSpec test suite to confirm the changes did not break any existing functionality.
+✨ **Result:** A more readable, robust `SessionsController#create` with no behavioral changes.
