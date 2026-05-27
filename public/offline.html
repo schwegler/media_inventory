@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline - Media Inventory</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #0f172a;
+      color: #f1f5f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+      width: 100%;
+    }
+    .icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      animation: pulse-icon 2s infinite;
+      display: inline-block;
+    }
+    @keyframes pulse-icon {
+      0% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.1); opacity: 1; }
+      100% { transform: scale(1); opacity: 0.8; }
+    }
+    h1 {
+      font-size: 24px;
+      margin-top: 0;
+      margin-bottom: 12px;
+      color: #f8fafc;
+    }
+    p {
+      color: #94a3b8;
+      font-size: 16px;
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+    .nav-links {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .btn {
+      display: block;
+      padding: 12px 20px;
+      background-color: #3b82f6;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: background-color 0.2s;
+    }
+    .btn:hover {
+      background-color: #2563eb;
+    }
+    .btn-secondary {
+      background-color: #475569;
+    }
+    .btn-secondary:hover {
+      background-color: #334155;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">🔌</div>
+    <h1>You are Offline</h1>
+    <p>We can't connect to the server right now. Don't worry! You can still access forms you've visited, and any items you create will be saved locally and synchronized automatically when your connection is restored.</p>
+    
+    <div class="nav-links">
+      <a href="/movies/new" class="btn">Add a Movie</a>
+      <a href="/albums/new" class="btn">Add an Album</a>
+      <a href="/comics/new" class="btn">Add a Comic</a>
+      <a href="/tv_shows/new" class="btn">Add a TV Show</a>
+      <a href="/wrestling_events/new" class="btn">Add a Wrestling Event</a>
+      <a href="/" class="btn btn-secondary">Go to Dashboard</a>
+    </div>
+  </div>
+</body>
+</html>
