@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe UsersController, type: :controller do
+RSpec.describe UsersController, type: :controller do # rubocop:disable Metrics/BlockLength
   let(:user) { instance_double(User, id: 1, name: 'Test User', email: 'test@example.com', admin?: false) }
   let(:admin_user) { instance_double(User, id: 2, name: 'Admin User', email: 'admin@example.com', admin?: true) }
 
@@ -26,7 +26,7 @@ RSpec.describe UsersController, type: :controller do
         allow(User).to receive(:paginate).and_return(users)
 
         get :index
-        expect(assigns(:users)).to eq(users)
+        expect(controller.instance_variable_get(:@users)).to eq(users)
         expect(response).to have_http_status(:success)
       end
     end
@@ -50,7 +50,7 @@ RSpec.describe UsersController, type: :controller do
         allow(User).to receive(:find).with(user.id.to_s).and_return(user)
 
         get :show, params: { id: user.id }
-        expect(assigns(:user)).to eq(user)
+        expect(controller.instance_variable_get(:@user)).to eq(user)
         expect(response).to have_http_status(:success)
       end
     end
