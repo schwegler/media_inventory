@@ -26,6 +26,11 @@ class InventoryController < ApplicationController
 
   def show
     @resource = resource_class.find(params[:id])
+    unless @resource.is_public || (@resource.user && @resource.user == current_user)
+      flash[:danger] = 'You are not authorized to view this item.'
+      redirect_to root_url
+      return
+    end
     instance_variable_set("@#{resource_name}", @resource)
   end
 
