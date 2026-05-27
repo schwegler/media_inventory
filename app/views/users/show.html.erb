@@ -1,6 +1,12 @@
-<h1>
-  <%= @user.name %>
-</h1>
-<p>
-  Email: <%= @user.email %>
-</p>
+<div class="details-card">
+  <h2><%= @user.name %></h2>
+  
+  <div class="detail-row">
+    <strong>Email:</strong>
+    <span><%= @user.email %></span>
+  </div>
+
+  <div class="actions">
+    <%= link_to 'Back to Users', users_path, class: 'btn btn-secondary' %>
+  </div>
+</div>
