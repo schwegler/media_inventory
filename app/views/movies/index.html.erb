@@ -1,9 +1,20 @@
-<h1>Movies</h1>
-<%= link_to 'New Movie', new_movie_path %>
-<ul>
+<div class="page-header">
+  <h1>Movies</h1>
+  <%= link_to 'New Movie', new_movie_path, class: 'btn' %>
+</div>
+
+<ul class="media-grid">
   <% @movies.each do |movie| %>
-    <li><%= link_to movie.title, movie %></li>
+    <li class="media-card">
+      <div class="card-icon">🎬</div>
+      <div class="card-content">
+        <h3><%= link_to movie.title, movie %></h3>
+        <span class="card-meta">Director: <%= movie.director %></span>
+      </div>
+    </li>
   <% end %>
 </ul>
 
-<%= paginate @movies %>
+<div class="pagination-wrapper">
+  <%= paginate @movies %>
+</div>
