@@ -1,6 +1,27 @@
-<h1><%= @comic.title %></h1>
-<p>Issue: <%= @comic.issue_number %></p>
-<p>Publisher: <%= @comic.publisher %></p>
-<p>Writer: <%= @comic.writer %></p>
-<p>Artist: <%= @comic.artist %></p>
-<%= link_to 'Back', comics_path %>
+<div class="details-card">
+  <h2><%= @comic.title %></h2>
+  
+  <div class="detail-row">
+    <strong>Issue:</strong>
+    <span><%= @comic.issue_number %></span>
+  </div>
+  
+  <div class="detail-row">
+    <strong>Publisher:</strong>
+    <span><%= @comic.publisher %></span>
+  </div>
+  
+  <div class="detail-row">
+    <strong>Writer:</strong>
+    <span><%= @comic.writer %></span>
+  </div>
+
+  <div class="detail-row">
+    <strong>Artist:</strong>
+    <span><%= @comic.artist %></span>
+  </div>
+
+  <div class="actions">
+    <%= link_to 'Back', comics_path, class: 'btn btn-secondary' %>
+  </div>
+</div>
