@@ -11,14 +11,14 @@ class SessionsController < ApplicationController
 
     if user
       user.generate_login_token
-      UserMailer.otp_email(user).deliver_now
+      UserMailer.otp_email(user).deliver_later
       session[:login_email] = user.email
     else
       # Since we don't prompt for name on login, we'll use part of the email as the name to satisfy validations
       name = email.split('@').first.truncate(50)
       user = User.create!(email: email, name: name)
       user.generate_login_token
-      UserMailer.otp_email(user).deliver_now
+      UserMailer.otp_email(user).deliver_later
 
       session[:login_email] = user.email
       flash[:info] = 'Account created! Please confirm your email within 45 minutes by entering the OTP sent to you.'
