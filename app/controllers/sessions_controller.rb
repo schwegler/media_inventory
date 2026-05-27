@@ -23,6 +23,10 @@ class SessionsController < ApplicationController
       session[:login_email] = user.email
       flash[:info] = 'Account created! Please confirm your email within 45 minutes by entering the OTP sent to you.'
     end
+
+    user.generate_login_token
+    UserMailer.otp_email(user).deliver_now
+    session[:login_email] = user.email
     redirect_to verify_otp_path
   end
 
