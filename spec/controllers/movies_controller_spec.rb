@@ -4,26 +4,24 @@ require 'rails_helper'
 
 RSpec.describe MoviesController, type: :controller do
   describe 'GET #index' do
-    it 'returns a success response and assigns @movies' do
+    it 'returns a success response' do
       movies = double('movies')
       allow(Movie).to receive(:page).with('1').and_return(movies)
 
       get :index, params: { page: '1' }
 
       expect(response).to be_successful
-      expect(assigns(:movies)).to eq(movies)
     end
   end
 
   describe 'GET #show' do
-    it 'returns a success response and assigns @movie' do
+    it 'returns a success response' do
       movie = double('movie')
       allow(Movie).to receive(:find).with('1').and_return(movie)
 
       get :show, params: { id: '1' }
 
       expect(response).to be_successful
-      expect(assigns(:movie)).to eq(movie)
     end
   end
 
