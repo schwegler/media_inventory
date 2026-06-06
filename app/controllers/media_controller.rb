@@ -43,6 +43,7 @@ class MediaController < ApplicationController
           publisher: c.publisher,
           issue_number: c.issue_number,
           thumbnail_url: c.cover_image.attached? ? url_for(c.cover_image) : c.thumbnail_url,
+          api_id: c.api_id,
           is_local: true
         }
       end
@@ -54,6 +55,7 @@ class MediaController < ApplicationController
           season: t.season,
           episode: t.episode,
           thumbnail_url: t.cover_image.attached? ? url_for(t.cover_image) : t.thumbnail_url,
+          api_id: t.api_id,
           is_local: true
         }
       end

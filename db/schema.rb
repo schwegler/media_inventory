@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_06_180359) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_06_182331) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -71,7 +71,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_180359) do
     t.index ["user_id"], name: "index_albums_on_user_id"
   end
 
+  create_table "comic_issues", force: :cascade do |t|
+    t.integer "comic_id", null: false
+    t.datetime "created_at", null: false
+    t.string "publisher"
+    t.string "release_date"
+    t.string "thumbnail_url"
+    t.string "title"
+    t.datetime "updated_at", null: false
+    t.index ["comic_id"], name: "index_comic_issues_on_comic_id"
+  end
+
   create_table "comics", force: :cascade do |t|
+    t.string "api_id"
     t.string "artist"
     t.boolean "consumed", default: false, null: false
     t.date "consumed_at"
@@ -109,7 +121,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_180359) do
     t.index ["user_id"], name: "index_movies_on_user_id"
   end
 
+  create_table "tv_episodes", force: :cascade do |t|
+    t.string "air_date"
+    t.datetime "created_at", null: false
+    t.integer "episode"
+    t.string "name"
+    t.integer "season"
+    t.text "summary"
+    t.string "thumbnail_url"
+    t.integer "tv_show_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tv_show_id"], name: "index_tv_episodes_on_tv_show_id"
+  end
+
   create_table "tv_shows", force: :cascade do |t|
+    t.string "api_id"
     t.boolean "consumed", default: false, null: false
     t.date "consumed_at"
     t.datetime "created_at", null: false
@@ -162,8 +188,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_180359) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "activities", "users", on_delete: :cascade
   add_foreign_key "albums", "users", on_delete: :cascade
+  add_foreign_key "comic_issues", "comics", on_delete: :cascade
   add_foreign_key "comics", "users", on_delete: :cascade
   add_foreign_key "movies", "users", on_delete: :cascade
+  add_foreign_key "tv_episodes", "tv_shows", on_delete: :cascade
   add_foreign_key "tv_shows", "users", on_delete: :cascade
   add_foreign_key "wrestling_events", "users", on_delete: :cascade
 end
