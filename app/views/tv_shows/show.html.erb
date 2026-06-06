@@ -1,22 +1,48 @@
-<div class="details-card">
-  <h2><%= @tv_show.title %></h2>
-  
-  <div class="detail-row">
-    <strong>Season:</strong>
-    <span><%= @tv_show.season %></span>
-  </div>
-  
-  <div class="detail-row">
-    <strong>Episode:</strong>
-    <span><%= @tv_show.episode %></span>
-  </div>
-  
-  <div class="detail-row">
-    <strong>Network:</strong>
-    <span><%= @tv_show.network %></span>
+<div class="details-card" style="max-width: 700px;">
+  <div class="media-item-header">
+    <div class="media-item-cover">
+      <% if @tv_show.thumbnail_url.present? %>
+        <img src="<%= @tv_show.thumbnail_url %>" alt="<%= @tv_show.title %> Cover">
+      <% else %>
+        <span class="fallback-icon">📺</span>
+      <% end %>
+    </div>
+    
+    <div class="media-item-details">
+      <h1><%= @tv_show.title %></h1>
+      <div class="media-sub-meta">Season <%= @tv_show.season %> Episode <%= @tv_show.episode %> &bull; <%= @tv_show.network || 'Unknown Network' %></div>
+      
+      <div class="media-tracking-badges">
+        <% if @tv_show.is_collected? %>
+          <span class="tracking-badge badge-collected">📁 In Collection</span>
+        <% end %>
+        <% if @tv_show.in_watchlist? %>
+          <span class="tracking-badge badge-watchlist">⏳ Watchlist</span>
+        <% end %>
+        <% if @tv_show.consumed? %>
+          <span class="tracking-badge badge-consumed">
+            ✓ Watched <%= "on #{@tv_show.consumed_at.strftime('%b %d, %Y')}" if @tv_show.consumed_at.present? %>
+          </span>
+        <% end %>
+      </div>
+
+      <% if @tv_show.rating.present? %>
+        <div class="detail-row" style="border-bottom: none; padding: 0;">
+          <strong>Rating:</strong>
+          <span style="font-size: 1.2rem; color: #facc15;"><%= @tv_show.rating %> ★</span>
+        </div>
+      <% end %>
+    </div>
   </div>
 
-  <div class="actions">
+  <% if @tv_show.review.present? %>
+    <div class="media-review-box">
+      <h3>Review</h3>
+      <p><%= simple_format(@tv_show.review) %></p>
+    </div>
+  <% end %>
+
+  <div class="actions" style="margin-top: 2rem;">
     <%= link_to 'Back', tv_shows_path, class: 'btn btn-secondary' %>
   </div>
 </div>

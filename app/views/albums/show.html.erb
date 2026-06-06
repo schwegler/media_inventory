@@ -1,22 +1,48 @@
-<div class="details-card">
-  <h2><%= @album.title %></h2>
-  
-  <div class="detail-row">
-    <strong>Artist:</strong>
-    <span><%= @album.artist %></span>
-  </div>
-  
-  <div class="detail-row">
-    <strong>Release Year:</strong>
-    <span><%= @album.release_year %></span>
-  </div>
-  
-  <div class="detail-row">
-    <strong>Genre:</strong>
-    <span><%= @album.genre %></span>
+<div class="details-card" style="max-width: 700px;">
+  <div class="media-item-header">
+    <div class="media-item-cover">
+      <% if @album.thumbnail_url.present? %>
+        <img src="<%= @album.thumbnail_url %>" alt="<%= @album.title %> Cover">
+      <% else %>
+        <span class="fallback-icon">💿</span>
+      <% end %>
+    </div>
+    
+    <div class="media-item-details">
+      <h1><%= @album.title %></h1>
+      <div class="media-sub-meta">by <%= @album.artist || 'Unknown Artist' %> &bull; <%= @album.release_year %> &bull; <%= @album.genre || 'Various' %></div>
+      
+      <div class="media-tracking-badges">
+        <% if @album.is_collected? %>
+          <span class="tracking-badge badge-collected">📁 In Collection</span>
+        <% end %>
+        <% if @album.in_watchlist? %>
+          <span class="tracking-badge badge-watchlist">⏳ Watchlist</span>
+        <% end %>
+        <% if @album.consumed? %>
+          <span class="tracking-badge badge-consumed">
+            ✓ Listened <%= "on #{@album.consumed_at.strftime('%b %d, %Y')}" if @album.consumed_at.present? %>
+          </span>
+        <% end %>
+      </div>
+
+      <% if @album.rating.present? %>
+        <div class="detail-row" style="border-bottom: none; padding: 0;">
+          <strong>Rating:</strong>
+          <span style="font-size: 1.2rem; color: #facc15;"><%= @album.rating %> ★</span>
+        </div>
+      <% end %>
+    </div>
   </div>
 
-  <div class="actions">
+  <% if @album.review.present? %>
+    <div class="media-review-box">
+      <h3>Review</h3>
+      <p><%= simple_format(@album.review) %></p>
+    </div>
+  <% end %>
+
+  <div class="actions" style="margin-top: 2rem;">
     <%= link_to 'Back', albums_path, class: 'btn btn-secondary' %>
   </div>
 </div>

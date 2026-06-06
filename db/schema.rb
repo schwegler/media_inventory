@@ -10,13 +10,33 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_25_055232) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_06_000001) do
+  create_table "activities", force: :cascade do |t|
+    t.string "activity_type", null: false
+    t.datetime "created_at", null: false
+    t.text "details"
+    t.integer "trackable_id", null: false
+    t.string "trackable_type", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["created_at"], name: "index_activities_on_created_at"
+    t.index ["trackable_type", "trackable_id"], name: "index_activities_on_trackable"
+    t.index ["user_id"], name: "index_activities_on_user_id"
+  end
+
   create_table "albums", force: :cascade do |t|
     t.string "artist"
+    t.boolean "consumed", default: false, null: false
+    t.date "consumed_at"
     t.datetime "created_at", null: false
     t.string "genre"
+    t.boolean "in_watchlist", default: false, null: false
+    t.boolean "is_collected", default: true, null: false
     t.boolean "is_public", default: false
+    t.string "rating"
     t.integer "release_year"
+    t.text "review"
+    t.string "thumbnail_url"
     t.string "title"
     t.datetime "updated_at", null: false
     t.integer "user_id"
@@ -25,10 +45,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_25_055232) do
 
   create_table "comics", force: :cascade do |t|
     t.string "artist"
+    t.boolean "consumed", default: false, null: false
+    t.date "consumed_at"
     t.datetime "created_at", null: false
+    t.boolean "in_watchlist", default: false, null: false
+    t.boolean "is_collected", default: true, null: false
     t.boolean "is_public", default: false
     t.integer "issue_number"
     t.string "publisher"
+    t.string "rating"
+    t.text "review"
+    t.string "thumbnail_url"
     t.string "title"
     t.datetime "updated_at", null: false
     t.integer "user_id"
@@ -37,11 +64,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_25_055232) do
   end
 
   create_table "movies", force: :cascade do |t|
+    t.boolean "consumed", default: false, null: false
+    t.date "consumed_at"
     t.datetime "created_at", null: false
     t.string "director"
+    t.boolean "in_watchlist", default: false, null: false
+    t.boolean "is_collected", default: true, null: false
     t.boolean "is_public", default: false
     t.string "rating"
     t.integer "release_year"
+    t.text "review"
+    t.string "thumbnail_url"
     t.string "title"
     t.datetime "updated_at", null: false
     t.integer "user_id"
@@ -49,11 +82,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_25_055232) do
   end
 
   create_table "tv_shows", force: :cascade do |t|
+    t.boolean "consumed", default: false, null: false
+    t.date "consumed_at"
     t.datetime "created_at", null: false
     t.integer "episode"
+    t.boolean "in_watchlist", default: false, null: false
+    t.boolean "is_collected", default: true, null: false
     t.boolean "is_public", default: false
     t.string "network"
+    t.string "rating"
+    t.text "review"
     t.integer "season"
+    t.string "thumbnail_url"
     t.string "title"
     t.datetime "updated_at", null: false
     t.integer "user_id"
@@ -73,10 +113,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_25_055232) do
   end
 
   create_table "wrestling_events", force: :cascade do |t|
+    t.boolean "consumed", default: false, null: false
+    t.date "consumed_at"
     t.datetime "created_at", null: false
     t.date "date"
+    t.boolean "in_watchlist", default: false, null: false
+    t.boolean "is_collected", default: true, null: false
     t.boolean "is_public", default: false
     t.string "promotion"
+    t.string "rating"
+    t.text "review"
+    t.string "thumbnail_url"
     t.string "title"
     t.datetime "updated_at", null: false
     t.integer "user_id"
@@ -84,6 +131,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_25_055232) do
     t.index ["user_id"], name: "index_wrestling_events_on_user_id"
   end
 
+  add_foreign_key "activities", "users", on_delete: :cascade
   add_foreign_key "albums", "users", on_delete: :cascade
   add_foreign_key "comics", "users", on_delete: :cascade
   add_foreign_key "movies", "users", on_delete: :cascade
