@@ -15,4 +15,5 @@ SampleApp::Application.routes.draw do
   resources :wrestling_events
   resources :movies
   resources :albums
+  get '/db_status', to: 'landing#db_status'
 end
