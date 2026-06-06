@@ -18,7 +18,7 @@ export default class extends Controller {
   static targets = [
     "titleInput", "secondaryInput", "previewImg", "placeholder", "statusText", "optionsGrid", "thumbnailUrl",
     "director", "artist", "writer", "publisher", "releaseYear", "genre", "network", "venue", "promotion", "date",
-    "season", "episode", "issueNumber"
+    "season", "episode", "issueNumber", "apiId", "manualFormSection"
   ]
   static values = { mediaType: String }
 
@@ -35,6 +35,12 @@ export default class extends Controller {
 
   search() {
     this.debouncedFetch()
+  }
+
+  showManualForm() {
+    if (this.hasManualFormSectionTarget) {
+      this.manualFormSectionTarget.style.display = "block"
+    }
   }
 
   async fetchThumbnails() {
@@ -91,7 +97,7 @@ export default class extends Controller {
         return
       }
 
-      this.statusTextTarget.textContent = "Select a cover to pre-fill details:"
+      this.statusTextTarget.textContent = "Select a cover to pre-fill details or click '+ Add' to save instantly:"
 
       allResults.forEach((option, index) => {
         const imgBtn = document.createElement("div")
@@ -116,13 +122,22 @@ export default class extends Controller {
           <img src="${option.thumbnail_url}" alt="${option.title}">
           <span class="option-badge ${badgeClass}">${badgeText}</span>
           <div class="option-tooltip">${tooltipText}</div>
+          <button type="button" class="option-add-btn">+ Add</button>
         `
 
-        imgBtn.addEventListener("click", () => {
+        imgBtn.addEventListener("click", (e) => {
           this.optionsGridTarget.querySelectorAll(".thumbnail-option-card").forEach(card => card.classList.remove("selected"))
           imgBtn.classList.add("selected")
 
           this.selectOption(option)
+
+          // If "+ Add" button was clicked, auto-submit the form
+          if (e.target.classList.contains("option-add-btn")) {
+            const form = this.element.querySelector("form")
+            if (form) {
+              form.requestSubmit()
+            }
+          }
         })
 
         this.optionsGridTarget.appendChild(imgBtn)
@@ -130,7 +145,13 @@ export default class extends Controller {
 
       // Auto-select first cover if user hasn't selected one
       const firstCard = this.optionsGridTarget.querySelector(".thumbnail-option-card")
-      if (firstCard) firstCard.click()
+      if (firstCard) {
+        // Just select it to populate form fields, but don't auto-submit it
+        this.optionsGridTarget.querySelectorAll(".thumbnail-option-card").forEach(card => card.classList.remove("selected"))
+        firstCard.classList.add("selected")
+        const idx = Array.from(this.optionsGridTarget.children).indexOf(firstCard)
+        this.selectOption(allResults[idx])
+      }
 
     } catch (err) {
       console.error("Error fetching thumbnails:", err)
@@ -182,30 +203,30 @@ export default class extends Controller {
             network: show.network ? show.network.name : (show.webChannel ? show.webChannel.name : null),
             release_year: show.premiered ? new Date(show.premiered).getFullYear() : null,
             thumbnail_url: show.image ? (show.image.original || show.image.medium) : null,
+            api_id: show.id,
             is_local: false
           }
         }).filter(r => r.thumbnail_url)
 
       } else if (mediaType === "comic") {
-        const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=5`
+        // Open Library API: completely free, no API key needed
+        const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=5`
         const response = await fetch(url)
         const data = await response.json()
-        return (data.items || []).map(item => {
-          const info = item.volumeInfo
-          const imageLinks = info?.imageLinks
-          const year = info?.publishedDate ? new Date(info.publishedDate).getFullYear() : null
+        return (data.docs || []).map(doc => {
+          const author = doc.author_name ? doc.author_name.join(", ") : null
+          const releaseYear = doc.first_publish_year || null
+          const apiId = doc.key ? doc.key.replace("/works/", "") : null
+          const coverUrl = doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : null
           return {
-            title: info.title,
-            writer: info.authors ? info.authors.join(", ") : null,
-            publisher: info.publisher,
-            release_year: isNaN(year) ? null : year,
-            thumbnail_url: imageLinks?.thumbnail || imageLinks?.smallThumbnail,
+            title: doc.title,
+            writer: author,
+            release_year: releaseYear,
+            thumbnail_url: coverUrl,
+            api_id: apiId,
             is_local: false
           }
-        }).filter(r => r.thumbnail_url).map(r => {
-          r.thumbnail_url = r.thumbnail_url.replace("http://", "https://")
-          return r
-        })
+        }).filter(r => r.thumbnail_url)
 
       } else if (mediaType === "wrestling_event") {
         const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&limit=15&country=US`
@@ -243,18 +264,19 @@ export default class extends Controller {
     }
 
     // 3. Auto-populate targets dynamically
-    if (this.hasDirectorTarget && option.director) this.directorTarget.value = option.director
-    if (this.hasArtistTarget && option.artist) this.artistTarget.value = option.artist
-    if (this.hasWriterTarget && option.writer) this.writerTarget.value = option.writer
-    if (this.hasPublisherTarget && option.publisher) this.publisherTarget.value = option.publisher
-    if (this.hasReleaseYearTarget && option.release_year) this.releaseYearTarget.value = option.release_year
-    if (this.hasGenreTarget && option.genre) this.genreTarget.value = option.genre
-    if (this.hasNetworkTarget && option.network) this.networkTarget.value = option.network
-    if (this.hasVenueTarget && option.venue) this.venueTarget.value = option.venue
-    if (this.hasPromotionTarget && option.promotion) this.promotionTarget.value = option.promotion
-    if (this.hasDateTarget && option.date) this.dateTarget.value = option.date
-    if (this.hasSeasonTarget && option.season) this.seasonTarget.value = option.season
-    if (this.hasEpisodeTarget && option.episode) this.episodeTarget.value = option.episode
-    if (this.hasIssueNumberTarget && option.issue_number) this.issueNumberTarget.value = option.issue_number
+    if (this.hasDirectorTarget) this.directorTarget.value = option.director || ""
+    if (this.hasArtistTarget) this.artistTarget.value = option.artist || ""
+    if (this.hasWriterTarget) this.writerTarget.value = option.writer || ""
+    if (this.hasPublisherTarget) this.publisherTarget.value = option.publisher || ""
+    if (this.hasReleaseYearTarget) this.releaseYearTarget.value = option.release_year || ""
+    if (this.hasGenreTarget) this.genreTarget.value = option.genre || ""
+    if (this.hasNetworkTarget) this.networkTarget.value = option.network || ""
+    if (this.hasVenueTarget) this.venueTarget.value = option.venue || ""
+    if (this.hasPromotionTarget) this.promotionTarget.value = option.promotion || ""
+    if (this.hasDateTarget) this.dateTarget.value = option.date || ""
+    if (this.hasSeasonTarget) this.seasonTarget.value = option.season || ""
+    if (this.hasEpisodeTarget) this.episodeTarget.value = option.episode || ""
+    if (this.hasIssueNumberTarget) this.issueNumberTarget.value = option.issue_number || ""
+    if (this.hasApiIdTarget) this.apiIdTarget.value = option.api_id || ""
   }
 }
