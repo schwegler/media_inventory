@@ -12,6 +12,7 @@ class User < ApplicationRecord
   has_many :movies
   has_many :tv_shows
   has_many :wrestling_events
+  has_many :activities, dependent: :destroy
 
   after_create :schedule_cleanup_unconfirmed
 

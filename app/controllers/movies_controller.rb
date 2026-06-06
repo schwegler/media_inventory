@@ -14,6 +14,7 @@ class MoviesController < InventoryController
   private
 
   def resource_params
-    params.require(:movie).permit(:title, :director, :release_year, :rating, :is_public)
+    params.require(:movie).permit(:title, :director, :release_year, :rating, :is_public, :thumbnail_url, :in_watchlist,
+                                  :is_collected, :consumed, :consumed_at, :review)
   end
 end

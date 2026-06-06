@@ -1,27 +1,52 @@
-<div class="details-card">
-  <h2><%= @comic.title %></h2>
-  
-  <div class="detail-row">
-    <strong>Issue:</strong>
-    <span><%= @comic.issue_number %></span>
-  </div>
-  
-  <div class="detail-row">
-    <strong>Publisher:</strong>
-    <span><%= @comic.publisher %></span>
-  </div>
-  
-  <div class="detail-row">
-    <strong>Writer:</strong>
-    <span><%= @comic.writer %></span>
+<div class="details-card" style="max-width: 700px;">
+  <div class="media-item-header">
+    <div class="media-item-cover">
+      <% if @comic.thumbnail_url.present? %>
+        <img src="<%= @comic.thumbnail_url %>" alt="<%= @comic.title %> Cover">
+      <% else %>
+        <span class="fallback-icon">📚</span>
+      <% end %>
+    </div>
+    
+    <div class="media-item-details">
+      <h1><%= @comic.title %> <%= "##{@comic.issue_number}" if @comic.issue_number.present? %></h1>
+      <div class="media-sub-meta">
+        Written by <%= @comic.writer || 'Unknown' %> &bull; Art by <%= @comic.artist || 'Unknown' %>
+        <br>
+        Published by <%= @comic.publisher || 'Independent' %>
+      </div>
+      
+      <div class="media-tracking-badges">
+        <% if @comic.is_collected? %>
+          <span class="tracking-badge badge-collected">📁 In Collection</span>
+        <% end %>
+        <% if @comic.in_watchlist? %>
+          <span class="tracking-badge badge-watchlist">⏳ Watchlist</span>
+        <% end %>
+        <% if @comic.consumed? %>
+          <span class="tracking-badge badge-consumed">
+            ✓ Read <%= "on #{@comic.consumed_at.strftime('%b %d, %Y')}" if @comic.consumed_at.present? %>
+          </span>
+        <% end %>
+      </div>
+
+      <% if @comic.rating.present? %>
+        <div class="detail-row" style="border-bottom: none; padding: 0;">
+          <strong>Rating:</strong>
+          <span style="font-size: 1.2rem; color: #facc15;"><%= @comic.rating %> ★</span>
+        </div>
+      <% end %>
+    </div>
   </div>
 
-  <div class="detail-row">
-    <strong>Artist:</strong>
-    <span><%= @comic.artist %></span>
-  </div>
+  <% if @comic.review.present? %>
+    <div class="media-review-box">
+      <h3>Review</h3>
+      <p><%= simple_format(@comic.review) %></p>
+    </div>
+  <% end %>
 
-  <div class="actions">
+  <div class="actions" style="margin-top: 2rem;">
     <%= link_to 'Back', comics_path, class: 'btn btn-secondary' %>
   </div>
 </div>
