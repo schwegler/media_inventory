@@ -40,5 +40,16 @@ module SampleApp
 
     # Don't generate system test files.
     config.generators.system_tests = nil
+
+    # Run pending database migrations automatically on production boot
+    config.after_initialize do
+      if Rails.env.production?
+        begin
+          ActiveRecord::Tasks::DatabaseTasks.migrate
+        rescue StandardError => e
+          Rails.logger.error "Auto-migration failed on boot: #{e.message}"
+        end
+      end
+    end
   end
 end
