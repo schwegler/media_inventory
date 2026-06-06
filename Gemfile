@@ -21,10 +21,9 @@ gem 'propshaft'
 gem 'psych', '5.4.0'
 gem 'rdoc', '>= 6.5.1.1'
 
-group :development, :test do
-  # Use sqlite3 as the database for Active Record
-  gem 'sqlite3', '~> 2.9'
+gem 'sqlite3', '~> 2.9'
 
+group :development, :test do
   gem 'brakeman'
   gem 'bundler-audit'
   gem 'rspec-rails', '~> 8.0'
