@@ -16,7 +16,8 @@ class LandingController < ApplicationController
       database_error: nil,
       pending_migrations: nil,
       activities_count: nil,
-      users_count: nil
+      users_count: nil,
+      database_url: ENV['DATABASE_URL']&.gsub(/:[^@\/]+@/, ':FILTERED@')
     }
 
     begin
