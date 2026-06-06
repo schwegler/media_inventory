@@ -3,5 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe 'sessions/create.html.erb', type: :view do
-  pending "add some examples to (or delete) #{__FILE__}"
+  it 'renders the create placeholder' do
+    render
+    expect(rendered).to match(/Sessions#create/)
+  end
 end

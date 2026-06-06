@@ -3,5 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe 'sessions/destroy.html.erb', type: :view do
-  pending "add some examples to (or delete) #{__FILE__}"
+  it 'renders the destroy placeholder' do
+    render
+    expect(rendered).to match(/Sessions#destroy/)
+  end
 end

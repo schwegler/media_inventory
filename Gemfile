@@ -9,13 +9,13 @@ gem 'rails', '~> 8.1.3'
 gem 'puma', '>= 5.0'
 
 # Hotwire stack
-gem 'turbo-rails'
-gem 'stimulus-rails'
 gem 'importmap-rails'
+gem 'stimulus-rails'
+gem 'turbo-rails'
 
 # Asset pipeline (Propshaft replaces Sprockets for Rails 8)
-gem 'propshaft'
 gem 'dartsass-rails'
+gem 'propshaft'
 
 # Constrain dependencies to avoid compilation issues with native extensions
 gem 'psych', '5.4.0'
