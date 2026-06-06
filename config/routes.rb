@@ -15,4 +15,5 @@ SampleApp::Application.routes.draw do
   resources :movies
   resources :albums
   get '/db_status', to: 'landing#db_status'
+  get '/media/autocomplete', to: 'media#autocomplete'
 end

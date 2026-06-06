@@ -30,19 +30,23 @@
         </div>
       </div>
       <%= f.hidden_field :thumbnail_url, data: { thumbnail_fetcher_target: "thumbnailUrl" } %>
+      <div style="margin-top: 15px;">
+        <%= f.label :cover_image, "Upload Custom Cover Art (Fallback)" %>
+        <%= f.file_field :cover_image, class: 'form-control' %>
+      </div>
     </div>
 
     <div>
       <%= f.label :season %>
-      <%= f.number_field :season %>
+      <%= f.number_field :season, data: { thumbnail_fetcher_target: "season" } %>
     </div>
     <div>
       <%= f.label :episode %>
-      <%= f.number_field :episode %>
+      <%= f.number_field :episode, data: { thumbnail_fetcher_target: "episode" } %>
     </div>
     <div>
       <%= f.label :network %>
-      <%= f.text_field :network %>
+      <%= f.text_field :network, data: { thumbnail_fetcher_target: "secondaryInput network", action: "input->thumbnail-fetcher#search" } %>
     </div>
 
     <div class="form-row-toggles">

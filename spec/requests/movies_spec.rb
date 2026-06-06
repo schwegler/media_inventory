@@ -77,6 +77,24 @@ RSpec.describe 'Movies', type: :request do
           end.to change(Movie, :count).by(1)
           expect(response).to redirect_to(Movie.last)
         end
+
+        it 'creates a new movie with a custom cover image' do
+          temp_file = Tempfile.new(['test_cover', '.png'])
+          temp_file.write('dummy content')
+          temp_file.rewind
+          uploaded_file = fixture_file_upload(temp_file.path, 'image/png')
+
+          expect do
+            post movies_path, params: { movie: { title: 'New Movie with Cover', cover_image: uploaded_file } }
+          end.to change(Movie, :count).by(1)
+
+          movie = Movie.last
+          expect(movie.cover_image).to be_attached
+          expect(movie.cover_image.filename.to_s).to include('test_cover')
+
+          temp_file.close
+          temp_file.unlink
+        end
       end
 
       context 'with invalid parameters' do

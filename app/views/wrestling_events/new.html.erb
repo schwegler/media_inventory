@@ -18,7 +18,7 @@
     </div>
     <div>
       <%= f.label :promotion %>
-      <%= f.text_field :promotion, data: { thumbnail_fetcher_target: "secondaryInput", action: "input->thumbnail-fetcher#search" } %>
+      <%= f.text_field :promotion, data: { thumbnail_fetcher_target: "secondaryInput promotion", action: "input->thumbnail-fetcher#search" } %>
     </div>
 
     <div class="thumbnail-fetcher-container">
@@ -34,15 +34,19 @@
         </div>
       </div>
       <%= f.hidden_field :thumbnail_url, data: { thumbnail_fetcher_target: "thumbnailUrl" } %>
+      <div style="margin-top: 15px;">
+        <%= f.label :cover_image, "Upload Custom Cover Art (Fallback)" %>
+        <%= f.file_field :cover_image, class: 'form-control' %>
+      </div>
     </div>
 
     <div>
       <%= f.label :date, "Event Date" %>
-      <%= f.date_field :date %>
+      <%= f.date_field :date, data: { thumbnail_fetcher_target: "date" } %>
     </div>
     <div>
       <%= f.label :venue %>
-      <%= f.text_field :venue %>
+      <%= f.text_field :venue, data: { thumbnail_fetcher_target: "venue" } %>
     </div>
 
     <div class="form-row-toggles">

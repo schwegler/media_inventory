@@ -18,7 +18,7 @@
     </div>
     <div>
       <%= f.label :director %>
-      <%= f.text_field :director, data: { thumbnail_fetcher_target: "secondaryInput", action: "input->thumbnail-fetcher#search" } %>
+      <%= f.text_field :director, data: { thumbnail_fetcher_target: "secondaryInput director", action: "input->thumbnail-fetcher#search" } %>
     </div>
 
     <div class="thumbnail-fetcher-container">
@@ -34,11 +34,15 @@
         </div>
       </div>
       <%= f.hidden_field :thumbnail_url, data: { thumbnail_fetcher_target: "thumbnailUrl" } %>
+      <div style="margin-top: 15px;">
+        <%= f.label :cover_image, "Upload Custom Cover Art (Fallback)" %>
+        <%= f.file_field :cover_image, class: 'form-control' %>
+      </div>
     </div>
 
     <div>
       <%= f.label :release_year %>
-      <%= f.number_field :release_year %>
+      <%= f.number_field :release_year, data: { thumbnail_fetcher_target: "releaseYear" } %>
     </div>
 
     <div class="form-row-toggles">

@@ -8,7 +8,9 @@
     <% @albums.each do |album| %>
       <li class="media-card">
         <div class="card-icon" style="padding: 0; overflow: hidden; background: #000;">
-          <% if album.thumbnail_url.present? %>
+          <% if album.cover_image.attached? %>
+            <%= image_tag album.cover_image, alt: "Cover", style: "width: 100%; height: 100%; object-fit: cover;" %>
+          <% elsif album.thumbnail_url.present? %>
             <img src="<%= album.thumbnail_url %>" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
           <% else %>
             💿

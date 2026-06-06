@@ -19,7 +19,7 @@ Rails.application.configure do
 
     # Additional security directives
     policy.base_uri    :self
-    policy.connect_src :self, 'https://itunes.apple.com', 'https://www.googleapis.com'
+    policy.connect_src :self, 'https://itunes.apple.com', 'https://www.googleapis.com', 'https://api.tvmaze.com'
     policy.form_action :self
   end
 

@@ -8,7 +8,9 @@
     <% @movies.each do |movie| %>
       <li class="media-card">
         <div class="card-icon" style="padding: 0; overflow: hidden; background: #000;">
-          <% if movie.thumbnail_url.present? %>
+          <% if movie.cover_image.attached? %>
+            <%= image_tag movie.cover_image, alt: "Cover", style: "width: 100%; height: 100%; object-fit: cover;" %>
+          <% elsif movie.thumbnail_url.present? %>
             <img src="<%= movie.thumbnail_url %>" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
           <% else %>
             🎬
