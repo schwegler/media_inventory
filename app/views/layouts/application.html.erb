@@ -1,20 +1,24 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <title><%= full_title(yield(:title)) %></title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="turbo-refresh-method" content="morph">
+  <meta name="turbo-refresh-scroll" content="preserve">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <%= stylesheet_link_tag    "application", media: "all", "data-turbolinks-track" => true %>
-  <%= javascript_include_tag "application", "data-turbolinks-track" => true, defer: true %>
+  <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+  <%= javascript_importmap_tags %>
   <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+  <% if hotwire_native_app? %>
+    <meta name="turbo-visit-control" content="reload">
+  <% end %>
 </head>
-<body>
-  <div id="offline-banner" class="offline-banner">
-    <span class="offline-indicator-dot"></span>
-    <span id="offline-banner-text">Offline Mode | Submissions will be saved locally</span>
-  </div>
+<body <% if hotwire_native_app? %>data-native="true"<% end %>>
 
+  <% unless hotwire_native_app? %>
   <header>
     <nav>
       <ul class="nav-links">
@@ -26,20 +30,20 @@
         <% if logged_in? %>
           <li><%= link_to "Users", users_path %></li>
           <li><%= link_to "Profile", current_user %></li>
-          <li><%= link_to "Log out", logout_path, method: :delete %></li>
+          <li><%= button_to "Log out", logout_path, method: :delete, class: "nav-logout-btn" %></li>
         <% else %>
           <li><%= link_to "Log in", login_path %></li>
         <% end %>
-        <li id="nav-sync-item" style="display: none; align-self: center;">
-          <span class="nav-sync-badge" id="nav-sync-badge" title="Click to view pending items">0 pending</span>
-        </li>
       </ul>
     </nav>
   </header>
+  <% end %>
 
 <main class="container">
   <% flash.each do |message_type, message| %>
-    <div class="alert alert-<%= message_type %>"><%= message %></div>
+    <div class="alert alert-<%= message_type %>" data-controller="flash" data-flash-dismiss-after-value="5000">
+      <%= message %>
+    </div>
   <% end %>
   <%= yield %>
 </main>
@@ -50,17 +54,7 @@
   </div>
 </footer>
 
-<div id="offline-toast-container" class="offline-toast-container"></div>
-
-<div id="pending-sync-panel" class="pending-sync-panel">
-  <div class="panel-header">
-    <span>Pending Sync Items</span>
-    <button class="close-btn" id="close-pending-panel">&times;</button>
-  </div>
-  <div class="panel-body" id="pending-sync-list">
-    <div class="empty-state">No pending items to sync.</div>
-  </div>
-</div>
+<%= turbo_frame_tag "modal" %>
 
 </body>
 </html>

@@ -3,24 +3,28 @@
   <%= link_to 'New Wrestling Event', new_wrestling_event_path, class: 'btn' %>
 </div>
 
-<ul class="media-grid">
-  <% @wrestling_events.each do |wrestling_event| %>
-    <li class="media-card">
-      <div class="card-icon" style="padding: 0; overflow: hidden; background: #000;">
-        <% if wrestling_event.thumbnail_url.present? %>
-          <img src="<%= wrestling_event.thumbnail_url %>" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
-        <% else %>
-          🤼
-        <% end %>
-      </div>
-      <div class="card-content">
-        <h3><%= link_to wrestling_event.title, wrestling_event %></h3>
-        <span class="card-meta">Venue: <%= wrestling_event.venue %></span>
-      </div>
-    </li>
-  <% end %>
-</ul>
+<turbo-frame id="items_list">
+  <ul class="media-grid">
+    <% @wrestling_events.each do |wrestling_event| %>
+      <li class="media-card">
+        <div class="card-icon" style="padding: 0; overflow: hidden; background: #000;">
+          <% if wrestling_event.cover_image.attached? %>
+            <%= image_tag wrestling_event.cover_image, alt: "Cover", style: "width: 100%; height: 100%; object-fit: cover;" %>
+          <% elsif wrestling_event.thumbnail_url.present? %>
+            <img src="<%= wrestling_event.thumbnail_url %>" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
+          <% else %>
+            🤼
+          <% end %>
+        </div>
+        <div class="card-content">
+          <h3><%= link_to wrestling_event.title, wrestling_event, data: { turbo_frame: "_top" } %></h3>
+          <span class="card-meta">Venue: <%= wrestling_event.venue %></span>
+        </div>
+      </li>
+    <% end %>
+  </ul>
 
-<div class="pagination-wrapper">
-  <%= paginate @wrestling_events %>
-</div>
+  <div class="pagination-wrapper">
+    <%= paginate @wrestling_events %>
+  </div>
+</turbo-frame>

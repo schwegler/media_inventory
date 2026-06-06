@@ -1,7 +1,9 @@
 <div class="details-card" style="max-width: 700px;">
   <div class="media-item-header">
     <div class="media-item-cover">
-      <% if @comic.thumbnail_url.present? %>
+      <% if @comic.cover_image.attached? %>
+        <%= image_tag @comic.cover_image, alt: "#{@comic.title} Cover" %>
+      <% elsif @comic.thumbnail_url.present? %>
         <img src="<%= @comic.thumbnail_url %>" alt="<%= @comic.title %> Cover">
       <% else %>
         <span class="fallback-icon">📚</span>
@@ -45,6 +47,67 @@
       <p><%= simple_format(@comic.review) %></p>
     </div>
   <% end %>
+
+  <% stats = community_stats_for(@comic) %>
+  <div class="community-section">
+    <h2>Community Activity</h2>
+    
+    <div class="community-stats">
+      <div class="stat-box">
+        <div class="stat-label">Average Rating</div>
+        <div class="stat-value">
+          <% if stats[:avg_rating] %>
+            <%= stats[:avg_rating] %> ★
+          <% else %>
+            —
+          <% end %>
+        </div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Readers</div>
+        <div class="stat-value"><%= stats[:watchers].size %></div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Collectors</div>
+        <div class="stat-value"><%= stats[:collectors].size %></div>
+      </div>
+    </div>
+
+    <% if stats[:reviews].any? %>
+      <h3 style="font-size: 1.2rem; margin-bottom: 1rem;">Community Reviews</h3>
+      <div class="community-reviews-list">
+        <% stats[:reviews].each do |matching_item| %>
+          <div class="community-review-card">
+            <div class="review-header">
+              <span class="review-user"><%= matching_item.user.name.presence || matching_item.user.email %></span>
+              <% if matching_item.rating.present? %>
+                <span class="review-rating"><%= matching_item.rating %> ★</span>
+              <% end %>
+            </div>
+            <div class="review-content"><%= simple_format(matching_item.review) %></div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <% if stats[:watchers].any? %>
+      <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; margin-top: 1.5rem;">Readers</h3>
+      <div class="community-members-list" style="margin-bottom: 1.5rem;">
+        <% stats[:watchers].each do |user| %>
+          <span class="member-tag">👤 <%= user.name.presence || user.email %></span>
+        <% end %>
+      </div>
+    <% end %>
+
+    <% if stats[:collectors].any? %>
+      <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Collectors</h3>
+      <div class="community-members-list">
+        <% stats[:collectors].each do |user| %>
+          <span class="member-tag">📁 <%= user.name.presence || user.email %></span>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
 
   <div class="actions" style="margin-top: 2rem;">
     <%= link_to 'Back', comics_path, class: 'btn btn-secondary' %>

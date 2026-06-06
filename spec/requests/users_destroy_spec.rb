@@ -4,13 +4,16 @@ require 'rails_helper'
 
 RSpec.describe 'Users destroy', type: :request do
   let!(:user) do
-    User.create!(name: 'Example User', email: 'user@example.com')
+    User.create!(name: 'Example User', email: 'user@example.com', password: 'password123',
+                 password_confirmation: 'password123')
   end
   let!(:other_user) do
-    User.create!(name: 'Other User', email: 'other@example.com')
+    User.create!(name: 'Other User', email: 'other@example.com', password: 'password123',
+                 password_confirmation: 'password123')
   end
   let!(:admin) do
-    User.create!(name: 'Admin User', email: 'admin@example.com', admin: true)
+    User.create!(name: 'Admin User', email: 'admin@example.com', password: 'password123',
+                 password_confirmation: 'password123', admin: true)
   end
 
   context 'as non-logged-in user' do
@@ -28,9 +31,7 @@ RSpec.describe 'Users destroy', type: :request do
 
   context 'as non-admin user' do
     before do
-      post login_path, params: { session: { email: user.email } }
-      user.reload
-      post verify_otp_path, params: { email: user.email, token: user.login_token }
+      post login_path, params: { session: { email: user.email, password: 'password123' } }
     end
 
     it 'redirects to the root url' do
@@ -47,9 +48,7 @@ RSpec.describe 'Users destroy', type: :request do
 
   context 'as admin user' do
     before do
-      post login_path, params: { session: { email: admin.email } }
-      admin.reload
-      post verify_otp_path, params: { email: admin.email, token: admin.login_token }
+      post login_path, params: { session: { email: admin.email, password: 'password123' } }
     end
 
     it 'deletes the user' do

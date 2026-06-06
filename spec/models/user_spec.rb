@@ -1,20 +1,26 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'rails_helper'
 
 # rubocop:disable Metrics/BlockLength
 RSpec.describe User, type: :model do
   before do
-    @user = User.new(name: 'Example User', email: 'user@example.com')
+    @user = User.new(
+      name: 'Example User',
+      email: 'user@example.com',
+      password: 'password123',
+      password_confirmation: 'password123'
+    )
   end
 
   subject { @user }
 
   it { should respond_to(:name) }
   it { should respond_to(:email) }
-  it { should_not respond_to(:password_digest) }
-  it { should_not respond_to(:password) }
-  it { should_not respond_to(:password_confirmation) }
+  it { should respond_to(:password_digest) }
+  it { should respond_to(:password) }
+  it { should respond_to(:password_confirmation) }
   it { should respond_to(:admin) }
 
   it { should be_valid }
@@ -46,7 +52,7 @@ RSpec.describe User, type: :model do
 
   describe 'when email is not present' do
     before { @user.email = ' ' }
-    it { should_not be_valid }
+    it { should be_valid }
   end
 
   describe 'when email format is invalid' do

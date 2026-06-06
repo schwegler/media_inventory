@@ -23,7 +23,7 @@ RSpec.describe UsersController, type: :controller do # rubocop:disable Metrics/B
 
       it 'assigns @users and returns success' do
         users = [user]
-        allow(User).to receive(:paginate).and_return(users)
+        allow(User).to receive(:page).and_return(users)
 
         get :index
         expect(controller.instance_variable_get(:@users)).to eq(users)
@@ -83,11 +83,12 @@ RSpec.describe UsersController, type: :controller do # rubocop:disable Metrics/B
       end
 
       it 'deletes the user and redirects to users index' do
-        allow(User).to receive(:delete).with(user.id.to_s).and_return(1)
+        allow(User).to receive(:find).with(user.id.to_s).and_return(user)
+        allow(user).to receive(:destroy).and_return(true)
 
         delete :destroy, params: { id: user.id }
 
-        expect(User).to have_received(:delete).with(user.id.to_s)
+        expect(user).to have_received(:destroy)
         expect(flash[:success]).to eq('User deleted')
         expect(response).to redirect_to(users_url)
       end

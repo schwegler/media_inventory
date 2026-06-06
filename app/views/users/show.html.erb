@@ -6,7 +6,10 @@
     <span><%= @user.email %></span>
   </div>
 
-  <div class="actions">
+  <div class="actions" style="margin-top: 20px; display: flex; gap: 10px;">
+    <% if current_user?(@user) %>
+      <%= link_to 'Edit Profile', edit_user_path(@user), class: 'btn' %>
+    <% end %>
     <%= link_to 'Back to Users', users_path, class: 'btn btn-secondary' %>
   </div>
 </div>

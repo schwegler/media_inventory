@@ -4,7 +4,8 @@ require 'rails_helper'
 
 RSpec.describe 'WrestlingEvents', type: :request do # rubocop:disable Metrics/BlockLength
   let!(:user) do
-    User.create!(name: 'Test User', email: 'test@example.com')
+    User.create!(name: 'Test User', email: 'test@example.com', password: 'password123',
+                 password_confirmation: 'password123')
   end
 
   describe 'GET /wrestling_events' do
@@ -17,11 +18,7 @@ RSpec.describe 'WrestlingEvents', type: :request do # rubocop:disable Metrics/Bl
   describe 'GET /wrestling_events/new' do
     context 'when logged in' do
       before do
-        post login_path, params: { session: { email: user.email } }
-        user.reload
-        post verify_otp_path, params: { email: user.email, token: user.login_token }
-        user.reload
-        post verify_otp_path, params: { email: user.email, token: user.login_token }
+        post login_path, params: { session: { email: user.email, password: 'password123' } }
       end
 
       it 'renders the new template' do
@@ -71,11 +68,7 @@ RSpec.describe 'WrestlingEvents', type: :request do # rubocop:disable Metrics/Bl
     # Security verification: Ensure create action requires login
     context 'when logged in' do
       before do
-        post login_path, params: { session: { email: user.email } }
-        user.reload
-        post verify_otp_path, params: { email: user.email, token: user.login_token }
-        user.reload
-        post verify_otp_path, params: { email: user.email, token: user.login_token }
+        post login_path, params: { session: { email: user.email, password: 'password123' } }
       end
 
       it 'creates a new wrestling_event' do

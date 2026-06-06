@@ -4,7 +4,10 @@ require 'rails_helper'
 
 # rubocop:disable Metrics/BlockLength
 RSpec.describe SessionsHelper, type: :helper do
-  let(:user) { User.create!(name: 'Test User', email: 'test@example.com') }
+  let(:user) do
+    User.create!(name: 'Test User', email: 'test@example.com', password: 'password123',
+                 password_confirmation: 'password123')
+  end
 
   describe '#log_in' do
     it 'logs in the given user' do
@@ -48,7 +51,8 @@ RSpec.describe SessionsHelper, type: :helper do
     end
 
     it 'returns false if the given user is not the current user' do
-      other_user = User.create!(name: 'Other User', email: 'other@example.com')
+      other_user = User.create!(name: 'Other User', email: 'other@example.com', password: 'password123',
+                                password_confirmation: 'password123')
       expect(helper.current_user?(other_user)).to be false
     end
   end

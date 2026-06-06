@@ -7,14 +7,13 @@ require 'rails'
 require 'active_model/railtie'
 require 'active_job/railtie'
 require 'active_record/railtie'
-# require "active_storage/engine"
+require 'active_storage/engine'
 require 'action_controller/railtie'
 require 'action_mailer/railtie'
 # require "action_mailbox/engine"
 # require "action_text/engine"
 require 'action_view/railtie'
-# require "action_cable/engine"
-require 'sprockets/railtie'
+require 'action_cable/engine'
 # require "rails/test_unit/railtie"
 
 # Require the gems listed in Gemfile, including any gems
@@ -41,5 +40,16 @@ module SampleApp
 
     # Don't generate system test files.
     config.generators.system_tests = nil
+
+    # Run pending database migrations automatically on production boot
+    config.after_initialize do
+      if Rails.env.production?
+        begin
+          ActiveRecord::Tasks::DatabaseTasks.migrate
+        rescue StandardError => e
+          Rails.logger.error "Auto-migration failed on boot: #{e.message}"
+        end
+      end
+    end
   end
 end

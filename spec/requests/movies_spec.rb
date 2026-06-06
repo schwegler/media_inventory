@@ -4,7 +4,8 @@ require 'spec_helper'
 
 RSpec.describe 'Movies', type: :request do
   let!(:user) do
-    User.create(name: 'Example User', email: 'user@example.com')
+    User.create(name: 'Example User', email: 'user@example.com', password: 'password123',
+                password_confirmation: 'password123')
   end
 
   describe 'GET /movies' do
@@ -46,11 +47,7 @@ RSpec.describe 'Movies', type: :request do
 
     context 'when logged in' do
       before do
-        post login_path, params: { session: { email: user.email } }
-        user.reload
-        post verify_otp_path, params: { email: user.email, token: user.login_token }
-        user.reload
-        post verify_otp_path, params: { email: user.email, token: user.login_token }
+        post login_path, params: { session: { email: user.email, password: 'password123' } }
       end
 
       it 'returns http success' do
@@ -70,11 +67,7 @@ RSpec.describe 'Movies', type: :request do
 
     context 'when logged in' do
       before do
-        post login_path, params: { session: { email: user.email } }
-        user.reload
-        post verify_otp_path, params: { email: user.email, token: user.login_token }
-        user.reload
-        post verify_otp_path, params: { email: user.email, token: user.login_token }
+        post login_path, params: { session: { email: user.email, password: 'password123' } }
       end
 
       context 'with valid parameters' do
@@ -83,6 +76,24 @@ RSpec.describe 'Movies', type: :request do
             post movies_path, params: { movie: { title: 'New Movie' } }
           end.to change(Movie, :count).by(1)
           expect(response).to redirect_to(Movie.last)
+        end
+
+        it 'creates a new movie with a custom cover image' do
+          temp_file = Tempfile.new(['test_cover', '.png'])
+          temp_file.write('dummy content')
+          temp_file.rewind
+          uploaded_file = fixture_file_upload(temp_file.path, 'image/png')
+
+          expect do
+            post movies_path, params: { movie: { title: 'New Movie with Cover', cover_image: uploaded_file } }
+          end.to change(Movie, :count).by(1)
+
+          movie = Movie.last
+          expect(movie.cover_image).to be_attached
+          expect(movie.cover_image.filename.to_s).to include('test_cover')
+
+          temp_file.close
+          temp_file.unlink
         end
       end
 

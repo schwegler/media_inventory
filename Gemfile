@@ -8,26 +8,22 @@ gem 'rails', '~> 8.1.3'
 # Use the Puma web server [https://github.com/puma/puma]
 gem 'puma', '>= 5.0'
 
-# Use SCSS for stylesheets
-gem 'sass-rails', '>= 6'
+# Hotwire stack
+gem 'importmap-rails'
+gem 'stimulus-rails'
+gem 'turbo-rails'
 
-# Use other typical Rails 7 gems
-gem 'jbuilder'
-gem 'sprockets-rails'
-
-# Restore legacy assets support
-gem 'jquery-rails'
-gem 'turbolinks'
+# Asset pipeline (Propshaft replaces Sprockets for Rails 8)
+gem 'dartsass-rails'
+gem 'propshaft'
 
 # Constrain dependencies to avoid compilation issues with native extensions
-# gem 'irb', '1.6.2'
 gem 'psych', '5.4.0'
 gem 'rdoc', '>= 6.5.1.1'
 
-group :development, :test do
-  # Use sqlite3 as the database for Active Record
-  gem 'sqlite3', '~> 2.9'
+gem 'sqlite3', '~> 2.9'
 
+group :development, :test do
   gem 'brakeman'
   gem 'bundler-audit'
   gem 'rspec-rails', '~> 8.0'
@@ -50,7 +46,5 @@ group :production, :test do
 end
 
 gem 'bcrypt', '~> 3.1'
-
-gem 'will_paginate', '4.0.1'
 
 gem 'kaminari', '~> 1.2'

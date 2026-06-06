@@ -3,24 +3,28 @@
   <%= link_to 'New TV Show', new_tv_show_path, class: 'btn' %>
 </div>
 
-<ul class="media-grid">
-  <% @tv_shows.each do |tv_show| %>
-    <li class="media-card">
-      <div class="card-icon" style="padding: 0; overflow: hidden; background: #000;">
-        <% if tv_show.thumbnail_url.present? %>
-          <img src="<%= tv_show.thumbnail_url %>" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
-        <% else %>
-          📺
-        <% end %>
-      </div>
-      <div class="card-content">
-        <h3><%= link_to tv_show.title, tv_show %></h3>
-        <span class="card-meta">Network: <%= tv_show.network %></span>
-      </div>
-    </li>
-  <% end %>
-</ul>
+<turbo-frame id="items_list">
+  <ul class="media-grid">
+    <% @tv_shows.each do |tv_show| %>
+      <li class="media-card">
+        <div class="card-icon" style="padding: 0; overflow: hidden; background: #000;">
+          <% if tv_show.cover_image.attached? %>
+            <%= image_tag tv_show.cover_image, alt: "Cover", style: "width: 100%; height: 100%; object-fit: cover;" %>
+          <% elsif tv_show.thumbnail_url.present? %>
+            <img src="<%= tv_show.thumbnail_url %>" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
+          <% else %>
+            📺
+          <% end %>
+        </div>
+        <div class="card-content">
+          <h3><%= link_to tv_show.title, tv_show, data: { turbo_frame: "_top" } %></h3>
+          <span class="card-meta">Network: <%= tv_show.network %></span>
+        </div>
+      </li>
+    <% end %>
+  </ul>
 
-<div class="pagination-wrapper">
-  <%= paginate @tv_shows %>
-</div>
+  <div class="pagination-wrapper">
+    <%= paginate @tv_shows %>
+  </div>
+</turbo-frame>

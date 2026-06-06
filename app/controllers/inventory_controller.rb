@@ -17,10 +17,13 @@ class InventoryController < ApplicationController
     @resource = resource_class.new(resource_params)
     @resource.user = current_user
     instance_variable_set("@#{resource_name}", @resource)
-    if @resource.save
-      redirect_to @resource
-    else
-      render :new, status: failure_status
+
+    respond_to do |format|
+      if @resource.save
+        format.html { redirect_to @resource, notice: "#{resource_class.model_name.human} was successfully created." }
+      else
+        format.html { render :new, status: failure_status }
+      end
     end
   end
 

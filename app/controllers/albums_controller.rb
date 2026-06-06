@@ -5,6 +5,6 @@ class AlbumsController < InventoryController
 
   def resource_params
     params.require(:album).permit(:title, :artist, :release_year, :genre, :is_public, :thumbnail_url, :in_watchlist,
-                                  :is_collected, :consumed, :consumed_at, :review, :rating)
+                                  :is_collected, :consumed, :consumed_at, :review, :rating, :cover_image)
   end
 end

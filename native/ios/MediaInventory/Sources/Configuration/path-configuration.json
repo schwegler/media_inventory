@@ -1,0 +1,51 @@
+{
+  "settings": {
+    "tabs": [
+      {
+        "title": "Home",
+        "visit": "/",
+        "system_image": "house"
+      },
+      {
+        "title": "Movies",
+        "visit": "/movies",
+        "system_image": "film"
+      },
+      {
+        "title": "Albums",
+        "visit": "/albums",
+        "system_image": "music.note.list"
+      }
+    ]
+  },
+  "rules": [
+    {
+      "patterns": [".*"],
+      "properties": {
+        "context": "default",
+        "pull_to_refresh_enabled": true
+      }
+    },
+    {
+      "patterns": ["/new$", "/edit$"],
+      "properties": {
+        "context": "modal",
+        "pull_to_refresh_enabled": false
+      }
+    },
+    {
+      "patterns": ["/login"],
+      "properties": {
+        "context": "modal",
+        "pull_to_refresh_enabled": false
+      }
+    },
+    {
+      "patterns": ["/verify_otp"],
+      "properties": {
+        "context": "modal",
+        "pull_to_refresh_enabled": false
+      }
+    }
+  ]
+}
