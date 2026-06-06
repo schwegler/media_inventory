@@ -26,7 +26,7 @@ RSpec.describe 'Movies Management', type: :system do
     fill_in 'Title', with: 'Inception'
     fill_in 'Director', with: 'Christopher Nolan'
     fill_in 'Release year', with: '2010'
-    fill_in 'Rating', with: '5'
+    select '★★★★★', from: 'Rating'
 
     click_button 'Create Movie'
 

@@ -1,24 +1,67 @@
 <h1>New Wrestling Event</h1>
 <%= form_for @wrestling_event do |f| %>
+  <% if @wrestling_event.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@wrestling_event.errors.count, "error") %> prohibited this wrestling event from being saved:</h2>
+      <ul>
+      <% @wrestling_event.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
   <div>
     <%= f.label :title %>
-    <%= f.text_field :title %>
+    <%= f.text_field :title, required: true %>
   </div>
   <div>
     <%= f.label :promotion %>
     <%= f.text_field :promotion %>
   </div>
   <div>
-    <%= f.label :date %>
+    <%= f.label :date, "Event Date" %>
     <%= f.date_field :date %>
   </div>
   <div>
     <%= f.label :venue %>
     <%= f.text_field :venue %>
   </div>
+
+  <div class="form-row-toggles">
+    <div class="toggle-field">
+      <%= f.check_box :is_collected %>
+      <%= f.label :is_collected, "In Collection" %>
+    </div>
+    <div class="toggle-field">
+      <%= f.check_box :in_watchlist %>
+      <%= f.label :in_watchlist, "In Watchlist" %>
+    </div>
+    <div class="toggle-field">
+      <%= f.check_box :consumed %>
+      <%= f.label :consumed, "Watched?" %>
+    </div>
+  </div>
+
+  <div class="consumed-date-row" style="display: none;">
+    <%= f.label :consumed_at, "Date Watched" %>
+    <%= f.date_field :consumed_at, value: Time.current.to_date %>
+  </div>
+
+  <div>
+    <%= f.label :rating %>
+    <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]] %>
+  </div>
+
+  <div>
+    <%= f.label :review %>
+    <%= f.text_area :review, rows: 4, placeholder: "Add a review..." %>
+  </div>
+
   <div>
     <%= f.label :is_public, "Make Public?" %>
     <%= f.check_box :is_public %>
   </div>
-  <%= f.submit %>
+
+  <%= f.submit "Create Wrestling Event" %>
 <% end %>

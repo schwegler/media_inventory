@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 SampleApp::Application.routes.draw do
-  root 'users#index'
+  root 'landing#index'
   get '/collections/:user_id', to: 'collections#show', as: 'collection'
   get    '/login',   to: 'sessions#new'
   post   '/login',   to: 'sessions#create'
