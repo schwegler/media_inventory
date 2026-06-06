@@ -1,6 +1,6 @@
-# Media Inventory App with PWA Offline Sync
+# Media Inventory App with Hotwire & Native Client Support
 
-Welcome to the **Media Inventory Application**, a Ruby on Rails 8.1 web platform designed to catalog personal media collections. The application features a premium dark-slate aesthetic, modular database entities, and a robust Progressive Web App (PWA) offline sync engine.
+Welcome to the **Media Inventory Application**, a modern Ruby on Rails 8.1 web platform designed to catalog personal media collections. The application features a premium dark-slate aesthetic, modular database entities, and supports three clients (Web, iOS, and Desktop) consuming the same HTML monolith.
 
 ---
 
@@ -11,100 +11,144 @@ Welcome to the **Media Inventory Application**, a Ruby on Rails 8.1 web platform
     *   Glassmorphic navbar and card containers with frosted border transitions.
     *   Responsive card grids for catalog items utilizing category-specific emojis (🎬, 💿, 📚, 📺, 🤼).
     *   **Stretched Links Pattern:** CSS overlays that expand click targets across the entire card boundary while preserving standard Rails anchors for test compatibility.
-*   **PWA Offline Mode & Background Sync:** Intercepts resource creation forms when the network is unavailable:
-    *   **IndexedDB Queue:** Client-side asynchronous storage database (`MediaInventoryOfflineDB`) to hold pending creations.
-    *   **Service Worker Caching:** Caches static files (Cache-First) and HTML routes (Network-First) so forms remain accessible offline.
-    *   **Auto Sync Engine:** Monitors the connection status (`online`/`offline` window hooks) and automatically replay submissions with the latest page CSRF token when connection returns.
-    *   **Dynamic UI Indicators:** Floating yellow/green offline banners, toaster notifications, and a collapsible pending synchronizations list panel.
-    *   **Offline Fallback Page:** A beautiful, responsive fallback page (`offline.html`) served when navigating to uncached pages while offline.
-*   **Real-World Seed Data:** Seeding script with a curated list of 31 masterpieces across 5 media types associated with public, confirmed profiles.
+*   **Modern Hotwire Stack:** Migrated from legacy jQuery/Turbolinks to Rails 8 defaults:
+    *   **Turbo Drive & Morphing:** Smooth, instantaneous page transitions with Turbo 8 morphing.
+    *   **Turbo Frames & Streams:** Inline pagination and real-time updates for resource creation and lists.
+    *   **Stimulus JS:** Modular controllers replacing legacy jQuery handlers, including an interactive iTunes/Google Books cover art thumbnail fetcher.
+*   **Hotwire Native iOS App:** A native iOS WKWebView wrapper using the `hotwire-native-ios` SDK. Supports native tab bars, page transitions, and native bridge components.
+*   **Tauri 2 Desktop App:** A cross-platform desktop application wrapper targeting macOS, Windows, and Linux. Built with Rust and Tauri 2.
+*   **Flexible Database Support:** Dynamically routes to PostgreSQL when run inside Docker containers, and falls back to SQLite3 for simple local host execution.
 
 ---
 
-## 📐 Architecture & Offline Flow
+## 📐 Architecture & Client Flow
 
 ```mermaid
-graph TD
-    A[Form Submit Event] --> B{navigator.onLine?}
-    B -- Yes --> C[Submit to server normally]
-    B -- No --> D[Prevent default submission]
-    D --> E[Serialize form fields]
-    E --> F[Save to IndexedDB]
-    F --> G[Show Toast Notification]
-    G --> H[Show Pending sync badge in Header]
+graph TB
+    subgraph "Rails 8 Monolith"
+        R["Rails Server<br/>(Turbo + Stimulus)"]
+        DB["PostgreSQL / SQLite3"]
+        R --> DB
+    end
     
-    I[Connection Restored Event] --> J[Sync engine triggers]
-    J --> K[Get all pending items from IndexedDB]
-    K --> L{Any items?}
-    L -- Yes --> M[Fetch current CSRF token from page]
-    M --> N[For each item: replay POST request via fetch]
-    N --> O{Response ok?}
-    O -- Yes --> P[Delete from IndexedDB]
-    O -- No / 422 --> Q[Mark as failed in IndexedDB]
-    P --> R[Show sync success Toast]
-    Q --> S[Show sync fail Toast]
-    R --> T[Reload page using Turbolinks]
-    L -- No --> U[End sync]
+    subgraph "Clients (all consume same HTML)"
+        WEB["🌐 Web Browser"]
+        IOS["📱 Hotwire Native iOS<br/>(WKWebView wrapper)"]
+        DSK["🖥️ Tauri 2 Desktop<br/>(OS WebView wrapper)"]
+    end
+    
+    R -->|HTML + Turbo Streams| WEB
+    R -->|Same HTML| IOS
+    R -->|Same HTML| DSK
 ```
 
 ---
 
-## 🛠️ Getting Started
+## 📁 Repository Directory Structure
+
+*   `app/`, `config/`, `db/`, `lib/`, `spec/` — Monolithic Rails application files.
+*   `native/ios/` — Hotwire Native iOS wrapper project (Swift Package Manager).
+*   `native/desktop/` — Tauri 2 desktop app wrapper (Rust + Node CLI).
+*   `Dockerfile` — Multi-stage production container build.
+*   `docker-compose.yml` — Container configuration for local PostgreSQL + Rails development.
+*   `docker-compose.production.yml` — Production environment container configuration.
+
+---
+
+## 🛠️ Getting Started (Local Host Development)
+
+By default, running locally on your host machine will use **SQLite3** for simplicity.
 
 ### Prerequisites
 
 *   **Ruby:** Version `3.2.3` (defined in `.ruby-version` and `Gemfile`).
-*   **Databases:** SQLite3 (development/testing) and PostgreSQL (production).
+*   **Node.js & npm** (only required for Tauri desktop client).
 
 ### Setup and Running
 
-1.  **Clone the Repository and Navigate to the Directory:**
+1.  **Clone the Repository and Install Gems:**
     ```bash
     cd media_inventory
-    ```
-2.  **Install Gem Dependencies:**
-    ```bash
     bundle install
     ```
-3.  **Run Database Migrations:**
+2.  **Run Database Migrations & Seed Content:**
     ```bash
     bundle exec rails db:migrate
-    ```
-4.  **Seed the Database with Real-World Demo Content:**
-    ```bash
     bundle exec rails db:seed
     ```
-    *(Clears existing records and generates 2 default users and 31 media items).*
-5.  **Start the Rails Server:**
+    *(Clears existing records and generates demo users and 31 media items).*
+3.  **Build Assets:**
+    ```bash
+    bin/rails dartsass:build
+    ```
+4.  **Start the Rails Server:**
     ```bash
     bin/rails s
     ```
-6.  **Open the Application:**
+5.  **Open the Application:**
     Navigate to [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## 🐳 Running with Docker (PostgreSQL)
+
+To run the entire stack containerized using **PostgreSQL**:
+
+1.  **Start the Container Stack:**
+    ```bash
+    docker compose up --build
+    ```
+    *(Pulls/builds Postgres 17 and the Rails 8 application, then starts the server on port 3000).*
+2.  **Open the Application:**
+    Navigate to [http://localhost:3000](http://localhost:3000).
+
+---
+
+## 📱 Running the iOS App (Xcode)
+
+1.  Ensure you have **Xcode 16+** installed.
+2.  Open `/native/ios/MediaInventory/Package.swift` in Xcode.
+3.  Choose a Simulator target (e.g., iPhone 16 running iOS 18+).
+4.  Click **Run** to launch the wrapper, which will load `http://localhost:3000` (for development).
+
+---
+
+## 🖥️ Running the Desktop App (Tauri 2)
+
+### Prerequisites
+*   Install **Rust** via [rustup](https://rustup.rs).
+*   For Windows/Linux platform prerequisites, see [Tauri Prerequisites](https://v2.tauri.app/start/prerequisites/).
+
+### Setup and Running
+
+1.  **Navigate to the Desktop folder and install dependencies:**
+    ```bash
+    cd native/desktop
+    npm install
+    ```
+2.  **Generate application icons (optional — already generated):**
+    ```bash
+    npx tauri icon app-icon.png
+    ```
+3.  **Run the Tauri app in development mode:**
+    Make sure your Rails server is running on `localhost:3000` first, then run:
+    ```bash
+    npm run dev
+    ```
+4.  **Build a production release binary:**
+    ```bash
+    npm run build
+    ```
 
 ---
 
 ## 🧪 Testing & Quality Assurance
 
-*   **RSpec Test Suite:** Includes request and system specs covering pagination, resource creation, security headers, and PWA static routing assets.
+*   **RSpec Test Suite:** Includes request and system specs covering all views, paginated resources, controller actions, and security headers.
     ```bash
     bundle exec rspec
     ```
-*   **Linter Checks:** Run RuboCop static analysis checks to verify code style and quality:
+*   **Linter Checks:** Run RuboCop static analysis checks to verify code style:
     ```bash
     bundle exec rubocop
     ```
-
----
-
-## 🔌 Verifying Offline Synchronization
-
-1.  Log in to the application and navigate to **New Movie** (`/movies/new`).
-2.  Open Chrome DevTools (`F12`), switch to the **Network** tab, and toggle the throttling dropdown to **Offline**.
-3.  Fill in the movie details (e.g., *Inception*) and press **Create Movie**.
-    *   **Expectation:** The submission is blocked. A warning toast slide-in states: *"Saved Offline | 'Inception' has been saved locally"*. A yellow badge displaying `"1 pending"` appears in the navbar.
-4.  Click the `"1 pending"` badge.
-    *   **Expectation:** A bottom-right drawer slides out listing the pending movie details and time.
-5.  Go to DevTools **Application** -> **IndexedDB** -> **MediaInventoryOfflineDB** -> **pending_sync** to view the serialized payload.
-6.  Toggle the DevTools Network throttling back to **Online**.
-    *   **Expectation:** The floating top banner displays *"Syncing local database..."* and then *"Sync complete!"* (green). The movie is uploaded, deleted from IndexedDB, and the lists refresh automatically to reveal the new movie card.

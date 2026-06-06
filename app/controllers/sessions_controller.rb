@@ -4,8 +4,9 @@ class SessionsController < ApplicationController
   def new; end
 
   def create
-    email = params.dig(:session, :email)&.downcase
-    return render 'new' if email.blank?
+    email = params.dig(:session, :email) || params[:email]
+    email = email&.downcase
+    return render 'new', status: :unprocessable_content if email.blank?
 
     user = User.find_by(email: email)
 
@@ -53,12 +54,12 @@ class SessionsController < ApplicationController
     else
       flash.now[:danger] = 'Invalid or expired OTP.'
       @email = email
-      render 'verify_otp'
+      render 'verify_otp', status: :unprocessable_content
     end
   end
 
   def destroy
     log_out
-    redirect_to root_url
+    redirect_to root_url, status: :see_other
   end
 end

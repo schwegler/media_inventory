@@ -23,7 +23,7 @@ RSpec.describe UsersController, type: :controller do # rubocop:disable Metrics/B
 
       it 'assigns @users and returns success' do
         users = [user]
-        allow(User).to receive(:paginate).and_return(users)
+        allow(User).to receive(:page).and_return(users)
 
         get :index
         expect(controller.instance_variable_get(:@users)).to eq(users)

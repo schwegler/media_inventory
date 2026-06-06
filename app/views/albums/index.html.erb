@@ -3,24 +3,26 @@
   <%= link_to 'New Album', new_album_path, class: 'btn' %>
 </div>
 
-<ul class="media-grid">
-  <% @albums.each do |album| %>
-    <li class="media-card">
-      <div class="card-icon" style="padding: 0; overflow: hidden; background: #000;">
-        <% if album.thumbnail_url.present? %>
-          <img src="<%= album.thumbnail_url %>" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
-        <% else %>
-          💿
-        <% end %>
-      </div>
-      <div class="card-content">
-        <h3><%= link_to album.title, album %></h3>
-        <span class="card-meta">Artist: <%= album.artist %></span>
-      </div>
-    </li>
-  <% end %>
-</ul>
+<turbo-frame id="items_list">
+  <ul class="media-grid">
+    <% @albums.each do |album| %>
+      <li class="media-card">
+        <div class="card-icon" style="padding: 0; overflow: hidden; background: #000;">
+          <% if album.thumbnail_url.present? %>
+            <img src="<%= album.thumbnail_url %>" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
+          <% else %>
+            💿
+          <% end %>
+        </div>
+        <div class="card-content">
+          <h3><%= link_to album.title, album, data: { turbo_frame: "_top" } %></h3>
+          <span class="card-meta">Artist: <%= album.artist %></span>
+        </div>
+      </li>
+    <% end %>
+  </ul>
 
-<div class="pagination-wrapper">
-  <%= paginate @albums %>
-</div>
+  <div class="pagination-wrapper">
+    <%= paginate @albums %>
+  </div>
+</turbo-frame>

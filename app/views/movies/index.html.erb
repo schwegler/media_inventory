@@ -3,24 +3,26 @@
   <%= link_to 'New Movie', new_movie_path, class: 'btn' %>
 </div>
 
-<ul class="media-grid">
-  <% @movies.each do |movie| %>
-    <li class="media-card">
-      <div class="card-icon" style="padding: 0; overflow: hidden; background: #000;">
-        <% if movie.thumbnail_url.present? %>
-          <img src="<%= movie.thumbnail_url %>" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
-        <% else %>
-          🎬
-        <% end %>
-      </div>
-      <div class="card-content">
-        <h3><%= link_to movie.title, movie %></h3>
-        <span class="card-meta">Director: <%= movie.director %></span>
-      </div>
-    </li>
-  <% end %>
-</ul>
+<turbo-frame id="items_list">
+  <ul class="media-grid">
+    <% @movies.each do |movie| %>
+      <li class="media-card">
+        <div class="card-icon" style="padding: 0; overflow: hidden; background: #000;">
+          <% if movie.thumbnail_url.present? %>
+            <img src="<%= movie.thumbnail_url %>" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
+          <% else %>
+            🎬
+          <% end %>
+        </div>
+        <div class="card-content">
+          <h3><%= link_to movie.title, movie, data: { turbo_frame: "_top" } %></h3>
+          <span class="card-meta">Director: <%= movie.director %></span>
+        </div>
+      </li>
+    <% end %>
+  </ul>
 
-<div class="pagination-wrapper">
-  <%= paginate @movies %>
-</div>
+  <div class="pagination-wrapper">
+    <%= paginate @movies %>
+  </div>
+</turbo-frame>

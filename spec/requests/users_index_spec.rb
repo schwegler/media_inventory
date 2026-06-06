@@ -78,7 +78,7 @@ RSpec.describe 'Users index', type: :request do # rubocop:disable Metrics/BlockL
       end
 
       it 'lists each user' do
-        User.paginate(page: 1).each do |u|
+        User.page(1).each do |u|
           expect(response.body).to include(u.name)
         end
       end

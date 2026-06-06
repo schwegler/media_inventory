@@ -5,7 +5,7 @@ class UsersController < ApplicationController
   before_action :admin_user,     only: :destroy
 
   def index
-    @users = User.paginate(page: params[:page])
+    @users = User.page(params[:page])
   end
 
   def show
@@ -15,7 +15,7 @@ class UsersController < ApplicationController
   def destroy
     User.delete(params[:id])
     flash[:success] = 'User deleted'
-    redirect_to users_url
+    redirect_to users_url, status: :see_other
   end
 
   private
