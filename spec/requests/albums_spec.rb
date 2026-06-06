@@ -4,7 +4,8 @@ require 'spec_helper'
 
 RSpec.describe 'Albums', type: :request do # rubocop:disable Metrics/BlockLength
   let!(:user) do
-    User.create(name: 'Example User', email: 'user@example.com')
+    User.create(name: 'Example User', email: 'user@example.com', password: 'password123',
+                password_confirmation: 'password123')
   end
 
   describe 'GET /albums' do
@@ -29,11 +30,7 @@ RSpec.describe 'Albums', type: :request do # rubocop:disable Metrics/BlockLength
 
     context 'when logged in' do
       before do
-        post login_path, params: { session: { email: user.email } }
-        user.reload
-        post verify_otp_path, params: { email: user.email, token: user.login_token }
-        user.reload
-        post verify_otp_path, params: { email: user.email, token: user.login_token }
+        post login_path, params: { session: { email: user.email, password: 'password123' } }
       end
 
       it 'creates a new album' do
@@ -90,11 +87,7 @@ RSpec.describe 'Albums', type: :request do # rubocop:disable Metrics/BlockLength
 
     context 'when logged in' do
       before do
-        post login_path, params: { session: { email: user.email } }
-        user.reload
-        post verify_otp_path, params: { email: user.email, token: user.login_token }
-        user.reload
-        post verify_otp_path, params: { email: user.email, token: user.login_token }
+        post login_path, params: { session: { email: user.email, password: 'password123' } }
       end
 
       it 'returns http success' do

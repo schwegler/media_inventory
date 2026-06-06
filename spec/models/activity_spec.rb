@@ -3,7 +3,9 @@
 require 'rails_helper'
 
 RSpec.describe Activity, type: :model do
-  let(:user) { User.create!(name: 'Andrew', email: 'andrew@example.com') }
+  let(:user) do
+    User.create!(name: 'Andrew', email: 'andrew@example.com', password: 'password123', password_confirmation: 'password123')
+  end
 
   describe 'callbacks' do
     it 'creates an added activity when media is created with is_collected: true' do

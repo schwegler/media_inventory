@@ -4,7 +4,8 @@ require 'rails_helper'
 
 RSpec.describe 'Users index', type: :request do # rubocop:disable Metrics/BlockLength
   let!(:user) do
-    User.create!(name: 'Example User', email: 'user@example.com')
+    User.create!(name: 'Example User', email: 'user@example.com', password: 'password123',
+                 password_confirmation: 'password123')
   end
 
   describe 'GET /users' do # rubocop:disable Metrics/BlockLength
@@ -22,9 +23,7 @@ RSpec.describe 'Users index', type: :request do # rubocop:disable Metrics/BlockL
 
     context 'when logged in as non-admin' do
       before do
-        post login_path, params: { session: { email: user.email } }
-        user.reload
-        post verify_otp_path, params: { email: user.email, token: user.login_token }
+        post login_path, params: { session: { email: user.email, password: 'password123' } }
         get users_path
       end
 
@@ -43,13 +42,12 @@ RSpec.describe 'Users index', type: :request do # rubocop:disable Metrics/BlockL
 
     context 'when logged in as admin' do
       let!(:admin) do
-        User.create!(name: 'Admin User', email: 'admin@example.com', admin: true)
+        User.create!(name: 'Admin User', email: 'admin@example.com', password: 'password123',
+                     password_confirmation: 'password123', admin: true)
       end
 
       before do
-        post login_path, params: { session: { email: admin.email } }
-        admin.reload
-        post verify_otp_path, params: { email: admin.email, token: admin.login_token }
+        post login_path, params: { session: { email: admin.email, password: 'password123' } }
         get users_path
       end
 
@@ -65,11 +63,10 @@ RSpec.describe 'Users index', type: :request do # rubocop:disable Metrics/BlockL
     context 'pagination' do
       before do
         30.times do |n|
-          User.create!(name: "User #{n}", email: "user-#{n}@example.com")
+          User.create!(name: "User #{n}", email: "user-#{n}@example.com", password: 'password123',
+                       password_confirmation: 'password123')
         end
-        post login_path, params: { session: { email: user.email } }
-        user.reload
-        post verify_otp_path, params: { email: user.email, token: user.login_token }
+        post login_path, params: { session: { email: user.email, password: 'password123' } }
         get users_path
       end
 

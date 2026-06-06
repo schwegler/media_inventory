@@ -3,8 +3,12 @@
 require 'rails_helper'
 
 RSpec.describe 'users/index.html.erb', type: :view do
-  let(:user1) { User.create!(name: 'Alice', email: 'alice@example.com') }
-  let(:user2) { User.create!(name: 'Bob', email: 'bob@example.com') }
+  let(:user1) do
+    User.create!(name: 'Alice', email: 'alice@example.com', password: 'password123', password_confirmation: 'password123')
+  end
+  let(:user2) do
+    User.create!(name: 'Bob', email: 'bob@example.com', password: 'password123', password_confirmation: 'password123')
+  end
 
   before do
     assign(:users, Kaminari.paginate_array([user1, user2]).page(1))
@@ -30,7 +34,10 @@ RSpec.describe 'users/index.html.erb', type: :view do
   end
 
   context 'when logged in as an admin user' do
-    let(:current_user) { User.create!(name: 'Admin', email: 'admin@example.com', admin: true) }
+    let(:current_user) do
+      User.create!(name: 'Admin', email: 'admin@example.com', password: 'password123', password_confirmation: 'password123',
+                   admin: true)
+    end
 
     before do
       allow(view).to receive(:current_user).and_return(current_user)

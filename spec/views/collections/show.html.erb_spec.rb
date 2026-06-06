@@ -3,7 +3,10 @@
 require 'rails_helper'
 
 RSpec.describe 'collections/show.html.erb', type: :view do
-  let(:user) { User.create!(name: 'Charlie', email: 'charlie@example.com') }
+  let(:user) do
+    User.create!(name: 'Charlie', email: 'charlie@example.com', password: 'password123',
+                 password_confirmation: 'password123')
+  end
 
   context 'when user is unconfirmed' do
     before do

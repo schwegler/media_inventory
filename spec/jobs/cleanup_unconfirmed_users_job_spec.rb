@@ -4,7 +4,10 @@ require 'rails_helper'
 
 RSpec.describe CleanupUnconfirmedUsersJob, type: :job do
   describe '#perform' do
-    let(:user) { User.create!(name: 'Test User', email: 'test@example.com') }
+    let(:user) do
+      User.create!(name: 'Test User', email: 'test@example.com', password: 'password123',
+                   password_confirmation: 'password123')
+    end
 
     context 'when the user is confirmed' do
       before do

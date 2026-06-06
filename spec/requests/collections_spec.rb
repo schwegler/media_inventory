@@ -5,7 +5,9 @@ require 'rails_helper'
 # rubocop:disable Metrics/BlockLength
 RSpec.describe 'Collections', type: :request do
   describe 'GET /show' do
-    let!(:user) { User.create!(name: 'Test', email: 'test@example.com') }
+    let!(:user) do
+      User.create!(name: 'Test', email: 'test@example.com', password: 'password123', password_confirmation: 'password123')
+    end
 
     context 'when the user is confirmed' do
       before do

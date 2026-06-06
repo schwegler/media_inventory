@@ -12,7 +12,11 @@ RSpec.describe 'sessions/new.html.erb', type: :view do
   end
 
   it 'renders the email input field' do
-    expect(rendered).to have_selector('input[type="email"][name="email"]')
+    expect(rendered).to have_selector('input[type="email"][name="session[email]"]')
+  end
+
+  it 'renders the password input field' do
+    expect(rendered).to have_selector('input[type="password"][name="session[password]"]')
   end
 
   it 'renders the login submit button' do

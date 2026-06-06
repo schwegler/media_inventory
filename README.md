@@ -11,6 +11,9 @@ Welcome to the **Media Inventory Application**, a modern Ruby on Rails 8.1 web p
     *   Glassmorphic navbar and card containers with frosted border transitions.
     *   Responsive card grids for catalog items utilizing category-specific emojis (🎬, 💿, 📚, 📺, 🤼).
     *   **Stretched Links Pattern:** CSS overlays that expand click targets across the entire card boundary while preserving standard Rails anchors for test compatibility.
+*   **Password Authentication & Frictionless Onboarding:**
+    *   **Standard Auth:** Secure email + password signup and login flows for standard web browser clients (implemented via `has_secure_password` / `bcrypt`).
+    *   **Frictionless Native Onboarding:** On first launch of the iOS or Tauri Desktop app, the backend automatically provisions a local guest account (`Device User`). A signed, permanent cookie (`device_user_id`) keeps the client logged in across app restarts, bypassing signup/login friction.
 *   **Modern Hotwire Stack:** Migrated from legacy jQuery/Turbolinks to Rails 8 defaults:
     *   **Turbo Drive & Morphing:** Smooth, instantaneous page transitions with Turbo 8 morphing.
     *   **Turbo Frames & Streams:** Inline pagination and real-time updates for resource creation and lists.

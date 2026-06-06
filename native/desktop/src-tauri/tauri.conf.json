@@ -18,7 +18,8 @@
         "resizable": true,
         "fullscreen": false,
         "decorations": true,
-        "transparent": false
+        "transparent": false,
+        "userAgent": "Mozilla/5.0 Tauri (MediaInventoryDesktop)"
       }
     ],
     "security": {
