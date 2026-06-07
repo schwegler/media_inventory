@@ -9,12 +9,13 @@ class MediaController < ApplicationController
     source_id = params[:source_id]
     target_list = params[:target_list].to_s.strip
 
-    klass = source_type.classify.safe_constantize
-    if klass.nil?
+    allowed_types = ['Movie', 'TvShow', 'Album', 'Comic', 'WrestlingEvent']
+    unless allowed_types.include?(source_type)
       redirect_back fallback_location: root_path, alert: 'Invalid media type.'
       return
     end
 
+    klass = source_type.constantize
     item = klass.find(source_id)
     new_item = item.dup
     new_item.user = current_user
