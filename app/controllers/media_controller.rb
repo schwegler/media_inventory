@@ -6,34 +6,18 @@ class MediaController < ApplicationController
 
   def copy
     source_type = params[:source_type].to_s.strip
-    source_id = params[:source_id]
-    target_list = params[:target_list].to_s.strip
-
-    allowed_types = ['Movie', 'TvShow', 'Album', 'Comic', 'WrestlingEvent']
+    allowed_types = %w[Movie TvShow Album Comic WrestlingEvent]
     unless allowed_types.include?(source_type)
       redirect_back fallback_location: root_path, alert: 'Invalid media type.'
       return
     end
 
     klass = source_type.constantize
-    item = klass.find(source_id)
-    new_item = item.dup
-    new_item.user = current_user
-
-    if target_list == 'collection'
-      new_item.is_collected = true
-      new_item.in_watchlist = false
-    else
-      new_item.is_collected = false
-      new_item.in_watchlist = true
-      new_item.consumed = false
-    end
-
-    # Copy Active Storage cover image if attached
-    new_item.cover_image.attach(item.cover_image.blob) if item.cover_image.attached?
+    item = klass.find(params[:source_id])
+    new_item = build_copied_item(item, params[:target_list].to_s.strip)
 
     if new_item.save
-      redirect_to new_item, notice: "#{klass.model_name.human} added to your #{target_list}."
+      redirect_to new_item, notice: "#{klass.model_name.human} added to your #{params[:target_list]}."
     else
       redirect_back fallback_location: root_path, alert: 'Failed to add item.'
     end
@@ -61,6 +45,23 @@ class MediaController < ApplicationController
   end
 
   private
+
+  def build_copied_item(item, target_list)
+    new_item = item.dup
+    new_item.user = current_user
+
+    if target_list == 'collection'
+      new_item.is_collected = true
+      new_item.in_watchlist = false
+    else
+      new_item.is_collected = false
+      new_item.in_watchlist = true
+      new_item.consumed = false
+    end
+
+    new_item.cover_image.attach(item.cover_image.blob) if item.cover_image.attached?
+    new_item
+  end
 
   def autocomplete_movies(query)
     Movie.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |m|
