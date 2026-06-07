@@ -1,3 +1,5 @@
+@use "sass:color";
+
 // Sleek makeover variables
 $bg-dark: #0f172a; // slate-900
 $bg-darker: #0b0f19; // slate-950 (richer dark)
@@ -139,7 +141,7 @@ a {
   transition: all 0.2s ease;
 
   &:hover {
-    color: lighten($primary-color, 10%);
+    color: color.adjust($primary-color, $lightness: 10%);
     text-decoration: none;
   }
 }
@@ -464,7 +466,7 @@ input[type="submit"] {
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
-    background: linear-gradient(135deg, lighten($primary-color, 4%) 0%, $primary-color 100%);
+    background: linear-gradient(135deg, color.adjust($primary-color, $lightness: 4%) 0%, $primary-color 100%);
     text-decoration: none;
     color: #ffffff;
   }
@@ -1035,11 +1037,16 @@ turbo-frame[busy] {
   }
 }
 
+.episodes-list {
+  padding-left: 0;
+}
+
+.episode-item {
+  margin-top: 1rem;
+}
+
 .episode-thumbnail {
-  width: 80px !important;
-  height: 50px !important;
-  max-width: 80px !important;
-  max-height: 50px !important;
+  max-width: 100% !important;
   object-fit: cover !important;
   border-radius: 4px;
   flex-shrink: 0 !important;
