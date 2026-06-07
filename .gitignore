@@ -28,3 +28,9 @@ doc/
 
 # Ignore vendored gems
 /vendor/bundle
+
+# Ignore compiled assets in development
+/public/assets
+/app/assets/builds/*
+!/app/assets/builds/.keep
+

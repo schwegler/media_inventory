@@ -1,0 +1,17 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "fileutils"
+
+# path to your application directory.
+APP_ROOT = File.expand_path("..", __dir__)
+
+Dir.chdir APP_ROOT do
+  if ARGV.first == "--help" || ARGV.first == "-h"
+    puts "Usage: bin/dev"
+    puts "Starts the development server and asset watchers"
+    exit
+  end
+
+  exec "bundle exec foreman start -f Procfile.dev"
+end
