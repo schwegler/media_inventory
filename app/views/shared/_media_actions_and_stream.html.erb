@@ -38,35 +38,36 @@ end
 
 <div class="media-actions-container" style="display: flex; flex-direction: column; gap: 1.75rem; margin: 2rem 0; padding: 1.75rem; background: rgba(30, 41, 59, 0.2); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px;">
 
-  <div class="actions-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem;">
+  <div class="actions-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1.5rem; width: 100%;">
     <% if logged_in? %>
       <% if item.user == current_user %>
-        <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
-          <strong style="color: #94a3b8; font-size: 0.9rem;">My Library:</strong>
+        <div style="display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 280px;">
+          <strong style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">My Library</strong>
+          <div style="display: flex; gap: 12px; row-gap: 12px; align-items: center; flex-wrap: wrap;">
+            <%= button_to item.is_collected? ? "📁 Remove from Collection" : "📁 Add to Collection",
+                          polymorphic_path(item),
+                          method: :patch,
+                          params: { item.class.name.underscore.to_sym => { is_collected: !item.is_collected? } },
+                          class: "btn #{item.is_collected? ? 'btn-danger' : 'btn-primary'}",
+                          style: "font-size: 0.85rem; padding: 8px 14px; border: none;" %>
 
-          <%= button_to item.is_collected? ? "📁 Remove from Collection" : "📁 Add to Collection",
-                        polymorphic_path(item),
-                        method: :patch,
-                        params: { item.class.name.underscore.to_sym => { is_collected: !item.is_collected? } },
-                        class: "btn #{item.is_collected? ? 'btn-danger' : 'btn-primary'}",
-                        style: "font-size: 0.85rem; padding: 8px 14px; border: none;" %>
+            <%= button_to item.in_watchlist? ? watchlist_remove_label : watchlist_add_label,
+                          polymorphic_path(item),
+                          method: :patch,
+                          params: { item.class.name.underscore.to_sym => { in_watchlist: !item.in_watchlist? } },
+                          class: "btn #{item.in_watchlist? ? 'btn-danger' : 'btn-secondary'}",
+                          style: "font-size: 0.85rem; padding: 8px 14px; border: none;" %>
 
-          <%= button_to item.in_watchlist? ? watchlist_remove_label : watchlist_add_label,
-                        polymorphic_path(item),
-                        method: :patch,
-                        params: { item.class.name.underscore.to_sym => { in_watchlist: !item.in_watchlist? } },
-                        class: "btn #{item.in_watchlist? ? 'btn-danger' : 'btn-secondary'}",
-                        style: "font-size: 0.85rem; padding: 8px 14px; border: none;" %>
-
-          <%= button_to item.consumed? ? consumed_remove_label : consumed_add_label,
-                        polymorphic_path(item),
-                        method: :patch,
-                        params: { item.class.name.underscore.to_sym => { consumed: !item.consumed?, consumed_at: (item.consumed? ? nil : Time.current.to_date) } },
-                        class: "btn #{item.consumed? ? 'btn-danger' : 'btn-success'}",
-                        style: "font-size: 0.85rem; padding: 8px 14px; border: none;" %>
+            <%= button_to item.consumed? ? consumed_remove_label : consumed_add_label,
+                          polymorphic_path(item),
+                          method: :patch,
+                          params: { item.class.name.underscore.to_sym => { consumed: !item.consumed?, consumed_at: (item.consumed? ? nil : Time.current.to_date) } },
+                          class: "btn #{item.consumed? ? 'btn-danger' : 'btn-success'}",
+                          style: "font-size: 0.85rem; padding: 8px 14px; border: none;" %>
+          </div>
         </div>
 
-        <div>
+        <div style="flex-shrink: 0;">
           <%= button_to "Delete from Library",
                         polymorphic_path(item),
                         method: :delete,
@@ -75,60 +76,61 @@ end
                         style: "font-size: 0.85rem; padding: 8px 14px; background: #ef4444; border: none;" %>
         </div>
       <% else %>
-        <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
-          <strong style="color: #94a3b8; font-size: 0.9rem;">Add to My Library:</strong>
+        <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
+          <strong style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">Add to My Library</strong>
+          <div style="display: flex; gap: 12px; row-gap: 12px; align-items: center; flex-wrap: wrap;">
+            <%= button_to "📁 Add to My Collection",
+                          media_copy_path,
+                          method: :post,
+                          params: { source_type: item.class.name, source_id: item.id, target_list: 'collection' },
+                          class: "btn btn-primary",
+                          style: "font-size: 0.85rem; padding: 8px 14px; border: none;" %>
 
-          <%= button_to "📁 Add to My Collection",
-                        media_copy_path,
-                        method: :post,
-                        params: { source_type: item.class.name, source_id: item.id, target_list: 'collection' },
-                        class: "btn btn-primary",
-                        style: "font-size: 0.85rem; padding: 8px 14px; border: none;" %>
-
-          <%= button_to watchlist_copy_label,
-                        media_copy_path,
-                        method: :post,
-                        params: { source_type: item.class.name, source_id: item.id, target_list: 'watchlist' },
-                        class: "btn btn-secondary",
-                        style: "font-size: 0.85rem; padding: 8px 14px; border: none;" %>
+            <%= button_to watchlist_copy_label,
+                          media_copy_path,
+                          method: :post,
+                          params: { source_type: item.class.name, source_id: item.id, target_list: 'watchlist' },
+                          class: "btn btn-secondary",
+                          style: "font-size: 0.85rem; padding: 8px 14px; border: none;" %>
+          </div>
         </div>
       <% end %>
     <% else %>
-      <div style="color: #64748b; font-size: 0.9rem;">
+      <div style="color: #64748b; font-size: 0.9rem; width: 100%;">
         <%= link_to "Log in", login_path, style: "color: #818cf8; font-weight: 600;" %> to add this media to your library.
       </div>
     <% end %>
   </div>
 
   <% if logged_in? && item.user == current_user && (item.is_collected? || item.in_watchlist?) %>
-    <div class="inline-quick-review-box" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 1.5rem; margin-top: 0.5rem;">
-      <%= form_with model: item, url: polymorphic_path(item), method: :patch, local: true, class: "quick-review-form", style: "display: flex; flex-direction: column; gap: 1rem;" do |f| %>
+    <div class="inline-quick-review-box">
+      <%= form_with model: item, url: polymorphic_path(item), method: :patch, local: true, class: "quick-review-form", style: "display: flex; flex-direction: column; gap: 1.25rem;" do |f| %>
         <h3 style="font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 8px;">
           ✍️ Quick Review & Rating
         </h3>
         
-        <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
+        <div class="inline-form-row">
           <div style="flex: 1; min-width: 160px;">
-            <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: item.rating }, { class: "form-control", style: "padding: 8px 12px; font-size: 0.9rem;" } %>
+            <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: item.rating }, { class: "form-control", style: "padding: 10px 14px; font-size: 0.95rem; border-radius: 8px;" } %>
           </div>
           
-          <div style="display: flex; align-items: center; gap: 8px;">
+          <div class="inline-checkbox-group">
             <%= f.check_box :consumed, id: "inline-consumed-checkbox-#{item.id}" %>
-            <%= f.label :consumed, "Marked as #{consumed_past_participle.capitalize}", for: "inline-consumed-checkbox-#{item.id}", style: "margin-bottom: 0; font-size: 0.85rem; font-weight: 500; text-transform: none; letter-spacing: normal; cursor: pointer;" %>
+            <%= f.label :consumed, "Marked as #{consumed_past_participle.capitalize}", for: "inline-consumed-checkbox-#{item.id}", class: "inline-checkbox-label" %>
           </div>
 
-          <div style="display: flex; align-items: center; gap: 8px;">
+          <div class="inline-checkbox-group">
             <%= f.check_box :is_public, id: "inline-public-checkbox-#{item.id}" %>
-            <%= f.label :is_public, "Make Public?", for: "inline-public-checkbox-#{item.id}", style: "margin-bottom: 0; font-size: 0.85rem; font-weight: 500; text-transform: none; letter-spacing: normal; cursor: pointer;" %>
+            <%= f.label :is_public, "Make Review Public?", for: "inline-public-checkbox-#{item.id}", class: "inline-checkbox-label" %>
           </div>
         </div>
 
         <div>
-          <%= f.text_area :review, placeholder: review_placeholder, rows: 3, class: "form-control", style: "font-size: 0.9rem;" %>
+          <%= f.text_area :review, placeholder: review_placeholder, rows: 3, class: "form-control", style: "font-size: 0.95rem; border-radius: 8px; padding: 12px 14px;" %>
         </div>
 
         <div style="display: flex; justify-content: flex-end;">
-          <%= f.submit submit_review_label, class: "btn btn-primary", style: "font-size: 0.85rem; padding: 8px 16px;" %>
+          <%= f.submit submit_review_label, class: "btn btn-primary", style: "font-size: 0.9rem; padding: 10px 20px; border-radius: 8px;" %>
         </div>
       <% end %>
     </div>

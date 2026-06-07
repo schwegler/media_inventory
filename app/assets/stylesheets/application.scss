@@ -1304,3 +1304,47 @@ turbo-frame[busy] {
   }
 }
 
+/* Quick Review Panel and layout corrections */
+.inline-quick-review-box {
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+}
+
+.inline-form-row {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.inline-checkbox-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  
+  input[type="checkbox"] {
+    margin: 0;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+  
+  label.inline-checkbox-label {
+    display: inline !important;
+    text-transform: none !important;
+    font-weight: 500 !important;
+    font-size: 0.85rem !important;
+    color: #cbd5e1 !important;
+    letter-spacing: normal !important;
+    margin: 0 !important;
+    cursor: pointer;
+  }
+}
+
+
