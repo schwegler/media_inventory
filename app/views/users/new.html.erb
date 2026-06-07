@@ -2,7 +2,7 @@
 
 <div class="row">
   <div class="col-md-6 col-md-offset-3">
-    <%= form_with(model: @user, local: true) do |f| %>
+    <%= form_with(model: @user, local: true, class: "standard-form") do |f| %>
       <%= render 'shared/error_messages', object: f.object if lookup_context.exists?('shared/_error_messages') %>
 
       <div class="form-group">
@@ -32,7 +32,7 @@
 
     <h2 style="font-size: 1.25rem; text-align: center; margin-bottom: 1.5rem;">🦋 Sign up with Bluesky</h2>
     
-    <%= form_with(url: sessions_bsky_login_path, local: true) do |f| %>
+    <%= form_with(url: sessions_bsky_login_path, local: true, class: "standard-form") do |f| %>
       <div class="form-group">
         <%= f.label :bsky_handle, "Bluesky Handle" %>
         <%= f.text_field :bsky_handle, class: 'form-control', placeholder: 'e.g. username.bsky.social', required: true %>

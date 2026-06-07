@@ -3,7 +3,7 @@
   <div class="episode-item" style="background: rgba(30, 41, 59, 0.25); border: 1px solid rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 8px; display: flex; gap: 12px; align-items: start; flex-direction: column;">
     <div style="display: flex; gap: 12px; width: 100%; align-items: start;">
       <% if ep.thumbnail_url.present? %>
-        <img src="<%= ep.thumbnail_url %>" alt="<%= ep.name %>" style="width: 80px; height: 50px; object-fit: cover; border-radius: 4px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1);">
+        <img src="<%= ep.thumbnail_url %>" alt="<%= ep.name %>" class="episode-thumbnail">
       <% end %>
       <div class="episode-info" style="flex: 1;">
         <div style="font-weight: 600; color: #fff; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; width: 100%;">
