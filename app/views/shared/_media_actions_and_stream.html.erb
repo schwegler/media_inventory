@@ -1,0 +1,125 @@
+<%# Local variables: item %>
+<div class="media-actions-container" style="display: flex; flex-direction: column; gap: 1.5rem; margin: 1.5rem 0; padding: 1.5rem; background: rgba(30, 41, 59, 0.2); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px;">
+
+  <div class="actions-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <% if logged_in? %>
+      <% if item.user == current_user %>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <strong style="color: #94a3b8; font-size: 0.9rem;">My Library:</strong>
+
+          <%= button_to item.is_collected? ? "📁 Remove from Collection" : "📁 Add to Collection",
+                        polymorphic_path(item),
+                        method: :patch,
+                        params: { item.class.name.underscore.to_sym => { is_collected: !item.is_collected? } },
+                        class: "btn #{item.is_collected? ? 'btn-danger' : 'btn-primary'}",
+                        style: "font-size: 0.85rem; padding: 6px 12px; border: none;" %>
+
+          <%= button_to item.in_watchlist? ? "⏳ Remove from Watchlist" : "⏳ Add to Watchlist",
+                        polymorphic_path(item),
+                        method: :patch,
+                        params: { item.class.name.underscore.to_sym => { in_watchlist: !item.in_watchlist? } },
+                        class: "btn #{item.in_watchlist? ? 'btn-danger' : 'btn-secondary'}",
+                        style: "font-size: 0.85rem; padding: 6px 12px; border: none;" %>
+
+          <%= button_to item.consumed? ? "✓ Mark Unwatched" : "✓ Mark Watched",
+                        polymorphic_path(item),
+                        method: :patch,
+                        params: { item.class.name.underscore.to_sym => { consumed: !item.consumed?, consumed_at: (item.consumed? ? nil : Time.current.to_date) } },
+                        class: "btn #{item.consumed? ? 'btn-danger' : 'btn-success'}",
+                        style: "font-size: 0.85rem; padding: 6px 12px; border: none;" %>
+        </div>
+
+        <div>
+          <%= button_to "Delete from Library",
+                        polymorphic_path(item),
+                        method: :delete,
+                        data: { confirm: "Are you sure you want to delete this from your library?" },
+                        class: 'btn btn-danger',
+                        style: "font-size: 0.85rem; padding: 6px 12px; background: #ef4444; border: none;" %>
+        </div>
+      <% else %>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <strong style="color: #94a3b8; font-size: 0.9rem;">Add to My Library:</strong>
+
+          <%= button_to "📁 Add to My Collection",
+                        media_copy_path,
+                        method: :post,
+                        params: { source_type: item.class.name, source_id: item.id, target_list: 'collection' },
+                        class: "btn btn-primary",
+                        style: "font-size: 0.85rem; padding: 6px 12px; border: none;" %>
+
+          <%= button_to "⏳ Add to My Watchlist",
+                        media_copy_path,
+                        method: :post,
+                        params: { source_type: item.class.name, source_id: item.id, target_list: 'watchlist' },
+                        class: "btn btn-secondary",
+                        style: "font-size: 0.85rem; padding: 6px 12px; border: none;" %>
+        </div>
+      <% end %>
+    <% else %>
+      <div style="color: #64748b; font-size: 0.9rem;">
+        <%= link_to "Log in", login_path, style: "color: #818cf8; font-weight: 600;" %> to add this media to your library.
+      </div>
+    <% end %>
+  </div>
+
+  <div class="streaming-links-box" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 1.25rem;">
+    <h3 style="font-size: 1rem; color: #fff; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 6px;">
+      🔗 Where to Buy & Stream
+    </h3>
+
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <% if item.external_url.present? %>
+        <% link_label = if item.external_url.include?('itunes.apple.com') || item.external_url.include?('music.apple.com')
+                          " View on Apple Music/TV"
+                        elsif item.external_url.include?('openlibrary.org')
+                          "📖 Borrow on Open Library"
+                        elsif item.external_url.include?('tvmaze.com')
+                          "📺 View on TVmaze"
+                        else
+                          "🌐 View Official Source"
+                        end %>
+        <%= link_to link_label, item.external_url, target: "_blank", rel: "noopener", class: "btn", style: "background: #1e1b4b; color: #c7d2fe; font-size: 0.85rem; border: 1px solid #312e81; padding: 6px 12px;" %>
+      <% end %>
+
+      <% if ['Movie', 'TvShow', 'WrestlingEvent'].include?(item.class.name) %>
+        <%= link_to "🔍 Search JustWatch",
+                    "https://www.justwatch.com/us/search?q=#{CGI.escape(item.title)}",
+                    target: "_blank",
+                    rel: "noopener",
+                    class: "btn",
+                    style: "background: #0f172a; color: #94a3b8; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); padding: 6px 12px;" %>
+      <% end %>
+
+      <% if item.class.name == 'Comic' %>
+        <%= link_to "📚 Search Goodreads",
+                    "https://www.goodreads.com/search?q=#{CGI.escape(item.title)}",
+                    target: "_blank",
+                    rel: "noopener",
+                    class: "btn",
+                    style: "background: #0f172a; color: #94a3b8; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); padding: 6px 12px;" %>
+        <%= link_to "📖 Search Open Library",
+                    "https://openlibrary.org/search?q=#{CGI.escape(item.title)}",
+                    target: "_blank",
+                    rel: "noopener",
+                    class: "btn",
+                    style: "background: #0f172a; color: #94a3b8; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); padding: 6px 12px;" %>
+      <% end %>
+
+      <%= link_to "🌐 Google Search Options",
+                  "https://www.google.com/search?q=stream+or+buy+#{CGI.escape(item.title)}",
+                  target: "_blank",
+                  rel: "noopener",
+                  class: "btn",
+                  style: "background: #0f172a; color: #94a3b8; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); padding: 6px 12px;" %>
+
+      <%= link_to "📦 Buy on Amazon",
+                  "https://www.amazon.com/s?k=#{CGI.escape(item.title)}",
+                  target: "_blank",
+                  rel: "noopener",
+                  class: "btn",
+                  style: "background: #0f172a; color: #94a3b8; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); padding: 6px 12px;" %>
+    </div>
+  </div>
+
+</div>

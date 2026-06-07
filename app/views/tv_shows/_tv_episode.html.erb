@@ -1,0 +1,71 @@
+<%# Local variables: ep, tv_show %>
+<%= turbo_frame_tag "tv_episode_#{ep.id}" do %>
+  <div class="episode-item" style="background: rgba(30, 41, 59, 0.25); border: 1px solid rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 8px; display: flex; gap: 12px; align-items: start; flex-direction: column;">
+    <div style="display: flex; gap: 12px; width: 100%; align-items: start;">
+      <% if ep.thumbnail_url.present? %>
+        <img src="<%= ep.thumbnail_url %>" alt="<%= ep.name %>" style="width: 80px; height: 50px; object-fit: cover; border-radius: 4px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1);">
+      <% end %>
+      <div class="episode-info" style="flex: 1;">
+        <div style="font-weight: 600; color: #fff; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+          <span>
+            Ep <%= ep.episode %>: <%= ep.name %>
+            <% if ep.air_date.present? %>
+              <span style="font-size: 0.75rem; color: #64748b; font-weight: normal; margin-left: 6px;">(Aired: <%= ep.air_date %>)</span>
+            <% end %>
+          </span>
+
+          <% if logged_in? && tv_show.user == current_user %>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <% if ep.watched? %>
+                <span style="font-size: 0.75rem; background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.2); padding: 2px 6px; border-radius: 4px; font-weight: 600;">✓ Watched</span>
+
+                <%= button_to "Unwatch",
+                              toggle_watched_tv_episode_path(ep),
+                              method: :patch,
+                              params: { tv_episode: { watched: false, rating: nil, review: nil, watched_at: nil } },
+                              class: "btn",
+                              style: "padding: 2px 6px; font-size: 0.7rem; background: transparent; border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; border-radius: 4px; cursor: pointer;" %>
+              <% else %>
+                <span style="font-size: 0.75rem; background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px;">Not Watched</span>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+
+        <% if ep.summary.present? %>
+          <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 4px; line-height: 1.4;">
+            <%= strip_tags(ep.summary) %>
+          </div>
+        <% end %>
+
+        <% if ep.watched? && (ep.review.present? || ep.rating.present?) %>
+          <div style="margin-top: 6px; font-size: 0.8rem; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.04); padding: 6px 10px; border-radius: 6px;">
+            <% if ep.rating.present? %>
+              <span style="color: #facc15; font-weight: 600;"><%= ep.rating %> ★</span>
+            <% end %>
+            <% if ep.review.present? %>
+              <span style="color: #cbd5e1; margin-left: 6px;"><%= ep.review %></span>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <% if logged_in? && tv_show.user == current_user %>
+      <div style="width: 100%; border-top: 1px dashed rgba(255,255,255,0.03); padding-top: 8px; margin-top: 4px;">
+        <%= form_with model: ep, url: toggle_watched_tv_episode_path(ep), method: :patch, local: false, style: "display: flex; flex-direction: column; gap: 8px;" do |form| %>
+          <%= form.hidden_field :watched, value: true %>
+          <%= form.hidden_field :watched_at, value: Time.current.to_date %>
+
+          <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
+            <%= form.text_field :review, value: ep.review, placeholder: ep.watched? ? "Edit review..." : "Add watch review...", style: "flex: 1; padding: 4px 8px; font-size: 0.8rem; border-radius: 4px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); color: #fff;" %>
+
+            <%= form.select :rating, [["Rating", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: ep.rating }, { style: "padding: 4px; font-size: 0.8rem; border-radius: 4px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); color: #fff;" } %>
+
+            <%= form.submit ep.watched? ? "Update" : "Watch", style: "padding: 4px 12px; font-size: 0.8rem; font-weight: 600; background: #4f46e5; border: none; border-radius: 4px; color: #fff; cursor: pointer;" %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

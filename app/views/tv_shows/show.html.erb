@@ -37,6 +37,8 @@
     </div>
   </div>
 
+  <%= render 'shared/media_actions_and_stream', item: @tv_show %>
+
   <% if @tv_show.review.present? %>
     <div class="media-review-box">
       <h3>Review</h3>
@@ -53,24 +55,7 @@
           <h4 style="font-size: 1.1rem; color: #818cf8; margin-bottom: 0.75rem;">Season <%= season %></h4>
           <ul class="episodes-list" style="list-style: none; padding-left: 0; display: flex; flex-direction: column; gap: 8px;">
             <% episodes.sort_by(&:episode).each do |ep| %>
-              <li class="episode-item" style="background: rgba(30, 41, 59, 0.25); border: 1px solid rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 8px; display: flex; gap: 12px; align-items: start;">
-                <% if ep.thumbnail_url.present? %>
-                  <img src="<%= ep.thumbnail_url %>" alt="<%= ep.name %>" style="width: 80px; height: 50px; object-fit: cover; border-radius: 4px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1);">
-                <% end %>
-                <div class="episode-info" style="flex: 1;">
-                  <div style="font-weight: 600; color: #fff; font-size: 0.95rem;">
-                    Ep <%= ep.episode %>: <%= ep.name %>
-                    <% if ep.air_date.present? %>
-                      <span style="font-size: 0.75rem; color: #64748b; font-weight: normal; margin-left: 6px;">(Aired: <%= ep.air_date %>)</span>
-                    <% end %>
-                  </div>
-                  <% if ep.summary.present? %>
-                    <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 4px; line-height: 1.4;">
-                      <%= strip_tags(ep.summary) %>
-                    </div>
-                  <% end %>
-                </div>
-              </li>
+              <%= render 'tv_shows/tv_episode', ep: ep, tv_show: @tv_show %>
             <% end %>
           </ul>
         </div>
@@ -115,6 +100,7 @@
               <% end %>
             </div>
             <div class="review-content"><%= simple_format(matching_item.review) %></div>
+            <%= render 'shared/comments_box', matching_item: matching_item %>
           </div>
         <% end %>
       </div>

@@ -18,7 +18,7 @@ export default class extends Controller {
   static targets = [
     "titleInput", "secondaryInput", "previewImg", "placeholder", "statusText", "optionsGrid", "thumbnailUrl",
     "director", "artist", "writer", "publisher", "releaseYear", "genre", "network", "venue", "promotion", "date",
-    "season", "episode", "issueNumber", "apiId", "manualFormSection"
+    "season", "episode", "issueNumber", "apiId", "externalUrl", "manualFormSection"
   ]
   static values = { mediaType: String }
 
@@ -97,9 +97,9 @@ export default class extends Controller {
         return
       }
 
-      this.statusTextTarget.textContent = "Select a cover to pre-fill details or click '+ Add' to save instantly:"
+      this.statusTextTarget.textContent = "Select a cover or click a button below to save instantly:"
 
-      allResults.forEach((option, index) => {
+      allResults.forEach((option) => {
         const imgBtn = document.createElement("div")
         imgBtn.className = "thumbnail-option-card"
         
@@ -119,10 +119,15 @@ export default class extends Controller {
         const tooltipText = `${option.title}${yearInfo} ${subtitle ? `- ${subtitle}` : ""}`
 
         imgBtn.innerHTML = `
-          <img src="${option.thumbnail_url}" alt="${option.title}">
-          <span class="option-badge ${badgeClass}">${badgeText}</span>
-          <div class="option-tooltip">${tooltipText}</div>
-          <button type="button" class="option-add-btn">+ Add</button>
+          <div class="thumbnail-option-img-wrap">
+            <img src="${option.thumbnail_url}" alt="${option.title}">
+            <span class="option-badge ${badgeClass}">${badgeText}</span>
+            <div class="option-tooltip">${tooltipText}</div>
+          </div>
+          <div class="thumbnail-option-actions">
+            <button type="button" class="option-action-btn add-collection-btn">+ Collection</button>
+            <button type="button" class="option-action-btn add-watchlist-btn">+ Watchlist</button>
+          </div>
         `
 
         imgBtn.addEventListener("click", (e) => {
@@ -131,12 +136,20 @@ export default class extends Controller {
 
           this.selectOption(option)
 
-          // If "+ Add" button was clicked, auto-submit the form
-          if (e.target.classList.contains("option-add-btn")) {
-            const form = this.element.querySelector("form")
-            if (form) {
-              form.requestSubmit()
-            }
+          const isCollectedInput = this.element.querySelector('input[name*="[is_collected]"]')
+          const inWatchlistInput = this.element.querySelector('input[name*="[in_watchlist]"]')
+          const form = this.element.querySelector("form")
+
+          if (e.target.classList.contains("add-collection-btn")) {
+            if (isCollectedInput) isCollectedInput.checked = true
+            if (inWatchlistInput) inWatchlistInput.checked = false
+            if (form) form.requestSubmit()
+          } else if (e.target.classList.contains("add-watchlist-btn")) {
+            if (isCollectedInput) isCollectedInput.checked = false
+            if (inWatchlistInput) inWatchlistInput.checked = true
+            const consumedInput = this.element.querySelector('input[name*="[consumed]"]')
+            if (consumedInput) consumedInput.checked = false
+            if (form) form.requestSubmit()
           }
         })
 
@@ -146,7 +159,6 @@ export default class extends Controller {
       // Auto-select first cover if user hasn't selected one
       const firstCard = this.optionsGridTarget.querySelector(".thumbnail-option-card")
       if (firstCard) {
-        // Just select it to populate form fields, but don't auto-submit it
         this.optionsGridTarget.querySelectorAll(".thumbnail-option-card").forEach(card => card.classList.remove("selected"))
         firstCard.classList.add("selected")
         const idx = Array.from(this.optionsGridTarget.children).indexOf(firstCard)
@@ -162,7 +174,6 @@ export default class extends Controller {
   async queryWebAPI(query, mediaType) {
     try {
       if (mediaType === "movie") {
-        // Search globally first, filter for feature-movie to bypass iTunes media=movie API limitations
         const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&limit=15&country=US`
         const response = await fetch(url)
         const data = await response.json()
@@ -174,6 +185,8 @@ export default class extends Controller {
             director: r.artistName,
             release_year: r.releaseDate ? new Date(r.releaseDate).getFullYear() : null,
             thumbnail_url: r.artworkUrl100 ? r.artworkUrl100.replace("100x100bb", "400x400bb") : null,
+            api_id: r.trackId ? r.trackId.toString() : null,
+            external_url: r.trackViewUrl || null,
             is_local: false
           }))
           .filter(r => r.thumbnail_url)
@@ -188,11 +201,12 @@ export default class extends Controller {
           genre: r.primaryGenreName,
           release_year: r.releaseDate ? new Date(r.releaseDate).getFullYear() : null,
           thumbnail_url: r.artworkUrl100 ? r.artworkUrl100.replace("100x100bb", "500x500bb") : null,
+          api_id: r.collectionId ? r.collectionId.toString() : null,
+          external_url: r.collectionViewUrl || null,
           is_local: false
         })).filter(r => r.thumbnail_url)
 
       } else if (mediaType === "tv_show") {
-        // TVmaze API: Completely free, no API key required, highly reliable TV metadata
         const url = `https://api.tvmaze.com/search/shows?q=${encodeURIComponent(query)}`
         const response = await fetch(url)
         const data = await response.json()
@@ -203,13 +217,13 @@ export default class extends Controller {
             network: show.network ? show.network.name : (show.webChannel ? show.webChannel.name : null),
             release_year: show.premiered ? new Date(show.premiered).getFullYear() : null,
             thumbnail_url: show.image ? (show.image.original || show.image.medium) : null,
-            api_id: show.id,
+            api_id: show.id ? show.id.toString() : null,
+            external_url: show.officialSite || show.url || null,
             is_local: false
           }
         }).filter(r => r.thumbnail_url)
 
       } else if (mediaType === "comic") {
-        // Open Library API: completely free, no API key needed
         const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=5`
         const response = await fetch(url)
         const data = await response.json()
@@ -224,6 +238,7 @@ export default class extends Controller {
             release_year: releaseYear,
             thumbnail_url: coverUrl,
             api_id: apiId,
+            external_url: doc.key ? `https://openlibrary.org${doc.key}` : null,
             is_local: false
           }
         }).filter(r => r.thumbnail_url)
@@ -240,6 +255,8 @@ export default class extends Controller {
             promotion: r.artistName,
             date: r.releaseDate ? r.releaseDate.split("T")[0] : null,
             thumbnail_url: r.artworkUrl100 ? r.artworkUrl100.replace("100x100bb", "400x400bb") : null,
+            api_id: (r.trackId || r.collectionId || "").toString(),
+            external_url: r.trackViewUrl || r.collectionViewUrl || null,
             is_local: false
           }))
           .filter(r => r.thumbnail_url)
@@ -278,5 +295,6 @@ export default class extends Controller {
     if (this.hasEpisodeTarget) this.episodeTarget.value = option.episode || ""
     if (this.hasIssueNumberTarget) this.issueNumberTarget.value = option.issue_number || ""
     if (this.hasApiIdTarget) this.apiIdTarget.value = option.api_id || ""
+    if (this.hasExternalUrlTarget) this.externalUrlTarget.value = option.external_url || ""
   }
 }

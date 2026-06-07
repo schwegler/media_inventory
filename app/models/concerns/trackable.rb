@@ -41,6 +41,50 @@ module Trackable
       user: user,
       activity_type: activity_type
     )
+    post_to_bluesky_if_enabled(activity_type)
+  end
+
+  def post_to_bluesky_if_enabled(activity_type)
+    return unless bsky_configured?
+    return unless should_post_to_bsky?(activity_type)
+
+    msg = build_bsky_message(activity_type)
+    Thread.new do
+      client = BlueskyClient.new(user.bsky_handle, user.bsky_app_password)
+      client.post(msg)
+    end
+  end
+
+  def bsky_configured?
+    respond_to?(:user) && user.present? && user.bsky_handle.present? && user.bsky_app_password.present?
+  end
+
+  def should_post_to_bsky?(activity_type)
+    if activity_type == 'reviewed'
+      user.bsky_post_reviews?
+    else
+      user.bsky_post_activity?
+    end
+  end
+
+  def build_bsky_message(activity_type)
+    is_review = (activity_type == 'reviewed')
+    template = if is_review
+                 user.bsky_message_review_template.presence || 'Reviewed [title]: [review] ([rating] stars)'
+               else
+                 user.bsky_message_activity_template.presence || 'Added [title] to my [type] list!'
+               end
+
+    interpolate_bsky_template(template, activity_type)
+  end
+
+  def interpolate_bsky_template(template, activity_type)
+    msg = template.dup
+    msg.gsub!('[title]', title.to_s) if msg.include?('[title]')
+    msg.gsub!('[rating]', rating.to_s.presence || 'Unrated') if respond_to?(:rating) && msg.include?('[rating]')
+    msg.gsub!('[review]', review.to_s.presence || '') if respond_to?(:review) && msg.include?('[review]')
+    msg.gsub!('[type]', activity_type.to_s) if msg.include?('[type]')
+    msg.strip
   end
 
   def review_previously_was_blank?

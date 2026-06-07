@@ -41,6 +41,8 @@
     </div>
   </div>
 
+  <%= render 'shared/media_actions_and_stream', item: @comic %>
+
   <% if @comic.review.present? %>
     <div class="media-review-box">
       <h3>Review</h3>
@@ -113,6 +115,7 @@
               <% end %>
             </div>
             <div class="review-content"><%= simple_format(matching_item.review) %></div>
+            <%= render 'shared/comments_box', matching_item: matching_item %>
           </div>
         <% end %>
       </div>

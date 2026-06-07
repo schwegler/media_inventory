@@ -53,7 +53,11 @@ class UsersController < ApplicationController
   private
 
   def user_params
-    params.require(:user).permit(:name, :email, :password, :password_confirmation)
+    params.require(:user).permit(
+      :name, :email, :password, :password_confirmation,
+      :bsky_handle, :bsky_app_password, :bsky_post_activity, :bsky_post_reviews,
+      :bsky_message_activity_template, :bsky_message_review_template
+    )
   end
 
   # Confirms the correct user.
