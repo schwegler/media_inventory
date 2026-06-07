@@ -25,6 +25,34 @@
         <%= f.password_field :password_confirmation, class: 'form-control' %>
       </div>
 
+      <hr style="margin: 30px 0; border-color: #334155;">
+
+      <h3>Bluesky Integration (Optional)</h3>
+      <p style="font-size: 0.9em; color: #94a3b8;">Automatically post your activity and reviews to Bluesky.</p>
+
+      <div class="form-group" style="margin-top: 15px;">
+        <%= f.label :bsky_handle, "Bluesky Handle (e.g. user.bsky.social)" %>
+        <%= f.text_field :bsky_handle, class: 'form-control' %>
+      </div>
+
+      <div class="form-group" style="margin-top: 15px;">
+        <%= f.label :bsky_app_password, "Bluesky App Password" %>
+        <%= f.password_field :bsky_app_password, class: 'form-control' %>
+      </div>
+
+      <div class="form-group" style="margin-top: 15px;">
+        <label>
+          <%= f.check_box :bsky_post_reviews_only %>
+          Only post to Bluesky when I write a review
+        </label>
+      </div>
+
+      <div class="form-group" style="margin-top: 15px;">
+        <%= f.label :bsky_custom_message, "Custom Message Format" %>
+        <p style="font-size: 0.85em; color: #94a3b8; margin-top: 0; margin-bottom: 5px;">Use <code>[title]</code> to insert the media title. (e.g. "Just logged [title] on MediaTracker!")</p>
+        <%= f.text_area :bsky_custom_message, class: 'form-control', rows: 3 %>
+      </div>
+
       <%= f.submit "Save changes", class: "btn btn-primary", style: "margin-top: 20px;" %>
     <% end %>
   </div>

@@ -15,6 +15,9 @@
       <div class="media-sub-meta">Director: <%= @movie.director || 'Unknown' %> &bull; <%= @movie.release_year %></div>
       
       <div class="media-tracking-badges">
+        <span class="tracking-badge badge-justwatch" style="background-color: #facc15; color: #000;">
+          <%= link_to 'Search on JustWatch', "https://www.justwatch.com/us/search?q=#{u(@movie.title)}", target: '_blank', style: "color: inherit; text-decoration: none; font-weight: bold;" %>
+        </span>
         <% if @movie.is_collected? %>
           <span class="tracking-badge badge-collected">📁 In Collection</span>
         <% end %>

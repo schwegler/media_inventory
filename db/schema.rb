@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_06_180359) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_07_071040) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -130,6 +130,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_180359) do
 
   create_table "users", force: :cascade do |t|
     t.boolean "admin", default: false
+    t.string "bsky_app_password"
+    t.text "bsky_custom_message"
+    t.string "bsky_handle"
+    t.boolean "bsky_post_reviews_only"
     t.datetime "confirmed_at"
     t.datetime "created_at", null: false
     t.string "email"

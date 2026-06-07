@@ -37,10 +37,15 @@ module Trackable
   # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 
   def create_activity(activity_type)
-    activities.create!(
+    activity = activities.create!(
       user: user,
       activity_type: activity_type
     )
+
+    # Attempt to post to Bluesky if configured
+    BlueskyService.post_activity(user, activity_type, self)
+
+    activity
   end
 
   def review_previously_was_blank?

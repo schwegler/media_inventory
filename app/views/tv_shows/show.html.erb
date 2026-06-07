@@ -14,7 +14,16 @@
       <h1><%= @tv_show.title %></h1>
       <div class="media-sub-meta">Season <%= @tv_show.season %> Episode <%= @tv_show.episode %> &bull; <%= @tv_show.network || 'Unknown Network' %></div>
       
+      <div style="margin-top: 10px;">
+        <% if logged_in? && (@tv_show.user == current_user || current_user.admin?) %>
+          <%= link_to 'Edit TV Show', edit_tv_show_path(@tv_show), class: 'btn btn-sm btn-secondary', style: "font-size: 0.8em;" %>
+        <% end %>
+      </div>
+
       <div class="media-tracking-badges">
+        <span class="tracking-badge badge-justwatch" style="background-color: #facc15; color: #000;">
+          <%= link_to 'Search on JustWatch', "https://www.justwatch.com/us/search?q=#{u(@tv_show.title)}", target: '_blank', style: "color: inherit; text-decoration: none; font-weight: bold;" %>
+        </span>
         <% if @tv_show.is_collected? %>
           <span class="tracking-badge badge-collected">📁 In Collection</span>
         <% end %>
