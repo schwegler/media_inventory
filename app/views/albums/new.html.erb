@@ -1,6 +1,6 @@
 <h1>New Album</h1>
 <div data-controller="thumbnail-fetcher consumed-toggle" data-thumbnail-fetcher-media-type-value="album">
-  <%= form_with model: @album do |f| %>
+  <%= form_with model: @album, class: "standard-form" do |f| %>
     <% if @album.errors.any? %>
       <div id="error_explanation">
         <h2><%= pluralize(@album.errors.count, "error") %> prohibited this album from being saved:</h2>

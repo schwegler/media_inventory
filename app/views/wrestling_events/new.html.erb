@@ -1,6 +1,6 @@
 <h1>New Wrestling Event</h1>
 <div data-controller="thumbnail-fetcher consumed-toggle" data-thumbnail-fetcher-media-type-value="wrestling_event">
-  <%= form_with model: @wrestling_event do |f| %>
+  <%= form_with model: @wrestling_event, class: "standard-form" do |f| %>
     <% if @wrestling_event.errors.any? %>
       <div id="error_explanation">
         <h2><%= pluralize(@wrestling_event.errors.count, "error") %> prohibited this wrestling event from being saved:</h2>

@@ -1,6 +1,6 @@
 <h1>New TV Show</h1>
 <div data-controller="thumbnail-fetcher consumed-toggle" data-thumbnail-fetcher-media-type-value="tv_show">
-  <%= form_with model: @tv_show do |f| %>
+  <%= form_with model: @tv_show, class: "standard-form" do |f| %>
     <% if @tv_show.errors.any? %>
       <div id="error_explanation">
         <h2><%= pluralize(@tv_show.errors.count, "error") %> prohibited this TV show from being saved:</h2>
