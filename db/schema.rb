@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_06_182331) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_07_044133) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -58,6 +58,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_182331) do
     t.boolean "consumed", default: false, null: false
     t.date "consumed_at"
     t.datetime "created_at", null: false
+    t.string "external_url"
     t.string "genre"
     t.boolean "in_watchlist", default: false, null: false
     t.boolean "is_collected", default: true, null: false
@@ -89,6 +90,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_182331) do
     t.boolean "consumed", default: false, null: false
     t.date "consumed_at"
     t.datetime "created_at", null: false
+    t.string "external_url"
     t.boolean "in_watchlist", default: false, null: false
     t.boolean "is_collected", default: true, null: false
     t.boolean "is_public", default: false
@@ -104,12 +106,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_182331) do
     t.index ["user_id"], name: "index_comics_on_user_id"
   end
 
+  create_table "comments", force: :cascade do |t|
+    t.integer "commentable_id", null: false
+    t.string "commentable_type", null: false
+    t.text "content", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["commentable_type", "commentable_id"], name: "index_comments_on_commentable"
+    t.index ["user_id"], name: "index_comments_on_user_id"
+  end
+
   create_table "movies", force: :cascade do |t|
     t.string "api_id"
     t.boolean "consumed", default: false, null: false
     t.date "consumed_at"
     t.datetime "created_at", null: false
     t.string "director"
+    t.string "external_url"
     t.boolean "in_watchlist", default: false, null: false
     t.boolean "is_collected", default: true, null: false
     t.boolean "is_public", default: false
@@ -128,11 +142,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_182331) do
     t.datetime "created_at", null: false
     t.integer "episode"
     t.string "name"
+    t.string "rating"
+    t.text "review"
     t.integer "season"
     t.text "summary"
     t.string "thumbnail_url"
     t.integer "tv_show_id", null: false
     t.datetime "updated_at", null: false
+    t.boolean "watched", default: false, null: false
+    t.date "watched_at"
     t.index ["tv_show_id"], name: "index_tv_episodes_on_tv_show_id"
   end
 
@@ -142,6 +160,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_182331) do
     t.date "consumed_at"
     t.datetime "created_at", null: false
     t.integer "episode"
+    t.string "external_url"
     t.boolean "in_watchlist", default: false, null: false
     t.boolean "is_collected", default: true, null: false
     t.boolean "is_public", default: false
@@ -158,11 +177,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_182331) do
 
   create_table "users", force: :cascade do |t|
     t.boolean "admin", default: false
+    t.string "bsky_app_password"
+    t.string "bsky_handle"
+    t.string "bsky_message_activity_template"
+    t.string "bsky_message_review_template"
+    t.boolean "bsky_post_activity", default: false, null: false
+    t.boolean "bsky_post_reviews", default: false, null: false
     t.datetime "confirmed_at"
     t.datetime "created_at", null: false
     t.string "email"
     t.string "name"
     t.string "password_digest"
+    t.text "private_key"
+    t.text "public_key"
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_users_on_email", unique: true
   end
@@ -173,6 +200,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_182331) do
     t.date "consumed_at"
     t.datetime "created_at", null: false
     t.date "date"
+    t.string "external_url"
     t.boolean "in_watchlist", default: false, null: false
     t.boolean "is_collected", default: true, null: false
     t.boolean "is_public", default: false
@@ -193,6 +221,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_182331) do
   add_foreign_key "albums", "users", on_delete: :cascade
   add_foreign_key "comic_issues", "comics", on_delete: :cascade
   add_foreign_key "comics", "users", on_delete: :cascade
+  add_foreign_key "comments", "users", on_delete: :cascade
   add_foreign_key "movies", "users", on_delete: :cascade
   add_foreign_key "tv_episodes", "tv_shows", on_delete: :cascade
   add_foreign_key "tv_shows", "users", on_delete: :cascade

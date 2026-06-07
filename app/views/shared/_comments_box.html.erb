@@ -1,0 +1,20 @@
+<%# Local variables: matching_item %>
+<div class="review-comments-box" id="comments_for_<%= matching_item.class.name %>_<%= matching_item.id %>" style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px dashed rgba(255,255,255,0.05);">
+  <div class="comments-list" id="comments_list_for_<%= matching_item.class.name %>_<%= matching_item.id %>" style="display: flex; flex-direction: column; gap: 8px;">
+    <% matching_item.comments.includes(:user).each do |comment| %>
+      <div class="comment-item" style="font-size: 0.8rem; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.03); display: flex; flex-direction: column; gap: 2px;">
+        <span style="font-weight: 600; color: #818cf8;"><%= comment.user.name.presence || comment.user.email %></span>
+        <span style="color: #cbd5e1;"><%= comment.content %></span>
+      </div>
+    <% end %>
+  </div>
+
+  <% if logged_in? %>
+    <%= form_with model: Comment.new, url: comments_path, local: false, class: 'comment-form', style: 'margin-top: 10px; display: flex; gap: 8px;' do |cf| %>
+      <%= cf.hidden_field :commentable_type, value: matching_item.class.name %>
+      <%= cf.hidden_field :commentable_id, value: matching_item.id %>
+      <%= cf.text_field :content, placeholder: 'Write a comment...', required: true, style: 'flex: 1; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); color: #fff;' %>
+      <%= cf.submit 'Reply', style: 'padding: 6px 12px; font-size: 0.8rem; font-weight: 600; background: #4f46e5; border: none; border-radius: 6px; color: #fff; cursor: pointer;' %>
+    <% end %>
+  <% end %>
+</div>

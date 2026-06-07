@@ -18,4 +18,16 @@ class User < ApplicationRecord
   has_many :tv_shows
   has_many :wrestling_events
   has_many :activities, dependent: :destroy
+  has_many :comments, dependent: :destroy
+
+  before_create :generate_activitypub_keys
+
+  private
+
+  def generate_activitypub_keys
+    require 'openssl'
+    key = OpenSSL::PKey::RSA.new(2048)
+    self.private_key = key.to_pem
+    self.public_key = key.public_key.to_pem
+  end
 end

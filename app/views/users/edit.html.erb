@@ -25,6 +25,47 @@
         <%= f.password_field :password_confirmation, class: 'form-control' %>
       </div>
 
+      <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.5rem; margin-top: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style="font-size: 1.25rem; color: #fff; margin-bottom: 0.5rem;">🦋 Bluesky Integration</h3>
+        <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem; line-height: 1.4;">
+          Connect your Bluesky (bsky.app) account to automatically post updates and reviews.
+          Please generate and use an <strong>App Password</strong> in your Bluesky settings.
+        </p>
+
+        <div class="form-group">
+          <%= f.label :bsky_handle, "Bluesky Handle" %>
+          <%= f.text_field :bsky_handle, class: 'form-control', placeholder: 'e.g. username.bsky.social' %>
+        </div>
+
+        <div class="form-group" style="margin-top: 15px;">
+          <%= f.label :bsky_app_password, "Bluesky App Password" %>
+          <%= f.password_field :bsky_app_password, class: 'form-control', placeholder: 'e.g. xxxx-xxxx-xxxx-xxxx', value: @user.bsky_app_password %>
+        </div>
+
+        <div style="margin-top: 15px; display: flex; gap: 20px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <%= f.check_box :bsky_post_activity %>
+            <%= f.label :bsky_post_activity, "Auto-post new additions", style: "margin-bottom: 0;" %>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <%= f.check_box :bsky_post_reviews %>
+            <%= f.label :bsky_post_reviews, "Auto-post reviews", style: "margin-bottom: 0;" %>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 15px;">
+          <%= f.label :bsky_message_activity_template, "Activity Template" %>
+          <%= f.text_field :bsky_message_activity_template, class: 'form-control', placeholder: 'Just added [title] to my library! #mediatracker' %>
+          <small style="color: #64748b; font-size: 0.75rem;">Placeholders: [title], [type]</small>
+        </div>
+
+        <div class="form-group" style="margin-top: 15px;">
+          <%= f.label :bsky_message_review_template, "Review Template" %>
+          <%= f.text_field :bsky_message_review_template, class: 'form-control', placeholder: 'My review of [title]: [review] - [rating]★ #mediatracker' %>
+          <small style="color: #64748b; font-size: 0.75rem;">Placeholders: [title], [review], [rating]</small>
+        </div>
+      </div>
+
       <%= f.submit "Save changes", class: "btn btn-primary", style: "margin-top: 20px;" %>
     <% end %>
   </div>
