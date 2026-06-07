@@ -48,6 +48,34 @@
     </div>
   <% end %>
 
+  <% if @comic.comic_issues.any? %>
+    <div class="episodes-section" style="margin-top: 2rem;">
+      <h3 style="font-size: 1.25rem; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.5rem;">Editions & Issues</h3>
+      <ul class="episodes-list" style="list-style: none; padding-left: 0; display: flex; flex-direction: column; gap: 8px;">
+        <% @comic.comic_issues.sort_by { |i| i.release_date.to_s }.reverse.each do |issue| %>
+          <li class="episode-item" style="background: rgba(30, 41, 59, 0.25); border: 1px solid rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 8px; display: flex; gap: 12px; align-items: start;">
+            <% if issue.thumbnail_url.present? %>
+              <img src="<%= issue.thumbnail_url %>" alt="<%= issue.title %>" style="width: 50px; height: 75px; object-fit: cover; border-radius: 4px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1);">
+            <% end %>
+            <div class="episode-info" style="flex: 1;">
+              <div style="font-weight: 600; color: #fff; font-size: 0.95rem;">
+                <%= issue.title %>
+              </div>
+              <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 4px;">
+                <% if issue.publisher.present? %>
+                  Publisher: <%= issue.publisher %>
+                <% end %>
+                <% if issue.release_date.present? %>
+                  &bull; Published: <%= issue.release_date %>
+                <% end %>
+              </div>
+            </div>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
   <% stats = community_stats_for(@comic) %>
   <div class="community-section">
     <h2>Community Activity</h2>

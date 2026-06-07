@@ -12,32 +12,18 @@
       </div>
     <% end %>
 
+    <%= f.hidden_field :api_id, data: { thumbnail_fetcher_target: "apiId" } %>
+
     <div>
       <%= f.label :title %>
       <%= f.text_field :title, required: true, data: { thumbnail_fetcher_target: "titleInput", action: "input->thumbnail-fetcher#search" } %>
-    </div>
-    <div>
-      <%= f.label :issue_number %>
-      <%= f.number_field :issue_number, data: { thumbnail_fetcher_target: "issueNumber" } %>
-    </div>
-    <div>
-      <%= f.label :publisher %>
-      <%= f.text_field :publisher, data: { thumbnail_fetcher_target: "publisher" } %>
-    </div>
-    <div>
-      <%= f.label :writer %>
-      <%= f.text_field :writer, data: { thumbnail_fetcher_target: "secondaryInput writer", action: "input->thumbnail-fetcher#search" } %>
-    </div>
-    <div>
-      <%= f.label :artist %>
-      <%= f.text_field :artist, data: { thumbnail_fetcher_target: "artist" } %>
     </div>
 
     <div class="thumbnail-fetcher-container">
       <label>Thumbnail Cover</label>
       <div class="thumbnail-fetcher-layout">
         <div class="thumbnail-preview-box">
-          <img class="thumbnail-preview-img" src="" alt="Cover Preview" style="display: none;" data-thumbnail-fetcher-target="previewImg">
+          <img class="thumbnail-preview-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Cover Preview" style="display: none;" data-thumbnail-fetcher-target="previewImg">
           <div class="thumbnail-preview-placeholder" data-thumbnail-fetcher-target="placeholder">No Cover</div>
         </div>
         <div class="thumbnail-options-box">
@@ -46,47 +32,71 @@
         </div>
       </div>
       <%= f.hidden_field :thumbnail_url, data: { thumbnail_fetcher_target: "thumbnailUrl" } %>
-      <div style="margin-top: 15px;">
+    </div>
+
+    <div style="text-align: center; margin: 1.5rem 0;">
+      <button type="button" class="btn btn-secondary" data-action="click->thumbnail-fetcher#showManualForm">Add Manually</button>
+    </div>
+
+    <div data-thumbnail-fetcher-target="manualFormSection" style="display: none; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.5rem; margin-top: 1.5rem;">
+      <div style="margin-bottom: 15px;">
         <%= f.label :cover_image, "Upload Custom Cover Art (Fallback)" %>
         <%= f.file_field :cover_image, class: 'form-control' %>
       </div>
-    </div>
 
-    <div class="form-row-toggles">
-      <div class="toggle-field">
-        <%= f.check_box :is_collected %>
-        <%= f.label :is_collected, "In Collection" %>
+      <div>
+        <%= f.label :issue_number %>
+        <%= f.number_field :issue_number, data: { thumbnail_fetcher_target: "issueNumber" } %>
       </div>
-      <div class="toggle-field">
-        <%= f.check_box :in_watchlist %>
-        <%= f.label :in_watchlist, "In Watchlist" %>
+      <div>
+        <%= f.label :publisher %>
+        <%= f.text_field :publisher, data: { thumbnail_fetcher_target: "publisher" } %>
       </div>
-      <div class="toggle-field">
-        <%= f.check_box :consumed, data: { consumed_toggle_target: "checkbox", action: "change->consumed-toggle#toggle" } %>
-        <%= f.label :consumed, "Read?" %>
+      <div>
+        <%= f.label :writer %>
+        <%= f.text_field :writer, data: { thumbnail_fetcher_target: "secondaryInput writer", action: "input->thumbnail-fetcher#search" } %>
       </div>
-    </div>
+      <div>
+        <%= f.label :artist %>
+        <%= f.text_field :artist, data: { thumbnail_fetcher_target: "artist" } %>
+      </div>
 
-    <div data-consumed-toggle-target="dateRow" style="display: none;">
-      <%= f.label :consumed_at, "Date Read" %>
-      <%= f.date_field :consumed_at, value: Time.current.to_date %>
-    </div>
+      <div class="form-row-toggles">
+        <div class="toggle-field">
+          <%= f.check_box :is_collected %>
+          <%= f.label :is_collected, "In Collection" %>
+        </div>
+        <div class="toggle-field">
+          <%= f.check_box :in_watchlist %>
+          <%= f.label :in_watchlist, "In Watchlist" %>
+        </div>
+        <div class="toggle-field">
+          <%= f.check_box :consumed, data: { consumed_toggle_target: "checkbox", action: "change->consumed-toggle#toggle" } %>
+          <%= f.label :consumed, "Read?" %>
+        </div>
+      </div>
 
-    <div>
-      <%= f.label :rating %>
-      <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]] %>
-    </div>
+      <div data-consumed-toggle-target="dateRow" style="display: none;">
+        <%= f.label :consumed_at, "Date Read" %>
+        <%= f.date_field :consumed_at, value: Time.current.to_date %>
+      </div>
 
-    <div>
-      <%= f.label :review %>
-      <%= f.text_area :review, rows: 4, placeholder: "Add a review..." %>
-    </div>
+      <div>
+        <%= f.label :rating %>
+        <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]] %>
+      </div>
 
-    <div>
-      <%= f.label :is_public, "Make Public?" %>
-      <%= f.check_box :is_public %>
-    </div>
+      <div>
+        <%= f.label :review %>
+        <%= f.text_area :review, rows: 4, placeholder: "Add a review..." %>
+      </div>
 
-    <%= f.submit "Create Comic" %>
+      <div>
+        <%= f.label :is_public, "Make Public?" %>
+        <%= f.check_box :is_public %>
+      </div>
+
+      <%= f.submit "Create Comic" %>
+    </div>
   <% end %>
 </div>
