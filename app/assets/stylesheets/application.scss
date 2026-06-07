@@ -1,10 +1,10 @@
 // Sleek makeover variables
-$bg-dark: #0f172a;       // slate-900
-$bg-darker: #0b0f19;     // slate-950 (richer dark)
+$bg-dark: #0f172a; // slate-900
+$bg-darker: #0b0f19; // slate-950 (richer dark)
 $card-bg: rgba(30, 41, 59, 0.45); // slate-800 semi-transparent
 $card-border: rgba(255, 255, 255, 0.06);
-$text-main: #f8fafc;     // slate-50
-$text-muted: #94a3b8;    // slate-400
+$text-main: #f8fafc; // slate-50
+$text-muted: #94a3b8; // slate-400
 $primary-color: #6366f1; // indigo-500
 $primary-hover: #4f46e5; // indigo-600
 $secondary-color: #ec4899; // pink-500
@@ -16,7 +16,7 @@ $font-family-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-
 body {
   font-family: $font-family-body;
   background-color: $bg-darker;
-  background-image: 
+  background-image:
     radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.07) 0px, transparent 50%),
     radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.04) 0px, transparent 50%);
   background-attachment: fixed;
@@ -100,7 +100,12 @@ header {
   }
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: $font-family-headings;
   font-weight: 700;
   color: #ffffff;
@@ -195,7 +200,7 @@ a {
     transform: translateY(-5px);
     border-color: rgba(99, 102, 241, 0.35);
     box-shadow: 0 12px 24px -10px rgba(99, 102, 241, 0.2);
-    
+
     &::before {
       opacity: 1;
     }
@@ -284,9 +289,13 @@ a {
   .card-content {
     h3 {
       margin: 0;
+
       a {
         color: #ffffff;
-        &:hover { color: $primary-color; }
+
+        &:hover {
+          color: $primary-color;
+        }
       }
     }
   }
@@ -504,7 +513,8 @@ table {
   border-radius: 12px;
   overflow: hidden;
 
-  th, td {
+  th,
+  td {
     padding: 1rem 1.25rem;
     text-align: left;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -583,7 +593,9 @@ table {
     padding: 0;
     margin: 0;
 
-    a, span, em {
+    a,
+    span,
+    em {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -607,14 +619,17 @@ table {
       border-color: rgba(255, 255, 255, 0.1);
     }
 
-    .current, em, .active {
+    .current,
+    em,
+    .active {
       color: #ffffff;
       background: linear-gradient(135deg, $primary-color 0%, $primary-hover 100%);
       border-color: $primary-color;
       box-shadow: 0 4px 10px rgba(99, 102, 241, 0.25);
     }
 
-    .disabled, .gap {
+    .disabled,
+    .gap {
       opacity: 0.4;
       cursor: not-allowed;
     }
@@ -652,7 +667,7 @@ turbo-frame[busy] {
 /* Thumbnail Fetcher Component Styles */
 .thumbnail-fetcher-container {
   margin-bottom: 1.5rem;
-  
+
   label {
     display: block;
     margin-bottom: 0.6rem;
@@ -721,18 +736,21 @@ turbo-frame[busy] {
   gap: 8px;
   overflow-x: auto;
   padding: 4px 2px;
-  
+
   /* Custom scrollbar for visual refinement */
   &::-webkit-scrollbar {
     height: 6px;
   }
+
   &::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.1);
     border-radius: 3px;
   }
+
   &::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 3px;
+
     &:hover {
       background: rgba(255, 255, 255, 0.2);
     }
@@ -806,6 +824,7 @@ turbo-frame[busy] {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    max-width: 100%;
   }
 
   .fallback-icon {
@@ -836,7 +855,7 @@ turbo-frame[busy] {
   a {
     color: #818cf8; // indigo-400
     font-weight: 600;
-    
+
     &:hover {
       color: #a5b4fc; // indigo-300
     }
@@ -872,19 +891,22 @@ turbo-frame[busy] {
   letter-spacing: 0.05em;
   padding: 2px 8px;
   border-radius: 4px;
-  
+
   &.badge-added {
     background: rgba(34, 197, 94, 0.12);
     color: #4ade80;
   }
+
   &.badge-reviewed {
     background: rgba(236, 72, 153, 0.12);
     color: #f472b6;
   }
+
   &.badge-watchlist {
     background: rgba(234, 179, 8, 0.12);
     color: #facc15;
   }
+
   &.badge-consumed {
     background: rgba(99, 102, 241, 0.12);
     color: #818cf8;
@@ -924,10 +946,11 @@ turbo-frame[busy] {
   align-items: center;
   gap: 10px;
   font-size: 0.9rem;
-  
+
   a {
     color: #e2e8f0;
     font-weight: 500;
+
     &:hover {
       color: #6366f1;
     }
@@ -937,7 +960,7 @@ turbo-frame[busy] {
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.06);
+    background: rgba(255, 255, 255, 0.06);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -951,7 +974,7 @@ turbo-frame[busy] {
   grid-template-columns: 1fr 1fr 1fr;
   gap: 12px;
   margin-bottom: 1.5rem;
-  
+
   .toggle-field {
     background: rgba(15, 23, 42, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.06);
@@ -962,7 +985,7 @@ turbo-frame[busy] {
     gap: 8px;
     cursor: pointer;
     font-size: 0.85rem;
-    
+
     label {
       margin: 0;
       cursor: pointer;
@@ -993,7 +1016,7 @@ turbo-frame[busy] {
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.1);
   overflow: hidden !important;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1026,12 +1049,12 @@ turbo-frame[busy] {
 .media-item-details {
   flex: 1;
   min-width: 0;
-  
+
   h1 {
     font-size: 2.5rem;
     margin-bottom: 8px;
   }
-  
+
   .media-sub-meta {
     font-size: 1.1rem;
     color: #94a3b8;
@@ -1061,11 +1084,13 @@ turbo-frame[busy] {
     color: #4ade80;
     border-color: rgba(34, 197, 94, 0.2);
   }
+
   &.badge-watchlist {
     background: rgba(234, 179, 8, 0.1);
     color: #facc15;
     border-color: rgba(234, 179, 8, 0.2);
   }
+
   &.badge-consumed {
     background: rgba(99, 102, 241, 0.1);
     color: #818cf8;
@@ -1123,12 +1148,12 @@ turbo-frame[busy] {
     border-radius: 3px;
     letter-spacing: 0.03em;
     z-index: 10;
-    
+
     &.local {
       background: rgba(34, 197, 94, 0.9);
       color: #fff;
     }
-    
+
     &.web {
       background: rgba(99, 102, 241, 0.9);
       color: #fff;
@@ -1175,10 +1200,11 @@ turbo-frame[busy] {
     cursor: pointer;
     text-align: center;
     transition: background 0.2s, transform 0.1s;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 
     &.add-watchlist-btn {
       background: #4b5563;
+
       &:hover {
         background: #374151;
       }
@@ -1188,6 +1214,7 @@ turbo-frame[busy] {
       background: #4338ca;
       transform: translateY(-1px);
     }
+
     &:active {
       transform: translateY(0);
     }
@@ -1209,7 +1236,7 @@ turbo-frame[busy] {
   margin-top: 3rem;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding-top: 2rem;
-  
+
   h2 {
     font-size: 1.5rem;
     margin-bottom: 1.5rem;
@@ -1232,7 +1259,7 @@ turbo-frame[busy] {
   padding: 16px;
   border-radius: 12px;
   text-align: center;
-  
+
   .stat-label {
     font-size: 0.75rem;
     color: #94a3b8;
@@ -1240,7 +1267,7 @@ turbo-frame[busy] {
     letter-spacing: 0.05em;
     margin-bottom: 4px;
   }
-  
+
   .stat-value {
     font-size: 1.6rem;
     font-weight: 700;
@@ -1260,24 +1287,24 @@ turbo-frame[busy] {
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   padding: 16px;
-  
+
   .review-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
     font-size: 0.85rem;
-    
+
     .review-user {
       font-weight: 600;
       color: #818cf8;
     }
-    
+
     .review-rating {
       color: #facc15;
     }
   }
-  
+
   .review-content {
     color: #cbd5e1;
     font-size: 0.95rem;
@@ -1290,7 +1317,7 @@ turbo-frame[busy] {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  
+
   .member-tag {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -1327,14 +1354,14 @@ turbo-frame[busy] {
   gap: 8px;
   cursor: pointer;
   user-select: none;
-  
+
   input[type="checkbox"] {
     margin: 0;
     width: 18px;
     height: 18px;
     cursor: pointer;
   }
-  
+
   label.inline-checkbox-label {
     display: inline !important;
     text-transform: none !important;
@@ -1346,5 +1373,3 @@ turbo-frame[busy] {
     cursor: pointer;
   }
 }
-
-
