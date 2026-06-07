@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
 class CreateSeriesEpisodesAndIssues < ActiveRecord::Migration[8.1]
-  # rubocop:disable Metrics/MethodLength
   def change
     add_column :tv_shows, :api_id, :string
     add_column :comics, :api_id, :string
+    add_column :movies, :api_id, :string
+    add_column :albums, :api_id, :string
+    add_column :wrestling_events, :api_id, :string
 
     create_table :tv_episodes do |t|
       t.references :tv_show, null: false, foreign_key: { on_delete: :cascade }
@@ -28,5 +30,4 @@ class CreateSeriesEpisodesAndIssues < ActiveRecord::Migration[8.1]
       t.timestamps
     end
   end
-  # rubocop:enable Metrics/MethodLength
 end

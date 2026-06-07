@@ -53,6 +53,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_182331) do
   end
 
   create_table "albums", force: :cascade do |t|
+    t.string "api_id"
     t.string "artist"
     t.boolean "consumed", default: false, null: false
     t.date "consumed_at"
@@ -104,6 +105,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_182331) do
   end
 
   create_table "movies", force: :cascade do |t|
+    t.string "api_id"
     t.boolean "consumed", default: false, null: false
     t.date "consumed_at"
     t.datetime "created_at", null: false
@@ -166,6 +168,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_182331) do
   end
 
   create_table "wrestling_events", force: :cascade do |t|
+    t.string "api_id"
     t.boolean "consumed", default: false, null: false
     t.date "consumed_at"
     t.datetime "created_at", null: false
