@@ -1,0 +1,123 @@
+<div class="details-card" style="max-width: 700px;">
+  <div class="media-item-header">
+    <div class="media-item-cover">
+      <% if @video_game.cover_image.attached? %>
+        <%= image_tag @video_game.cover_image, alt: "#{@video_game.title} Cover" %>
+      <% elsif @video_game.thumbnail_url.present? %>
+        <img src="<%= @video_game.thumbnail_url %>" alt="<%= @video_game.title %> Cover">
+      <% else %>
+        <span class="fallback-icon">🎮</span>
+      <% end %>
+    </div>
+    
+    <div class="media-item-details">
+      <h1><%= @video_game.title %></h1>
+      <div class="media-sub-meta">Developer: <%= @video_game.developer || 'Unknown' %> &bull; <%= @video_game.release_year %></div>
+      <div class="media-sub-meta">Platform: <%= @video_game.platform || 'Unknown' %></div>
+      
+      <div class="media-tracking-badges">
+        <% if @video_game.is_collected? %>
+          <span class="tracking-badge badge-collected">📁 In Collection</span>
+        <% end %>
+        <% if @video_game.in_watchlist? %>
+          <span class="tracking-badge badge-watchlist">⏳ Backlog</span>
+        <% end %>
+        <% if @video_game.consumed? %>
+          <span class="tracking-badge badge-consumed">
+            ✓ Played <%= "on #{@video_game.consumed_at.strftime('%b %d, %Y')}" if @video_game.consumed_at.present? %>
+          </span>
+        <% end %>
+      </div>
+
+      <% if @video_game.rating.present? %>
+        <div class="detail-row" style="border-bottom: none; padding: 0;">
+          <strong>Rating:</strong>
+          <span style="font-size: 1.2rem; color: #facc15;"><%= @video_game.rating %> ★</span>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <%= render 'shared/media_actions_and_stream', item: @video_game %>
+
+  <% if @video_game.review.present? %>
+    <div class="media-review-box">
+      <h3>Review</h3>
+      <p><%= simple_format(@video_game.review) %></p>
+    </div>
+  <% end %>
+
+  <% stats = community_stats_for(@video_game) %>
+  <div class="community-section">
+    <h2>Community Activity</h2>
+    
+    <div class="community-stats">
+      <div class="stat-box">
+        <div class="stat-label">Average Rating</div>
+        <div class="stat-value">
+          <% if stats[:avg_rating] %>
+            <%= stats[:avg_rating] %> ★
+          <% else %>
+            —
+          <% end %>
+        </div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Players</div>
+        <div class="stat-value"><%= stats[:watchers].size %></div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Collectors</div>
+        <div class="stat-value"><%= stats[:collectors].size %></div>
+      </div>
+    </div>
+
+    <% if stats[:reviews].any? %>
+      <h3 style="font-size: 1.2rem; margin-bottom: 1rem;">Community Reviews</h3>
+      <div class="community-reviews-list">
+        <% stats[:reviews].each do |matching_item| %>
+          <div class="community-review-card">
+            <div class="review-header" style="display: flex; gap: 8px; align-items: center;">
+              <%= user_avatar_tag(matching_item.user, size: 24) %>
+              <span class="review-user" style="flex: 1;"><%= matching_item.user.name.presence || matching_item.user.email %></span>
+              <% if matching_item.rating.present? %>
+                <span class="review-rating"><%= matching_item.rating %> ★</span>
+              <% end %>
+            </div>
+            <div class="review-content"><%= simple_format(matching_item.review) %></div>
+            <%= render 'shared/comments_box', matching_item: matching_item %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <% if stats[:watchers].any? %>
+      <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; margin-top: 1.5rem;">Players</h3>
+      <div class="community-members-list" style="margin-bottom: 1.5rem;">
+        <% stats[:watchers].each do |user| %>
+          <span class="member-tag" style="padding: 4px 10px 4px 6px;">
+            <%= user_avatar_tag(user, size: 20) %>
+            <%= user.name.presence || user.email %>
+          </span>
+        <% end %>
+      </div>
+    <% end %>
+
+    <% if stats[:collectors].any? %>
+      <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Collectors</h3>
+      <div class="community-members-list">
+        <% stats[:collectors].each do |user| %>
+          <span class="member-tag" style="padding: 4px 10px 4px 6px;">
+            <%= user_avatar_tag(user, size: 20) %>
+            <%= user.name.presence || user.email %>
+          </span>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="actions" style="margin-top: 2rem;">
+    <%= link_to 'Back', video_games_path, class: 'btn btn-secondary' %>
+    <a href="https://www.youtube.com/results?search_query=<%= u(@video_game.title) %>" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="margin-left: 10px;">Find on YouTube</a>
+  </div>
+</div>
