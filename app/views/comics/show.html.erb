@@ -109,7 +109,7 @@
         <% stats[:reviews].each do |matching_item| %>
           <div class="community-review-card">
             <div class="review-header">
-              <span class="review-user"><%= matching_item.user.name.presence || matching_item.user.email %></span>
+              <span class="review-user"><%= matching_item.user.name.presence || matching_item.user.display_handle %></span>
               <% if matching_item.rating.present? %>
                 <span class="review-rating"><%= matching_item.rating %> ★</span>
               <% end %>
@@ -125,7 +125,7 @@
       <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; margin-top: 1.5rem;">Readers</h3>
       <div class="community-members-list" style="margin-bottom: 1.5rem;">
         <% stats[:watchers].each do |user| %>
-          <span class="member-tag">👤 <%= user.name.presence || user.email %></span>
+          <span class="member-tag">👤 <%= user.name.presence || user.display_handle %></span>
         <% end %>
       </div>
     <% end %>
@@ -134,7 +134,7 @@
       <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Collectors</h3>
       <div class="community-members-list">
         <% stats[:collectors].each do |user| %>
-          <span class="member-tag">📁 <%= user.name.presence || user.email %></span>
+          <span class="member-tag">📁 <%= user.name.presence || user.display_handle %></span>
         <% end %>
       </div>
     <% end %>

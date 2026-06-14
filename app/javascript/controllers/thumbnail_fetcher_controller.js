@@ -18,7 +18,7 @@ export default class extends Controller {
   static targets = [
     "titleInput", "secondaryInput", "previewImg", "placeholder", "statusText", "optionsGrid", "thumbnailUrl",
     "director", "artist", "writer", "publisher", "releaseYear", "genre", "network", "venue", "promotion", "date",
-    "season", "episode", "issueNumber", "apiId", "externalUrl", "manualFormSection"
+    "season", "episode", "issueNumber", "apiId", "externalUrl", "manualFormSection", "developer", "platform"
   ]
   static values = { mediaType: String }
 
@@ -113,14 +113,17 @@ export default class extends Controller {
         else if (mediaType === "album") subtitle = option.artist || ""
         else if (mediaType === "comic") subtitle = option.writer || ""
         else if (mediaType === "tv_show") subtitle = option.network || ""
-        else if (mediaType === "wrestling_event") subtitle = option.promotion || ""
+        else if (mediaType === "video_game") subtitle = option.developer || ""
         
         const yearInfo = option.release_year ? ` (${option.release_year})` : ""
         const tooltipText = `${option.title}${yearInfo} ${subtitle ? `- ${subtitle}` : ""}`
+        const fallbackUrl = mediaType === "video_game"
+          ? 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=400&h=600&q=80'
+          : 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=400&h=600&q=80';
 
         imgBtn.innerHTML = `
           <div class="thumbnail-option-img-wrap">
-            <img src="${option.thumbnail_url}" alt="${option.title}">
+            <img src="${option.thumbnail_url}" alt="${option.title}" onerror="this.onerror=null; this.src='${fallbackUrl}';">
             <span class="option-badge ${badgeClass}">${badgeText}</span>
             <div class="option-tooltip">${tooltipText}</div>
           </div>
@@ -243,23 +246,9 @@ export default class extends Controller {
           }
         }).filter(r => r.thumbnail_url)
 
-      } else if (mediaType === "wrestling_event") {
-        const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&limit=15&country=US`
-        const response = await fetch(url)
-        const data = await response.json()
-        return (data.results || [])
-          .filter(r => r.kind === "feature-movie" || r.kind === "tv-episode")
-          .slice(0, 5)
-          .map(r => ({
-            title: r.trackName || r.collectionName,
-            promotion: r.artistName,
-            date: r.releaseDate ? r.releaseDate.split("T")[0] : null,
-            thumbnail_url: r.artworkUrl100 ? r.artworkUrl100.replace("100x100bb", "400x400bb") : null,
-            api_id: (r.trackId || r.collectionId || "").toString(),
-            external_url: r.trackViewUrl || r.collectionViewUrl || null,
-            is_local: false
-          }))
-          .filter(r => r.thumbnail_url)
+      } else if (mediaType === "video_game") {
+        // Handled server-side in MediaController#autocomplete to bypass CORS
+        return []
       }
       return []
     } catch (err) {
@@ -288,9 +277,8 @@ export default class extends Controller {
     if (this.hasReleaseYearTarget) this.releaseYearTarget.value = option.release_year || ""
     if (this.hasGenreTarget) this.genreTarget.value = option.genre || ""
     if (this.hasNetworkTarget) this.networkTarget.value = option.network || ""
-    if (this.hasVenueTarget) this.venueTarget.value = option.venue || ""
-    if (this.hasPromotionTarget) this.promotionTarget.value = option.promotion || ""
-    if (this.hasDateTarget) this.dateTarget.value = option.date || ""
+    if (this.hasDeveloperTarget) this.developerTarget.value = option.developer || ""
+    if (this.hasPlatformTarget) this.platformTarget.value = option.platform || ""
     if (this.hasSeasonTarget) this.seasonTarget.value = option.season || ""
     if (this.hasEpisodeTarget) this.episodeTarget.value = option.episode || ""
     if (this.hasIssueNumberTarget) this.issueNumberTarget.value = option.issue_number || ""

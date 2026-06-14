@@ -10,10 +10,12 @@
   <ul class="media-grid">
     <% @users.each do |user| %>
       <li class="media-card user-card">
-        <div class="card-icon">👤</div>
+        <div class="card-icon" style="background: none; border: none;">
+          <%= user_avatar_tag(user, size: 44) %>
+        </div>
         <div class="card-content">
           <h3><%= link_to user.name, user, data: { turbo_frame: "_top" } %></h3>
-          <span class="card-meta"><%= user.email %></span>
+          <span class="card-meta"><%= user.display_handle %></span>
         </div>
         <% if current_user.admin? && !current_user?(user) %>
           <div class="card-actions">

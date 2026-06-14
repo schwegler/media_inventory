@@ -5,6 +5,12 @@
     <strong>Email:</strong>
     <span><%= @user.email %></span>
   </div>
+  <% if @user.bsky_handle.present? %>
+    <div class="detail-row">
+      <strong>Bluesky:</strong>
+      <span><%= @user.display_handle %></span>
+    </div>
+  <% end %>
 
   <div class="actions" style="margin-top: 20px; display: flex; gap: 10px;">
     <% if current_user?(@user) %>

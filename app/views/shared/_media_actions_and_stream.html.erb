@@ -23,7 +23,17 @@ when 'Comic'
   review_placeholder = "Add reading review..."
   submit_review_label = "Save Review & Reading Status"
   apple_label = " View on Apple Books"
-else # Movie, TvShow, WrestlingEvent, etc.
+when 'VideoGame'
+  watchlist_add_label = "⏳ Add to Backlog"
+  watchlist_remove_label = "⏳ Remove from Backlog"
+  watchlist_copy_label = "⏳ Add to My Backlog"
+  consumed_add_label = "✓ Mark Played"
+  consumed_remove_label = "✓ Mark Unplayed"
+  consumed_past_participle = "played"
+  review_placeholder = "Add playing review..."
+  submit_review_label = "Save Review & Playing Status"
+  apple_label = "🎮 View on Apple Arcade"
+else # Movie, TvShow, etc.
   watchlist_add_label = "⏳ Add to Watchlist"
   watchlist_remove_label = "⏳ Remove from Watchlist"
   watchlist_copy_label = "⏳ Add to My Watchlist"
@@ -149,15 +159,26 @@ end
                           "📖 Borrow on Open Library"
                         elsif item.external_url.include?('tvmaze.com')
                           "📺 View on TVmaze"
+                        elsif item.external_url.include?('steampowered.com') || item.external_url.include?('steamcommunity.com')
+                          "🎮 View on Steam"
                         else
                           "🌐 View Official Source"
                         end %>
         <%= link_to link_label, item.external_url, target: "_blank", rel: "noopener", class: "btn", style: "background: #1e1b4b; color: #c7d2fe; font-size: 0.85rem; border: 1px solid #312e81; padding: 8px 14px;" %>
       <% end %>
 
-      <% if ['Movie', 'TvShow', 'WrestlingEvent'].include?(item.class.name) %>
+      <% if ['Movie', 'TvShow'].include?(item.class.name) %>
         <%= link_to "🔍 Search JustWatch",
                     "https://www.justwatch.com/us/search?q=#{CGI.escape(item.title)}",
+                    target: "_blank",
+                    rel: "noopener",
+                    class: "btn",
+                    style: "background: #0f172a; color: #94a3b8; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); padding: 8px 14px;" %>
+      <% end %>
+
+      <% if item.class.name == 'VideoGame' %>
+        <%= link_to "🔍 Search HowLongToBeat",
+                    "https://howlongtobeat.com/?q=#{CGI.escape(item.title)}",
                     target: "_blank",
                     rel: "noopener",
                     class: "btn",

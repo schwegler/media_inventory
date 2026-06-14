@@ -66,14 +66,14 @@
   </div>
 
   <div class="collection-section">
-    <h2>Wrestling Events</h2>
+    <h2>Video Games</h2>
     <ul class="media-grid">
-      <% @wrestling_events.each do |event| %>
+      <% @video_games.each do |game| %>
         <li class="media-card">
-          <div class="card-icon">🤼</div>
+          <div class="card-icon">🎮</div>
           <div class="card-content">
-            <h3><%= link_to event.title, event %></h3>
-            <span class="card-meta">Venue: <%= event.venue %></span>
+            <h3><%= link_to game.title, game %></h3>
+            <span class="card-meta">Developer: <%= game.developer %></span>
           </div>
         </li>
       <% end %>

@@ -1,91 +1,275 @@
-<div class="page-header">
-  <h1>Community Activity</h1>
-  <% if logged_in? %>
-    <div style="display: flex; gap: 8px;">
-      <%= link_to 'Add Movie', new_movie_path, class: 'btn btn-sm btn-secondary' %>
-      <%= link_to 'Add Album', new_album_path, class: 'btn btn-sm btn-secondary' %>
-    </div>
-  <% end %>
-</div>
+<% if logged_in? %>
+  <div class="dashboard-welcome">
+    <h1>Welcome back, <span class="welcome-name"><%= current_user.name %></span>. Here’s what your friends have been watching…</h1>
+  </div>
 
-<div class="dashboard-layout">
-  <div class="activity-feed-section">
-    <% if @activities.any? %>
-      <turbo-frame id="activity_feed">
-        <div class="activity-feed">
-          <% @activities.each do |activity| %>
-            <% trackable = activity.trackable %>
-            <div class="activity-card">
-              <div class="activity-thumbnail">
-                <% if trackable&.thumbnail_url.present? %>
-                  <img src="<%= trackable.thumbnail_url %>" alt="Cover">
+  <section class="dashboard-section">
+    <div class="section-header">
+      <h2>NEW FROM FRIENDS</h2>
+      <%= link_to "ALL ACTIVITY", activities_path, class: "section-more-link" rescue "#" %>
+    </div>
+    
+    <div class="friends-activity-grid">
+      <% @new_from_friends.each do |activity| %>
+        <% item = activity.trackable %>
+        <% next if item.nil? %>
+        <div class="friend-card">
+          <div class="friend-card-poster">
+            <% if item.cover_image.attached? %>
+              <%= image_tag item.cover_image, alt: item.title, class: 'poster-img' %>
+            <% elsif item.thumbnail_url.present? %>
+              <img src="<%= item.thumbnail_url %>" alt="<%= item.title %>" class="poster-img">
+            <% else %>
+              <div class="poster-fallback">
+                <span class="fallback-emoji">
+                  <%= case item.class.name
+                      when 'Movie' then '🎬'
+                      when 'Album' then '💿'
+                      when 'Comic' then '📚'
+                      when 'TvShow' then '📺'
+                      when 'VideoGame' then '🎮'
+                      else '📦'
+                      end %>
+                </span>
+              </div>
+            <% end %>
+            <div class="friend-card-overlay">
+              <div class="overlay-details">
+                <%= link_to "View details", item, class: "overlay-link stretched-link" %>
+              </div>
+            </div>
+          </div>
+          
+          <div class="friend-card-footer">
+            <div class="friend-meta">
+              <%= user_avatar_tag(activity.user, size: 20) %>
+              <span class="friend-name"><%= link_to activity.user.name, activity.user %></span>
+            </div>
+            <div class="friend-rating-row">
+              <% if item.rating.present? %>
+                <span class="friend-stars"><%= render_stars(item.rating) %></span>
+              <% end %>
+              <% if item.rating.to_f >= 4.0 %>
+                <span class="heart-icon">🧡</span>
+              <% end %>
+              <% if activity.activity_type == 'consumed' || item.consumed? %>
+                <span class="repeat-icon" title="Consumed/Played">↻</span>
+              <% end %>
+              <span class="friend-date"><%= activity.created_at.strftime("%b %d") %></span>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+
+  <section class="dashboard-section">
+    <div class="section-header">
+      <h2>POPULAR WITH FRIENDS</h2>
+      <span class="section-more-link">MORE</span>
+    </div>
+
+    <div class="popular-items-grid">
+      <% @popular_items.each do |item| %>
+        <div class="popular-card">
+          <div class="popular-card-poster">
+            <% if item.cover_image.attached? %>
+              <%= image_tag item.cover_image, alt: item.title, class: 'poster-img' %>
+            <% elsif item.thumbnail_url.present? %>
+              <img src="<%= item.thumbnail_url %>" alt="<%= item.title %>" class="poster-img">
+            <% else %>
+              <div class="poster-fallback">
+                <span class="fallback-emoji">
+                  <%= case item.class.name
+                      when 'Movie' then '🎬'
+                      when 'Album' then '💿'
+                      when 'Comic' then '📚'
+                      when 'TvShow' then '📺'
+                      when 'VideoGame' then '🎮'
+                      else '📦'
+                      end %>
+                </span>
+              </div>
+            <% end %>
+            <%= link_to "", item, class: "stretched-link" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <section class="dashboard-section">
+    <div class="section-header">
+      <h2>POPULAR REVIEWS WITH FRIENDS</h2>
+      <span class="section-more-link">MORE</span>
+    </div>
+
+    <div class="popular-reviews-layout">
+      <% if @popular_reviews.any? %>
+        <% @popular_reviews.each do |activity| %>
+          <% item = activity.trackable %>
+          <% next if item.nil? %>
+          <div class="popular-review-row">
+            <div class="review-poster-col">
+              <div class="review-poster">
+                <% if item.cover_image.attached? %>
+                  <%= image_tag item.cover_image, alt: item.title, class: 'poster-img' %>
+                <% elsif item.thumbnail_url.present? %>
+                  <img src="<%= item.thumbnail_url %>" alt="<%= item.title %>" class="poster-img">
                 <% else %>
-                  <span class="fallback-icon">
-                    <%= case activity.trackable_type
-                        when 'Movie' then '🎬'
-                        when 'Album' then '💿'
-                        when 'Comic' then '📚'
-                        when 'TvShow' then '📺'
-                        when 'WrestlingEvent' then '🤼'
-                        else '📦'
-                        end %>
-                  </span>
+                  <div class="poster-fallback">
+                    <span class="fallback-emoji">
+                      <%= case item.class.name
+                          when 'Movie' then '🎬'
+                          when 'Album' then '💿'
+                          when 'Comic' then '📚'
+                          when 'TvShow' then '📺'
+                          when 'VideoGame' then '🎮'
+                          else '📦'
+                          end %>
+                    </span>
+                  </div>
+                <% end %>
+                <%= link_to "", item, class: "stretched-link" %>
+              </div>
+            </div>
+
+            <div class="review-body-col">
+              <div class="review-author-header">
+                <%= user_avatar_tag(activity.user, size: 24) %>
+                <span class="review-author-name"><%= link_to activity.user.name, activity.user %></span>
+                <span class="review-target-title">
+                  <%= link_to item.title, item %>
+                  <% if item.respond_to?(:release_year) && item.release_year.present? %>
+                    <span class="review-year"><%= item.release_year %></span>
+                  <% end %>
+                </span>
+              </div>
+
+              <div class="review-rating-row">
+                <% if item.rating.present? %>
+                  <span class="review-stars"><%= render_stars(item.rating) %></span>
+                <% end %>
+                <% if item.rating.to_f >= 4.0 %>
+                  <span class="heart-icon">🧡</span>
+                <% end %>
+                <% mock_comment_count = (activity.id * 3) % 12 + 1 %>
+                <span class="comments-count"><span class="chat-icon">💬</span> <%= mock_comment_count %></span>
+              </div>
+
+              <div class="review-content-text">
+                <p>"<%= truncate(item.review, length: 240) %>"</p>
+                <% if item.review.length > 240 %>
+                  <%= link_to "more", item, class: "more-review-link" %>
                 <% end %>
               </div>
-              
-              <div class="activity-body">
-                <div class="activity-header">
-                  <span class="activity-text">
-                    <%= activity_link_description(activity) %>
-                  </span>
-                  <% if trackable&.review.present? && activity.activity_type == 'reviewed' %>
-                    <div class="activity-review-quote">
-                      "<%= truncate(trackable.review, length: 150) %>"
-                    </div>
+
+              <div class="review-like-action">
+                <% mock_likes = (activity.id * 17) % 150 + 12 %>
+                <button class="btn-like-review" onclick="const countEl = this.querySelector('.likes-count'); const current = parseInt(countEl.textContent); countEl.textContent = this.classList.toggle('liked') ? current + 1 : current - 1; return false;">
+                  <span class="heart-empty">♡</span> Like review <span class="likes-count"><%= mock_likes %></span> likes
+                </button>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="details-card" style="text-align: center; padding: 2rem;">
+          <p>No popular reviews yet. Add some reviews to get started!</p>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+<% else %>
+  <%# Standard Landing Page for Non-Logged-In Users %>
+  <div class="page-header">
+    <h1>Community Activity</h1>
+  </div>
+
+  <div class="dashboard-layout">
+    <div class="activity-feed-section">
+      <% if @activities.any? %>
+        <turbo-frame id="activity_feed">
+          <div class="activity-feed">
+            <% @activities.each do |activity| %>
+              <% trackable = activity.trackable %>
+              <div class="activity-card">
+                <div class="activity-thumbnail">
+                  <% if trackable&.thumbnail_url.present? %>
+                    <img src="<%= trackable.thumbnail_url %>" alt="Cover">
+                  <% else %>
+                    <span class="fallback-icon">
+                      <%= case activity.trackable_type
+                          when 'Movie' then '🎬'
+                          when 'Album' then '💿'
+                          when 'Comic' then '📚'
+                          when 'TvShow' then '📺'
+                          when 'VideoGame' then '🎮'
+                          else '📦'
+                          end %>
+                    </span>
                   <% end %>
                 </div>
                 
-                <div class="activity-footer">
-                  <span class="activity-badge badge-<%= activity.activity_type %>">
-                    <%= activity.activity_type %>
-                  </span>
-                  <span class="activity-time">
-                    <%= time_ago_in_words(activity.created_at) %> ago
-                  </span>
+                <div class="activity-body">
+                  <div style="display: flex; gap: 10px; align-items: start;">
+                    <%= user_avatar_tag(activity.user, size: 32) %>
+                    <div class="activity-header" style="flex: 1;">
+                      <span class="activity-text">
+                        <%= activity_link_description(activity) %>
+                      </span>
+                      <% if trackable&.review.present? && activity.activity_type == 'reviewed' %>
+                        <div class="activity-review-quote">
+                          "<%= truncate(trackable.review, length: 150) %>"
+                        </div>
+                      <% end %>
+                    </div>
+                  </div>
+                  
+                  <div class="activity-footer">
+                    <span class="activity-badge badge-<%= activity.activity_type %>">
+                      <%= activity.activity_type %>
+                    </span>
+                    <span class="activity-time">
+                      <%= time_ago_in_words(activity.created_at) %> ago
+                    </span>
+                  </div>
                 </div>
               </div>
+            <% end %>
+          </div>
+          
+          <div class="pagination-wrapper">
+            <%= paginate @activities %>
+          </div>
+        </turbo-frame>
+      <% else %>
+        <div class="details-card" style="text-align: center; padding: 3rem;">
+          <h3 style="margin-bottom: 10px;">No Recent Activity</h3>
+          <p>Start by adding or reviewing items in your collection!</p>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="dashboard-sidebar">
+      <div class="sidebar-widget">
+        <h3>Welcome to MediaTracker</h3>
+        <p>Log your movies, albums, books, tv progress, and more. Pull cover art automatically and see what others are tracking!</p>
+      </div>
+
+      <div class="sidebar-widget">
+        <h3>Active Trackers</h3>
+        <div class="sidebar-user-list">
+          <% @active_trackers.each do |user| %>
+            <div class="sidebar-user-item">
+              <%= user_avatar_tag(user, size: 24) %>
+              <%= link_to user.name, user %>
             </div>
           <% end %>
         </div>
-        
-        <div class="pagination-wrapper">
-          <%= paginate @activities %>
-        </div>
-      </turbo-frame>
-    <% else %>
-      <div class="details-card" style="text-align: center; padding: 3rem;">
-        <h3 style="margin-bottom: 10px;">No Recent Activity</h3>
-        <p>Start by adding or reviewing items in your collection!</p>
-      </div>
-    <% end %>
-  </div>
-
-  <div class="dashboard-sidebar">
-    <div class="sidebar-widget">
-      <h3>Welcome to MediaTracker</h3>
-      <p>Log your movies, albums, books, tv progress, and more. Pull cover art automatically and see what others are tracking!</p>
-    </div>
-
-    <div class="sidebar-widget">
-      <h3>Active Trackers</h3>
-      <div class="sidebar-user-list">
-        <% @active_trackers.each do |user| %>
-          <div class="sidebar-user-item">
-            <span class="user-avatar-sm">👤</span>
-            <%= link_to user.name, user %>
-          </div>
-        <% end %>
       </div>
     </div>
   </div>
-</div>
+<% end %>

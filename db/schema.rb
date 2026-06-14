@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_07_044133) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_14_000000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -177,6 +177,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_044133) do
 
   create_table "users", force: :cascade do |t|
     t.boolean "admin", default: false
+    t.string "avatar_url"
     t.string "bsky_app_password"
     t.string "bsky_handle"
     t.string "bsky_message_activity_template"
@@ -194,25 +195,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_044133) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
-  create_table "wrestling_events", force: :cascade do |t|
+  create_table "video_games", force: :cascade do |t|
     t.string "api_id"
     t.boolean "consumed", default: false, null: false
     t.date "consumed_at"
     t.datetime "created_at", null: false
-    t.date "date"
+    t.string "developer"
     t.string "external_url"
     t.boolean "in_watchlist", default: false, null: false
     t.boolean "is_collected", default: true, null: false
-    t.boolean "is_public", default: false
-    t.string "promotion"
+    t.boolean "is_public", default: false, null: false
+    t.string "platform"
+    t.string "publisher"
     t.string "rating"
+    t.integer "release_year"
     t.text "review"
     t.string "thumbnail_url"
-    t.string "title"
+    t.string "title", null: false
     t.datetime "updated_at", null: false
     t.integer "user_id"
-    t.string "venue"
-    t.index ["user_id"], name: "index_wrestling_events_on_user_id"
+    t.index ["user_id"], name: "index_video_games_on_user_id"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
@@ -225,5 +227,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_044133) do
   add_foreign_key "movies", "users", on_delete: :cascade
   add_foreign_key "tv_episodes", "tv_shows", on_delete: :cascade
   add_foreign_key "tv_shows", "users", on_delete: :cascade
-  add_foreign_key "wrestling_events", "users", on_delete: :cascade
+  add_foreign_key "video_games", "users", on_delete: :cascade
 end

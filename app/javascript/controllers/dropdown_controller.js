@@ -6,6 +6,11 @@ export default class extends Controller {
   connect() {
     this.clickOutsideHandler = this.clickOutside.bind(this)
     document.addEventListener("click", this.clickOutsideHandler)
+    
+    // Ensure dropdown is hidden on connection
+    if (this.hasMenuTarget) {
+      this.menuTarget.style.display = "none"
+    }
   }
 
   disconnect() {

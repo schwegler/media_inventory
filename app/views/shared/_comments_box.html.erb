@@ -3,7 +3,7 @@
   <div class="comments-list" id="comments_list_for_<%= matching_item.class.name %>_<%= matching_item.id %>" style="display: flex; flex-direction: column; gap: 8px;">
     <% matching_item.comments.includes(:user).each do |comment| %>
       <div class="comment-item" style="font-size: 0.8rem; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.03); display: flex; flex-direction: column; gap: 2px;">
-        <span style="font-weight: 600; color: #818cf8;"><%= comment.user.name.presence || comment.user.email %></span>
+        <span style="font-weight: 600; color: #818cf8;"><%= comment.user.name.presence || comment.user.display_handle %></span>
         <span style="color: #cbd5e1;"><%= comment.content %></span>
       </div>
     <% end %>

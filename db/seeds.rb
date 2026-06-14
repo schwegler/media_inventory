@@ -2,7 +2,7 @@
 
 # Clear existing records
 puts 'Clearing existing database records...'
-WrestlingEvent.delete_all
+VideoGame.delete_all
 TvShow.delete_all
 Movie.delete_all
 Comic.delete_all
@@ -13,6 +13,8 @@ puts 'Creating users...'
 admin = User.create!(
   name: 'Admin User',
   email: 'admin@example.com',
+  password: 'password',
+  avatar_url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150&q=80',
   admin: true,
   confirmed_at: Time.current
 )
@@ -20,6 +22,8 @@ admin = User.create!(
 user = User.create!(
   name: 'Example User',
   email: 'user@example.com',
+  password: 'password',
+  avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&h=150&q=80',
   admin: false,
   confirmed_at: Time.current
 )
@@ -257,49 +261,75 @@ tv_shows_data = [
 ]
 tv_shows_data.each { |data| TvShow.create!(data) }
 
-puts 'Seeding wrestling events...'
-wrestling_events_data = [
+puts 'Seeding video games...'
+video_games_data = [
   {
-    title: 'WrestleMania III',
-    promotion: 'WWE',
-    date: Date.new(1987, 3, 29),
-    venue: 'Pontiac Silverdome',
+    title: 'Minecraft',
+    developer: 'Mojang Studios',
+    publisher: 'Mojang Studios',
+    platform: 'PC',
+    release_year: 2011,
+    rating: '5',
     is_public: true,
-    user: admin
+    user: admin,
+    consumed: true,
+    consumed_at: Date.new(2011, 11, 18),
+    review: "An absolute masterpiece of creativity and sandbox survival. Spent hundreds of hours building worlds."
   },
   {
-    title: 'WrestleMania X-Seven',
-    promotion: 'WWE',
-    date: Date.new(2001, 4, 1),
-    venue: 'Astrodome',
+    title: 'Portal 2',
+    developer: 'Valve',
+    publisher: 'Valve',
+    platform: 'PC',
+    release_year: 2011,
+    rating: '5',
     is_public: true,
-    user: user
+    user: user,
+    consumed: true,
+    consumed_at: Date.new(2011, 4, 19),
+    review: "Flawless puzzle mechanics, brilliant writing, and unforgettable characters. The co-op mode is also incredible!"
   },
   {
-    title: 'All In London',
-    promotion: 'AEW',
-    date: Date.new(2023, 8, 27),
-    venue: 'Wembley Stadium',
+    title: 'Elden Ring',
+    developer: 'FromSoftware',
+    publisher: 'Bandai Namco',
+    platform: 'PlayStation 5',
+    release_year: 2022,
+    rating: '5',
     is_public: true,
-    user: admin
+    user: admin,
+    consumed: true,
+    consumed_at: Date.new(2022, 3, 15),
+    review: "An incredible open world coupled with challenging combat. The sense of discovery is unmatched."
   },
   {
-    title: 'Wrestle Kingdom 11',
-    promotion: 'NJPW',
-    date: Date.new(2017, 1, 4),
-    venue: 'Tokyo Dome',
+    title: 'Chrono Trigger',
+    developer: 'Square',
+    publisher: 'Square',
+    platform: 'SNES',
+    release_year: 1995,
+    rating: '5',
     is_public: true,
-    user: user
+    user: user,
+    consumed: true,
+    consumed_at: Date.new(1995, 8, 11),
+    review: "Still the gold standard for JRPGs. Sublime soundtrack, timeless story, and great multiple endings."
   },
   {
-    title: "Starrcade '97",
-    promotion: 'WCW',
-    date: Date.new(1997, 12, 28),
-    venue: 'MCI Center',
+    title: 'The Legend of Zelda: Breath of the Wild',
+    developer: 'Nintendo EPD',
+    publisher: 'Nintendo',
+    platform: 'Nintendo Switch',
+    release_year: 2017,
+    rating: '4.5',
     is_public: true,
-    user: admin
+    user: admin,
+    in_watchlist: false,
+    consumed: true,
+    consumed_at: Date.new(2017, 4, 5)
   }
 ]
-wrestling_events_data.each { |data| WrestlingEvent.create!(data) }
+video_games_data.each { |data| VideoGame.create!(data) }
 
 puts 'Database seeding complete! Seeded 2 users and 31 media items.'
+

@@ -6,7 +6,7 @@ class MediaController < ApplicationController
 
   def copy
     source_type = params[:source_type].to_s.strip
-    allowed_types = %w[Movie TvShow Album Comic WrestlingEvent]
+    allowed_types = %w[Movie TvShow Album Comic VideoGame]
     unless allowed_types.include?(source_type)
       redirect_back fallback_location: root_path, alert: 'Invalid media type.'
       return
@@ -37,7 +37,7 @@ class MediaController < ApplicationController
               when 'album' then autocomplete_albums(q)
               when 'comic' then autocomplete_comics(q)
               when 'tv_show' then autocomplete_tv_shows(q)
-              when 'wrestling_event' then autocomplete_wrestling_events(q)
+              when 'video_game' then autocomplete_video_games(q)
               else []
               end
 
@@ -123,19 +123,59 @@ class MediaController < ApplicationController
     end
   end
 
-  def autocomplete_wrestling_events(query)
-    WrestlingEvent.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |w|
+  def autocomplete_video_games(query)
+    # 1. Fetch Local Matches
+    local_results = VideoGame.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(3).map do |vg|
       {
-        title: w.title,
-        promotion: w.promotion,
-        venue: w.venue,
-        date: w.date&.to_s,
-        thumbnail_url: w.cover_image.attached? ? url_for(w.cover_image) : w.thumbnail_url,
-        api_id: w.api_id,
-        external_url: w.external_url,
+        title: vg.title,
+        developer: vg.developer,
+        publisher: vg.publisher,
+        platform: vg.platform,
+        release_year: vg.release_year,
+        thumbnail_url: vg.cover_image.attached? ? url_for(vg.cover_image) : vg.thumbnail_url,
+        api_id: vg.api_id,
+        external_url: vg.external_url,
         is_local: true
       }
     end
+
+    # 2. Fetch Web Matches from Steam Store Search API
+    web_results = []
+    unless Rails.env.test?
+      begin
+        require 'net/http'
+        require 'json'
+        uri = URI("https://store.steampowered.com/api/storesearch/?term=#{CGI.escape(query)}&l=english&cc=US")
+        response = Net::HTTP.get(uri)
+        data = JSON.parse(response)
+        if data && data['items']
+          web_results = data['items'].slice(0, 5).map do |item|
+            app_id = item['id']
+            platforms = []
+            if item['platforms']
+              platforms << 'PC' if item['platforms']['windows']
+              platforms << 'Mac' if item['platforms']['mac']
+              platforms << 'Linux' if item['platforms']['linux']
+            end
+            {
+              title: item['name'],
+              developer: '',
+              publisher: '',
+              platform: platforms.join(', '),
+              release_year: nil,
+              thumbnail_url: "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/#{app_id}/library_600x900.jpg",
+              api_id: app_id.to_s,
+              external_url: "https://store.steampowered.com/app/#{app_id}",
+              is_local: false
+            }
+          end
+        end
+      rescue StandardError => e
+        Rails.logger.error "Steam Store Search error: #{e.message}"
+      end
+    end
+
+    local_results + web_results
   end
 end
 # rubocop:enable Metrics/ClassLength

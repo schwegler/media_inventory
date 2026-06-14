@@ -62,4 +62,28 @@ class BlueskyClient
     Rails.logger.error "Bluesky posting error: #{e.message}"
     false
   end
+
+  # Fetches profile information for a given actor handle or DID
+  def get_profile(actor)
+    session = authenticate
+    return nil unless session
+
+    uri = URI("#{BASE_URL}/app.bsky.actor.getProfile")
+    uri.query = URI.encode_www_form(actor: actor)
+
+    req = Net::HTTP::Get.new(uri, {
+                               'Authorization' => "Bearer #{session['accessJwt']}"
+                             })
+
+    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+      http.request(req)
+    end
+
+    return nil unless response.code == '200'
+
+    JSON.parse(response.body)
+  rescue StandardError => e
+    Rails.logger.error "Bluesky getProfile error: #{e.message}"
+    nil
+  end
 end

@@ -16,9 +16,17 @@ class User < ApplicationRecord
   has_many :comics
   has_many :movies
   has_many :tv_shows
-  has_many :wrestling_events
+  has_many :video_games
   has_many :activities, dependent: :destroy
   has_many :comments, dependent: :destroy
+
+  def display_handle
+    if bsky_handle.present?
+      "@#{bsky_handle.sub(/^@/, '')}"
+    else
+      email
+    end
+  end
 
   before_create :generate_activitypub_keys
 

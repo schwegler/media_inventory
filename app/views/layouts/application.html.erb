@@ -19,22 +19,53 @@
 <body <% if hotwire_native_app? %>data-native="true"<% end %>>
 
   <% unless hotwire_native_app? %>
-  <header>
-    <nav>
+  <header class="app-header">
+    <nav class="app-nav">
+      <div class="nav-brand">
+        <%= link_to root_path, class: 'brand-link' do %>
+          <span class="brand-text">MediaTracker</span>
+        <% end %>
+      </div>
+      
       <ul class="nav-links">
-        <li><%= link_to "Comics", comics_path %></li>
-        <li><%= link_to "TV Shows", tv_shows_path %></li>
-        <li><%= link_to "Wrestling Events", wrestling_events_path %></li>
-        <li><%= link_to "Movies", movies_path %></li>
-        <li><%= link_to "Albums", albums_path %></li>
+        <li><%= link_to "MOVIES", movies_path %></li>
+        <li><%= link_to "ALBUMS", albums_path %></li>
+        <li><%= link_to "COMICS", comics_path %></li>
+        <li><%= link_to "TV SHOWS", tv_shows_path %></li>
+        <li><%= link_to "GAMES", video_games_path %></li>
         <% if logged_in? %>
-          <li><%= link_to "Users", users_path %></li>
-          <li><%= link_to "Profile", current_user %></li>
-          <li><%= button_to "Log out", logout_path, method: :delete, class: "nav-logout-btn" %></li>
-        <% else %>
-          <li><%= link_to "Log in", login_path %></li>
+          <li><%= link_to "MEMBERS", users_path %></li>
         <% end %>
       </ul>
+
+      <div class="nav-user-section">
+        <% if logged_in? %>
+          <div class="nav-user-info">
+            <%= user_avatar_tag(current_user, size: 24) %>
+            <%= link_to current_user.name.upcase, current_user, class: 'nav-username' %>
+          </div>
+          
+          <div class="nav-dropdown" data-controller="dropdown">
+            <button class="btn btn-success btn-log" type="button" data-action="click->dropdown#toggle">
+              <span>+ LOG</span>
+              <svg class="dropdown-chevron" viewBox="0 0 20 20" fill="currentColor" style="width: 14px; height: 14px; margin-left: 4px;">
+                <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+              </svg>
+            </button>
+            <div class="dropdown-menu" data-dropdown-target="menu" style="display: none;">
+              <%= link_to "🎬 Log Movie", new_movie_path, class: "dropdown-item" %>
+              <%= link_to "💿 Log Album", new_album_path, class: "dropdown-item" %>
+              <%= link_to "📚 Log Comic", new_comic_path, class: "dropdown-item" %>
+              <%= link_to "📺 Log TV Show", new_tv_show_path, class: "dropdown-item" %>
+              <%= link_to "🎮 Log Video Game", new_video_game_path, class: "dropdown-item" %>
+              <div class="dropdown-divider"></div>
+              <%= button_to "Sign Out", logout_path, method: :delete, class: "dropdown-item dropdown-logout-btn", form_class: "dropdown-logout-form" %>
+            </div>
+          </div>
+        <% else %>
+          <%= link_to "LOG IN", login_path, class: 'btn btn-secondary btn-login-nav' %>
+        <% end %>
+      </div>
     </nav>
   </header>
   <% end %>

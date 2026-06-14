@@ -41,8 +41,8 @@ module ActivitiesHelper
       season = trackable.season
       episode = format('%02d', trackable.episode)
       "#{user_link} added S#{season}E#{episode} of '#{trackable_link}' to their TV show progress"
-    when 'WrestlingEvent'
-      "#{user_link} added wrestling event '#{trackable_link}' to their collection"
+    when 'VideoGame'
+      "#{user_link} added video game '#{trackable_link}' to their collection"
     else
       "#{user_link} added '#{trackable_link}' to their collection"
     end
@@ -63,9 +63,8 @@ module ActivitiesHelper
       season = trackable.season
       episode = format('%02d', trackable.episode)
       "#{user_link} reviewed S#{season}E#{episode} of '#{trackable_link}'#{rating_str}"
-    when 'WrestlingEvent'
-      event_date = trackable.date.present? ? " for #{trackable.date.strftime('%B %d')}" : ''
-      "#{user_link} reviewed wrestling event '#{trackable_link}'#{event_date}#{rating_str}"
+    when 'VideoGame'
+      "#{user_link} reviewed video game '#{trackable_link}'#{rating_str}"
     else
       "#{user_link} reviewed '#{trackable_link}'#{rating_str}"
     end
@@ -83,8 +82,8 @@ module ActivitiesHelper
       "#{user_link} added comic '#{trackable_link}'#{issue} to their watchlist"
     when 'TvShow'
       "#{user_link} added TV show '#{trackable_link}' to their watchlist"
-    when 'WrestlingEvent'
-      "#{user_link} added wrestling event '#{trackable_link}' to their watchlist"
+    when 'VideoGame'
+      "#{user_link} added video game '#{trackable_link}' to their backlog"
     else
       "#{user_link} added '#{trackable_link}' to their watchlist"
     end
@@ -92,7 +91,8 @@ module ActivitiesHelper
 
   def consumed_description(user_link, trackable, trackable_link)
     verb = case trackable.class.name
-           when 'Movie', 'TvShow', 'WrestlingEvent' then 'watched'
+           when 'Movie', 'TvShow' then 'watched'
+           when 'VideoGame' then 'played'
            when 'Album' then 'listened to'
            when 'Comic' then 'read'
            else 'consumed'
@@ -111,8 +111,8 @@ module ActivitiesHelper
       season = trackable.season
       episode = format('%02d', trackable.episode)
       "#{user_link} #{verb} S#{season}E#{episode} of '#{trackable_link}'#{date_str}"
-    when 'WrestlingEvent'
-      "#{user_link} #{verb} wrestling event '#{trackable_link}'#{date_str}"
+    when 'VideoGame'
+      "#{user_link} #{verb} video game '#{trackable_link}'#{date_str}"
     else
       "#{user_link} #{verb} '#{trackable_link}'#{date_str}"
     end

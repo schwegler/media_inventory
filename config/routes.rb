@@ -11,7 +11,7 @@ SampleApp::Application.routes.draw do
 
   resources :comics
   resources :tv_shows
-  resources :wrestling_events
+  resources :video_games
   resources :movies
   resources :albums
   get '/db_status', to: 'landing#db_status'

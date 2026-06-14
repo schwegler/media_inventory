@@ -79,7 +79,7 @@
           <div class="community-review-card">
             <div class="review-header" style="display: flex; gap: 8px; align-items: center;">
               <%= user_avatar_tag(matching_item.user, size: 24) %>
-              <span class="review-user" style="flex: 1;"><%= matching_item.user.name.presence || matching_item.user.email %></span>
+              <span class="review-user" style="flex: 1;"><%= matching_item.user.name.presence || matching_item.user.display_handle %></span>
               <% if matching_item.rating.present? %>
                 <span class="review-rating"><%= matching_item.rating %> ★</span>
               <% end %>
@@ -97,7 +97,7 @@
         <% stats[:watchers].each do |user| %>
           <span class="member-tag" style="padding: 4px 10px 4px 6px;">
             <%= user_avatar_tag(user, size: 20) %>
-            <%= user.name.presence || user.email %>
+            <%= user.name.presence || user.display_handle %>
           </span>
         <% end %>
       </div>
@@ -109,7 +109,7 @@
         <% stats[:collectors].each do |user| %>
           <span class="member-tag" style="padding: 4px 10px 4px 6px;">
             <%= user_avatar_tag(user, size: 20) %>
-            <%= user.name.presence || user.email %>
+            <%= user.name.presence || user.display_handle %>
           </span>
         <% end %>
       </div>
