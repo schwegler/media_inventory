@@ -111,5 +111,6 @@
 
   <div class="actions" style="margin-top: 2rem;">
     <%= link_to 'Back', comics_path, class: 'btn btn-secondary' %>
+    <a href="https://www.goodreads.com/search?q=<%= u(@comic.title) %>" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="margin-left: 10px;">Find on Goodreads</a>
   </div>
 </div>

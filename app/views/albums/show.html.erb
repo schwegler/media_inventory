@@ -107,5 +107,6 @@
 
   <div class="actions" style="margin-top: 2rem;">
     <%= link_to 'Back', albums_path, class: 'btn btn-secondary' %>
+    <a href="https://open.spotify.com/search/<%= u(@album.title) %>" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="margin-left: 10px;">Find on Spotify</a>
   </div>
 </div>
