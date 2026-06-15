@@ -95,7 +95,9 @@
   </div>
 </footer>
 
-<%= turbo_frame_tag "modal" %>
+  <% unless ['new', 'edit'].include?(action_name) %>
+    <%= turbo_frame_tag "modal" %>
+  <% end %>
 
 </body>
 </html>

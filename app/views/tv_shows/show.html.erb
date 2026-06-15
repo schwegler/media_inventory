@@ -43,7 +43,7 @@
     <div class="show-header-details">
       <h1 class="show-title"><%= @tv_show.title %></h1>
       <p class="show-meta-subtitle">
-        on <span class="meta-highlight"><%= @tv_show.network || 'Unknown Network' %></span> &bull; Season <%= @tv_show.season %> Episode <%= @tv_show.episode %>
+        on <span class="meta-highlight"><%= @tv_show.network || 'Unknown Network' %></span>
       </p>
       
       <% if @tv_show.rating.present? %>
@@ -55,8 +55,21 @@
 
     <% if @tv_show.review.present? %>
       <div class="show-review">
-        <h3>My Review</h3>
+        <h3>My Review <span style="font-size: 0.85rem; color: #64748b; font-weight: normal; margin-left: 8px;">(Logged for Season <%= @tv_show.season %>, Episode <%= @tv_show.episode %>)</span></h3>
         <blockquote><%= simple_format(@tv_show.review) %></blockquote>
+      </div>
+    <% end %>
+
+    <% if @tv_show.tv_episodes.any? %>
+      <div class="show-episodes-section" style="margin-top: 2.5rem; margin-bottom: 2.5rem;">
+        <h2 style="font-size: 1.25rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 8px; margin-bottom: 16px;">
+          Episodes in this Series
+        </h2>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <% @tv_show.tv_episodes.order(:season, :episode).each do |ep| %>
+            <%= render 'tv_shows/tv_episode', ep: ep, tv_show: @tv_show %>
+          <% end %>
+        </div>
       </div>
     <% end %>
 

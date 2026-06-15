@@ -53,7 +53,7 @@
 
     <% if logged_in? && tv_show.user == current_user %>
       <div style="width: 100%; border-top: 1px dashed rgba(255,255,255,0.03); padding-top: 8px; margin-top: 4px;">
-        <%= form_with model: ep, url: toggle_watched_tv_episode_path(ep), method: :patch, local: false, style: "display: flex; flex-direction: column; gap: 8px;" do |form| %>
+        <%= form_with model: ep, url: toggle_watched_tv_episode_path(ep), method: :patch, style: "display: flex; flex-direction: column; gap: 8px;" do |form| %>
           <%= form.hidden_field :watched, value: true %>
           <%= form.hidden_field :watched_at, value: Time.current.to_date %>
 

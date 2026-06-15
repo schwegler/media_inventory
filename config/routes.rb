@@ -21,6 +21,10 @@ SampleApp::Application.routes.draw do
 
   resources :comments, only: :create
   patch '/tv_episodes/:id/toggle_watched', to: 'tv_episodes#toggle_watched', as: 'toggle_watched_tv_episode'
+  get '/tv_episodes/:id/toggle_watched', to: redirect { |params, request|
+    episode = TvEpisode.find_by(id: params[:id])
+    episode ? "/tv_shows/#{episode.tv_show_id}" : "/tv_shows"
+  }
 
   # Bluesky custom session creation
   post '/sessions/bsky_login', to: 'sessions#bsky_create'

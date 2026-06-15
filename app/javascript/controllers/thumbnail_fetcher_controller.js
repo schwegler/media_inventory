@@ -18,7 +18,8 @@ export default class extends Controller {
   static targets = [
     "titleInput", "secondaryInput", "previewImg", "placeholder", "statusText", "optionsGrid", "thumbnailUrl",
     "director", "artist", "writer", "publisher", "releaseYear", "genre", "network", "venue", "promotion", "date",
-    "season", "episode", "issueNumber", "apiId", "externalUrl", "manualFormSection", "developer", "platform"
+    "season", "episode", "issueNumber", "apiId", "externalUrl", "manualFormSection", "developer", "platform",
+    "searchStage", "detailsStage", "backBtn", "modalTitle", "selectedTitleDisplay"
   ]
   static values = { mediaType: String }
 
@@ -32,15 +33,54 @@ export default class extends Controller {
       this.previewImgTarget.style.display = "block"
       this.placeholderTarget.style.display = "none"
     }
+
+    const hasErrors = this.element.querySelector("#error_explanation") !== null
+    if (hasErrors) {
+      const currentTitle = this.titleInputTarget.value || "Details"
+      this.showDetailsStage(currentTitle, this.hasReleaseYearTarget ? this.releaseYearTarget.value : null)
+    } else {
+      this.goToSearch()
+    }
   }
 
   search() {
     this.debouncedFetch()
   }
 
+  showDetailsStage(title, releaseYear) {
+    if (this.hasSearchStageTarget) this.searchStageTarget.classList.add("hidden")
+    if (this.hasDetailsStageTarget) this.detailsStageTarget.classList.remove("hidden")
+    if (this.hasBackBtnTarget) this.backBtnTarget.classList.remove("hidden")
+    
+    if (this.hasSelectedTitleDisplayTarget) {
+      const yearInfo = releaseYear ? ` (${releaseYear})` : ""
+      this.selectedTitleDisplayTarget.textContent = `${title}${yearInfo}`
+    }
+
+    if (this.hasModalTitleTarget) {
+      this.modalTitleTarget.textContent = "Log Details"
+    }
+  }
+
   showManualForm() {
-    if (this.hasManualFormSectionTarget) {
-      this.manualFormSectionTarget.style.display = "block"
+    const title = this.titleInputTarget.value.trim() || "New Item"
+    this.showDetailsStage(title, this.hasReleaseYearTarget ? this.releaseYearTarget.value : null)
+  }
+
+  goToSearch() {
+    if (this.hasSearchStageTarget) this.searchStageTarget.classList.remove("hidden")
+    if (this.hasDetailsStageTarget) this.detailsStageTarget.classList.add("hidden")
+    if (this.hasBackBtnTarget) this.backBtnTarget.classList.add("hidden")
+
+    if (this.hasModalTitleTarget) {
+      const mediaNames = {
+        movie: "Log Movie",
+        album: "Log Album",
+        comic: "Log Comic",
+        tv_show: "Log TV Show",
+        video_game: "Log Video Game"
+      }
+      this.modalTitleTarget.textContent = mediaNames[this.mediaTypeValue] || "Log Media"
     }
   }
 
@@ -107,7 +147,7 @@ export default class extends Controller {
         return
       }
 
-      this.statusTextTarget.textContent = "Select a cover or click a button below to save instantly:"
+      this.statusTextTarget.textContent = "Select a result below:"
 
       allResults.forEach((option) => {
         const imgBtn = document.createElement("div")
@@ -135,34 +175,14 @@ export default class extends Controller {
             <span class="option-badge ${badgeClass}">${badgeText}</span>
             <div class="option-tooltip">${tooltipText}</div>
           </div>
-          <div class="thumbnail-option-actions">
-            <button type="button" class="option-action-btn add-collection-btn">+ Collection</button>
-            <button type="button" class="option-action-btn add-watchlist-btn">+ Watchlist</button>
-          </div>
         `
 
         imgBtn.addEventListener("click", (e) => {
           this.optionsGridTarget.querySelectorAll(".thumbnail-option-card").forEach(card => card.classList.remove("selected"))
           imgBtn.classList.add("selected")
 
-          // User clicked explicitly, so populate all text fields!
+          // User clicked explicitly, so populate all text fields and transition to details view!
           this.selectOption(option, true)
-
-          const isCollectedInput = this.element.querySelector('input[name*="[is_collected]"]')
-          const inWatchlistInput = this.element.querySelector('input[name*="[in_watchlist]"]')
-          const form = this.element.querySelector("form")
-
-          if (e.target.classList.contains("add-collection-btn")) {
-            if (isCollectedInput) isCollectedInput.checked = true
-            if (inWatchlistInput) inWatchlistInput.checked = false
-            if (form) form.requestSubmit()
-          } else if (e.target.classList.contains("add-watchlist-btn")) {
-            if (isCollectedInput) isCollectedInput.checked = false
-            if (inWatchlistInput) inWatchlistInput.checked = true
-            const consumedInput = this.element.querySelector('input[name*="[consumed]"]')
-            if (consumedInput) consumedInput.checked = false
-            if (form) form.requestSubmit()
-          }
         })
 
         this.optionsGridTarget.appendChild(imgBtn)
@@ -463,6 +483,9 @@ export default class extends Controller {
       if (this.hasIssueNumberTarget) this.issueNumberTarget.value = option.issue_number || ""
       if (this.hasApiIdTarget) this.apiIdTarget.value = option.api_id || ""
       if (this.hasExternalUrlTarget) this.externalUrlTarget.value = option.external_url || ""
+
+      // 4. Transition to details view!
+      this.showDetailsStage(option.title, option.release_year)
     }
   }
 }
