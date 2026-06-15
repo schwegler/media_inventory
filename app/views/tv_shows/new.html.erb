@@ -10,7 +10,7 @@
       </div>
       <div class="modal-body">
         <div data-controller="thumbnail-fetcher consumed-toggle" data-thumbnail-fetcher-media-type-value="tv_show">
-          <%= form_with model: @tv_show, class: "standard-form" do |f| %>
+          <%= form_with model: @tv_show, class: "standard-form", data: { turbo_frame: "_top" } do |f| %>
             <% if @tv_show.errors.any? %>
               <div id="error_explanation">
                 <h2><%= pluralize(@tv_show.errors.count, "error") %> prohibited this TV show from being saved:</h2>
@@ -66,15 +66,7 @@
                     <%= f.file_field :cover_image, class: 'form-control' %>
                   </div>
 
-                  <div class="details-field-group">
-                    <%= f.label :season, "Season (Required)" %>
-                    <%= f.number_field :season, required: true, min: 1, data: { thumbnail_fetcher_target: "season" } %>
-                  </div>
 
-                  <div class="details-field-group">
-                    <%= f.label :episode, "Episode (Required)" %>
-                    <%= f.number_field :episode, required: true, min: 1, data: { thumbnail_fetcher_target: "episode" } %>
-                  </div>
 
                   <div class="details-field-group">
                     <%= f.label :network %>

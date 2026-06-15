@@ -28,7 +28,7 @@ RSpec.describe Activity, type: :model do
 
     it 'creates a reviewed activity when media is created with review' do
       expect do
-        TvShow.create!(title: 'Buffy the Vampire Slayer', season: 1, episode: 4, user: user, review: 'Amazing show!',
+        TvShow.create!(title: 'Buffy the Vampire Slayer', user: user, review: 'Amazing show!',
                        rating: '5')
       end.to change(Activity.where(activity_type: 'reviewed'), :count).by(1)
     end
@@ -36,10 +36,17 @@ RSpec.describe Activity, type: :model do
 
   describe '#description' do
     it 'formats tv show reviewed activity correctly' do
-      show = TvShow.create!(title: 'Buffy the Vampire Slayer', season: 1, episode: 4, user: user, review: 'Great S1E04!',
+      show = TvShow.create!(title: 'Buffy the Vampire Slayer', user: user, review: 'Great show!',
                             rating: '5')
       activity = show.activities.find_by(activity_type: 'reviewed')
-      expect(activity.description).to eq("Andrew reviewed S1E04 of 'Buffy the Vampire Slayer' (Rating: 5)")
+      expect(activity.description).to eq("Andrew reviewed TV show 'Buffy the Vampire Slayer' (Rating: 5)")
+    end
+
+    it 'formats tv episode reviewed activity correctly' do
+      show = TvShow.create!(title: 'Buffy the Vampire Slayer', user: user)
+      episode = show.tv_episodes.create!(name: "Teacher's Pet", season: 1, episode: 4, rating: '5', review: 'Great S1E04!')
+      activity = episode.activities.find_by(activity_type: 'reviewed')
+      expect(activity.description).to eq("Andrew reviewed episode 'Buffy the Vampire Slayer S1E4: Teacher's Pet' (Rating: 5)")
     end
   end
 end

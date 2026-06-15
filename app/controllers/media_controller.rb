@@ -113,8 +113,6 @@ class MediaController < ApplicationController
       {
         title: t.title,
         network: t.network,
-        season: t.season,
-        episode: t.episode,
         thumbnail_url: t.cover_image.attached? ? url_for(t.cover_image) : t.thumbnail_url,
         api_id: t.api_id,
         external_url: t.external_url,

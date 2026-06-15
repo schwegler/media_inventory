@@ -8,8 +8,6 @@ RSpec.describe TvShowsController, type: :controller do
       ActionController::Parameters.new(
         tv_show: {
           title: 'Breaking Bad',
-          season: 1,
-          episode: 1,
           network: 'AMC',
           is_public: true,
           malicious_param: 'hack'
@@ -25,8 +23,6 @@ RSpec.describe TvShowsController, type: :controller do
       permitted = controller.send(:resource_params)
       expect(permitted.to_h).to eq(
         'title' => 'Breaking Bad',
-        'season' => 1,
-        'episode' => 1,
         'network' => 'AMC',
         'is_public' => true
       )

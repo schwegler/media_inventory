@@ -55,19 +55,44 @@
 
     <% if @tv_show.review.present? %>
       <div class="show-review">
-        <h3>My Review <span style="font-size: 0.85rem; color: #64748b; font-weight: normal; margin-left: 8px;">(Logged for Season <%= @tv_show.season %>, Episode <%= @tv_show.episode %>)</span></h3>
+        <h3>My Review</h3>
         <blockquote><%= simple_format(@tv_show.review) %></blockquote>
       </div>
     <% end %>
 
     <% if @tv_show.tv_episodes.any? %>
-      <div class="show-episodes-section" style="margin-top: 2.5rem; margin-bottom: 2.5rem;">
-        <h2 style="font-size: 1.25rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 8px; margin-bottom: 16px;">
+      <%
+        episodes_by_season = @tv_show.tv_episodes.order(:season, :episode).group_by(&:season)
+        sorted_seasons = episodes_by_season.keys.sort
+      %>
+      <div class="show-episodes-section" style="margin-top: 2.5rem; margin-bottom: 2.5rem;" data-controller="season-tabs">
+        <h2 style="font-size: 1.25rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; padding-bottom: 8px; margin-bottom: 12px;">
           Episodes in this Series
         </h2>
-        <div style="display: flex; flex-direction: column; gap: 12px;">
-          <% @tv_show.tv_episodes.order(:season, :episode).each do |ep| %>
-            <%= render 'tv_shows/tv_episode', ep: ep, tv_show: @tv_show %>
+
+        <div class="season-tabs-container">
+          <div class="season-tabs-strip">
+            <% sorted_seasons.each_with_index do |season, index| %>
+              <button class="season-tab <%= 'active-tab' if index == 0 %>" 
+                      data-season-tabs-target="tab" 
+                      data-season="<%= season %>" 
+                      data-action="click->season-tabs#select">
+                Season <%= season %>
+              </button>
+            <% end %>
+          </div>
+        </div>
+
+        <div>
+          <% sorted_seasons.each_with_index do |season, index| %>
+            <div data-season-tabs-target="content" 
+                 data-season="<%= season %>" 
+                 class="season-episodes-list <%= 'hidden' unless index == 0 %>" 
+                 style="display: <%= index == 0 ? 'flex' : 'none' %>; flex-direction: column; gap: 12px;">
+              <% episodes_by_season[season].each do |ep| %>
+                <%= render 'tv_shows/tv_episode', ep: ep, tv_show: @tv_show %>
+              <% end %>
+            </div>
           <% end %>
         </div>
       </div>

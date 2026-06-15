@@ -23,8 +23,8 @@ RSpec.describe 'Collections', type: :request do
       let!(:public_movie) { user.movies.create!(title: 'Public Movie', is_public: true) }
       let!(:private_movie) { user.movies.create!(title: 'Private Movie', is_public: false) }
 
-      let!(:public_tv_show) { user.tv_shows.create!(title: 'Public TV Show', is_public: true, season: 1, episode: 1) }
-      let!(:private_tv_show) { user.tv_shows.create!(title: 'Private TV Show', is_public: false, season: 1, episode: 1) }
+      let!(:public_tv_show) { user.tv_shows.create!(title: 'Public TV Show', is_public: true) }
+      let!(:private_tv_show) { user.tv_shows.create!(title: 'Private TV Show', is_public: false) }
 
       let!(:public_video_game) { user.video_games.create!(title: 'Public Video Game', is_public: true) }
       let!(:private_video_game) { user.video_games.create!(title: 'Private Video Game', is_public: false) }

@@ -38,9 +38,9 @@ module ActivitiesHelper
       issue = trackable.issue_number.present? ? " ##{trackable.issue_number}" : ''
       "#{user_link} added issue#{issue} of '#{trackable_link}' to their comic collection"
     when 'TvShow'
-      season = trackable.season
-      episode = format('%02d', trackable.episode)
-      "#{user_link} added S#{season}E#{episode} of '#{trackable_link}' to their TV show progress"
+      "#{user_link} added TV show '#{trackable_link}' to their collection"
+    when 'TvEpisode'
+      "#{user_link} added episode '#{trackable_link}' to their collection"
     when 'VideoGame'
       "#{user_link} added video game '#{trackable_link}' to their collection"
     else
@@ -60,9 +60,9 @@ module ActivitiesHelper
       issue = trackable.issue_number.present? ? " issue ##{trackable.issue_number}" : ''
       "#{user_link} reviewed comic '#{trackable_link}'#{issue}#{rating_str}"
     when 'TvShow'
-      season = trackable.season
-      episode = format('%02d', trackable.episode)
-      "#{user_link} reviewed S#{season}E#{episode} of '#{trackable_link}'#{rating_str}"
+      "#{user_link} reviewed TV show '#{trackable_link}'#{rating_str}"
+    when 'TvEpisode'
+      "#{user_link} reviewed episode '#{trackable_link}'#{rating_str}"
     when 'VideoGame'
       "#{user_link} reviewed video game '#{trackable_link}'#{rating_str}"
     else
@@ -91,7 +91,7 @@ module ActivitiesHelper
 
   def consumed_description(user_link, trackable, trackable_link)
     verb = case trackable.class.name
-           when 'Movie', 'TvShow' then 'watched'
+           when 'Movie', 'TvShow', 'TvEpisode' then 'watched'
            when 'VideoGame' then 'played'
            when 'Album' then 'listened to'
            when 'Comic' then 'read'
@@ -108,9 +108,9 @@ module ActivitiesHelper
       issue = trackable.issue_number.present? ? " issue ##{trackable.issue_number}" : ''
       "#{user_link} #{verb} comic '#{trackable_link}'#{issue}#{date_str}"
     when 'TvShow'
-      season = trackable.season
-      episode = format('%02d', trackable.episode)
-      "#{user_link} #{verb} S#{season}E#{episode} of '#{trackable_link}'#{date_str}"
+      "#{user_link} #{verb} TV show '#{trackable_link}'#{date_str}"
+    when 'TvEpisode'
+      "#{user_link} #{verb} episode '#{trackable_link}'#{date_str}"
     when 'VideoGame'
       "#{user_link} #{verb} video game '#{trackable_link}'#{date_str}"
     else

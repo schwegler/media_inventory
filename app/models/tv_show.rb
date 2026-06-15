@@ -9,8 +9,6 @@ class TvShow < ApplicationRecord
   has_many :comments, as: :commentable, dependent: :destroy
 
   validates :title, presence: true
-  validates :season, presence: true, numericality: { only_integer: true, greater_than: 0 }
-  validates :episode, presence: true, numericality: { only_integer: true, greater_than: 0 }
 
   after_commit :sync_episodes_from_api, on: %i[create update]
 

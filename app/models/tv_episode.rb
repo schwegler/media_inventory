@@ -4,6 +4,7 @@ class TvEpisode < ApplicationRecord
   include Trackable
 
   belongs_to :tv_show
+  has_many :comments, as: :commentable, dependent: :destroy
 
   def user
     tv_show&.user
@@ -26,5 +27,34 @@ class TvEpisode < ApplicationRecord
 
   def consumed?
     watched?
+  end
+
+  def consumed_at
+    watched_at
+  end
+
+  # Dirty tracking helper methods to prevent NoMethodErrors from Trackable concern
+  def saved_change_to_consumed?
+    saved_change_to_watched?
+  end
+
+  def saved_change_to_consumed
+    saved_change_to_watched
+  end
+
+  def saved_change_to_is_collected?
+    false
+  end
+
+  def saved_change_to_is_collected
+    nil
+  end
+
+  def saved_change_to_in_watchlist?
+    false
+  end
+
+  def saved_change_to_in_watchlist
+    nil
   end
 end

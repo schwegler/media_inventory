@@ -96,7 +96,7 @@ RSpec.describe 'Media Autocomplete', type: :request do
     end
 
     context 'with tv shows' do
-      let!(:tv_show) { TvShow.create!(title: 'Breaking Bad', network: 'AMC', season: 1, episode: 1, user: user) }
+      let!(:tv_show) { TvShow.create!(title: 'Breaking Bad', network: 'AMC', user: user) }
 
       it 'returns matching TV shows' do
         get '/media/autocomplete', params: { q: 'break', type: 'tv_show' }

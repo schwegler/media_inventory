@@ -220,41 +220,36 @@ puts 'Seeding TV shows...'
 tv_shows_data = [
   {
     title: 'Game of Thrones',
-    season: 1,
-    episode: 1,
     network: 'HBO',
+    api_id: '82',
     is_public: true,
     user: admin
   },
   {
     title: 'Breaking Bad',
-    season: 5,
-    episode: 16,
     network: 'AMC',
+    api_id: '169',
     is_public: true,
     user: user
   },
   {
     title: 'The Wire',
-    season: 1,
-    episode: 1,
     network: 'HBO',
+    api_id: '179',
     is_public: true,
     user: admin
   },
   {
     title: 'Succession',
-    season: 4,
-    episode: 10,
     network: 'HBO',
+    api_id: '27436',
     is_public: true,
     user: user
   },
   {
     title: 'Stranger Things',
-    season: 4,
-    episode: 9,
     network: 'Netflix',
+    api_id: '2993',
     is_public: true,
     user: admin
   }

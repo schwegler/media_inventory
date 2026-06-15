@@ -11,6 +11,7 @@ SampleApp::Application.routes.draw do
 
   resources :comics
   resources :tv_shows
+  resources :tv_episodes, only: %i[show]
   resources :video_games
   resources :movies
   resources :albums

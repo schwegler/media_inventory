@@ -18,7 +18,7 @@
   <!-- Left Column: Poster and Quick Actions -->
   <div class="show-left">
     <div class="show-poster-card">
-      <div class="show-poster">
+      <div class="show-poster album-poster">
         <% if @album.cover_image.attached? %>
           <%= image_tag @album.cover_image, alt: "#{@album.title} Cover" %>
         <% elsif @album.thumbnail_url.present? %>

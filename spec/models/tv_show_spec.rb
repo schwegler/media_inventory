@@ -4,7 +4,7 @@ require 'spec_helper'
 
 RSpec.describe TvShow, type: :model do
   it 'is valid with a title' do
-    tv_show = TvShow.new(title: 'Breaking Bad', season: 1, episode: 1)
+    tv_show = TvShow.new(title: 'Breaking Bad')
     expect(tv_show).to be_valid
   end
 

@@ -10,7 +10,7 @@
       </div>
       <div class="modal-body">
         <div data-controller="thumbnail-fetcher consumed-toggle" data-thumbnail-fetcher-media-type-value="album">
-          <%= form_with model: @album, class: "standard-form" do |f| %>
+          <%= form_with model: @album, class: "standard-form", data: { turbo_frame: "_top" } do |f| %>
             <% if @album.errors.any? %>
               <div id="error_explanation">
                 <h2><%= pluralize(@album.errors.count, "error") %> prohibited this album from being saved:</h2>
@@ -51,7 +51,7 @@
               <div class="details-modal-layout">
                 <!-- Left Column: Cover Preview -->
                 <div class="details-modal-left">
-                  <div class="thumbnail-preview-box">
+                  <div class="thumbnail-preview-box album-preview-box">
                     <img class="thumbnail-preview-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Cover Preview" style="display: none;" data-thumbnail-fetcher-target="previewImg">
                     <div class="thumbnail-preview-placeholder" data-thumbnail-fetcher-target="placeholder">No Cover</div>
                   </div>

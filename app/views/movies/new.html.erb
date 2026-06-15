@@ -10,7 +10,7 @@
       </div>
       <div class="modal-body">
         <div data-controller="thumbnail-fetcher consumed-toggle" data-thumbnail-fetcher-media-type-value="movie">
-          <%= form_with model: @movie, class: "standard-form" do |f| %>
+          <%= form_with model: @movie, class: "standard-form", data: { turbo_frame: "_top" } do |f| %>
             <% if @movie.errors.any? %>
               <div id="error_explanation">
                 <h2><%= pluralize(@movie.errors.count, "error") %> prohibited this movie from being saved:</h2>

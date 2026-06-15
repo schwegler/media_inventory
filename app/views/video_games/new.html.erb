@@ -10,7 +10,7 @@
       </div>
       <div class="modal-body">
         <div data-controller="thumbnail-fetcher consumed-toggle" data-thumbnail-fetcher-media-type-value="video_game">
-          <%= form_with model: @video_game, class: "standard-form" do |f| %>
+          <%= form_with model: @video_game, class: "standard-form", data: { turbo_frame: "_top" } do |f| %>
             <% if @video_game.errors.any? %>
               <div id="error_explanation">
                 <h2><%= pluralize(@video_game.errors.count, "error") %> prohibited this game from being saved:</h2>

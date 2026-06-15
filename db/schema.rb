@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_15_013240) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_15_023045) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -170,7 +170,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_013240) do
     t.boolean "consumed", default: false, null: false
     t.date "consumed_at"
     t.datetime "created_at", null: false
-    t.integer "episode"
     t.string "external_url"
     t.boolean "in_watchlist", default: false, null: false
     t.boolean "is_collected", default: true, null: false
@@ -178,7 +177,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_013240) do
     t.string "network"
     t.string "rating"
     t.text "review"
-    t.integer "season"
     t.string "thumbnail_url"
     t.string "title"
     t.datetime "updated_at", null: false

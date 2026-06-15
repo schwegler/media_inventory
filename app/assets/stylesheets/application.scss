@@ -2906,3 +2906,60 @@ header nav ul.nav-links {
     cursor: pointer;
   }
 }
+
+.album-poster {
+  aspect-ratio: 1 / 1 !important;
+}
+
+.album-preview-box {
+  aspect-ratio: 1 / 1 !important;
+}
+
+/* Season Tabs Pagination Styling */
+.season-tabs-container {
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.season-tabs-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  scrollbar-width: thin;
+  
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+  }
+}
+
+.season-tab {
+  white-space: nowrap;
+  padding: 6px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #8b949e;
+  
+  &:hover {
+    color: #f0f6fc;
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.06);
+  }
+  
+  &.active-tab {
+    background: #ff6b35;
+    border-color: #ff6b35;
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(255, 107, 53, 0.3);
+  }
+}

@@ -6,3 +6,6 @@ eagerLoadControllersFrom("controllers", application)
 
 import ModalController from "controllers/modal_controller"
 application.register("modal", ModalController)
+
+import SeasonTabsController from "controllers/season_tabs_controller"
+application.register("season-tabs", SeasonTabsController)

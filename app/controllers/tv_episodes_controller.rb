@@ -1,7 +1,11 @@
 # frozen_string_literal: true
 
 class TvEpisodesController < ApplicationController
-  before_action :logged_in_user
+  before_action :logged_in_user, only: %i[toggle_watched]
+
+  def show
+    @tv_episode = TvEpisode.find(params[:id])
+  end
 
   def toggle_watched
     @tv_episode = TvEpisode.find(params[:id])
@@ -14,11 +18,11 @@ class TvEpisodesController < ApplicationController
     if @tv_episode.update(tv_episode_params)
       respond_to do |format|
         format.turbo_stream
-        format.html { redirect_to @tv_episode.tv_show, notice: 'Episode updated.' }
+        format.html { redirect_back fallback_location: @tv_episode.tv_show, notice: 'Episode updated.' }
       end
     else
       respond_to do |format|
-        format.html { redirect_to @tv_episode.tv_show, alert: 'Failed to update episode.' }
+        format.html { redirect_back fallback_location: @tv_episode.tv_show, alert: 'Failed to update episode.' }
       end
     end
   end

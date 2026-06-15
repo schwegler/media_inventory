@@ -8,7 +8,7 @@
       <div class="episode-info" style="flex: 1;">
         <div style="font-weight: 600; color: #fff; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; width: 100%;">
           <span>
-            Ep <%= ep.episode %>: <%= ep.name %>
+            <%= link_to "Ep #{ep.episode}: #{ep.name}", tv_episode_path(ep), style: "color: #fff; text-decoration: none; border-bottom: 1px dashed rgba(255,255,255,0.25); transition: border-color 0.2s;", class: "episode-link", data: { turbo_frame: "_top" } %>
             <% if ep.air_date.present? %>
               <span style="font-size: 0.75rem; color: #64748b; font-weight: normal; margin-left: 6px;">(Aired: <%= ep.air_date %>)</span>
             <% end %>
