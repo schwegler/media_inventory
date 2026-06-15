@@ -46,82 +46,76 @@ else # Movie, TvShow, etc.
 end
 %>
 
-<div class="media-actions-container" style="display: flex; flex-direction: column; gap: 1.75rem; margin: 2rem 0; padding: 1.75rem; background: rgba(30, 41, 59, 0.2); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px;">
+<div class="media-actions-container">
 
-  <div class="actions-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1.5rem; width: 100%;">
+  <div class="actions-header">
     <% if logged_in? %>
       <% if item.user == current_user %>
-        <div style="display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 280px;">
-          <strong style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">My Library</strong>
-          <div style="display: flex; gap: 12px; row-gap: 12px; align-items: center; flex-wrap: wrap;">
+        <div class="actions-section">
+          <strong class="actions-section-title">My Library</strong>
+          <div class="actions-buttons-row">
             <%= button_to item.is_collected? ? "📁 Remove from Collection" : "📁 Add to Collection",
                           polymorphic_path(item),
                           method: :patch,
                           params: { item.class.name.underscore.to_sym => { is_collected: !item.is_collected? } },
-                          class: "btn #{item.is_collected? ? 'btn-danger' : 'btn-primary'}",
-                          style: "font-size: 0.85rem; padding: 8px 14px; border: none;" %>
+                          class: "btn #{item.is_collected? ? 'btn-danger' : 'btn-primary'}" %>
 
             <%= button_to item.in_watchlist? ? watchlist_remove_label : watchlist_add_label,
                           polymorphic_path(item),
                           method: :patch,
                           params: { item.class.name.underscore.to_sym => { in_watchlist: !item.in_watchlist? } },
-                          class: "btn #{item.in_watchlist? ? 'btn-danger' : 'btn-secondary'}",
-                          style: "font-size: 0.85rem; padding: 8px 14px; border: none;" %>
+                          class: "btn #{item.in_watchlist? ? 'btn-danger' : 'btn-secondary'}" %>
 
             <%= button_to item.consumed? ? consumed_remove_label : consumed_add_label,
                           polymorphic_path(item),
                           method: :patch,
                           params: { item.class.name.underscore.to_sym => { consumed: !item.consumed?, consumed_at: (item.consumed? ? nil : Time.current.to_date) } },
-                          class: "btn #{item.consumed? ? 'btn-danger' : 'btn-success'}",
-                          style: "font-size: 0.85rem; padding: 8px 14px; border: none;" %>
+                          class: "btn #{item.consumed? ? 'btn-danger' : 'btn-success'}" %>
           </div>
         </div>
 
-        <div style="flex-shrink: 0;">
+        <div class="actions-delete-box">
           <%= button_to "Delete from Library",
                         polymorphic_path(item),
                         method: :delete,
                         data: { confirm: "Are you sure you want to delete this from your library?" },
-                        class: 'btn btn-danger',
-                        style: "font-size: 0.85rem; padding: 8px 14px; background: #ef4444; border: none;" %>
+                        class: 'btn btn-danger btn-delete-item' %>
         </div>
       <% else %>
-        <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
-          <strong style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">Add to My Library</strong>
-          <div style="display: flex; gap: 12px; row-gap: 12px; align-items: center; flex-wrap: wrap;">
+        <div class="actions-section-full">
+          <strong class="actions-section-title">Add to My Library</strong>
+          <div class="actions-buttons-row">
             <%= button_to "📁 Add to My Collection",
                           media_copy_path,
                           method: :post,
                           params: { source_type: item.class.name, source_id: item.id, target_list: 'collection' },
-                          class: "btn btn-primary",
-                          style: "font-size: 0.85rem; padding: 8px 14px; border: none;" %>
+                          class: "btn btn-primary" %>
 
             <%= button_to watchlist_copy_label,
                           media_copy_path,
                           method: :post,
                           params: { source_type: item.class.name, source_id: item.id, target_list: 'watchlist' },
-                          class: "btn btn-secondary",
-                          style: "font-size: 0.85rem; padding: 8px 14px; border: none;" %>
+                          class: "btn btn-secondary" %>
           </div>
         </div>
       <% end %>
     <% else %>
-      <div style="color: #64748b; font-size: 0.9rem; width: 100%;">
-        <%= link_to "Log in", login_path, style: "color: #818cf8; font-weight: 600;" %> to add this media to your library.
+      <div class="actions-login-message">
+        <%= link_to "Log in", login_path, class: "login-link" %> to add this media to your library.
       </div>
     <% end %>
   </div>
 
   <% if logged_in? && item.user == current_user && (item.is_collected? || item.in_watchlist?) %>
     <div class="inline-quick-review-box">
-      <%= form_with model: item, url: polymorphic_path(item), method: :patch, local: true, class: "quick-review-form", style: "display: flex; flex-direction: column; gap: 1.25rem;" do |f| %>
-        <h3 style="font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 8px;">
+      <%= form_with model: item, url: polymorphic_path(item), method: :patch, local: true, class: "quick-review-form" do |f| %>
+        <h3 class="quick-review-title">
           ✍️ Quick Review & Rating
         </h3>
         
         <div class="inline-form-row">
-          <div style="flex: 1; min-width: 160px;">
-            <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: item.rating }, { class: "form-control", style: "padding: 10px 14px; font-size: 0.95rem; border-radius: 8px;" } %>
+          <div class="quick-review-rating-select">
+            <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: item.rating }, { class: "form-control quick-review-select" } %>
           </div>
           
           <div class="inline-checkbox-group">
@@ -136,22 +130,22 @@ end
         </div>
 
         <div>
-          <%= f.text_area :review, placeholder: review_placeholder, rows: 3, class: "form-control", style: "font-size: 0.95rem; border-radius: 8px; padding: 12px 14px;" %>
+          <%= f.text_area :review, placeholder: review_placeholder, rows: 3, class: "form-control quick-review-textarea" %>
         </div>
 
-        <div style="display: flex; justify-content: flex-end;">
-          <%= f.submit submit_review_label, class: "btn btn-primary", style: "font-size: 0.9rem; padding: 10px 20px; border-radius: 8px;" %>
+        <div class="quick-review-submit-row">
+          <%= f.submit submit_review_label, class: "btn btn-primary quick-review-submit-btn" %>
         </div>
       <% end %>
     </div>
   <% end %>
 
-  <div class="streaming-links-box" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 1.5rem;">
-    <h3 style="font-size: 1rem; color: #fff; margin-bottom: 0.85rem; display: flex; align-items: center; gap: 8px;">
+  <div class="streaming-links-box">
+    <h3 class="streaming-links-title">
       🔗 Where to Buy & Stream
     </h3>
 
-    <div style="display: flex; gap: 14px; row-gap: 10px; flex-wrap: wrap;">
+    <div class="streaming-buttons-row">
       <% if item.external_url.present? %>
         <% link_label = if item.external_url.include?('itunes.apple.com') || item.external_url.include?('music.apple.com')
                           apple_label
@@ -164,7 +158,7 @@ end
                         else
                           "🌐 View Official Source"
                         end %>
-        <%= link_to link_label, item.external_url, target: "_blank", rel: "noopener", class: "btn", style: "background: #1e1b4b; color: #c7d2fe; font-size: 0.85rem; border: 1px solid #312e81; padding: 8px 14px;" %>
+        <%= link_to link_label, item.external_url, target: "_blank", rel: "noopener", class: "btn btn-stream-source" %>
       <% end %>
 
       <% if ['Movie', 'TvShow'].include?(item.class.name) %>
@@ -172,8 +166,7 @@ end
                     "https://www.justwatch.com/us/search?q=#{CGI.escape(item.title)}",
                     target: "_blank",
                     rel: "noopener",
-                    class: "btn",
-                    style: "background: #0f172a; color: #94a3b8; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); padding: 8px 14px;" %>
+                    class: "btn btn-stream-search" %>
       <% end %>
 
       <% if item.class.name == 'VideoGame' %>
@@ -181,8 +174,7 @@ end
                     "https://howlongtobeat.com/?q=#{CGI.escape(item.title)}",
                     target: "_blank",
                     rel: "noopener",
-                    class: "btn",
-                    style: "background: #0f172a; color: #94a3b8; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); padding: 8px 14px;" %>
+                    class: "btn btn-stream-search" %>
       <% end %>
 
       <% if item.class.name == 'Comic' %>
@@ -190,29 +182,25 @@ end
                     "https://www.goodreads.com/search?q=#{CGI.escape(item.title)}",
                     target: "_blank",
                     rel: "noopener",
-                    class: "btn",
-                    style: "background: #0f172a; color: #94a3b8; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); padding: 8px 14px;" %>
+                    class: "btn btn-stream-search" %>
         <%= link_to "📖 Search Open Library",
                     "https://openlibrary.org/search?q=#{CGI.escape(item.title)}",
                     target: "_blank",
                     rel: "noopener",
-                    class: "btn",
-                    style: "background: #0f172a; color: #94a3b8; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); padding: 8px 14px;" %>
+                    class: "btn btn-stream-search" %>
       <% end %>
 
       <%= link_to "🌐 Google Search Options",
                   "https://www.google.com/search?q=stream+or+buy+#{CGI.escape(item.title)}",
                   target: "_blank",
                   rel: "noopener",
-                  class: "btn",
-                  style: "background: #0f172a; color: #94a3b8; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); padding: 8px 14px;" %>
+                  class: "btn btn-stream-search" %>
 
       <%= link_to "📦 Buy on Amazon",
                   "https://www.amazon.com/s?k=#{CGI.escape(item.title)}",
                   target: "_blank",
                   rel: "noopener",
-                  class: "btn",
-                  style: "background: #0f172a; color: #94a3b8; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); padding: 8px 14px;" %>
+                  class: "btn btn-stream-search" %>
     </div>
   </div>
 

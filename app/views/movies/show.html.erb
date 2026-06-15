@@ -12,114 +12,119 @@
     <div class="show-hero-backdrop" style="background-image: url('<%= backdrop_url %>');"></div>
   <% end %>
   <div class="show-hero-gradient"></div>
+</div>
 
-  <div class="show-hero-content">
-    <div class="show-poster">
-      <% if @movie.cover_image.attached? %>
-        <%= image_tag @movie.cover_image, alt: "#{@movie.title} Cover" %>
-      <% elsif @movie.thumbnail_url.present? %>
-        <img src="<%= @movie.thumbnail_url %>" alt="<%= @movie.title %> Cover">
-      <% else %>
-        <div class="poster-fallback"><span class="fallback-emoji">🎬</span></div>
-      <% end %>
+<div class="show-container container">
+  <!-- Left Column: Poster and Quick Actions -->
+  <div class="show-left">
+    <div class="show-poster-card">
+      <div class="show-poster">
+        <% if @movie.cover_image.attached? %>
+          <%= image_tag @movie.cover_image, alt: "#{@movie.title} Cover" %>
+        <% elsif @movie.thumbnail_url.present? %>
+          <img src="<%= @movie.thumbnail_url %>" alt="<%= @movie.title %> Cover">
+        <% else %>
+          <div class="poster-fallback"><span class="fallback-emoji">🎬</span></div>
+        <% end %>
+      </div>
+      
+      <div class="poster-stats">
+        <% stats = community_stats_for(@movie) %>
+        <span class="stat-item" title="Watchers"><span class="stat-icon">👁</span> <%= stats[:watchers].size %></span>
+        <span class="stat-item" title="Collectors"><span class="stat-icon">📁</span> <%= stats[:collectors].size %></span>
+        <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @movie.likes.count %></span>
+      </div>
     </div>
 
-    <div class="show-info">
-      <h1 class="show-title"><%= @movie.title %></h1>
-      <div class="show-meta">
-        <span class="show-meta-label">Directed by</span> <%= @movie.director || 'Unknown' %> &bull; <%= @movie.release_year %>
-      </div>
+  </div>
 
+  <!-- Right Column: Title, Metadata, Reviews -->
+  <div class="show-right">
+    <div class="show-header-details">
+      <h1 class="show-title"><%= @movie.title %></h1>
+      <p class="show-meta-subtitle">
+        Directed by <span class="meta-highlight"><%= @movie.director || 'Unknown' %></span> &bull; <%= @movie.release_year %>
+      </p>
+      
       <% if @movie.rating.present? %>
         <div class="show-rating"><%= render_stars(@movie.rating) %></div>
       <% end %>
-
-      <div class="show-badges">
-        <% if @movie.is_collected? %>
-          <span class="tracking-badge badge-collected">📁 In Collection</span>
-        <% end %>
-        <% if @movie.in_watchlist? %>
-          <span class="tracking-badge badge-watchlist">⏳ Watchlist</span>
-        <% end %>
-        <% if @movie.consumed? %>
-          <span class="tracking-badge badge-consumed">
-            ✓ Watched <%= "on #{@movie.consumed_at.strftime('%b %d, %Y')}" if @movie.consumed_at.present? %>
-          </span>
-        <% end %>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="show-content">
-  <%= render 'shared/media_actions_and_stream', item: @movie %>
-
-  <% if @movie.review.present? %>
-    <div class="show-review">
-      <h3>Review</h3>
-      <blockquote><%= simple_format(@movie.review) %></blockquote>
-    </div>
-  <% end %>
-
-  <% stats = community_stats_for(@movie) %>
-  <div class="show-community">
-    <h2>Community</h2>
-
-    <div class="show-stats-bar">
-      <div class="show-stat">
-        <div class="show-stat-value"><%= stats[:avg_rating] ? "#{stats[:avg_rating]} ★" : "—" %></div>
-        <div class="show-stat-label">Average Rating</div>
-      </div>
-      <div class="show-stat">
-        <div class="show-stat-value"><%= stats[:watchers].size %></div>
-        <div class="show-stat-label">Watchers</div>
-      </div>
-      <div class="show-stat">
-        <div class="show-stat-value"><%= stats[:collectors].size %></div>
-        <div class="show-stat-label">Collectors</div>
-      </div>
     </div>
 
-    <% if stats[:reviews].any? %>
-      <h3>Community Reviews</h3>
-      <div class="show-reviews-list">
-        <% stats[:reviews].each do |matching_item| %>
-          <div class="show-review-card">
-            <div class="review-header">
-              <%= user_avatar_tag(matching_item.user, size: 28) %>
-              <span class="review-user"><%= matching_item.user.name.presence || matching_item.user.display_handle %></span>
-              <% if matching_item.rating.present? %>
-                <span class="review-rating"><%= render_stars(matching_item.rating) %></span>
-              <% end %>
+    <%= render 'shared/media_actions_and_stream', item: @movie %>
+
+    <% if @movie.review.present? %>
+      <div class="show-review">
+        <h3>My Review</h3>
+        <blockquote><%= simple_format(@movie.review) %></blockquote>
+      </div>
+    <% end %>
+
+    <div class="show-community">
+      <h2>Community</h2>
+
+      <div class="show-stats-bar">
+        <div class="show-stat">
+          <div class="show-stat-value"><%= stats[:avg_rating] ? "#{stats[:avg_rating]} ★" : "—" %></div>
+          <div class="show-stat-label">Average Rating</div>
+        </div>
+        <div class="show-stat">
+          <div class="show-stat-value"><%= stats[:watchers].size %></div>
+          <div class="show-stat-label">Watchers</div>
+        </div>
+        <div class="show-stat">
+          <div class="show-stat-value"><%= stats[:collectors].size %></div>
+          <div class="show-stat-label">Collectors</div>
+        </div>
+      </div>
+
+      <% if stats[:reviews].any? %>
+        <h3>Community Reviews</h3>
+        <div class="show-reviews-list">
+          <% stats[:reviews].each do |matching_item| %>
+            <div class="show-review-card">
+              <div class="review-header">
+                <%= user_avatar_tag(matching_item.user, size: 28) %>
+                <div class="review-meta-info">
+                  <span class="review-user"><%= matching_item.user.name.presence || matching_item.user.display_handle %></span>
+                  <% if matching_item.rating.present? %>
+                    <span class="review-rating"><%= render_stars(matching_item.rating) %></span>
+                  <% end %>
+                </div>
+              </div>
+              <div class="review-content"><%= simple_format(matching_item.review) %></div>
+              
+              <div class="review-actions-row">
+                <%= render 'likes/like_button', item: matching_item %>
+              </div>
+
+              <%= render 'shared/comments_box', matching_item: matching_item %>
             </div>
-            <div class="review-content"><%= simple_format(matching_item.review) %></div>
-            <%= render 'shared/comments_box', matching_item: matching_item %>
-          </div>
-        <% end %>
-      </div>
-    <% end %>
+          <% end %>
+        </div>
+      <% end %>
 
-    <% if stats[:watchers].any? %>
-      <h3>Watchers</h3>
-      <div class="show-members-list">
-        <% stats[:watchers].each do |user| %>
-          <span class="show-member-tag"><%= user_avatar_tag(user, size: 20) %> <%= user.name.presence || user.display_handle %></span>
-        <% end %>
-      </div>
-    <% end %>
+      <% if stats[:watchers].any? %>
+        <h3>Watchers</h3>
+        <div class="show-members-list">
+          <% stats[:watchers].each do |user| %>
+            <span class="show-member-tag"><%= user_avatar_tag(user, size: 20) %> <%= user.name.presence || user.display_handle %></span>
+          <% end %>
+        </div>
+      <% end %>
 
-    <% if stats[:collectors].any? %>
-      <h3>Collectors</h3>
-      <div class="show-members-list">
-        <% stats[:collectors].each do |user| %>
-          <span class="show-member-tag"><%= user_avatar_tag(user, size: 20) %> <%= user.name.presence || user.display_handle %></span>
-        <% end %>
-      </div>
-    <% end %>
-  </div>
+      <% if stats[:collectors].any? %>
+        <h3>Collectors</h3>
+        <div class="show-members-list">
+          <% stats[:collectors].each do |user| %>
+            <span class="show-member-tag"><%= user_avatar_tag(user, size: 20) %> <%= user.name.presence || user.display_handle %></span>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
 
-  <div class="show-actions">
-    <%= link_to '← Back', movies_path, class: 'btn btn-secondary' %>
-    <a href="https://www.justwatch.com/us/search?q=<%= u(@movie.title) %>" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">🔗 Find where to stream</a>
+    <div class="show-actions">
+      <%= link_to '← Back to Movies', movies_path, class: 'btn btn-secondary' %>
+    </div>
   </div>
 </div>

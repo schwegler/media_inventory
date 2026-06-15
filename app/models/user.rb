@@ -19,6 +19,11 @@ class User < ApplicationRecord
   has_many :video_games
   has_many :activities, dependent: :destroy
   has_many :comments, dependent: :destroy
+  has_many :likes, dependent: :destroy
+
+  def liked?(likeable)
+    likes.exists?(likeable_type: likeable.class.name, likeable_id: likeable.id)
+  end
 
   def display_handle
     if bsky_handle.present?

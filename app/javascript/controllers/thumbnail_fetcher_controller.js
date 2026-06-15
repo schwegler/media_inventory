@@ -24,6 +24,7 @@ export default class extends Controller {
 
   connect() {
     this.debouncedFetch = debounce(() => this.fetchThumbnails(), 600)
+    this.currentQuery = ""
 
     // Pre-populate preview if thumbnail URL already has a value
     if (this.thumbnailUrlTarget.value) {
@@ -48,9 +49,11 @@ export default class extends Controller {
     if (!title) {
       this.optionsGridTarget.innerHTML = ""
       this.statusTextTarget.textContent = "Type title to fetch covers..."
+      this.currentQuery = ""
       return
     }
 
+    this.currentQuery = title
     this.statusTextTarget.textContent = "Searching local database and web..."
     this.optionsGridTarget.innerHTML = ""
 
@@ -66,6 +69,7 @@ export default class extends Controller {
       // 1. Fetch Local Matches First
       try {
         const localResponse = await fetch(`/media/autocomplete?q=${encodeURIComponent(title)}&type=${mediaType}`)
+        if (this.currentQuery !== title) return // Abort if query changed
         if (localResponse.ok) {
           const localData = await localResponse.json()
           allResults = allResults.concat(localData)
@@ -75,21 +79,27 @@ export default class extends Controller {
       }
 
       // 2. Fetch Web Matches
+      if (this.currentQuery !== title) return // Abort if query changed
       let webResults = await this.queryWebAPI(query, mediaType)
       
-      // If we got 0 web results and the query has more than 3 words, try retrying with just the first 3 words
+      if (this.currentQuery !== title) return // Abort if query changed
+
+      // Retry with simplified query if 0 results
       const words = query.split(/\s+/)
       if (webResults.length === 0 && words.length > 3) {
         const simplifiedQuery = words.slice(0, 3).join(" ")
         webResults = await this.queryWebAPI(simplifiedQuery, mediaType)
+        if (this.currentQuery !== title) return
       }
-      // If still 0, try the first 2 words
       if (webResults.length === 0 && words.length > 2) {
         const simplifiedQuery2 = words.slice(0, 2).join(" ")
         webResults = await this.queryWebAPI(simplifiedQuery2, mediaType)
+        if (this.currentQuery !== title) return
       }
 
       allResults = allResults.concat(webResults)
+
+      if (this.currentQuery !== title) return // Abort if query changed
 
       // 3. Render Combined Options
       if (allResults.length === 0) {
@@ -103,11 +113,9 @@ export default class extends Controller {
         const imgBtn = document.createElement("div")
         imgBtn.className = "thumbnail-option-card"
         
-        // Add badges for Local vs Web
         const badgeClass = option.is_local ? "local" : "web"
         const badgeText = option.is_local ? "Local" : "Web"
         
-        // Build subtitle/meta details for tooltip
         let subtitle = ""
         if (mediaType === "movie") subtitle = option.director || ""
         else if (mediaType === "album") subtitle = option.artist || ""
@@ -137,7 +145,8 @@ export default class extends Controller {
           this.optionsGridTarget.querySelectorAll(".thumbnail-option-card").forEach(card => card.classList.remove("selected"))
           imgBtn.classList.add("selected")
 
-          this.selectOption(option)
+          // User clicked explicitly, so populate all text fields!
+          this.selectOption(option, true)
 
           const isCollectedInput = this.element.querySelector('input[name*="[is_collected]"]')
           const inWatchlistInput = this.element.querySelector('input[name*="[in_watchlist]"]')
@@ -159,13 +168,13 @@ export default class extends Controller {
         this.optionsGridTarget.appendChild(imgBtn)
       })
 
-      // Auto-select first cover if user hasn't selected one
+      // Auto-select first cover invisibly (only update cover preview, NOT text inputs!)
       const firstCard = this.optionsGridTarget.querySelector(".thumbnail-option-card")
       if (firstCard) {
         this.optionsGridTarget.querySelectorAll(".thumbnail-option-card").forEach(card => card.classList.remove("selected"))
         firstCard.classList.add("selected")
         const idx = Array.from(this.optionsGridTarget.children).indexOf(firstCard)
-        this.selectOption(allResults[idx])
+        this.selectOption(allResults[idx], false)
       }
 
     } catch (err) {
@@ -174,35 +183,60 @@ export default class extends Controller {
     }
   }
 
-  // ── Helper: Query Wikipedia for an image via the REST summary endpoint ──
-  // Tries each suffix in order (e.g. " (film)", "") and returns a result object or null.
-  async queryWikipedia(title, suffixes) {
-    for (const suffix of suffixes) {
-      try {
-        const searchTitle = title + suffix
-        const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(searchTitle)}`
-        const response = await fetch(url)
-        if (!response.ok) continue
+  // ── Helper: Query Wikipedia using OpenSearch + REST Summary API (Robust & Multi-Format) ──
+  async queryWikipedia(query, mediaType) {
+    try {
+      let searchQuery = query
+      if (mediaType === "movie") searchQuery += " film"
+      else if (mediaType === "tv_show") searchQuery += " TV series"
+      else if (mediaType === "comic") searchQuery += " comic book"
+      else if (mediaType === "video_game") searchQuery += " video game"
+      else if (mediaType === "album") searchQuery += " album"
 
-        const data = await response.json()
-        if (data.originalimage && data.originalimage.source) {
-          const cleanTitle = data.title ? data.title.replace(/\s*\(film\)$/i, "").replace(/\s*\(TV series\)$/i, "") : title
-          return {
-            title: cleanTitle,
-            thumbnail_url: data.originalimage.source,
-            external_url: data.content_urls?.desktop?.page || null,
-            is_local: false
+      const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchQuery)}&format=json&origin=*`
+      const res = await fetch(searchUrl)
+      if (!res.ok) return null
+      const data = await res.json()
+      const searchResults = data.query?.search || []
+      if (searchResults.length === 0) return null
+
+      const results = []
+      // Query summaries for the top 3 Wikipedia pages
+      for (const item of searchResults.slice(0, 3)) {
+        const pageTitle = item.title
+        const summaryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle.replace(/ /g, "_"))}`
+        try {
+          const sumRes = await fetch(summaryUrl)
+          if (sumRes.ok) {
+            const sumData = await sumRes.json()
+            if (sumData.originalimage && sumData.originalimage.source) {
+              let releaseYear = null
+              const desc = sumData.description || ""
+              const yearMatch = desc.match(/\b(19\d\d|20\d\d)\b/)
+              if (yearMatch) {
+                releaseYear = parseInt(yearMatch[1], 10)
+              }
+              const cleanTitle = sumData.title ? sumData.title.replace(/\s*\(film\)$/i, "").replace(/\s*\(TV series\)$/i, "").replace(/\s*\(video game\)$/i, "").replace(/\s*\(album\)$/i, "") : pageTitle
+              results.push({
+                title: cleanTitle,
+                thumbnail_url: sumData.originalimage.source,
+                external_url: sumData.content_urls?.desktop?.page || null,
+                release_year: releaseYear,
+                is_local: false
+              })
+            }
           }
+        } catch (sumErr) {
+          console.error("Wikipedia summary fetch failed for:", pageTitle, sumErr)
         }
-      } catch (e) {
-        // Wikipedia errors should never break the flow
-        console.error("Wikipedia lookup failed for suffix:", suffix, e)
       }
+      return results.length > 0 ? results : null
+    } catch (e) {
+      console.error("Wikipedia search failed:", e)
+      return null
     }
-    return null
   }
 
-  // ── Helper: Deduplicate results by title, preferring items with thumbnails ──
   deduplicateResults(results) {
     const seen = new Map()
     for (const item of results) {
@@ -212,10 +246,8 @@ export default class extends Controller {
       if (!existing) {
         seen.set(key, item)
       } else if (!existing.thumbnail_url && item.thumbnail_url) {
-        // Prefer the one with a thumbnail
         seen.set(key, item)
       }
-      // Otherwise keep the first one (already has thumbnail or both lack it)
     }
     return Array.from(seen.values())
   }
@@ -223,135 +255,177 @@ export default class extends Controller {
   async queryWebAPI(query, mediaType) {
     try {
       if (mediaType === "movie") {
-        const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&limit=15&country=US`
-        const response = await fetch(url)
-        const data = await response.json()
-        let results = (data.results || [])
-          .filter(r => r.kind === "feature-movie")
-          .slice(0, 5)
-          .map(r => ({
-            title: r.trackName,
-            director: r.artistName,
-            release_year: r.releaseDate ? new Date(r.releaseDate).getFullYear() : null,
-            thumbnail_url: r.artworkUrl100 ? r.artworkUrl100.replace("100x100bb", "400x400bb") : null,
-            api_id: r.trackId ? r.trackId.toString() : null,
-            external_url: r.trackViewUrl || null,
-            is_local: false
-          }))
-          .filter(r => r.thumbnail_url)
+        let results = []
+        // Wikipedia search first (excellent free source for movie cover art & summaries, bypasses iTunes issues)
+        try {
+          const wikiResults = await this.queryWikipedia(query, "movie")
+          if (wikiResults) results = results.concat(wikiResults)
+        } catch (e) {
+          console.error("Wikipedia movie search failed:", e)
+        }
 
-        // Wikipedia fallback — if iTunes returned fewer than 3 results, try Wikipedia
-        if (results.length < 3) {
-          try {
-            const wikiResult = await this.queryWikipedia(query, [" (film)", ""])
-            if (wikiResult) {
-              results.push(wikiResult)
-            }
-          } catch (e) {
-            console.error("Wikipedia movie fallback failed:", e)
+        // iTunes Movie Search secondary
+        try {
+          const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=movie&limit=5&country=US`
+          const response = await fetch(url)
+          if (response.ok) {
+            const data = await response.json()
+            const itunesResults = (data.results || []).map(r => ({
+              title: r.trackName,
+              director: r.artistName,
+              release_year: r.releaseDate ? new Date(r.releaseDate).getFullYear() : null,
+              thumbnail_url: r.artworkUrl100 ? r.artworkUrl100.replace("100x100bb", "400x400bb") : null,
+              api_id: r.trackId ? r.trackId.toString() : null,
+              external_url: r.trackViewUrl || null,
+              is_local: false
+            })).filter(r => r.thumbnail_url)
+            results = results.concat(itunesResults)
           }
+        } catch (e) {
+          console.error("iTunes movie search failed:", e)
         }
 
         return this.deduplicateResults(results)
 
       } else if (mediaType === "album") {
-        const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=album&limit=5&country=US`
-        const response = await fetch(url)
-        const data = await response.json()
-        return (data.results || []).map(r => ({
-          title: r.collectionName,
-          artist: r.artistName,
-          genre: r.primaryGenreName,
-          release_year: r.releaseDate ? new Date(r.releaseDate).getFullYear() : null,
-          thumbnail_url: r.artworkUrl100 ? r.artworkUrl100.replace("100x100bb", "500x500bb") : null,
-          api_id: r.collectionId ? r.collectionId.toString() : null,
-          external_url: r.collectionViewUrl || null,
-          is_local: false
-        })).filter(r => r.thumbnail_url)
-
-      } else if (mediaType === "tv_show") {
-        const url = `https://api.tvmaze.com/search/shows?q=${encodeURIComponent(query)}`
-        const response = await fetch(url)
-        const data = await response.json()
-        let results = (data || []).slice(0, 5).map(item => {
-          const show = item.show
-          return {
-            title: show.name,
-            network: show.network ? show.network.name : (show.webChannel ? show.webChannel.name : null),
-            release_year: show.premiered ? new Date(show.premiered).getFullYear() : null,
-            thumbnail_url: show.image ? (show.image.original || show.image.medium) : null,
-            api_id: show.id ? show.id.toString() : null,
-            external_url: show.officialSite || show.url || null,
-            is_local: false
+        let results = []
+        try {
+          const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=album&limit=5&country=US`
+          const response = await fetch(url)
+          if (response.ok) {
+            const data = await response.json()
+            results = (data.results || []).map(r => ({
+              title: r.collectionName,
+              artist: r.artistName,
+              genre: r.primaryGenreName,
+              release_year: r.releaseDate ? new Date(r.releaseDate).getFullYear() : null,
+              thumbnail_url: r.artworkUrl100 ? r.artworkUrl100.replace("100x100bb", "500x500bb") : null,
+              api_id: r.collectionId ? r.collectionId.toString() : null,
+              external_url: r.collectionViewUrl || null,
+              is_local: false
+            })).filter(r => r.thumbnail_url)
           }
-        }).filter(r => r.thumbnail_url)
+        } catch (e) {
+          console.error("iTunes search failed:", e)
+        }
 
-        // Wikipedia fallback — if TVmaze returned fewer than 3 results with thumbnails, try Wikipedia
+        // Wikipedia fallback for albums
         if (results.length < 3) {
           try {
-            const wikiResult = await this.queryWikipedia(query, [" (TV series)", ""])
-            if (wikiResult) {
-              results.push(wikiResult)
-            }
+            const wikiResults = await this.queryWikipedia(query, "album")
+            if (wikiResults) results = results.concat(wikiResults)
           } catch (e) {
-            console.error("Wikipedia TV show fallback failed:", e)
+            console.error("Wikipedia album fallback failed:", e)
+          }
+        }
+
+        return this.deduplicateResults(results)
+
+      } else if (mediaType === "tv_show") {
+        let results = []
+        try {
+          const url = `https://api.tvmaze.com/search/shows?q=${encodeURIComponent(query)}`
+          const response = await fetch(url)
+          if (response.ok) {
+            const data = await response.json()
+            results = (data || []).slice(0, 5).map(item => {
+              const show = item.show
+              return {
+                title: show.name,
+                network: show.network ? show.network.name : (show.webChannel ? show.webChannel.name : null),
+                release_year: show.premiered ? new Date(show.premiered).getFullYear() : null,
+                thumbnail_url: show.image ? (show.image.original || show.image.medium) : null,
+                api_id: show.id ? show.id.toString() : null,
+                external_url: show.officialSite || show.url || null,
+                is_local: false
+              }
+            }).filter(r => r.thumbnail_url)
+          }
+        } catch (e) {
+          console.error("TVmaze search failed:", e)
+        }
+
+        // Wikipedia fallback for TV shows
+        if (results.length < 3) {
+          try {
+            const wikiResults = await this.queryWikipedia(query, "tv_show")
+            if (wikiResults) results = results.concat(wikiResults)
+          } catch (e) {
+            console.error("Wikipedia TV fallback failed:", e)
           }
         }
 
         return this.deduplicateResults(results)
 
       } else if (mediaType === "comic") {
-        // Open Library (primary source)
-        const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=5`
-        const response = await fetch(url)
-        const data = await response.json()
-        let results = (data.docs || []).map(doc => {
-          const author = doc.author_name ? doc.author_name.join(", ") : null
-          const releaseYear = doc.first_publish_year || null
-          const apiId = doc.key ? doc.key.replace("/works/", "") : null
-          const coverUrl = doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : null
-          return {
-            title: doc.title,
-            writer: author,
-            release_year: releaseYear,
-            thumbnail_url: coverUrl,
-            api_id: apiId,
-            external_url: doc.key ? `https://openlibrary.org${doc.key}` : null,
-            is_local: false
-          }
-        }).filter(r => r.thumbnail_url)
+        let results = []
+        // Wikipedia search first (highly accurate for comic box covers and summaries)
+        try {
+          const wikiResults = await this.queryWikipedia(query, "comic")
+          if (wikiResults) results = results.concat(wikiResults)
+        } catch (e) {
+          console.error("Wikipedia comic search failed:", e)
+        }
 
-        // Google Books (secondary source)
+        // Google Books (secondary)
         try {
           const gbUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query + " comic")}&maxResults=5&printType=books`
           const gbResponse = await fetch(gbUrl)
-          const gbData = await gbResponse.json()
-          const gbResults = (gbData.items || []).map(item => {
-            const info = item.volumeInfo || {}
-            const rawThumb = info.imageLinks?.thumbnail || null
-            const thumbnail = rawThumb
-              ? rawThumb.replace("http:", "https:").replace("zoom=1", "zoom=2")
-              : null
-            return {
-              title: info.title,
-              writer: info.authors?.join(", ") || null,
-              release_year: info.publishedDate ? new Date(info.publishedDate).getFullYear() : null,
-              thumbnail_url: thumbnail,
-              api_id: item.id,
-              external_url: info.infoLink || null,
-              is_local: false
-            }
-          }).filter(r => r.thumbnail_url)
-
-          results = results.concat(gbResults)
+          if (gbResponse.ok) {
+            const gbData = await gbResponse.json()
+            const gbResults = (gbData.items || []).map(item => {
+              const info = item.volumeInfo || {}
+              const rawThumb = info.imageLinks?.thumbnail || null
+              const thumbnail = rawThumb ? rawThumb.replace("http:", "https:").replace("zoom=1", "zoom=2") : null
+              return {
+                title: info.title,
+                writer: info.authors?.join(", ") || null,
+                publisher: info.publisher || null,
+                release_year: info.publishedDate ? new Date(info.publishedDate).getFullYear() : null,
+                thumbnail_url: thumbnail,
+                api_id: item.id,
+                external_url: info.infoLink || null,
+                is_local: false
+              }
+            }).filter(r => r.thumbnail_url)
+            results = results.concat(gbResults)
+          }
         } catch (gbErr) {
-          console.error("Google Books comic fallback failed:", gbErr)
+          console.error("Google Books search failed:", gbErr)
+        }
+
+        // Open Library (tertiary)
+        try {
+          const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=3`
+          const response = await fetch(url)
+          if (response.ok) {
+            const data = await response.json()
+            const olResults = (data.docs || []).map(doc => {
+              const author = doc.author_name ? doc.author_name.join(", ") : null
+              const releaseYear = doc.first_publish_year || null
+              const apiId = doc.key ? doc.key.replace("/works/", "") : null
+              const coverUrl = doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : null
+              return {
+                title: doc.title,
+                writer: author,
+                publisher: doc.publisher ? doc.publisher.join(", ") : null,
+                release_year: releaseYear,
+                thumbnail_url: coverUrl,
+                api_id: apiId,
+                external_url: doc.key ? `https://openlibrary.org${doc.key}` : null,
+                is_local: false
+              }
+            }).filter(r => r.thumbnail_url)
+            results = results.concat(olResults)
+          }
+        } catch (e) {
+          console.error("Open Library search failed:", e)
         }
 
         return this.deduplicateResults(results)
 
       } else if (mediaType === "video_game") {
-        // Handled server-side in MediaController#autocomplete to bypass CORS
+        // Video games search is handled server-side to resolve Steam API and Wikipedia queries
         return []
       }
       return []
@@ -361,32 +435,34 @@ export default class extends Controller {
     }
   }
 
-  selectOption(option) {
+  selectOption(option, isManualClick = false) {
     // 1. Update cover art URL and previews
     this.thumbnailUrlTarget.value = option.thumbnail_url
     this.previewImgTarget.src = option.thumbnail_url
     this.previewImgTarget.style.display = "block"
     this.placeholderTarget.style.display = "none"
 
-    // 2. Auto-populate title (only if current input is clean/substantially same)
-    if (this.hasTitleInputTarget && (!this.titleInputTarget.value || option.title.toLowerCase().startsWith(this.titleInputTarget.value.toLowerCase().trim()))) {
-      this.titleInputTarget.value = option.title
-    }
+    if (isManualClick) {
+      // 2. Auto-populate text fields only on direct selection
+      if (this.hasTitleInputTarget) {
+        this.titleInputTarget.value = option.title
+      }
 
-    // 3. Auto-populate targets dynamically
-    if (this.hasDirectorTarget) this.directorTarget.value = option.director || ""
-    if (this.hasArtistTarget) this.artistTarget.value = option.artist || ""
-    if (this.hasWriterTarget) this.writerTarget.value = option.writer || ""
-    if (this.hasPublisherTarget) this.publisherTarget.value = option.publisher || ""
-    if (this.hasReleaseYearTarget) this.releaseYearTarget.value = option.release_year || ""
-    if (this.hasGenreTarget) this.genreTarget.value = option.genre || ""
-    if (this.hasNetworkTarget) this.networkTarget.value = option.network || ""
-    if (this.hasDeveloperTarget) this.developerTarget.value = option.developer || ""
-    if (this.hasPlatformTarget) this.platformTarget.value = option.platform || ""
-    if (this.hasSeasonTarget) this.seasonTarget.value = option.season || ""
-    if (this.hasEpisodeTarget) this.episodeTarget.value = option.episode || ""
-    if (this.hasIssueNumberTarget) this.issueNumberTarget.value = option.issue_number || ""
-    if (this.hasApiIdTarget) this.apiIdTarget.value = option.api_id || ""
-    if (this.hasExternalUrlTarget) this.externalUrlTarget.value = option.external_url || ""
+      // 3. Auto-populate targets dynamically
+      if (this.hasDirectorTarget) this.directorTarget.value = option.director || ""
+      if (this.hasArtistTarget) this.artistTarget.value = option.artist || ""
+      if (this.hasWriterTarget) this.writerTarget.value = option.writer || ""
+      if (this.hasPublisherTarget) this.publisherTarget.value = option.publisher || ""
+      if (this.hasReleaseYearTarget) this.releaseYearTarget.value = option.release_year || ""
+      if (this.hasGenreTarget) this.genreTarget.value = option.genre || ""
+      if (this.hasNetworkTarget) this.networkTarget.value = option.network || ""
+      if (this.hasDeveloperTarget) this.developerTarget.value = option.developer || ""
+      if (this.hasPlatformTarget) this.platformTarget.value = option.platform || ""
+      if (this.hasSeasonTarget) this.seasonTarget.value = option.season || ""
+      if (this.hasEpisodeTarget) this.episodeTarget.value = option.episode || ""
+      if (this.hasIssueNumberTarget) this.issueNumberTarget.value = option.issue_number || ""
+      if (this.hasApiIdTarget) this.apiIdTarget.value = option.api_id || ""
+      if (this.hasExternalUrlTarget) this.externalUrlTarget.value = option.external_url || ""
+    }
   }
 }

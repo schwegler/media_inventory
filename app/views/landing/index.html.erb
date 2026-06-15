@@ -166,10 +166,7 @@
               </div>
 
               <div class="review-like-action">
-                <% mock_likes = (activity.id * 17) % 150 + 12 %>
-                <button class="btn-like-review" onclick="const countEl = this.querySelector('.likes-count'); const current = parseInt(countEl.textContent); countEl.textContent = this.classList.toggle('liked') ? current + 1 : current - 1; return false;">
-                  <span class="heart-empty">♡</span> Like review <span class="likes-count"><%= mock_likes %></span> likes
-                </button>
+                <%= render 'likes/like_button', item: item %>
               </div>
             </div>
           </div>

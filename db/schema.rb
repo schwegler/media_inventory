@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_14_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_15_013240) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -115,6 +115,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_14_000000) do
     t.integer "user_id", null: false
     t.index ["commentable_type", "commentable_id"], name: "index_comments_on_commentable"
     t.index ["user_id"], name: "index_comments_on_user_id"
+  end
+
+  create_table "likes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "likeable_id", null: false
+    t.string "likeable_type", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["likeable_type", "likeable_id"], name: "index_likes_on_likeable"
+    t.index ["user_id", "likeable_type", "likeable_id"], name: "index_likes_on_user_id_and_likeable_type_and_likeable_id", unique: true
+    t.index ["user_id"], name: "index_likes_on_user_id"
   end
 
   create_table "movies", force: :cascade do |t|
@@ -224,6 +235,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_14_000000) do
   add_foreign_key "comic_issues", "comics", on_delete: :cascade
   add_foreign_key "comics", "users", on_delete: :cascade
   add_foreign_key "comments", "users", on_delete: :cascade
+  add_foreign_key "likes", "users", on_delete: :cascade
   add_foreign_key "movies", "users", on_delete: :cascade
   add_foreign_key "tv_episodes", "tv_shows", on_delete: :cascade
   add_foreign_key "tv_shows", "users", on_delete: :cascade

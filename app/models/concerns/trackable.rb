@@ -5,6 +5,7 @@ module Trackable
 
   included do
     has_many :activities, as: :trackable, dependent: :destroy
+    has_many :likes, as: :likeable, dependent: :destroy
     after_save :log_activities
   end
 

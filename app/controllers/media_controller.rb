@@ -175,7 +175,66 @@ class MediaController < ApplicationController
       end
     end
 
-    local_results + web_results
+    # 3. Fetch Web Matches from Wikipedia (for Nintendo Switch, consoles, exclusives etc.)
+    wiki_results = []
+    unless Rails.env.test?
+      wiki_results = query_wikipedia_video_games(query)
+    end
+
+    all_results = local_results + web_results + wiki_results
+    seen = {}
+    all_results.select do |item|
+      key = item[:title].to_s.downcase.strip
+      if seen[key]
+        false
+      else
+        seen[key] = true
+      end
+    end
+  end
+
+  private
+
+  def query_wikipedia_video_games(query)
+    require 'net/http'
+    require 'json'
+    search_url = "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=#{CGI.escape(query + ' video game')}&format=json&origin=*"
+    uri = URI(search_url)
+    response = Net::HTTP.get(uri)
+    data = JSON.parse(response)
+    search_results = data.dig('query', 'search') || []
+    
+    results = []
+    search_results.first(3).each do |result|
+      page_title = result['title']
+      summary_url = "https://en.wikipedia.org/api/rest_v1/page/summary/#{CGI.escape(page_title.gsub(' ', '_'))}"
+      sum_uri = URI(summary_url)
+      sum_response = Net::HTTP.get(sum_uri)
+      sum_data = JSON.parse(sum_response) rescue {}
+      
+      if sum_data['originalimage'] && sum_data['originalimage']['source']
+        release_year = nil
+        desc = sum_data['description'] || ''
+        year_match = desc.match(/\b(19\d\d|20\d\d)\b/)
+        release_year = year_match[1].to_i if year_match
+        
+        results << {
+          title: sum_data['title'],
+          developer: 'Nintendo / Various',
+          publisher: '',
+          platform: 'Console / Various',
+          release_year: release_year,
+          thumbnail_url: sum_data['originalimage']['source'],
+          api_id: "wiki_#{sum_data['pageid'] || page_title}",
+          external_url: sum_data.dig('content_urls', 'desktop', 'page'),
+          is_local: false
+        }
+      end
+    end
+    results
+  rescue => e
+    Rails.logger.error "Wikipedia video game search failed: #{e.message}"
+    []
   end
 end
 # rubocop:enable Metrics/ClassLength

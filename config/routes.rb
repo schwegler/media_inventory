@@ -17,6 +17,7 @@ SampleApp::Application.routes.draw do
   get '/db_status', to: 'landing#db_status'
   get '/media/autocomplete', to: 'media#autocomplete'
   post '/media/copy', to: 'media#copy'
+  post '/likes/toggle', to: 'likes#toggle', as: 'toggle_like'
 
   resources :comments, only: :create
   patch '/tv_episodes/:id/toggle_watched', to: 'tv_episodes#toggle_watched', as: 'toggle_watched_tv_episode'
