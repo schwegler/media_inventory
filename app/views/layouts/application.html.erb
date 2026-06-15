@@ -23,7 +23,17 @@
     <nav class="app-nav">
       <div class="nav-brand">
         <%= link_to root_path, class: 'brand-link' do %>
-          <span class="brand-text">MediaTracker</span>
+          <svg class="brand-logo" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 2L26 14L14 26L2 14L14 2Z" fill="url(#trove-gradient)" opacity="0.9"/>
+            <path d="M14 6L22 14L14 22L6 14L14 6Z" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="0.5"/>
+            <defs>
+              <linearGradient id="trove-gradient" x1="2" y1="2" x2="26" y2="26">
+                <stop offset="0%" stop-color="#ff6b35"/>
+                <stop offset="100%" stop-color="#f7c948"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <span class="brand-text">Trove</span>
         <% end %>
       </div>
       
@@ -53,11 +63,11 @@
               </svg>
             </button>
             <div class="dropdown-menu" data-dropdown-target="menu" style="display: none;">
-              <%= link_to "🎬 Log Movie", new_movie_path, class: "dropdown-item" %>
-              <%= link_to "💿 Log Album", new_album_path, class: "dropdown-item" %>
-              <%= link_to "📚 Log Comic", new_comic_path, class: "dropdown-item" %>
-              <%= link_to "📺 Log TV Show", new_tv_show_path, class: "dropdown-item" %>
-              <%= link_to "🎮 Log Video Game", new_video_game_path, class: "dropdown-item" %>
+              <%= link_to "🎬 Log Movie", new_movie_path, class: "dropdown-item", data: { turbo_frame: "modal" } %>
+              <%= link_to "💿 Log Album", new_album_path, class: "dropdown-item", data: { turbo_frame: "modal" } %>
+              <%= link_to "📚 Log Comic", new_comic_path, class: "dropdown-item", data: { turbo_frame: "modal" } %>
+              <%= link_to "📺 Log TV Show", new_tv_show_path, class: "dropdown-item", data: { turbo_frame: "modal" } %>
+              <%= link_to "🎮 Log Video Game", new_video_game_path, class: "dropdown-item", data: { turbo_frame: "modal" } %>
               <div class="dropdown-divider"></div>
               <%= button_to "Sign Out", logout_path, method: :delete, class: "dropdown-item dropdown-logout-btn", form_class: "dropdown-logout-form" %>
             </div>
@@ -81,7 +91,7 @@
 
 <footer>
   <div class="container">
-    <p>&copy; 2024 Sample App</p>
+    <p>&copy; 2025 Trove</p>
   </div>
 </footer>
 

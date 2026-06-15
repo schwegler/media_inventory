@@ -174,13 +174,59 @@ export default class extends Controller {
     }
   }
 
+  // ── Helper: Query Wikipedia for an image via the REST summary endpoint ──
+  // Tries each suffix in order (e.g. " (film)", "") and returns a result object or null.
+  async queryWikipedia(title, suffixes) {
+    for (const suffix of suffixes) {
+      try {
+        const searchTitle = title + suffix
+        const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(searchTitle)}`
+        const response = await fetch(url)
+        if (!response.ok) continue
+
+        const data = await response.json()
+        if (data.originalimage && data.originalimage.source) {
+          const cleanTitle = data.title ? data.title.replace(/\s*\(film\)$/i, "").replace(/\s*\(TV series\)$/i, "") : title
+          return {
+            title: cleanTitle,
+            thumbnail_url: data.originalimage.source,
+            external_url: data.content_urls?.desktop?.page || null,
+            is_local: false
+          }
+        }
+      } catch (e) {
+        // Wikipedia errors should never break the flow
+        console.error("Wikipedia lookup failed for suffix:", suffix, e)
+      }
+    }
+    return null
+  }
+
+  // ── Helper: Deduplicate results by title, preferring items with thumbnails ──
+  deduplicateResults(results) {
+    const seen = new Map()
+    for (const item of results) {
+      const key = (item.title || "").toLowerCase().trim()
+      if (!key) continue
+      const existing = seen.get(key)
+      if (!existing) {
+        seen.set(key, item)
+      } else if (!existing.thumbnail_url && item.thumbnail_url) {
+        // Prefer the one with a thumbnail
+        seen.set(key, item)
+      }
+      // Otherwise keep the first one (already has thumbnail or both lack it)
+    }
+    return Array.from(seen.values())
+  }
+
   async queryWebAPI(query, mediaType) {
     try {
       if (mediaType === "movie") {
         const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&limit=15&country=US`
         const response = await fetch(url)
         const data = await response.json()
-        return (data.results || [])
+        let results = (data.results || [])
           .filter(r => r.kind === "feature-movie")
           .slice(0, 5)
           .map(r => ({
@@ -193,6 +239,20 @@ export default class extends Controller {
             is_local: false
           }))
           .filter(r => r.thumbnail_url)
+
+        // Wikipedia fallback — if iTunes returned fewer than 3 results, try Wikipedia
+        if (results.length < 3) {
+          try {
+            const wikiResult = await this.queryWikipedia(query, [" (film)", ""])
+            if (wikiResult) {
+              results.push(wikiResult)
+            }
+          } catch (e) {
+            console.error("Wikipedia movie fallback failed:", e)
+          }
+        }
+
+        return this.deduplicateResults(results)
 
       } else if (mediaType === "album") {
         const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=album&limit=5&country=US`
@@ -213,7 +273,7 @@ export default class extends Controller {
         const url = `https://api.tvmaze.com/search/shows?q=${encodeURIComponent(query)}`
         const response = await fetch(url)
         const data = await response.json()
-        return (data || []).slice(0, 5).map(item => {
+        let results = (data || []).slice(0, 5).map(item => {
           const show = item.show
           return {
             title: show.name,
@@ -226,11 +286,26 @@ export default class extends Controller {
           }
         }).filter(r => r.thumbnail_url)
 
+        // Wikipedia fallback — if TVmaze returned fewer than 3 results with thumbnails, try Wikipedia
+        if (results.length < 3) {
+          try {
+            const wikiResult = await this.queryWikipedia(query, [" (TV series)", ""])
+            if (wikiResult) {
+              results.push(wikiResult)
+            }
+          } catch (e) {
+            console.error("Wikipedia TV show fallback failed:", e)
+          }
+        }
+
+        return this.deduplicateResults(results)
+
       } else if (mediaType === "comic") {
+        // Open Library (primary source)
         const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=5`
         const response = await fetch(url)
         const data = await response.json()
-        return (data.docs || []).map(doc => {
+        let results = (data.docs || []).map(doc => {
           const author = doc.author_name ? doc.author_name.join(", ") : null
           const releaseYear = doc.first_publish_year || null
           const apiId = doc.key ? doc.key.replace("/works/", "") : null
@@ -245,6 +320,35 @@ export default class extends Controller {
             is_local: false
           }
         }).filter(r => r.thumbnail_url)
+
+        // Google Books (secondary source)
+        try {
+          const gbUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query + " comic")}&maxResults=5&printType=books`
+          const gbResponse = await fetch(gbUrl)
+          const gbData = await gbResponse.json()
+          const gbResults = (gbData.items || []).map(item => {
+            const info = item.volumeInfo || {}
+            const rawThumb = info.imageLinks?.thumbnail || null
+            const thumbnail = rawThumb
+              ? rawThumb.replace("http:", "https:").replace("zoom=1", "zoom=2")
+              : null
+            return {
+              title: info.title,
+              writer: info.authors?.join(", ") || null,
+              release_year: info.publishedDate ? new Date(info.publishedDate).getFullYear() : null,
+              thumbnail_url: thumbnail,
+              api_id: item.id,
+              external_url: info.infoLink || null,
+              is_local: false
+            }
+          }).filter(r => r.thumbnail_url)
+
+          results = results.concat(gbResults)
+        } catch (gbErr) {
+          console.error("Google Books comic fallback failed:", gbErr)
+        }
+
+        return this.deduplicateResults(results)
 
       } else if (mediaType === "video_game") {
         // Handled server-side in MediaController#autocomplete to bypass CORS

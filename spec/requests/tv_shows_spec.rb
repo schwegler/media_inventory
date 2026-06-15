@@ -39,7 +39,7 @@ RSpec.describe 'TvShows', type: :request do
       it 'returns http success' do
         get new_tv_show_path
         expect(response).to have_http_status(200)
-        expect(response.body).to include('New TV Show')
+        expect(response.body).to include('Log TV Show')
         expect(response.body).to include('name="tv_show[title]"')
         expect(response.body).to include('name="tv_show[season]"')
         expect(response.body).to include('name="tv_show[episode]"')

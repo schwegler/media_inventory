@@ -103,7 +103,7 @@ RSpec.describe 'Movies', type: :request do
             post movies_path, params: { movie: { title: '' } }
           end.not_to change(Movie, :count)
           expect(response).to have_http_status(:unprocessable_content)
-          expect(response.body).to include('New Movie')
+          expect(response.body).to include('Log Movie')
         end
       end
     end
@@ -116,7 +116,7 @@ RSpec.describe 'Movies', type: :request do
           title: 'Inception',
           director: 'Christopher Nolan',
           release_year: 2010,
-          rating: 'PG-13'
+          rating: '5.0'
         )
       end
 
@@ -126,7 +126,7 @@ RSpec.describe 'Movies', type: :request do
         expect(response.body).to include('Inception')
         expect(response.body).to include('Christopher Nolan')
         expect(response.body).to include('2010')
-        expect(response.body).to include('PG-13')
+        expect(response.body).to include('★★★★★')
       end
     end
 

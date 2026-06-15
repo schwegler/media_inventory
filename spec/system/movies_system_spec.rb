@@ -28,7 +28,7 @@ RSpec.describe 'Movies Management', type: :system do
     click_button 'Create Movie', visible: false
 
     expect(page).to have_text('Inception')
-    expect(page).to have_text('Director: Christopher Nolan')
+    expect(page).to have_text('Directed by Christopher Nolan')
   end
 
   it 'displays a list of movies' do

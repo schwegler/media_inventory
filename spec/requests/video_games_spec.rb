@@ -103,7 +103,7 @@ RSpec.describe 'VideoGames', type: :request do
             post video_games_path, params: { video_game: { title: '' } }
           end.not_to change(VideoGame, :count)
           expect(response).to have_http_status(:unprocessable_content)
-          expect(response.body).to include('New Video Game')
+          expect(response.body).to include('Log Video Game')
         end
       end
     end
