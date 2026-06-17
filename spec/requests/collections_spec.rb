@@ -2,7 +2,6 @@
 
 require 'rails_helper'
 
-# rubocop:disable Metrics/BlockLength
 RSpec.describe 'Collections', type: :request do
   describe 'GET /show' do
     let!(:user) do
@@ -75,4 +74,3 @@ RSpec.describe 'Collections', type: :request do
     end
   end
 end
-# rubocop:enable Metrics/BlockLength

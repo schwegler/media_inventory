@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-# rubocop:disable Metrics/BlockLength
 
 RSpec.describe 'Comics', type: :request do
   describe 'GET /comics' do
@@ -122,4 +121,3 @@ RSpec.describe 'Comics', type: :request do
     end
   end
 end
-# rubocop:enable Metrics/BlockLength

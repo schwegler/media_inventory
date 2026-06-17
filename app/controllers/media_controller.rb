@@ -122,8 +122,15 @@ class MediaController < ApplicationController
   end
 
   def autocomplete_video_games(query)
-    # 1. Fetch Local Matches
-    local_results = VideoGame.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(3).map do |vg|
+    local_results = fetch_local_video_games(query)
+    web_results = fetch_steam_video_games(query)
+    wiki_results = Rails.env.test? ? [] : query_wikipedia_video_games(query)
+
+    filter_unique_results(local_results + web_results + wiki_results)
+  end
+
+  def fetch_local_video_games(query)
+    VideoGame.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(3).map do |vg|
       {
         title: vg.title,
         developer: vg.developer,
@@ -136,48 +143,46 @@ class MediaController < ApplicationController
         is_local: true
       }
     end
+  end
 
-    # 2. Fetch Web Matches from Steam Store Search API
-    web_results = []
-    unless Rails.env.test?
-      begin
-        require 'net/http'
-        require 'json'
-        uri = URI("https://store.steampowered.com/api/storesearch/?term=#{CGI.escape(query)}&l=english&cc=US")
-        response = Net::HTTP.get(uri)
-        data = JSON.parse(response)
-        if data && data['items']
-          web_results = data['items'].slice(0, 5).map do |item|
-            app_id = item['id']
-            platforms = []
-            if item['platforms']
-              platforms << 'PC' if item['platforms']['windows']
-              platforms << 'Mac' if item['platforms']['mac']
-              platforms << 'Linux' if item['platforms']['linux']
-            end
-            {
-              title: item['name'],
-              developer: '',
-              publisher: '',
-              platform: platforms.join(', '),
-              release_year: nil,
-              thumbnail_url: "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/#{app_id}/library_600x900.jpg",
-              api_id: app_id.to_s,
-              external_url: "https://store.steampowered.com/app/#{app_id}",
-              is_local: false
-            }
-          end
+  def fetch_steam_video_games(query)
+    return [] if Rails.env.test?
+
+    begin
+      require 'net/http'
+      require 'json'
+      uri = URI("https://store.steampowered.com/api/storesearch/?term=#{CGI.escape(query)}&l=english&cc=US")
+      response = Net::HTTP.get(uri)
+      data = JSON.parse(response)
+      return [] unless data && data['items']
+
+      data['items'].slice(0, 5).map do |item|
+        app_id = item['id']
+        platforms = []
+        if item['platforms']
+          platforms << 'PC' if item['platforms']['windows']
+          platforms << 'Mac' if item['platforms']['mac']
+          platforms << 'Linux' if item['platforms']['linux']
         end
-      rescue StandardError => e
-        Rails.logger.error "Steam Store Search error: #{e.message}"
+        {
+          title: item['name'],
+          developer: '',
+          publisher: '',
+          platform: platforms.join(', '),
+          release_year: nil,
+          thumbnail_url: "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/#{app_id}/library_600x900.jpg",
+          api_id: app_id.to_s,
+          external_url: "https://store.steampowered.com/app/#{app_id}",
+          is_local: false
+        }
       end
+    rescue StandardError => e
+      Rails.logger.error "Steam Store Search error: #{e.message}"
+      []
     end
+  end
 
-    # 3. Fetch Web Matches from Wikipedia (for Nintendo Switch, consoles, exclusives etc.)
-    wiki_results = []
-    wiki_results = query_wikipedia_video_games(query) unless Rails.env.test?
-
-    all_results = local_results + web_results + wiki_results
+  def filter_unique_results(all_results)
     seen = {}
     all_results.select do |item|
       key = item[:title].to_s.downcase.strip
@@ -192,47 +197,46 @@ class MediaController < ApplicationController
   def query_wikipedia_video_games(query)
     require 'net/http'
     require 'json'
-    search_url = "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=#{CGI.escape("#{query} video game")}&format=json&origin=*"
+    search_url = 'https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=' \
+                 "#{CGI.escape("#{query} video game")}&format=json&origin=*"
     uri = URI(search_url)
     response = Net::HTTP.get(uri)
     data = JSON.parse(response)
     search_results = data.dig('query', 'search') || []
 
-    results = []
-    search_results.first(3).each do |result|
-      page_title = result['title']
-      summary_url = "https://en.wikipedia.org/api/rest_v1/page/summary/#{CGI.escape(page_title.gsub(' ', '_'))}"
-      sum_uri = URI(summary_url)
-      sum_response = Net::HTTP.get(sum_uri)
-      sum_data = begin
-        JSON.parse(sum_response)
-      rescue StandardError
-        {}
-      end
-
-      next unless sum_data['originalimage'] && sum_data['originalimage']['source']
-
-      release_year = nil
-      desc = sum_data['description'] || ''
-      year_match = desc.match(/\b(19\d\d|20\d\d)\b/)
-      release_year = year_match[1].to_i if year_match
-
-      results << {
-        title: sum_data['title'],
-        developer: 'Nintendo / Various',
-        publisher: '',
-        platform: 'Console / Various',
-        release_year: release_year,
-        thumbnail_url: sum_data['originalimage']['source'],
-        api_id: "wiki_#{sum_data['pageid'] || page_title}",
-        external_url: sum_data.dig('content_urls', 'desktop', 'page'),
-        is_local: false
-      }
-    end
-    results
+    search_results.first(3).map { |result| parse_wikipedia_game(result) }.compact
   rescue StandardError => e
     Rails.logger.error "Wikipedia video game search failed: #{e.message}"
     []
+  end
+
+  def parse_wikipedia_game(result)
+    page_title = result['title']
+    summary_url = "https://en.wikipedia.org/api/rest_v1/page/summary/#{CGI.escape(page_title.gsub(' ', '_'))}"
+    sum_response = Net::HTTP.get(URI(summary_url))
+    sum_data = begin
+      JSON.parse(sum_response)
+    rescue StandardError
+      {}
+    end
+
+    return nil unless sum_data['originalimage'] && sum_data['originalimage']['source']
+
+    desc = sum_data['description'] || ''
+    year_match = desc.match(/\b(19\d\d|20\d\d)\b/)
+    release_year = year_match ? year_match[1].to_i : nil
+
+    {
+      title: sum_data['title'],
+      developer: 'Nintendo / Various',
+      publisher: '',
+      platform: 'Console / Various',
+      release_year: release_year,
+      thumbnail_url: sum_data['originalimage']['source'],
+      api_id: "wiki_#{sum_data['pageid'] || page_title}",
+      external_url: sum_data.dig('content_urls', 'desktop', 'page'),
+      is_local: false
+    }
   end
 end
 # rubocop:enable Metrics/ClassLength

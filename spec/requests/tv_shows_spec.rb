@@ -2,7 +2,6 @@
 
 require 'spec_helper'
 
-# rubocop:disable Metrics/BlockLength
 RSpec.describe 'TvShows', type: :request do
   describe 'GET /tv_shows' do
     it 'works! (now write some real specs)' do
@@ -100,4 +99,3 @@ RSpec.describe 'TvShows', type: :request do
     end
   end
 end
-# rubocop:enable Metrics/BlockLength

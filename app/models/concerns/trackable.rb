@@ -23,21 +23,40 @@ module Trackable
       create_activity('reviewed') if (respond_to?(:review) && review.present?) || (respond_to?(:rating) && rating.present?)
     else
       # Existing record was updated
-      if respond_to?(:saved_change_to_is_collected?) && saved_change_to_is_collected? && respond_to?(:is_collected?) && is_collected? && !saved_change_to_is_collected[0]
-        create_activity('added')
-      end
+      is_collected_changed = respond_to?(:saved_change_to_is_collected?) &&
+                             saved_change_to_is_collected? &&
+                             respond_to?(:is_collected?) &&
+                             is_collected? &&
+                             !saved_change_to_is_collected[0]
+      create_activity('added') if is_collected_changed
 
-      if respond_to?(:saved_change_to_in_watchlist?) && saved_change_to_in_watchlist? && respond_to?(:in_watchlist?) && in_watchlist? && !saved_change_to_in_watchlist[0]
-        create_activity('watchlist')
-      end
+      in_watchlist_changed = respond_to?(:saved_change_to_in_watchlist?) &&
+                             saved_change_to_in_watchlist? &&
+                             respond_to?(:in_watchlist?) &&
+                             in_watchlist? &&
+                             !saved_change_to_in_watchlist[0]
+      create_activity('watchlist') if in_watchlist_changed
 
-      if respond_to?(:saved_change_to_consumed?) && saved_change_to_consumed? && respond_to?(:consumed?) && consumed? && !saved_change_to_consumed[0]
-        create_activity('consumed')
-      end
+      consumed_changed = respond_to?(:saved_change_to_consumed?) &&
+                         saved_change_to_consumed? &&
+                         respond_to?(:consumed?) &&
+                         consumed? &&
+                         !saved_change_to_consumed[0]
+      create_activity('consumed') if consumed_changed
 
       # For review/rating, if it was blank and is now present, log reviewed activity
-      review_became_present = respond_to?(:review) && review.present? && respond_to?(:saved_change_to_review?) && saved_change_to_review? && review_previously_was_blank?
-      rating_became_present = respond_to?(:rating) && rating.present? && respond_to?(:saved_change_to_rating?) && saved_change_to_rating? && rating_previously_was_blank?
+      review_became_present = respond_to?(:review) &&
+                              review.present? &&
+                              respond_to?(:saved_change_to_review?) &&
+                              saved_change_to_review? &&
+                              review_previously_was_blank?
+
+      rating_became_present = respond_to?(:rating) &&
+                              rating.present? &&
+                              respond_to?(:saved_change_to_rating?) &&
+                              saved_change_to_rating? &&
+                              rating_previously_was_blank?
+
       create_activity('reviewed') if review_became_present || rating_became_present
     end
   end

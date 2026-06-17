@@ -2,7 +2,6 @@
 
 require 'rails_helper'
 
-# rubocop:disable Metrics/BlockLength
 RSpec.describe 'Media Autocomplete', type: :request do
   let!(:user) do
     User.create!(name: 'Tester', email: 'tester@example.com', password: 'password123',
@@ -127,4 +126,3 @@ RSpec.describe 'Media Autocomplete', type: :request do
     end
   end
 end
-# rubocop:enable Metrics/BlockLength

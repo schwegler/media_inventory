@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe UsersController, type: :controller do # rubocop:disable Metrics/BlockLength
+RSpec.describe UsersController, type: :controller do
   let(:user) { instance_double(User, id: 1, name: 'Test User', email: 'test@example.com', admin?: false) }
   let(:admin_user) { instance_double(User, id: 2, name: 'Admin User', email: 'admin@example.com', admin?: true) }
 

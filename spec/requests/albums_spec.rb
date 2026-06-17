@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe 'Albums', type: :request do # rubocop:disable Metrics/BlockLength
+RSpec.describe 'Albums', type: :request do
   let!(:user) do
     User.create(name: 'Example User', email: 'user@example.com', password: 'password123',
                 password_confirmation: 'password123')

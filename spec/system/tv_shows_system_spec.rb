@@ -51,7 +51,7 @@ RSpec.describe 'TV Shows and Episodes Management', type: :system do
     within "#tv_episode_#{episode.id}" do
       fill_in 'tv_episode[review]', with: 'Great introduction episode!'
       select '★★★★★', from: 'tv_episode[rating]'
-      click_button 'Rate'
+      click_button 'Watch'
     end
 
     expect(page).to have_text('✓ Watched')

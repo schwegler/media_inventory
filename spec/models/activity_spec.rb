@@ -46,7 +46,8 @@ RSpec.describe Activity, type: :model do
       show = TvShow.create!(title: 'Buffy the Vampire Slayer', user: user)
       episode = show.tv_episodes.create!(name: "Teacher's Pet", season: 1, episode: 4, rating: '5', review: 'Great S1E04!')
       activity = episode.activities.find_by(activity_type: 'reviewed')
-      expect(activity.description).to eq("Andrew reviewed episode 'Buffy the Vampire Slayer S1E4: Teacher's Pet' (Rating: 5)")
+      expected_desc = "Andrew reviewed episode 'Buffy the Vampire Slayer S1E4: Teacher's Pet' (Rating: 5)"
+      expect(activity.description).to eq(expected_desc)
     end
   end
 end

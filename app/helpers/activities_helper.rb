@@ -90,13 +90,7 @@ module ActivitiesHelper
   end
 
   def consumed_description(user_link, trackable, trackable_link)
-    verb = case trackable.class.name
-           when 'Movie', 'TvShow', 'TvEpisode' then 'watched'
-           when 'VideoGame' then 'played'
-           when 'Album' then 'listened to'
-           when 'Comic' then 'read'
-           else 'consumed'
-           end
+    verb = consumed_verb(trackable.class.name)
     date_str = trackable.consumed_at.present? ? " on #{trackable.consumed_at.strftime('%B %d, %Y')}" : ''
     case trackable.class.name
     when 'Movie'
@@ -115,6 +109,16 @@ module ActivitiesHelper
       "#{user_link} #{verb} video game '#{trackable_link}'#{date_str}"
     else
       "#{user_link} #{verb} '#{trackable_link}'#{date_str}"
+    end
+  end
+
+  def consumed_verb(klass_name)
+    case klass_name
+    when 'Movie', 'TvShow', 'TvEpisode' then 'watched'
+    when 'VideoGame' then 'played'
+    when 'Album' then 'listened to'
+    when 'Comic' then 'read'
+    else 'consumed'
     end
   end
 end
