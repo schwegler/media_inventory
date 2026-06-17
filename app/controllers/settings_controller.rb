@@ -4,14 +4,11 @@ class SettingsController < ApplicationController
   before_action :logged_in_user
   before_action :set_user
 
-  def basic_info
-  end
+  def basic_info; end
 
-  def notifications
-  end
+  def notifications; end
 
-  def account
-  end
+  def account; end
 
   def update_basic_info
     if @user.update(basic_info_params)
