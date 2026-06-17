@@ -40,6 +40,8 @@ RSpec.describe 'Users Profile and Directory Management', type: :system do
     visit edit_user_path(user)
     fill_in 'Name', with: 'Updated Normal User'
     fill_in 'Bluesky Handle', with: 'normal.bsky.social'
+    fill_in 'New Password (optional)', with: ''
+    fill_in 'Confirmation', with: ''
     click_button 'Save changes'
 
     expect(page).to have_text('Profile updated')

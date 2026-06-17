@@ -62,12 +62,12 @@ class InventoryController < ApplicationController
       respond_to do |format|
         format.html do
           redirect_to send("#{resource_name.pluralize}_path"),
-                      notice: "#{resource_class.model_name.human} was successfully deleted."
+                      notice: "#{resource_class.model_name.human} was successfully deleted.",
+                      status: :see_other
         end
-        format.turbo_stream
       end
     else
-      redirect_to root_path, alert: 'Not authorized'
+      redirect_to root_path, alert: 'Not authorized', status: :see_other
     end
   end
 

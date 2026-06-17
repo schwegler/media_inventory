@@ -45,8 +45,6 @@ RSpec.describe 'Albums Management', type: :system do
     expect(page).to have_text('Classic Rock masterpiece!')
 
     # Delete Album
-    puts "DEBUG: Capybara.current_driver = #{Capybara.current_driver.inspect}"
-    puts "DEBUG: page.driver.class = #{page.driver.class.name}"
     if Capybara.current_driver == :rack_test
       click_button 'Delete from Library'
     else
