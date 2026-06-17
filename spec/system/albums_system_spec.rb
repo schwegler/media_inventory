@@ -23,9 +23,8 @@ RSpec.describe 'Albums Management', type: :system do
 
     # Create Album
     visit new_album_path
-    expect(page).to have_css('[data-connected="true"]') unless Capybara.current_driver == :rack_test
     fill_in 'Title', with: 'Abbey Road'
-    click_button 'Add Manually'
+    click_add_manually
     fill_in 'Artist', with: 'The Beatles'
     fill_in 'Release year', with: '1969'
     fill_in 'Genre', with: 'Rock'

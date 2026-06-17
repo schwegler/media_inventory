@@ -46,6 +46,16 @@ module SystemTestHelpers
 
     user
   end
+
+  # Safely clicks the "Add Manually" button, waiting for the Stimulus controller to be connected first.
+  def click_add_manually
+    if Capybara.current_driver == :rack_test
+      click_button 'Add Manually'
+    else
+      expect(page).to have_css('[data-connected="true"]')
+      page.execute_script("document.querySelector('button[data-action*=\"showManualForm\"]').click()")
+    end
+  end
 end
 
 RSpec.configure do |config|

@@ -23,9 +23,8 @@ RSpec.describe 'Video Games Management', type: :system do
 
     # Create Video Game
     visit new_video_game_path
-    expect(page).to have_css('[data-connected="true"]') unless Capybara.current_driver == :rack_test
     fill_in 'Title', with: 'The Legend of Zelda'
-    click_button 'Add Manually'
+    click_add_manually
     fill_in 'Developer', with: 'Nintendo'
     fill_in 'Publisher', with: 'Nintendo'
     fill_in 'Platform', with: 'Nintendo Switch'
