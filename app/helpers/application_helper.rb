@@ -11,7 +11,7 @@ module ApplicationHelper
     end
   end
 
-  def user_avatar_tag(user, size: 40)
+  def user_avatar_tag(user, size: 40) # rubocop:disable Metrics/MethodLength
     return nil if user.nil?
 
     if user.avatar_url.present?

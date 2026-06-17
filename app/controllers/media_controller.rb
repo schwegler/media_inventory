@@ -145,7 +145,7 @@ class MediaController < ApplicationController
     end
   end
 
-  def fetch_steam_video_games(query)
+  def fetch_steam_video_games(query) # rubocop:disable Metrics/MethodLength
     return [] if Rails.env.test?
 
     begin

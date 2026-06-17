@@ -12,7 +12,7 @@ module Trackable
   private
 
   # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
-  def log_activities
+  def log_activities # rubocop:disable Metrics/MethodLength
     return unless respond_to?(:user) && user.present?
 
     if saved_change_to_id?
