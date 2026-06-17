@@ -2,9 +2,7 @@
 
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 ENV['RAILS_ENV'] ||= 'test'
-unless File.exist?(File.expand_path('../app/assets/builds/application.css', __dir__))
-  system('bin/rails dartsass:build')
-end
+system('bin/rails dartsass:build') unless File.exist?(File.expand_path('../app/assets/builds/application.css', __dir__))
 require File.expand_path('../config/environment', __dir__)
 require 'rspec/rails'
 require 'capybara/rspec'
