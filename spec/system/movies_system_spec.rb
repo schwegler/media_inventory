@@ -13,10 +13,12 @@ RSpec.describe 'Movies Management', type: :system do
     fill_in 'Email', with: user.email
     fill_in 'Password', with: 'password123'
     click_button 'Log in'
+    expect(page).to have_text('Logged in successfully')
 
     visit new_movie_path
+    expect(page).to have_css('[data-connected="true"]') unless Capybara.current_driver == :rack_test
     fill_in 'Title', with: 'Inception'
-    click_button 'Add Manually'
+    click_add_manually
 
     expect(page).to have_field('Director', visible: true)
 
