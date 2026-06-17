@@ -1,0 +1,54 @@
+#!/usr/bin/env ruby
+require_relative '../config/environment'
+require 'benchmark'
+
+def run_benchmark
+  puts "Running LandingController#index simulation (logged in)..."
+
+  user = User.first || User.create!(name: 'Test', email: 'test@example.com', password: 'password')
+  movie = Movie.first || Movie.create!(title: 'Test Movie', user: user)
+
+  # Ensure some activity
+  if Activity.count < 100
+     100.times { |i| Activity.create!(user: user, activity_type: 'added', trackable: movie, created_at: i.days.ago) }
+  end
+
+  Benchmark.bm(30) do |x|
+    x.report("Dashboard Queries (total):") do
+       # Simulate LandingController#index logic
+       # 1. fetch_friend_activities
+       friend_activities = Activity.includes(:user, trackable: { cover_image_attachment: :blob })
+                                   .where.not(user_id: user.id)
+                                   .where(activity_type: %w[added consumed reviewed])
+                                   .order(created_at: :desc)
+                                   .limit(6)
+       friend_activities.to_a.each { |a| a.user.name; a.trackable&.title }
+
+       # 2. fetch_popular_items (the refactored version)
+       popular_trackable_counts = Activity.group(:trackable_type, :trackable_id)
+                                          .order('count_all DESC')
+                                          .limit(6)
+                                          .count
+       items_by_type = popular_trackable_counts.keys.each_with_object({}) do |(type, id), hash|
+         next if type.nil? || id.nil?
+         (hash[type] ||= []) << id
+       end
+       fetched_items = items_by_type.each_with_object({}) do |(type, ids), hash|
+         klass = type.constantize
+         records = klass.respond_to?(:with_attached_cover_image) ? klass.with_attached_cover_image.where(id: ids) : klass.where(id: ids)
+         records.each { |r| hash[[type, r.id]] = r }
+       end
+       popular_items = popular_trackable_counts.keys.map { |key| fetched_items[key] }.compact
+       popular_items.each { |i| i.title }
+
+       # 3. fetch_popular_reviews
+       reviewed_activities = Activity.includes(:user, trackable: { cover_image_attachment: :blob })
+                                     .where(activity_type: 'reviewed')
+                                     .order(created_at: :desc)
+                                     .limit(20)
+       reviewed_activities.to_a.each { |a| a.user.name; a.trackable&.title }
+    end
+  end
+end
+
+run_benchmark

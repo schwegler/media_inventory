@@ -1,0 +1,3 @@
+## 2026-06-17 - Polymorphic N+1 on Dashboards
+**Learning:** In Rails, polymorphic associations often lead to sneaky N+1 queries when fetching "popular" or "trending" items because simple `.includes` might not be enough if you are manually grouping/counting IDs and then refetching. Eager loading Active Storage attachments on polymorphic trackables requires the `trackable: { cover_image_attachment: :blob }` syntax.
+**Action:** Always check dashboard queries for manual record lookup loops and replace them with grouped bulk fetches. Use specific `includes` for Active Storage when attachments are displayed in grids.

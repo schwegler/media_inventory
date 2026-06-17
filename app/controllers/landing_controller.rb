@@ -8,8 +8,8 @@ class LandingController < ApplicationController
       @popular_items = fetch_popular_items
       @popular_reviews = fetch_popular_reviews
     else
-      # Fetch all activities, ordered by newest first, with pagination (Kaminari)
-      @activities = Activity.includes(:user, :trackable)
+      # Bolt: Fetch all activities, eager loading associations to avoid N+1 queries
+      @activities = Activity.includes(:user, trackable: { cover_image_attachment: :blob })
                             .order(created_at: :desc)
                             .page(params[:page])
                             .per(15)
@@ -20,14 +20,15 @@ class LandingController < ApplicationController
   private
 
   def fetch_friend_activities
-    friend_activities = Activity.includes(:user, :trackable)
+    # Bolt: Eager load cover images and users to avoid N+1 in dashboard
+    friend_activities = Activity.includes(:user, trackable: { cover_image_attachment: :blob })
                                 .where.not(user_id: current_user.id)
                                 .where(activity_type: %w[added consumed reviewed])
                                 .order(created_at: :desc)
                                 .limit(6)
     if friend_activities.size < 3
       # Fallback to all activities if there aren't enough from other users
-      friend_activities = Activity.includes(:user, :trackable)
+      friend_activities = Activity.includes(:user, trackable: { cover_image_attachment: :blob })
                                   .where(activity_type: %w[added consumed reviewed])
                                   .order(created_at: :desc)
                                   .limit(6)
@@ -40,15 +41,28 @@ class LandingController < ApplicationController
                                        .order('count_all DESC')
                                        .limit(6)
                                        .count
-    popular_items = popular_trackable_counts.map do |(type, id), _|
-      next if type.nil? || id.nil?
 
-      begin
-        type.constantize.find_by(id: id)
-      rescue NameError
-        nil
-      end
-    end.compact
+    # Bolt: Group IDs by type to fetch in bulk and avoid N+1 queries
+    items_by_type = popular_trackable_counts.keys.each_with_object({}) do |(type, id), hash|
+      next if type.nil? || id.nil?
+      (hash[type] ||= []) << id
+    end
+
+    fetched_items = items_by_type.each_with_object({}) do |(type, ids), hash|
+      klass = type.constantize
+      # Eager load cover images for models that support it
+      records = if klass.respond_to?(:with_attached_cover_image)
+                  klass.with_attached_cover_image.where(id: ids)
+                else
+                  klass.where(id: ids)
+                end
+      records.each { |r| hash[[type, r.id]] = r }
+    rescue NameError
+      next
+    end
+
+    # Maintain the original order from popular_trackable_counts
+    popular_items = popular_trackable_counts.keys.map { |key| fetched_items[key] }.compact
 
     if popular_items.empty?
       # Fallback to recent public items if no activity exists
@@ -61,7 +75,8 @@ class LandingController < ApplicationController
   end
 
   def fetch_popular_reviews
-    reviewed_activities = Activity.includes(:user, :trackable)
+    # Bolt: Eager load cover images and users to avoid N+1 in dashboard
+    reviewed_activities = Activity.includes(:user, trackable: { cover_image_attachment: :blob })
                                   .where(activity_type: 'reviewed')
                                   .order(created_at: :desc)
                                   .limit(20)
