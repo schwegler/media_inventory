@@ -15,7 +15,7 @@
         <% next if item.nil? %>
         <div class="friend-card">
           <div class="friend-card-poster">
-            <% if item.cover_image.attached? %>
+            <% if item.respond_to?(:cover_image) && item.cover_image.attached? %>
               <%= image_tag item.cover_image, alt: item.title, class: 'poster-img' %>
             <% elsif item.thumbnail_url.present? %>
               <img src="<%= item.thumbnail_url %>" alt="<%= item.title %>" class="poster-img">
@@ -74,7 +74,7 @@
       <% @popular_items.each do |item| %>
         <div class="popular-card">
           <div class="popular-card-poster">
-            <% if item.cover_image.attached? %>
+            <% if item.respond_to?(:cover_image) && item.cover_image.attached? %>
               <%= image_tag item.cover_image, alt: item.title, class: 'poster-img' %>
             <% elsif item.thumbnail_url.present? %>
               <img src="<%= item.thumbnail_url %>" alt="<%= item.title %>" class="poster-img">
@@ -113,7 +113,7 @@
           <div class="popular-review-row">
             <div class="review-poster-col">
               <div class="review-poster">
-                <% if item.cover_image.attached? %>
+                <% if item.respond_to?(:cover_image) && item.cover_image.attached? %>
                   <%= image_tag item.cover_image, alt: item.title, class: 'poster-img' %>
                 <% elsif item.thumbnail_url.present? %>
                   <img src="<%= item.thumbnail_url %>" alt="<%= item.title %>" class="poster-img">
