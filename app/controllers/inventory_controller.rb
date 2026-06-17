@@ -42,10 +42,8 @@ class InventoryController < ApplicationController
     @resource = resource_class.find(params[:id])
     if @resource.user == current_user
       if @resource.update(resource_params)
-        flash.now[:notice] = "#{resource_class.model_name.human} was successfully updated."
         respond_to do |format|
           format.html { redirect_to @resource, notice: "#{resource_class.model_name.human} was successfully updated." }
-          format.turbo_stream
         end
       else
         respond_to do |format|

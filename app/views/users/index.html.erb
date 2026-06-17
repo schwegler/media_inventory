@@ -20,7 +20,7 @@
         <% if current_user.admin? && !current_user?(user) %>
           <div class="card-actions">
             <%= button_to "Delete", user, method: :delete,
-                                      data: { turbo_confirm: "Are you sure?" },
+                                      data: { turbo_confirm: "Are you sure?", turbo_frame: "_top" },
                                       class: "btn btn-danger btn-sm" %>
           </div>
         <% end %>
