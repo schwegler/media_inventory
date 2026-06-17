@@ -60,8 +60,12 @@ RSpec.describe 'Users Profile and Directory Management', type: :system do
     expect(page).to have_text('Delete')
 
     # Delete normal user
-    accept_confirm do
+    if Capybara.current_driver == :rack_test
       click_button 'Delete'
+    else
+      accept_confirm do
+        click_button 'Delete'
+      end
     end
 
     expect(page).to have_text('User deleted')
