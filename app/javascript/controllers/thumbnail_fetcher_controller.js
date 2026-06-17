@@ -41,6 +41,7 @@ export default class extends Controller {
     } else {
       this.goToSearch()
     }
+    this.element.dataset.connected = "true"
   }
 
   search() {

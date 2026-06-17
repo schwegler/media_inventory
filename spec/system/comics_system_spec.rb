@@ -23,6 +23,7 @@ RSpec.describe 'Comics Management', type: :system do
 
     # Create Comic
     visit new_comic_path
+    expect(page).to have_css('[data-connected="true"]') unless Capybara.current_driver == :rack_test
     fill_in 'Title', with: 'Watchmen'
     click_button 'Add Manually'
     fill_in 'comic[issue_number]', with: '1'

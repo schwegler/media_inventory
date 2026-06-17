@@ -78,7 +78,7 @@ end
           <%= button_to "Delete from Library",
                         polymorphic_path(item),
                         method: :delete,
-                        data: { confirm: "Are you sure you want to delete this from your library?" },
+                        data: { turbo_confirm: "Are you sure you want to delete this from your library?" },
                         class: 'btn btn-danger btn-delete-item' %>
         </div>
       <% else %>
