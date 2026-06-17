@@ -4,12 +4,8 @@ require 'spec_helper'
 
 RSpec.describe 'Movies Management', type: :system do
   let!(:user) do
-    User.create(name: 'Example User', email: 'user@example.com', password: 'password123',
+    User.create(name: 'Movie Buff', email: 'movie@example.com', password: 'password123',
                 password_confirmation: 'password123', confirmed_at: Time.current)
-  end
-
-  before do
-    driven_by(:rack_test)
   end
 
   it 'enables me to create a movie' do
@@ -34,7 +30,7 @@ RSpec.describe 'Movies Management', type: :system do
   end
 
   it 'displays a list of movies' do
-    Movie.create!(title: 'The Matrix', director: 'Wachowskis')
+    Movie.create!(title: 'The Matrix', director: 'Wachowskis', user: user)
 
     visit movies_path
 
