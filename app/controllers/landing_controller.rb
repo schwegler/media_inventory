@@ -37,20 +37,25 @@ class LandingController < ApplicationController
   end
 
   def fetch_popular_items
-    popular_trackable_counts = Activity.group(:trackable_type, :trackable_id)
-                                       .order('count_all DESC')
-                                       .limit(6)
-                                       .count
+    popular_counts = Activity.group(:trackable_type, :trackable_id)
+                             .order('count_all DESC').limit(6).count
 
-    # Bolt: Group IDs by type to fetch in bulk and avoid N+1 queries
-    items_by_type = popular_trackable_counts.keys.each_with_object({}) do |(type, id), hash|
+    return fallback_popular_items if popular_counts.empty?
+
+    # Bolt: Fetch in bulk to avoid N+1 queries
+    items_by_type = popular_counts.keys.each_with_object({}) do |(type, id), hash|
       next if type.nil? || id.nil?
+
       (hash[type] ||= []) << id
     end
 
-    fetched_items = items_by_type.each_with_object({}) do |(type, ids), hash|
+    fetched_items = bulk_fetch_trackables(items_by_type)
+    popular_counts.keys.map { |key| fetched_items[key] }.compact.presence || fallback_popular_items
+  end
+
+  def bulk_fetch_trackables(items_by_type)
+    items_by_type.each_with_object({}) do |(type, ids), hash|
       klass = type.constantize
-      # Eager load cover images for models that support it
       records = if klass.respond_to?(:with_attached_cover_image)
                   klass.with_attached_cover_image.where(id: ids)
                 else
@@ -60,18 +65,12 @@ class LandingController < ApplicationController
     rescue NameError
       next
     end
+  end
 
-    # Maintain the original order from popular_trackable_counts
-    popular_items = popular_trackable_counts.keys.map { |key| fetched_items[key] }.compact
-
-    if popular_items.empty?
-      # Fallback to recent public items if no activity exists
-      (Movie.where(is_public: true).limit(2).to_a +
-                        Album.where(is_public: true).limit(2).to_a +
-                        VideoGame.where(is_public: true).limit(2).to_a).sample(6)
-    else
-      popular_items
-    end
+  def fallback_popular_items
+    (Movie.where(is_public: true).limit(2).to_a +
+     Album.where(is_public: true).limit(2).to_a +
+     VideoGame.where(is_public: true).limit(2).to_a).sample(6)
   end
 
   def fetch_popular_reviews
