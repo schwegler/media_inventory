@@ -66,9 +66,7 @@ class SessionsController < ApplicationController
     # Fetch profile to get avatar_url
     client = BlueskyClient.new(handle, password)
     profile = client.get_profile(handle)
-    if profile && profile['avatar'].present?
-      user.avatar_url = profile['avatar']
-    end
+    user.avatar_url = profile['avatar'] if profile && profile['avatar'].present?
 
     user.save!
     user

@@ -68,7 +68,11 @@ RSpec.describe 'Landing and Authentication', type: :system do
       # Fallback to direct navigation or click if visible
       visit root_path
       # Let's try finding the form and clicking submit
-      find('form[action="/logout"] button, form[action="/logout"] input[type=submit]', visible: :any).click rescue nil
+      begin
+        find('form[action="/logout"] button, form[action="/logout"] input[type=submit]', visible: :any).click
+      rescue StandardError
+        nil
+      end
     end
 
     # Confirm we are logged out

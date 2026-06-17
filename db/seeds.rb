@@ -269,7 +269,7 @@ video_games_data = [
     user: admin,
     consumed: true,
     consumed_at: Date.new(2011, 11, 18),
-    review: "An absolute masterpiece of creativity and sandbox survival. Spent hundreds of hours building worlds."
+    review: 'An absolute masterpiece of creativity and sandbox survival. Spent hundreds of hours building worlds.'
   },
   {
     title: 'Portal 2',
@@ -282,7 +282,7 @@ video_games_data = [
     user: user,
     consumed: true,
     consumed_at: Date.new(2011, 4, 19),
-    review: "Flawless puzzle mechanics, brilliant writing, and unforgettable characters. The co-op mode is also incredible!"
+    review: 'Flawless puzzle mechanics, brilliant writing, and unforgettable characters. The co-op mode is also incredible!'
   },
   {
     title: 'Elden Ring',
@@ -295,7 +295,7 @@ video_games_data = [
     user: admin,
     consumed: true,
     consumed_at: Date.new(2022, 3, 15),
-    review: "An incredible open world coupled with challenging combat. The sense of discovery is unmatched."
+    review: 'An incredible open world coupled with challenging combat. The sense of discovery is unmatched.'
   },
   {
     title: 'Chrono Trigger',
@@ -308,7 +308,7 @@ video_games_data = [
     user: user,
     consumed: true,
     consumed_at: Date.new(1995, 8, 11),
-    review: "Still the gold standard for JRPGs. Sublime soundtrack, timeless story, and great multiple endings."
+    review: 'Still the gold standard for JRPGs. Sublime soundtrack, timeless story, and great multiple endings.'
   },
   {
     title: 'The Legend of Zelda: Breath of the Wild',
@@ -327,4 +327,3 @@ video_games_data = [
 video_games_data.each { |data| VideoGame.create!(data) }
 
 puts 'Database seeding complete! Seeded 2 users and 31 media items.'
-

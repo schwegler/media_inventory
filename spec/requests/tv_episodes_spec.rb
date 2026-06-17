@@ -4,7 +4,8 @@ require 'rails_helper'
 
 RSpec.describe 'TvEpisodes', type: :request do
   let!(:user) do
-    User.create!(name: 'Test User', email: 'test@example.com', password: 'password123', password_confirmation: 'password123', confirmed_at: Time.current)
+    User.create!(name: 'Test User', email: 'test@example.com', password: 'password123',
+                 password_confirmation: 'password123', confirmed_at: Time.current)
   end
   let!(:tv_show) do
     user.tv_shows.create!(title: '30 Rock')
