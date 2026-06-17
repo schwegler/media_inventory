@@ -60,13 +60,14 @@ RSpec.describe 'Landing and Authentication', type: :system do
     expect(page).to have_text('Welcome back, Active Tracker')
 
     # Log out
-    has_hidden_dropdown = page.has_css?('.btn-log', visible: true) && page.has_no_css?('.dropdown-logout-btn', visible: true)
+    has_hidden_dropdown = page.has_css?('.btn-log',
+                                        visible: true) && page.has_no_css?('.dropdown-logout-btn', visible: true)
     find('.btn-log').click if has_hidden_dropdown
 
     if page.has_css?('.dropdown-logout-btn', visible: :any)
       find('.dropdown-logout-btn', visible: :any).click
-    else
-      click_button 'Sign Out' if page.has_button?('Sign Out')
+    elsif page.has_button?('Sign Out')
+      click_button 'Sign Out'
     end
 
     # Confirm we are logged out
