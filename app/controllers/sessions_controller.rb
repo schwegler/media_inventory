@@ -11,7 +11,9 @@ class SessionsController < ApplicationController
     user = User.find_by(email: email) if email.present?
 
     if user&.authenticate(password)
+      old_session = session.to_hash
       reset_session
+      session.update(old_session)
       log_in user
       flash[:success] = 'Logged in successfully.'
       redirect_to user
