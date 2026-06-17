@@ -19,11 +19,12 @@ RSpec.describe 'Albums Management', type: :system do
     fill_in 'Email', with: user.email
     fill_in 'Password', with: 'password123'
     click_button 'Log in'
+    expect(page).to have_text('Logged in successfully')
 
     # Create Album
     visit new_album_path
     fill_in 'Title', with: 'Abbey Road'
-    click_button 'Add Manually'
+    click_add_manually
     fill_in 'Artist', with: 'The Beatles'
     fill_in 'Release year', with: '1969'
     fill_in 'Genre', with: 'Rock'
@@ -44,7 +45,13 @@ RSpec.describe 'Albums Management', type: :system do
     expect(page).to have_text('Classic Rock masterpiece!')
 
     # Delete Album
-    click_button 'Delete from Library'
+    if Capybara.current_driver == :rack_test
+      click_button 'Delete from Library'
+    else
+      accept_confirm do
+        click_button 'Delete from Library'
+      end
+    end
 
     expect(page).to have_text('Album was successfully deleted.')
   end

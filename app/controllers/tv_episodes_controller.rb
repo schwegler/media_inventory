@@ -17,8 +17,13 @@ class TvEpisodesController < ApplicationController
 
     if @tv_episode.update(tv_episode_params)
       respond_to do |format|
-        format.turbo_stream
-        format.html { redirect_back fallback_location: @tv_episode.tv_show, notice: 'Episode updated.' }
+        if params[:back_to_episode]
+          format.html { redirect_to @tv_episode, notice: 'Episode updated.' }
+          format.turbo_stream { redirect_to @tv_episode, notice: 'Episode updated.' }
+        else
+          format.turbo_stream
+          format.html { redirect_back fallback_location: @tv_episode.tv_show, notice: 'Episode updated.' }
+        end
       end
     else
       respond_to do |format|

@@ -60,20 +60,11 @@ RSpec.describe 'Landing and Authentication', type: :system do
     expect(page).to have_text('Welcome back, Active Tracker')
 
     # Log out
-    click_button 'Sign Out' if page.has_button?('Sign Out')
-    # Since Sign Out might be inside a dropdown menu or button,
-    # let's use the dropdown-logout-btn class or direct post to logout
-    if page.has_css?('.dropdown-logout-btn', visible: :any)
+    if Capybara.current_driver == :rack_test
       find('.dropdown-logout-btn', visible: :any).click
     else
-      # Fallback to direct navigation or click if visible
-      visit root_path
-      # Let's try finding the form and clicking submit
-      begin
-        find('form[action="/logout"] button, form[action="/logout"] input[type=submit]', visible: :any).click
-      rescue StandardError
-        nil
-      end
+      find('.btn-log').click
+      find('.dropdown-logout-btn').click
     end
 
     # Confirm we are logged out
@@ -114,6 +105,7 @@ RSpec.describe 'Landing and Authentication', type: :system do
     fill_in 'Email', with: user.email
     fill_in 'Password', with: 'password123'
     click_button 'Log in'
+    expect(page).to have_text('Logged in successfully')
 
     # Visit dashboard (root)
     visit root_path

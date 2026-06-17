@@ -65,7 +65,7 @@
               <%= button_to "📁 Mark Unwatched",
                             toggle_watched_tv_episode_path(@tv_episode),
                             method: :patch,
-                            params: { tv_episode: { watched: false, rating: nil, review: nil, watched_at: nil } },
+                            params: { tv_episode: { watched: false, rating: nil, review: nil, watched_at: nil }, back_to_episode: true },
                             class: "btn btn-danger" %>
             <% else %>
               <span class="btn btn-secondary" style="background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.08); pointer-events: none;">Not Watched</span>
@@ -77,6 +77,7 @@
           <%= form_with model: @tv_episode, url: toggle_watched_tv_episode_path(@tv_episode), method: :patch, local: true, class: "quick-review-form" do |f| %>
             <%= f.hidden_field :watched, value: true %>
             <%= f.hidden_field :watched_at, value: Time.current.to_date %>
+            <%= hidden_field_tag :back_to_episode, true %>
             
             <h3 class="quick-review-title">✍️ Episode Rating & Review</h3>
             

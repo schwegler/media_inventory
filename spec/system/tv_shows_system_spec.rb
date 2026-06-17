@@ -19,11 +19,12 @@ RSpec.describe 'TV Shows and Episodes Management', type: :system do
     fill_in 'Email', with: user.email
     fill_in 'Password', with: 'password123'
     click_button 'Log in'
+    expect(page).to have_text('Logged in successfully')
 
     # Create TV Show
     visit new_tv_show_path
     fill_in 'Title', with: 'Breaking Bad'
-    click_button 'Add Manually'
+    click_add_manually
     fill_in 'Network', with: 'AMC'
     select '★★★★★', from: 'Rating'
     fill_in 'Review', with: 'Simply amazing.'
@@ -70,7 +71,13 @@ RSpec.describe 'TV Shows and Episodes Management', type: :system do
     expect(page).to have_text('Overrated but still good.')
 
     # Delete TV Show
-    click_button 'Delete from Library'
+    if Capybara.current_driver == :rack_test
+      click_button 'Delete from Library'
+    else
+      accept_confirm do
+        click_button 'Delete from Library'
+      end
+    end
     expect(page).to have_text('Tv show was successfully deleted.')
   end
 

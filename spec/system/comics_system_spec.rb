@@ -19,11 +19,12 @@ RSpec.describe 'Comics Management', type: :system do
     fill_in 'Email', with: user.email
     fill_in 'Password', with: 'password123'
     click_button 'Log in'
+    expect(page).to have_text('Logged in successfully')
 
     # Create Comic
     visit new_comic_path
     fill_in 'Title', with: 'Watchmen'
-    click_button 'Add Manually'
+    click_add_manually
     fill_in 'Issue number', with: '1'
     fill_in 'Publisher', with: 'DC Comics'
     fill_in 'Writer', with: 'Alan Moore'
@@ -45,7 +46,13 @@ RSpec.describe 'Comics Management', type: :system do
     expect(page).to have_text('Masterpiece of graphic novels!')
 
     # Delete Comic
-    click_button 'Delete from Library'
+    if Capybara.current_driver == :rack_test
+      click_button 'Delete from Library'
+    else
+      accept_confirm do
+        click_button 'Delete from Library'
+      end
+    end
 
     expect(page).to have_text('Comic was successfully deleted.')
   end

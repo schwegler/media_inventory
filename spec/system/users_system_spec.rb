@@ -30,6 +30,7 @@ RSpec.describe 'Users Profile and Directory Management', type: :system do
     fill_in 'Email', with: user.email
     fill_in 'Password', with: 'password123'
     click_button 'Log in'
+    expect(page).to have_text('Logged in successfully')
 
     # Go to profile
     visit user_path(user)
@@ -39,6 +40,8 @@ RSpec.describe 'Users Profile and Directory Management', type: :system do
     visit edit_user_path(user)
     fill_in 'Name', with: 'Updated Normal User'
     fill_in 'Bluesky Handle', with: 'normal.bsky.social'
+    fill_in 'New Password (optional)', with: ''
+    fill_in 'Confirmation', with: ''
     click_button 'Save changes'
 
     expect(page).to have_text('Profile updated')
@@ -51,6 +54,7 @@ RSpec.describe 'Users Profile and Directory Management', type: :system do
     fill_in 'Email', with: admin.email
     fill_in 'Password', with: 'password123'
     click_button 'Log in'
+    expect(page).to have_text('Logged in successfully')
 
     # Go to members directory
     visit users_path
@@ -58,7 +62,13 @@ RSpec.describe 'Users Profile and Directory Management', type: :system do
     expect(page).to have_text('Delete')
 
     # Delete normal user
-    click_button 'Delete'
+    if Capybara.current_driver == :rack_test
+      click_button 'Delete'
+    else
+      accept_confirm do
+        click_button 'Delete'
+      end
+    end
 
     expect(page).to have_text('User deleted')
     expect(page).not_to have_text('Normal User')

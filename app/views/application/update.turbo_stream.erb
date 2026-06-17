@@ -1,3 +1,13 @@
 <%= turbo_stream.replace "media_actions_#{@resource.class.name.underscore}_#{@resource.id}" do %>
   <%= render 'shared/media_actions_and_stream', item: @resource %>
 <% end %>
+
+<%= turbo_stream.replace "flash-messages" do %>
+  <div id="flash-messages">
+    <% flash.each do |message_type, message| %>
+      <div class="alert alert-<%= message_type %>" data-controller="flash" data-flash-dismiss-after-value="5000">
+        <%= message %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

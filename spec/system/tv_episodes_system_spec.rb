@@ -36,6 +36,7 @@ RSpec.describe 'TV Episodes Management', type: :system do
     fill_in 'Email', with: user.email
     fill_in 'Password', with: 'password123'
     click_button 'Log in'
+    expect(page).to have_text('Logged in successfully')
 
     # Go to TV show show page
     visit tv_show_path(tv_show)

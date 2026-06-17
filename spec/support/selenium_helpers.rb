@@ -17,6 +17,7 @@ end
 
 RSpec.configure do |config|
   config.before(:each, type: :system) do
+    Capybara.server_host = '127.0.0.1'
     if ENV['ANTIGRAVITY_AGENT'] == '1'
       driven_by :rack_test
     else
@@ -44,6 +45,16 @@ module SystemTestHelpers
     click_button 'Log in'
 
     user
+  end
+
+  # Safely clicks the "Add Manually" button, waiting for the Stimulus controller to be connected first.
+  def click_add_manually
+    if Capybara.current_driver == :rack_test
+      click_button 'Add Manually'
+    else
+      expect(page).to have_css('[data-connected="true"]')
+      page.execute_script("document.querySelector('button[data-action*=\"showManualForm\"]').click()")
+    end
   end
 end
 
