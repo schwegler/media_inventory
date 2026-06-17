@@ -71,7 +71,13 @@ RSpec.describe 'TV Shows and Episodes Management', type: :system do
     expect(page).to have_text('Overrated but still good.')
 
     # Delete TV Show
-    click_button 'Delete from Library'
+    if Capybara.current_driver == :rack_test
+      click_button 'Delete from Library'
+    else
+      accept_confirm do
+        click_button 'Delete from Library'
+      end
+    end
     expect(page).to have_text('Tv show was successfully deleted.')
   end
 

@@ -46,7 +46,13 @@ RSpec.describe 'Comics Management', type: :system do
     expect(page).to have_text('Masterpiece of graphic novels!')
 
     # Delete Comic
-    click_button 'Delete from Library'
+    if Capybara.current_driver == :rack_test
+      click_button 'Delete from Library'
+    else
+      accept_confirm do
+        click_button 'Delete from Library'
+      end
+    end
 
     expect(page).to have_text('Comic was successfully deleted.')
   end

@@ -17,6 +17,7 @@ end
 
 RSpec.configure do |config|
   config.before(:each, type: :system) do
+    Capybara.server_host = '127.0.0.1'
     if ENV['ANTIGRAVITY_AGENT'] == '1'
       driven_by :rack_test
     else
