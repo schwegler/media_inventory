@@ -7,7 +7,15 @@ SampleApp::Application.routes.draw do
   post   '/login',   to: 'sessions#create'
   delete '/logout',  to: 'sessions#destroy'
   get    '/signup',  to: 'users#new'
-  resources :users
+
+  resources :users do
+    member do
+      get :following
+      get :followers
+    end
+  end
+
+  resources :relationships, only: %i[create destroy]
 
   resources :comics
   resources :tv_shows
@@ -15,6 +23,19 @@ SampleApp::Application.routes.draw do
   resources :video_games
   resources :movies
   resources :albums
+
+  get '/settings', to: 'settings#basic_info', as: 'settings'
+  scope :settings, as: 'settings' do
+    get 'basic_info', to: 'settings#basic_info'
+    get 'notifications', to: 'settings#notifications'
+    get 'account', to: 'settings#account'
+  end
+
+  patch '/settings/update_basic_info', to: 'settings#update_basic_info'
+  patch '/settings/update_notifications', to: 'settings#update_notifications'
+  patch '/settings/update_account', to: 'settings#update_account'
+  delete '/settings/delete_account', to: 'settings#delete_account'
+
   get '/db_status', to: 'landing#db_status'
   get '/media/autocomplete', to: 'media#autocomplete'
   post '/media/copy', to: 'media#copy'

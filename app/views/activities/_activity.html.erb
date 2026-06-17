@@ -1,0 +1,43 @@
+<% trackable = activity.trackable %>
+<% return if trackable.nil? %>
+
+<div class="activity-card">
+  <div class="activity-thumbnail">
+    <% if trackable.respond_to?(:thumbnail_url) && trackable.thumbnail_url.present? %>
+      <img src="<%= trackable.thumbnail_url %>" alt="Cover">
+    <% else %>
+      <span class="fallback-icon">
+        <%= case activity.trackable_type
+            when 'Movie' then '🎬'
+            when 'Album' then '💿'
+            when 'Comic' then '📚'
+            when 'TvShow' then '📺'
+            when 'VideoGame' then '🎮'
+            else '📦'
+            end %>
+      </span>
+    <% end %>
+  </div>
+
+  <div class="activity-body">
+    <div class="activity-header">
+      <span class="activity-text">
+        <%= activity_link_description(activity) %>
+      </span>
+      <% if trackable.respond_to?(:review) && trackable.review.present? && activity.activity_type == 'reviewed' %>
+        <div class="activity-review-quote">
+          "<%= truncate(trackable.review, length: 150) %>"
+        </div>
+      <% end %>
+    </div>
+
+    <div class="activity-footer">
+      <span class="activity-badge badge-<%= activity.activity_type %>">
+        <%= activity.activity_type %>
+      </span>
+      <span class="activity-time">
+        <%= time_ago_in_words(activity.created_at) %> ago
+      </span>
+    </div>
+  </div>
+</div>

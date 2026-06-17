@@ -1,0 +1,29 @@
+<div class="settings-container">
+  <div class="settings-content wide">
+    <h1 class="settings-title"><%= @title %></h1>
+
+    <div class="users-list">
+      <% if @users.any? %>
+        <div class="user-cards-grid">
+          <% @users.each do |user| %>
+            <div class="user-card">
+              <%= link_to user, class: 'user-card-link' do %>
+                <%= user_avatar_tag(user, size: 50) %>
+                <div class="user-card-info">
+                  <span class="user-card-name"><%= user.name %></span>
+                  <span class="user-card-handle"><%= user.display_handle %></span>
+                </div>
+              <% end %>
+              <div class="user-card-actions">
+                <%= render 'follow_form', user: user if logged_in? && current_user != user %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+        <%= paginate @users %>
+      <% else %>
+        <p class="empty-state">No users to show.</p>
+      <% end %>
+    </div>
+  </div>
+</div>

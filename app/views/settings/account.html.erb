@@ -1,0 +1,50 @@
+<div class="settings-container">
+  <%= render 'sidebar' %>
+
+  <div class="settings-content">
+    <h1 class="settings-title">Account Settings</h1>
+
+    <section class="settings-section">
+      <h3 class="section-subtitle">Email Address</h3>
+      <%= form_with(model: @user, url: settings_update_account_path, local: true, class: "settings-form") do |f| %>
+        <div class="form-group">
+          <%= f.email_field :email, class: 'form-control', placeholder: 'your@email.com' %>
+        </div>
+        <div class="form-actions">
+          <%= f.submit "Update Email", class: "btn btn-outline" %>
+        </div>
+      <% end %>
+    </section>
+
+    <hr class="settings-divider">
+
+    <section class="settings-section">
+      <h3 class="section-subtitle">Change Password</h3>
+      <%= form_with(model: @user, url: settings_update_account_path, local: true, class: "settings-form") do |f| %>
+        <div class="form-group">
+          <%= f.label :password, "New Password" %>
+          <%= f.password_field :password, class: 'form-control' %>
+        </div>
+        <div class="form-group">
+          <%= f.label :password_confirmation, "Confirm New Password" %>
+          <%= f.password_field :password_confirmation, class: 'form-control' %>
+        </div>
+        <div class="form-actions">
+          <%= f.submit "Update Password", class: "btn btn-outline" %>
+        </div>
+      <% end %>
+    </section>
+
+    <hr class="settings-divider">
+
+    <section class="settings-section danger-zone">
+      <h3 class="section-subtitle text-danger">Delete Account</h3>
+      <p class="text-muted">Once you delete your account, there is no going back. Please be certain.</p>
+      <div class="form-actions">
+        <%= button_to "Delete My Account", settings_delete_account_path, method: :delete,
+            data: { confirm: "Are you absolutely sure you want to delete your account?" },
+            class: "btn btn-danger" %>
+      </div>
+    </section>
+  </div>
+</div>

@@ -1,0 +1,42 @@
+<div class="settings-container">
+  <%= render 'sidebar' %>
+
+  <div class="settings-content">
+    <h1 class="settings-title">Notifications</h1>
+
+    <%= form_with(model: @user, url: settings_update_notifications_path, local: true, class: "settings-form") do |f| %>
+
+      <div class="notification-section">
+        <h3 class="section-subtitle">Engagement</h3>
+
+        <div class="notification-row header-row">
+          <div class="row-label">Action</div>
+          <div class="toggle-headers">
+            <span>Email</span>
+            <span>Push</span>
+          </div>
+        </div>
+
+        <% [[:likes, "Likes"], [:follows, "Follows"], [:comments, "Comments"], [:posts, "New Posts"]].each do |key, label| %>
+          <div class="notification-row">
+            <div class="row-label"><%= label %></div>
+            <div class="toggle-group">
+              <label class="switch">
+                <%= f.check_box "notify_email_#{key}" %>
+                <span class="slider round"></span>
+              </label>
+              <label class="switch">
+                <%= f.check_box "notify_push_#{key}" %>
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="form-actions">
+        <%= f.submit "Update Preferences", class: "btn btn-primary" %>
+      </div>
+    <% end %>
+  </div>
+</div>
