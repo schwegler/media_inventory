@@ -32,6 +32,46 @@ class InventoryController < ApplicationController
     instance_variable_set("@#{resource_name}", @resource)
   end
 
+  def edit
+    @resource = resource_class.find(params[:id])
+    redirect_to root_path, alert: 'Not authorized' unless @resource.user == current_user
+    instance_variable_set("@#{resource_name}", @resource)
+  end
+
+  def update
+    @resource = resource_class.find(params[:id])
+    if @resource.user == current_user
+      if @resource.update(resource_params)
+        respond_to do |format|
+          format.html { redirect_to @resource, notice: "#{resource_class.model_name.human} was successfully updated." }
+          format.turbo_stream
+        end
+      else
+        respond_to do |format|
+          format.html { render :edit, status: failure_status }
+        end
+      end
+    else
+      redirect_to root_path, alert: 'Not authorized'
+    end
+  end
+
+  def destroy
+    @resource = resource_class.find(params[:id])
+    if @resource.user == current_user
+      @resource.destroy
+      respond_to do |format|
+        format.html do
+          redirect_to send("#{resource_name.pluralize}_path"),
+                      notice: "#{resource_class.model_name.human} was successfully deleted."
+        end
+        format.turbo_stream
+      end
+    else
+      redirect_to root_path, alert: 'Not authorized'
+    end
+  end
+
   private
 
   def resource_class

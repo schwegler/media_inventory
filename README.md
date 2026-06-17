@@ -80,15 +80,12 @@ By default, running locally on your host machine will use **SQLite3** for simpli
     bundle exec rails db:seed
     ```
     *(Clears existing records and generates demo users and 31 media items).*
-3.  **Build Assets:**
+3.  **Start the Development Server:**
     ```bash
-    bin/rails dartsass:build
+    bin/dev
     ```
-4.  **Start the Rails Server:**
-    ```bash
-    bin/rails s
-    ```
-5.  **Open the Application:**
+    *(This starts both the Rails server and the Dart Sass CSS watcher so stylesheets compile automatically on modification).*
+4.  **Open the Application:**
     Navigate to [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---

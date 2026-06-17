@@ -1,0 +1,3 @@
+<%= turbo_stream.replace "tv_episode_#{@tv_episode.id}" do %>
+  <%= render 'tv_shows/tv_episode', ep: @tv_episode, tv_show: @tv_episode.tv_show %>
+<% end %>

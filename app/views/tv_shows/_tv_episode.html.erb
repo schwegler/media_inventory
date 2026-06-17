@@ -1,0 +1,73 @@
+<%# Local variables: ep, tv_show %>
+<%= turbo_frame_tag "tv_episode_#{ep.id}" do %>
+  <div class="episode-item">
+    <div class="episode-content-row">
+      <% if ep.thumbnail_url.present? %>
+        <img src="<%= ep.thumbnail_url %>" alt="<%= ep.name %>" class="episode-thumbnail">
+      <% end %>
+      <div class="episode-info">
+        <div class="episode-header">
+          <span>
+            <%= link_to "Ep #{ep.episode}: #{ep.name}", tv_episode_path(ep), class: "episode-link", data: { turbo_frame: "_top" } %>
+            <% if ep.air_date.present? %>
+              <span class="episode-air-date">(Aired: <%= ep.air_date %>)</span>
+            <% end %>
+          </span>
+
+          <% if logged_in? && tv_show.user == current_user %>
+            <div class="episode-actions-wrapper">
+              <% if ep.watched? %>
+                <span class="episode-badge-watched">✓ Watched</span>
+
+                <%= button_to "Unwatch",
+                              toggle_watched_tv_episode_path(ep),
+                              method: :patch,
+                              params: { tv_episode: { watched: false, rating: nil, review: nil, watched_at: nil } },
+                              class: "episode-btn-unwatch" %>
+              <% else %>
+                <span class="episode-badge-not-watched">Not Watched</span>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+
+        <% if ep.summary.present? %>
+          <div class="episode-summary">
+            <%= strip_tags(ep.summary) %>
+          </div>
+        <% end %>
+
+        <% if ep.watched? && (ep.review.present? || ep.rating.present?) %>
+          <div class="episode-rating-review-box">
+            <% if ep.rating.present? %>
+              <span class="episode-stars"><%= ep.rating %> ★</span>
+            <% end %>
+            <% if ep.review.present? %>
+              <span class="episode-review-text"><%= ep.review %></span>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <% if logged_in? && tv_show.user == current_user %>
+      <div class="episode-form-section">
+        <%= form_with model: ep, url: toggle_watched_tv_episode_path(ep), method: :patch do |form| %>
+          <%= form.hidden_field :watched, value: true %>
+          <%= form.hidden_field :watched_at, value: Time.current.to_date %>
+
+          <div class="episode-form-inputs">
+            <%= form.text_field :review, value: ep.review, placeholder: ep.watched? ? "Edit review..." : "Add watch review...", class: "episode-input-review" %>
+
+            <%= form.select :rating, [["Rating", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: ep.rating }, { class: "episode-select-rating" } %>
+            <% if ep.watched? %>
+              <%= form.submit "Update", class: "episode-btn-rate" %>
+            <%else%>
+              <%= form.submit "Watch", class: "episode-btn-rate" %>
+            <%end%>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

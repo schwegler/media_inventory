@@ -1,112 +1,168 @@
-<div class="details-card" style="max-width: 700px;">
-  <div class="media-item-header">
-    <div class="media-item-cover">
-      <% if @tv_show.cover_image.attached? %>
-        <%= image_tag @tv_show.cover_image, alt: "#{@tv_show.title} Cover" %>
-      <% elsif @tv_show.thumbnail_url.present? %>
-        <img src="<%= @tv_show.thumbnail_url %>" alt="<%= @tv_show.title %> Cover">
-      <% else %>
-        <span class="fallback-icon">📺</span>
-      <% end %>
-    </div>
-    
-    <div class="media-item-details">
-      <h1><%= @tv_show.title %></h1>
-      <div class="media-sub-meta">Season <%= @tv_show.season %> Episode <%= @tv_show.episode %> &bull; <%= @tv_show.network || 'Unknown Network' %></div>
-      
-      <div class="media-tracking-badges">
-        <% if @tv_show.is_collected? %>
-          <span class="tracking-badge badge-collected">📁 In Collection</span>
-        <% end %>
-        <% if @tv_show.in_watchlist? %>
-          <span class="tracking-badge badge-watchlist">⏳ Watchlist</span>
-        <% end %>
-        <% if @tv_show.consumed? %>
-          <span class="tracking-badge badge-consumed">
-            ✓ Watched <%= "on #{@tv_show.consumed_at.strftime('%b %d, %Y')}" if @tv_show.consumed_at.present? %>
-          </span>
+<%
+  backdrop_url = nil
+  if @tv_show.cover_image.attached?
+    backdrop_url = url_for(@tv_show.cover_image)
+  elsif @tv_show.thumbnail_url.present?
+    backdrop_url = @tv_show.thumbnail_url
+  end
+%>
+
+<div class="show-hero">
+  <% if backdrop_url %>
+    <div class="show-hero-backdrop" style="background-image: url('<%= backdrop_url %>');"></div>
+  <% end %>
+  <div class="show-hero-gradient"></div>
+</div>
+
+<div class="show-container container">
+  <!-- Left Column: Poster and Quick Actions -->
+  <div class="show-left">
+    <div class="show-poster-card">
+      <div class="show-poster">
+        <% if @tv_show.cover_image.attached? %>
+          <%= image_tag @tv_show.cover_image, alt: "#{@tv_show.title} Cover" %>
+        <% elsif @tv_show.thumbnail_url.present? %>
+          <img src="<%= @tv_show.thumbnail_url %>" alt="<%= @tv_show.title %> Cover">
+        <% else %>
+          <div class="poster-fallback"><span class="fallback-emoji">📺</span></div>
         <% end %>
       </div>
-
-      <% if @tv_show.rating.present? %>
-        <div class="detail-row" style="border-bottom: none; padding: 0;">
-          <strong>Rating:</strong>
-          <span style="font-size: 1.2rem; color: #facc15;"><%= @tv_show.rating %> ★</span>
-        </div>
-      <% end %>
+      
+      <div class="poster-stats">
+        <% stats = community_stats_for(@tv_show) %>
+        <span class="stat-item" title="Watchers"><span class="stat-icon">👁</span> <%= stats[:watchers].size %></span>
+        <span class="stat-item" title="Collectors"><span class="stat-icon">📁</span> <%= stats[:collectors].size %></span>
+        <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @tv_show.likes.count %></span>
+      </div>
     </div>
+
   </div>
 
-  <% if @tv_show.review.present? %>
-    <div class="media-review-box">
-      <h3>Review</h3>
-      <p><%= simple_format(@tv_show.review) %></p>
+  <!-- Right Column: Title, Metadata, Reviews -->
+  <div class="show-right">
+    <div class="show-header-details">
+      <h1 class="show-title"><%= @tv_show.title %></h1>
+      <p class="show-meta-subtitle">
+        on <span class="meta-highlight"><%= @tv_show.network || 'Unknown Network' %></span>
+      </p>
+      
+      <% if @tv_show.rating.present? %>
+        <div class="show-rating"><%= render_stars(@tv_show.rating) %></div>
+      <% end %>
     </div>
-  <% end %>
 
-  <% stats = community_stats_for(@tv_show) %>
-  <div class="community-section">
-    <h2>Community Activity</h2>
-    
-    <div class="community-stats">
-      <div class="stat-box">
-        <div class="stat-label">Average Rating</div>
-        <div class="stat-value">
-          <% if stats[:avg_rating] %>
-            <%= stats[:avg_rating] %> ★
-          <% else %>
-            —
+    <%= render 'shared/media_actions_and_stream', item: @tv_show %>
+
+    <% if @tv_show.review.present? %>
+      <div class="show-review">
+        <h3>My Review</h3>
+        <blockquote><%= simple_format(@tv_show.review) %></blockquote>
+      </div>
+    <% end %>
+
+    <% if @tv_show.tv_episodes.any? %>
+      <%
+        episodes_by_season = @tv_show.tv_episodes.order(:season, :episode).group_by(&:season)
+        sorted_seasons = episodes_by_season.keys.sort
+      %>
+      <div class="show-episodes-section" style="margin-top: 2.5rem; margin-bottom: 2.5rem;" data-controller="season-tabs">
+        <h2 style="font-size: 1.25rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; padding-bottom: 8px; margin-bottom: 12px;">
+          Episodes in this Series
+        </h2>
+
+        <div class="season-tabs-container">
+          <div class="season-tabs-strip">
+            <% sorted_seasons.each_with_index do |season, index| %>
+              <button class="season-tab <%= 'active-tab' if index == 0 %>" 
+                      data-season-tabs-target="tab" 
+                      data-season="<%= season %>" 
+                      data-action="click->season-tabs#select">
+                Season <%= season %>
+              </button>
+            <% end %>
+          </div>
+        </div>
+
+        <div>
+          <% sorted_seasons.each_with_index do |season, index| %>
+            <div data-season-tabs-target="content" 
+                 data-season="<%= season %>" 
+                 class="season-episodes-list <%= 'hidden' unless index == 0 %>" 
+                 style="display: <%= index == 0 ? 'flex' : 'none' %>; flex-direction: column; gap: 12px;">
+              <% episodes_by_season[season].each do |ep| %>
+                <%= render 'tv_shows/tv_episode', ep: ep, tv_show: @tv_show %>
+              <% end %>
+            </div>
           <% end %>
         </div>
       </div>
-      <div class="stat-box">
-        <div class="stat-label">Watchers</div>
-        <div class="stat-value"><%= stats[:watchers].size %></div>
+    <% end %>
+
+    <div class="show-community">
+      <h2>Community</h2>
+
+      <div class="show-stats-bar">
+        <div class="show-stat">
+          <div class="show-stat-value"><%= stats[:avg_rating] ? "#{stats[:avg_rating]} ★" : "—" %></div>
+          <div class="show-stat-label">Average Rating</div>
+        </div>
+        <div class="show-stat">
+          <div class="show-stat-value"><%= stats[:watchers].size %></div>
+          <div class="show-stat-label">Watchers</div>
+        </div>
+        <div class="show-stat">
+          <div class="show-stat-value"><%= stats[:collectors].size %></div>
+          <div class="show-stat-label">Collectors</div>
+        </div>
       </div>
-      <div class="stat-box">
-        <div class="stat-label">Collectors</div>
-        <div class="stat-value"><%= stats[:collectors].size %></div>
-      </div>
+
+      <% if stats[:reviews].any? %>
+        <h3>Community Reviews</h3>
+        <div class="show-reviews-list">
+          <% stats[:reviews].each do |matching_item| %>
+            <div class="show-review-card">
+              <div class="review-header">
+                <%= user_avatar_tag(matching_item.user, size: 28) %>
+                <div class="review-meta-info">
+                  <span class="review-user"><%= matching_item.user.name.presence || matching_item.user.display_handle %></span>
+                  <% if matching_item.rating.present? %>
+                    <span class="review-rating"><%= render_stars(matching_item.rating) %></span>
+                  <% end %>
+                </div>
+              </div>
+              <div class="review-content"><%= simple_format(matching_item.review) %></div>
+              
+              <div class="review-actions-row">
+                <%= render 'likes/like_button', item: matching_item %>
+              </div>
+
+              <%= render 'shared/comments_box', matching_item: matching_item %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <% if stats[:watchers].any? %>
+        <h3>Watchers</h3>
+        <div class="show-members-list">
+          <% stats[:watchers].each do |user| %>
+            <span class="show-member-tag"><%= user_avatar_tag(user, size: 20) %> <%= user.name.presence || user.display_handle %></span>
+          <% end %>
+        </div>
+      <% end %>
+
+      <% if stats[:collectors].any? %>
+        <h3>Collectors</h3>
+        <div class="show-members-list">
+          <% stats[:collectors].each do |user| %>
+            <span class="show-member-tag"><%= user_avatar_tag(user, size: 20) %> <%= user.name.presence || user.display_handle %></span>
+          <% end %>
+        </div>
+      <% end %>
     </div>
 
-    <% if stats[:reviews].any? %>
-      <h3 style="font-size: 1.2rem; margin-bottom: 1rem;">Community Reviews</h3>
-      <div class="community-reviews-list">
-        <% stats[:reviews].each do |matching_item| %>
-          <div class="community-review-card">
-            <div class="review-header">
-              <span class="review-user"><%= matching_item.user.name.presence || matching_item.user.email %></span>
-              <% if matching_item.rating.present? %>
-                <span class="review-rating"><%= matching_item.rating %> ★</span>
-              <% end %>
-            </div>
-            <div class="review-content"><%= simple_format(matching_item.review) %></div>
-          </div>
-        <% end %>
-      </div>
-    <% end %>
-
-    <% if stats[:watchers].any? %>
-      <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; margin-top: 1.5rem;">Watchers</h3>
-      <div class="community-members-list" style="margin-bottom: 1.5rem;">
-        <% stats[:watchers].each do |user| %>
-          <span class="member-tag">👤 <%= user.name.presence || user.email %></span>
-        <% end %>
-      </div>
-    <% end %>
-
-    <% if stats[:collectors].any? %>
-      <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Collectors</h3>
-      <div class="community-members-list">
-        <% stats[:collectors].each do |user| %>
-          <span class="member-tag">📁 <%= user.name.presence || user.email %></span>
-        <% end %>
-      </div>
-    <% end %>
-  </div>
-
-  <div class="actions" style="margin-top: 2rem;">
-    <%= link_to 'Back', tv_shows_path, class: 'btn btn-secondary' %>
-    <a href="https://www.justwatch.com/us/search?q=<%= u(@tv_show.title) %>" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="margin-left: 10px;">Find where to stream</a>
+    <div class="show-actions">
+      <%= link_to '← Back to TV Shows', tv_shows_path, class: 'btn btn-secondary' %>
+    </div>
   </div>
 </div>

@@ -2,7 +2,6 @@
 
 require 'rails_helper'
 
-# rubocop:disable Metrics/BlockLength
 RSpec.describe 'Authentication', type: :request do
   let!(:user) do
     User.create!(
@@ -142,4 +141,3 @@ RSpec.describe 'Authentication', type: :request do
     end
   end
 end
-# rubocop:enable Metrics/BlockLength

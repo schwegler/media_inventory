@@ -1,0 +1,10 @@
+<%= turbo_stream.append "comments_list_for_#{@comment.commentable_type}_#{@comment.commentable_id}" do %>
+  <div class="comment-item" style="font-size: 0.8rem; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.03); display: flex; flex-direction: column; gap: 2px;">
+    <span style="font-weight: 600; color: #818cf8;"><%= @comment.user.name.presence || @comment.user.display_handle %></span>
+    <span style="color: #cbd5e1;"><%= @comment.content %></span>
+  </div>
+<% end %>
+
+<%= turbo_stream.replace "comments_for_#{@comment.commentable_type}_#{@comment.commentable_id}" do %>
+  <%= render 'shared/comments_box', matching_item: @comment.commentable %>
+<% end %>

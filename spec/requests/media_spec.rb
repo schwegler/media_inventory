@@ -2,7 +2,6 @@
 
 require 'rails_helper'
 
-# rubocop:disable Metrics/BlockLength
 RSpec.describe 'Media Autocomplete', type: :request do
   let!(:user) do
     User.create!(name: 'Tester', email: 'tester@example.com', password: 'password123',
@@ -96,7 +95,7 @@ RSpec.describe 'Media Autocomplete', type: :request do
     end
 
     context 'with tv shows' do
-      let!(:tv_show) { TvShow.create!(title: 'Breaking Bad', network: 'AMC', season: 1, episode: 1, user: user) }
+      let!(:tv_show) { TvShow.create!(title: 'Breaking Bad', network: 'AMC', user: user) }
 
       it 'returns matching TV shows' do
         get '/media/autocomplete', params: { q: 'break', type: 'tv_show' }
@@ -108,23 +107,22 @@ RSpec.describe 'Media Autocomplete', type: :request do
       end
     end
 
-    context 'with wrestling events' do
-      let!(:wrestling_event) do
-        WrestlingEvent.create!(
-          title: 'WrestleMania I', promotion: 'WWF', date: '1985-03-31',
-          venue: 'Madison Square Garden', user: user
+    context 'with video games' do
+      let!(:video_game) do
+        VideoGame.create!(
+          title: 'Portal 2', developer: 'Valve', publisher: 'Valve',
+          platform: 'PC', release_year: 2011, user: user
         )
       end
 
-      it 'returns matching wrestling events' do
-        get '/media/autocomplete', params: { q: 'wrestle', type: 'wrestling_event' }
+      it 'returns matching video games' do
+        get '/media/autocomplete', params: { q: 'portal', type: 'video_game' }
         expect(response).to have_http_status(:ok)
         json = JSON.parse(response.body)
         expect(json.size).to eq(1)
-        expect(json.first['title']).to eq('WrestleMania I')
-        expect(json.first['promotion']).to eq('WWF')
+        expect(json.first['title']).to eq('Portal 2')
+        expect(json.first['developer']).to eq('Valve')
       end
     end
   end
 end
-# rubocop:enable Metrics/BlockLength

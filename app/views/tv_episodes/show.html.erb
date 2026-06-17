@@ -1,0 +1,127 @@
+<%
+  tv_show = @tv_episode.tv_show
+  backdrop_url = nil
+  if tv_show.cover_image.attached?
+    backdrop_url = url_for(tv_show.cover_image)
+  elsif tv_show.thumbnail_url.present?
+    backdrop_url = tv_show.thumbnail_url
+  end
+%>
+
+<div class="show-hero">
+  <% if backdrop_url %>
+    <div class="show-hero-backdrop" style="background-image: url('<%= backdrop_url %>');"></div>
+  <% end %>
+  <div class="show-hero-gradient"></div>
+</div>
+
+<div class="show-container container">
+  <!-- Left Column: Poster -->
+  <div class="show-left">
+    <div class="show-poster-card">
+      <div class="show-poster" style="aspect-ratio: 16 / 9;">
+        <% if @tv_episode.thumbnail_url.present? %>
+          <img src="<%= @tv_episode.thumbnail_url %>" alt="<%= @tv_episode.name %> Cover" style="width: 100%; height: 100%; object-fit: cover;">
+        <% elsif tv_show.cover_image.attached? %>
+          <%= image_tag tv_show.cover_image, alt: "#{tv_show.title} Cover" %>
+        <% elsif tv_show.thumbnail_url.present? %>
+          <img src="<%= tv_show.thumbnail_url %>" alt="<%= tv_show.title %> Cover">
+        <% else %>
+          <div class="poster-fallback"><span class="fallback-emoji">📺</span></div>
+        <% end %>
+      </div>
+      
+      <div class="poster-stats">
+        <span class="stat-item" title="Watched"><span class="stat-icon">👁</span> <%= @tv_episode.watched? ? "Watched" : "Unwatched" %></span>
+        <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @tv_episode.likes.count %></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Title, Metadata, Rating/Review, Comments -->
+  <div class="show-right">
+    <div class="show-header-details">
+      <h1 class="show-title"><%= @tv_episode.name %></h1>
+      <p class="show-meta-subtitle">
+        Season <%= @tv_episode.season %> Episode <%= @tv_episode.episode %> of <%= link_to tv_show.title, tv_show, class: 'meta-highlight' %>
+        <% if @tv_episode.air_date.present? %>
+          &bull; Aired <%= @tv_episode.air_date %>
+        <% end %>
+      </p>
+      
+      <% if @tv_episode.watched? && @tv_episode.rating.present? %>
+        <div class="show-rating"><%= render_stars(@tv_episode.rating) %></div>
+      <% end %>
+    </div>
+
+    <!-- Episode Actions -->
+    <div class="media-actions-container">
+      <% if logged_in? && tv_show.user == current_user %>
+        <div class="actions-section">
+          <strong class="actions-section-title">My Progress</strong>
+          <div class="actions-buttons-row">
+            <% if @tv_episode.watched? %>
+              <span class="btn btn-success" style="background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.2); pointer-events: none;">✓ Watched</span>
+              <%= button_to "📁 Mark Unwatched",
+                            toggle_watched_tv_episode_path(@tv_episode),
+                            method: :patch,
+                            params: { tv_episode: { watched: false, rating: nil, review: nil, watched_at: nil } },
+                            class: "btn btn-danger" %>
+            <% else %>
+              <span class="btn btn-secondary" style="background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.08); pointer-events: none;">Not Watched</span>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="inline-quick-review-box" style="margin-top: 1rem;">
+          <%= form_with model: @tv_episode, url: toggle_watched_tv_episode_path(@tv_episode), method: :patch, local: true, class: "quick-review-form" do |f| %>
+            <%= f.hidden_field :watched, value: true %>
+            <%= f.hidden_field :watched_at, value: Time.current.to_date %>
+            
+            <h3 class="quick-review-title">✍️ Episode Rating & Review</h3>
+            
+            <div class="inline-form-row">
+              <div class="quick-review-rating-select">
+                <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: @tv_episode.rating }, { class: "form-control quick-review-select" } %>
+              </div>
+            </div>
+
+            <div>
+              <%= f.text_area :review, value: @tv_episode.review, placeholder: "Add watch review for this episode...", rows: 3, class: "form-control quick-review-textarea" %>
+            </div>
+
+            <div class="quick-review-submit-row">
+              <%= f.submit "Save Episode Status", class: "btn btn-primary quick-review-submit-btn" %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="actions-login-message">
+          <%= link_to "Log in", login_path, class: "login-link" %> to log your progress for this episode.
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Episode Summary -->
+    <% if @tv_episode.summary.present? %>
+      <div class="show-review" style="margin-top: 2rem;">
+        <h3>Episode Summary</h3>
+        <blockquote style="font-style: normal; border-left-color: rgba(255, 255, 255, 0.1);"><%= strip_tags(@tv_episode.summary) %></blockquote>
+      </div>
+    <% end %>
+
+    <!-- Comments & Likes -->
+    <div class="show-community" style="margin-top: 2rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 8px; margin-bottom: 16px;">
+        <h2 style="margin: 0; border: none; padding: 0;">Community Activity</h2>
+        <%= render 'likes/like_button', item: @tv_episode %>
+      </div>
+
+      <%= render 'shared/comments_box', matching_item: @tv_episode %>
+    </div>
+
+    <div class="show-actions" style="margin-top: 2.5rem;">
+      <%= link_to "← Back to #{tv_show.title}", tv_show_path(tv_show), class: 'btn btn-secondary' %>
+    </div>
+  </div>
+</div>

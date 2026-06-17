@@ -1,0 +1,3 @@
+<%= turbo_stream.replace "media_actions_#{@resource.class.name.underscore}_#{@resource.id}" do %>
+  <%= render 'shared/media_actions_and_stream', item: @resource %>
+<% end %>

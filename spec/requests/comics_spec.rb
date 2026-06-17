@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-# rubocop:disable Metrics/BlockLength
 
 RSpec.describe 'Comics', type: :request do
   describe 'GET /comics' do
@@ -115,11 +114,10 @@ RSpec.describe 'Comics', type: :request do
         it 'renders the new template' do
           post comics_path, params: { comic: { title: '' } }
           expect(response).to have_http_status(:unprocessable_content)
-          expect(response.body).to include('New Comic')
+          expect(response.body).to include('Log Comic')
           expect(response.body).to include('Title can&#39;t be blank')
         end
       end
     end
   end
 end
-# rubocop:enable Metrics/BlockLength

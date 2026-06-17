@@ -2,7 +2,6 @@
 
 require 'rails_helper'
 
-# rubocop:disable Metrics/BlockLength
 RSpec.describe SessionsHelper, type: :helper do
   let(:user) do
     User.create!(name: 'Test User', email: 'test@example.com', password: 'password123',
@@ -82,4 +81,3 @@ RSpec.describe SessionsHelper, type: :helper do
     end
   end
 end
-# rubocop:enable Metrics/BlockLength

@@ -2,7 +2,6 @@
 
 require 'rails_helper'
 
-# rubocop:disable Metrics/BlockLength
 RSpec.describe 'Collections', type: :request do
   describe 'GET /show' do
     let!(:user) do
@@ -26,8 +25,8 @@ RSpec.describe 'Collections', type: :request do
       let!(:public_tv_show) { user.tv_shows.create!(title: 'Public TV Show', is_public: true) }
       let!(:private_tv_show) { user.tv_shows.create!(title: 'Private TV Show', is_public: false) }
 
-      let!(:public_wrestling_event) { user.wrestling_events.create!(title: 'Public Wrestling Event', is_public: true) }
-      let!(:private_wrestling_event) { user.wrestling_events.create!(title: 'Private Wrestling Event', is_public: false) }
+      let!(:public_video_game) { user.video_games.create!(title: 'Public Video Game', is_public: true) }
+      let!(:private_video_game) { user.video_games.create!(title: 'Private Video Game', is_public: false) }
 
       it 'returns http success' do
         get "/collections/#{user.id}"
@@ -49,8 +48,8 @@ RSpec.describe 'Collections', type: :request do
         expect(response.body).to include('Public TV Show')
         expect(response.body).not_to include('Private TV Show')
 
-        expect(response.body).to include('Public Wrestling Event')
-        expect(response.body).not_to include('Private Wrestling Event')
+        expect(response.body).to include('Public Video Game')
+        expect(response.body).not_to include('Private Video Game')
       end
     end
 
@@ -75,4 +74,3 @@ RSpec.describe 'Collections', type: :request do
     end
   end
 end
-# rubocop:enable Metrics/BlockLength

@@ -1,89 +1,123 @@
-<h1>New TV Show</h1>
-<div data-controller="thumbnail-fetcher consumed-toggle" data-thumbnail-fetcher-media-type-value="tv_show">
-  <%= form_with model: @tv_show do |f| %>
-    <% if @tv_show.errors.any? %>
-      <div id="error_explanation">
-        <h2><%= pluralize(@tv_show.errors.count, "error") %> prohibited this TV show from being saved:</h2>
-        <ul>
-        <% @tv_show.errors.full_messages.each do |message| %>
-          <li><%= message %></li>
-        <% end %>
-        </ul>
-      </div>
-    <% end %>
-
-    <div>
-      <%= f.label :title %>
-      <%= f.text_field :title, required: true, data: { thumbnail_fetcher_target: "titleInput", action: "input->thumbnail-fetcher#search" } %>
-    </div>
-
-    <div class="thumbnail-fetcher-container">
-      <label>Thumbnail Cover</label>
-      <div class="thumbnail-fetcher-layout">
-        <div class="thumbnail-preview-box">
-          <img class="thumbnail-preview-img" src="" alt="Cover Preview" style="display: none;" data-thumbnail-fetcher-target="previewImg">
-          <div class="thumbnail-preview-placeholder" data-thumbnail-fetcher-target="placeholder">No Cover</div>
+<%= turbo_frame_tag "modal" do %>
+  <div class="modal-overlay" data-controller="modal" data-modal-target="overlay" data-action="click->modal#closeOnBackdrop keydown@window->modal#closeOnEsc">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <button type="button" class="modal-back-btn hidden" data-thumbnail-fetcher-target="backBtn" data-action="click->thumbnail-fetcher#goToSearch">&larr; BACK</button>
+          <h2 data-thumbnail-fetcher-target="modalTitle">Log TV Show</h2>
         </div>
-        <div class="thumbnail-options-box">
-          <span class="fetcher-status-text" data-thumbnail-fetcher-target="statusText">Type title to fetch covers...</span>
-          <div class="thumbnail-options-grid" data-thumbnail-fetcher-target="optionsGrid"></div>
+        <button class="modal-close" data-action="click->modal#close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div data-controller="thumbnail-fetcher consumed-toggle" data-thumbnail-fetcher-media-type-value="tv_show">
+          <%= form_with model: @tv_show, class: "standard-form", data: { turbo_frame: "_top" } do |f| %>
+            <% if @tv_show.errors.any? %>
+              <div id="error_explanation">
+                <h2><%= pluralize(@tv_show.errors.count, "error") %> prohibited this TV show from being saved:</h2>
+                <ul>
+                <% @tv_show.errors.full_messages.each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+                </ul>
+              </div>
+            <% end %>
+
+            <%= f.hidden_field :api_id, data: { thumbnail_fetcher_target: "apiId" } %>
+            <%= f.hidden_field :external_url, data: { thumbnail_fetcher_target: "externalUrl" } %>
+            <%= f.hidden_field :thumbnail_url, data: { thumbnail_fetcher_target: "thumbnailUrl" } %>
+
+            <!-- STAGE 1: Search Stage -->
+            <div data-thumbnail-fetcher-target="searchStage">
+              <div>
+                <%= f.label :title %>
+                <%= f.text_field :title, required: true, data: { thumbnail_fetcher_target: "titleInput", action: "input->thumbnail-fetcher#search" } %>
+              </div>
+
+              <div class="thumbnail-fetcher-container">
+                <label>Select Cover</label>
+                <div class="thumbnail-options-box">
+                  <span class="fetcher-status-text" data-thumbnail-fetcher-target="statusText">Type title to fetch covers...</span>
+                  <div class="thumbnail-options-grid" data-thumbnail-fetcher-target="optionsGrid"></div>
+                </div>
+              </div>
+
+              <div style="text-align: center; margin: 1.5rem 0;">
+                <button type="button" class="btn btn-secondary" data-action="click->thumbnail-fetcher#showManualForm">Add Manually</button>
+              </div>
+            </div>
+
+            <!-- STAGE 2: Details Stage -->
+            <div data-thumbnail-fetcher-target="detailsStage" class="hidden">
+              <div class="details-modal-layout">
+                <!-- Left Column: Cover Preview -->
+                <div class="details-modal-left">
+                  <div class="thumbnail-preview-box">
+                    <img class="thumbnail-preview-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Cover Preview" style="display: none;" data-thumbnail-fetcher-target="previewImg">
+                    <div class="thumbnail-preview-placeholder" data-thumbnail-fetcher-target="placeholder">No Cover</div>
+                  </div>
+                </div>
+
+                <!-- Right Column: Details Inputs -->
+                <div class="details-modal-right">
+                  <h3 class="details-title-display" data-thumbnail-fetcher-target="selectedTitleDisplay">Selected Media</h3>
+
+                  <div class="details-field-group">
+                    <%= f.label :cover_image, "Upload Custom Cover Art (Optional)" %>
+                    <%= f.file_field :cover_image, class: 'form-control' %>
+                  </div>
+
+
+
+                  <div class="details-field-group">
+                    <%= f.label :network %>
+                    <%= f.text_field :network, data: { thumbnail_fetcher_target: "secondaryInput network", action: "input->thumbnail-fetcher#search" } %>
+                  </div>
+
+                  <div class="form-row-toggles">
+                    <div class="toggle-field">
+                      <%= f.check_box :is_collected %>
+                      <%= f.label :is_collected, "In Collection" %>
+                    </div>
+                    <div class="toggle-field">
+                      <%= f.check_box :in_watchlist %>
+                      <%= f.label :in_watchlist, "In Watchlist" %>
+                    </div>
+                    <div class="toggle-field">
+                      <%= f.check_box :consumed, data: { consumed_toggle_target: "checkbox", action: "change->consumed-toggle#toggle" } %>
+                      <%= f.label :consumed, "Watched?" %>
+                    </div>
+                  </div>
+
+                  <div class="details-form-row">
+                    <div class="details-field-group">
+                      <%= f.label :rating %>
+                      <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]] %>
+                    </div>
+
+                    <div class="details-field-group" data-consumed-toggle-target="dateRow" style="display: none;">
+                      <%= f.label :consumed_at, "Date Watched" %>
+                      <%= f.date_field :consumed_at, value: Time.current.to_date %>
+                    </div>
+                  </div>
+
+                  <div class="details-field-group">
+                    <%= f.label :review %>
+                    <%= f.text_area :review, rows: 4, placeholder: "Add a review..." %>
+                  </div>
+
+                  <div class="toggle-field" style="margin-top: 10px; margin-bottom: 20px;">
+                    <%= f.check_box :is_public %>
+                    <%= f.label :is_public, "Make Review Public?" %>
+                  </div>
+
+                  <%= f.submit "Create TV Show", class: "btn btn-primary btn-save-log" %>
+                </div>
+              </div>
+            </div>
+          <% end %>
         </div>
       </div>
-      <%= f.hidden_field :thumbnail_url, data: { thumbnail_fetcher_target: "thumbnailUrl" } %>
-      <div style="margin-top: 15px;">
-        <%= f.label :cover_image, "Upload Custom Cover Art (Fallback)" %>
-        <%= f.file_field :cover_image, class: 'form-control' %>
-      </div>
     </div>
+  </div>
+<% end %>
 
-    <div>
-      <%= f.label :season %>
-      <%= f.number_field :season, data: { thumbnail_fetcher_target: "season" } %>
-    </div>
-    <div>
-      <%= f.label :episode %>
-      <%= f.number_field :episode, data: { thumbnail_fetcher_target: "episode" } %>
-    </div>
-    <div>
-      <%= f.label :network %>
-      <%= f.text_field :network, data: { thumbnail_fetcher_target: "secondaryInput network", action: "input->thumbnail-fetcher#search" } %>
-    </div>
-
-    <div class="form-row-toggles">
-      <div class="toggle-field">
-        <%= f.check_box :is_collected %>
-        <%= f.label :is_collected, "In Collection" %>
-      </div>
-      <div class="toggle-field">
-        <%= f.check_box :in_watchlist %>
-        <%= f.label :in_watchlist, "In Watchlist" %>
-      </div>
-      <div class="toggle-field">
-        <%= f.check_box :consumed, data: { consumed_toggle_target: "checkbox", action: "change->consumed-toggle#toggle" } %>
-        <%= f.label :consumed, "Watched?" %>
-      </div>
-    </div>
-
-    <div data-consumed-toggle-target="dateRow" style="display: none;">
-      <%= f.label :consumed_at, "Date Watched" %>
-      <%= f.date_field :consumed_at, value: Time.current.to_date %>
-    </div>
-
-    <div>
-      <%= f.label :rating %>
-      <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]] %>
-    </div>
-
-    <div>
-      <%= f.label :review %>
-      <%= f.text_area :review, rows: 4, placeholder: "Add a review..." %>
-    </div>
-
-    <div>
-      <%= f.label :is_public, "Make Public?" %>
-      <%= f.check_box :is_public %>
-    </div>
-
-    <%= f.submit "Create TV Show" %>
-  <% end %>
-</div>

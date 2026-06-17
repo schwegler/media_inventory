@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe 'Albums', type: :request do # rubocop:disable Metrics/BlockLength
+RSpec.describe 'Albums', type: :request do
   let!(:user) do
     User.create(name: 'Example User', email: 'user@example.com', password: 'password123',
                 password_confirmation: 'password123')
@@ -46,7 +46,7 @@ RSpec.describe 'Albums', type: :request do # rubocop:disable Metrics/BlockLength
             post albums_path, params: { album: { title: '' } }
           end.not_to change(Album, :count)
           expect(response).to have_http_status(:unprocessable_content)
-          expect(response.body).to include('New Album')
+          expect(response.body).to include('Log Album')
           expect(response.body).to include('Title can&#39;t be blank')
         end
       end

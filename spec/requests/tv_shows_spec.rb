@@ -2,7 +2,6 @@
 
 require 'spec_helper'
 
-# rubocop:disable Metrics/BlockLength
 RSpec.describe 'TvShows', type: :request do
   describe 'GET /tv_shows' do
     it 'works! (now write some real specs)' do
@@ -11,7 +10,7 @@ RSpec.describe 'TvShows', type: :request do
     end
 
     it 'displays pagination' do
-      26.times { |i| TvShow.create!(title: "Show #{i}", season: 1, episode: 1, network: 'Net') }
+      26.times { |i| TvShow.create!(title: "Show #{i}", network: 'Net') }
       get tv_shows_path
       expect(response).to have_http_status(200)
       expect(response.body).to include('page=2')
@@ -39,10 +38,8 @@ RSpec.describe 'TvShows', type: :request do
       it 'returns http success' do
         get new_tv_show_path
         expect(response).to have_http_status(200)
-        expect(response.body).to include('New TV Show')
+        expect(response.body).to include('Log TV Show')
         expect(response.body).to include('name="tv_show[title]"')
-        expect(response.body).to include('name="tv_show[season]"')
-        expect(response.body).to include('name="tv_show[episode]"')
         expect(response.body).to include('name="tv_show[network]"')
       end
     end
@@ -102,4 +99,3 @@ RSpec.describe 'TvShows', type: :request do
     end
   end
 end
-# rubocop:enable Metrics/BlockLength

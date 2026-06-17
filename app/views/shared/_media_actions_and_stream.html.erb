@@ -1,0 +1,207 @@
+<%# Local variables: item %>
+<%
+media_type = item.class.name
+
+case media_type
+when 'Album'
+  watchlist_add_label = "⏳ Add to Queue"
+  watchlist_remove_label = "⏳ Remove from Queue"
+  watchlist_copy_label = "⏳ Add to My Queue"
+  consumed_add_label = "✓ Mark Listened"
+  consumed_remove_label = "✓ Mark Unlistened"
+  consumed_past_participle = "listened"
+  review_placeholder = "Add listening review..."
+  submit_review_label = "Save Review & Listening Status"
+  apple_label = " View on Apple Music"
+when 'Comic'
+  watchlist_add_label = "⏳ Add to Reading List"
+  watchlist_remove_label = "⏳ Remove from Reading List"
+  watchlist_copy_label = "⏳ Add to My Reading List"
+  consumed_add_label = "✓ Mark Read"
+  consumed_remove_label = "✓ Mark Unread"
+  consumed_past_participle = "read"
+  review_placeholder = "Add reading review..."
+  submit_review_label = "Save Review & Reading Status"
+  apple_label = " View on Apple Books"
+when 'VideoGame'
+  watchlist_add_label = "⏳ Add to Backlog"
+  watchlist_remove_label = "⏳ Remove from Backlog"
+  watchlist_copy_label = "⏳ Add to My Backlog"
+  consumed_add_label = "✓ Mark Played"
+  consumed_remove_label = "✓ Mark Unplayed"
+  consumed_past_participle = "played"
+  review_placeholder = "Add playing review..."
+  submit_review_label = "Save Review & Playing Status"
+  apple_label = "🎮 View on Apple Arcade"
+else # Movie, TvShow, etc.
+  watchlist_add_label = "⏳ Add to Watchlist"
+  watchlist_remove_label = "⏳ Remove from Watchlist"
+  watchlist_copy_label = "⏳ Add to My Watchlist"
+  consumed_add_label = "✓ Mark Watched"
+  consumed_remove_label = "✓ Mark Unwatched"
+  consumed_past_participle = "watched"
+  review_placeholder = "Add watch review..."
+  submit_review_label = "Save Review & Watching Status"
+  apple_label = " View on Apple TV"
+end
+%>
+
+<div class="media-actions-container">
+
+  <div class="actions-header">
+    <% if logged_in? %>
+      <% if item.user == current_user %>
+        <div class="actions-section">
+          <strong class="actions-section-title">My Library</strong>
+          <div class="actions-buttons-row">
+            <%= button_to item.is_collected? ? "📁 Remove from Collection" : "📁 Add to Collection",
+                          polymorphic_path(item),
+                          method: :patch,
+                          params: { item.class.name.underscore.to_sym => { is_collected: !item.is_collected? } },
+                          class: "btn #{item.is_collected? ? 'btn-danger' : 'btn-primary'}" %>
+
+            <%= button_to item.in_watchlist? ? watchlist_remove_label : watchlist_add_label,
+                          polymorphic_path(item),
+                          method: :patch,
+                          params: { item.class.name.underscore.to_sym => { in_watchlist: !item.in_watchlist? } },
+                          class: "btn #{item.in_watchlist? ? 'btn-danger' : 'btn-secondary'}" %>
+
+            <%= button_to item.consumed? ? consumed_remove_label : consumed_add_label,
+                          polymorphic_path(item),
+                          method: :patch,
+                          params: { item.class.name.underscore.to_sym => { consumed: !item.consumed?, consumed_at: (item.consumed? ? nil : Time.current.to_date) } },
+                          class: "btn #{item.consumed? ? 'btn-danger' : 'btn-success'}" %>
+          </div>
+        </div>
+
+        <div class="actions-delete-box">
+          <%= button_to "Delete from Library",
+                        polymorphic_path(item),
+                        method: :delete,
+                        data: { confirm: "Are you sure you want to delete this from your library?" },
+                        class: 'btn btn-danger btn-delete-item' %>
+        </div>
+      <% else %>
+        <div class="actions-section-full">
+          <strong class="actions-section-title">Add to My Library</strong>
+          <div class="actions-buttons-row">
+            <%= button_to "📁 Add to My Collection",
+                          media_copy_path,
+                          method: :post,
+                          params: { source_type: item.class.name, source_id: item.id, target_list: 'collection' },
+                          class: "btn btn-primary" %>
+
+            <%= button_to watchlist_copy_label,
+                          media_copy_path,
+                          method: :post,
+                          params: { source_type: item.class.name, source_id: item.id, target_list: 'watchlist' },
+                          class: "btn btn-secondary" %>
+          </div>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="actions-login-message">
+        <%= link_to "Log in", login_path, class: "login-link" %> to add this media to your library.
+      </div>
+    <% end %>
+  </div>
+
+  <% if logged_in? && item.user == current_user && (item.is_collected? || item.in_watchlist?) %>
+    <div class="inline-quick-review-box">
+      <%= form_with model: item, url: polymorphic_path(item), method: :patch, local: true, class: "quick-review-form" do |f| %>
+        <h3 class="quick-review-title">
+          ✍️ Quick Review & Rating
+        </h3>
+        
+        <div class="inline-form-row">
+          <div class="quick-review-rating-select">
+            <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: item.rating }, { class: "form-control quick-review-select" } %>
+          </div>
+          
+          <div class="inline-checkbox-group">
+            <%= f.check_box :consumed, id: "inline-consumed-checkbox-#{item.id}" %>
+            <%= f.label :consumed, "Marked as #{consumed_past_participle.capitalize}", for: "inline-consumed-checkbox-#{item.id}", class: "inline-checkbox-label" %>
+          </div>
+
+          <div class="inline-checkbox-group">
+            <%= f.check_box :is_public, id: "inline-public-checkbox-#{item.id}" %>
+            <%= f.label :is_public, "Make Review Public?", for: "inline-public-checkbox-#{item.id}", class: "inline-checkbox-label" %>
+          </div>
+        </div>
+
+        <div>
+          <%= f.text_area :review, placeholder: review_placeholder, rows: 3, class: "form-control quick-review-textarea" %>
+        </div>
+
+        <div class="quick-review-submit-row">
+          <%= f.submit submit_review_label, class: "btn btn-primary quick-review-submit-btn" %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div class="streaming-links-box">
+    <h3 class="streaming-links-title">
+      🔗 Where to Buy & Stream
+    </h3>
+
+    <div class="streaming-buttons-row">
+      <% if item.external_url.present? %>
+        <% link_label = if item.external_url.include?('itunes.apple.com') || item.external_url.include?('music.apple.com')
+                          apple_label
+                        elsif item.external_url.include?('openlibrary.org')
+                          "📖 Borrow on Open Library"
+                        elsif item.external_url.include?('tvmaze.com')
+                          "📺 View on TVmaze"
+                        elsif item.external_url.include?('steampowered.com') || item.external_url.include?('steamcommunity.com')
+                          "🎮 View on Steam"
+                        else
+                          "🌐 View Official Source"
+                        end %>
+        <%= link_to link_label, item.external_url, target: "_blank", rel: "noopener", class: "btn btn-stream-source" %>
+      <% end %>
+
+      <% if ['Movie', 'TvShow'].include?(item.class.name) %>
+        <%= link_to "🔍 Search JustWatch",
+                    "https://www.justwatch.com/us/search?q=#{CGI.escape(item.title)}",
+                    target: "_blank",
+                    rel: "noopener",
+                    class: "btn btn-stream-search" %>
+      <% end %>
+
+      <% if item.class.name == 'VideoGame' %>
+        <%= link_to "🔍 Search HowLongToBeat",
+                    "https://howlongtobeat.com/?q=#{CGI.escape(item.title)}",
+                    target: "_blank",
+                    rel: "noopener",
+                    class: "btn btn-stream-search" %>
+      <% end %>
+
+      <% if item.class.name == 'Comic' %>
+        <%= link_to "📚 Search Goodreads",
+                    "https://www.goodreads.com/search?q=#{CGI.escape(item.title)}",
+                    target: "_blank",
+                    rel: "noopener",
+                    class: "btn btn-stream-search" %>
+        <%= link_to "📖 Search Open Library",
+                    "https://openlibrary.org/search?q=#{CGI.escape(item.title)}",
+                    target: "_blank",
+                    rel: "noopener",
+                    class: "btn btn-stream-search" %>
+      <% end %>
+
+      <%= link_to "🌐 Google Search Options",
+                  "https://www.google.com/search?q=stream+or+buy+#{CGI.escape(item.title)}",
+                  target: "_blank",
+                  rel: "noopener",
+                  class: "btn btn-stream-search" %>
+
+      <%= link_to "📦 Buy on Amazon",
+                  "https://www.amazon.com/s?k=#{CGI.escape(item.title)}",
+                  target: "_blank",
+                  rel: "noopener",
+                  class: "btn btn-stream-search" %>
+    </div>
+  </div>
+
+</div>

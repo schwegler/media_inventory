@@ -3,7 +3,6 @@
 require 'spec_helper'
 require 'rails_helper'
 
-# rubocop:disable Metrics/BlockLength
 RSpec.describe User, type: :model do
   before do
     @user = User.new(
@@ -94,4 +93,3 @@ RSpec.describe User, type: :model do
     it { should_not be_valid }
   end
 end
-# rubocop:enable Metrics/BlockLength

@@ -2,7 +2,6 @@
 
 require 'rails_helper'
 
-# rubocop:disable Metrics/BlockLength
 RSpec.describe InventoryController, type: :controller do
   # rubocop:disable Naming/PredicateMethod
   let(:dummy_model) do
@@ -178,4 +177,3 @@ RSpec.describe InventoryController, type: :controller do
     end
   end
 end
-# rubocop:enable Metrics/BlockLength
