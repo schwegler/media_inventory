@@ -63,14 +63,11 @@ export default class extends Controller {
     }
   }
 
-  showManualForm() {
-    // Force browser to sync any pending input before reading title
-    this.titleInputTarget.blur()
-    this.titleInputTarget.focus()
-
+    showManualForm() {
     const title = this.titleInputTarget.value.trim() || "New Item"
     this.showDetailsStage(title, this.hasReleaseYearTarget ? this.releaseYearTarget.value : null)
   }
+
 
 
 

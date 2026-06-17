@@ -50,8 +50,17 @@ module SystemTestHelpers
 
   # Safely clicks the "Add Manually" button, waiting for the Stimulus controller to be connected first.
   def click_add_manually
-    expect(page).to have_css('[data-connected="true"]') if Capybara.current_driver != :rack_test
-    click_button 'Add Manually'
+    if Capybara.current_driver == :rack_test
+      click_button 'Add Manually'
+    else
+      expect(page).to have_css('[data-connected="true"]')
+      # Ensure the browser has flushed any pending input events to the Title field's value property
+      page.execute_script('document.activeElement.blur()')
+      # Trigger the manual form via JS to ensure reliability in headless CI environments
+      page.execute_script('document.querySelector("button[data-action*=\'showManualForm\']").click()')
+      # Wait for the details stage to be visible before proceeding with next test steps
+      expect(page).to have_css('[data-thumbnail-fetcher-target="detailsStage"]:not(.hidden)')
+    end
   end
 end
 
