@@ -508,6 +508,11 @@ input[type="submit"] {
   &:active {
     transform: translateY(1px);
   }
+
+  &:focus-visible {
+    outline: 2px solid $accent-orange;
+    outline-offset: 2px;
+  }
 }
 
 .btn-secondary {
@@ -942,6 +947,12 @@ body[data-native="true"] {
   &.selected {
     border-color: $accent-orange;
     box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $accent-orange;
+    outline-offset: 2px;
+    border-radius: $radius-sm;
   }
 }
 
@@ -1581,6 +1592,12 @@ header nav ul.nav-links {
 
     &:hover {
       color: $accent-orange;
+    }
+
+    &:focus-visible {
+      outline: 2px solid $accent-orange;
+      outline-offset: 4px;
+      border-radius: 4px;
     }
   }
 }

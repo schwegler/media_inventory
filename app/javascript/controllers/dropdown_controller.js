@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = [ "menu" ]
+  static targets = [ "menu", "button" ]
 
   connect() {
     this.clickOutsideHandler = this.clickOutside.bind(this)
@@ -21,12 +21,19 @@ export default class extends Controller {
     event.preventDefault()
     event.stopPropagation()
     const isVisible = this.menuTarget.style.display === "block"
-    this.menuTarget.style.display = isVisible ? "none" : "block"
+    this.setVisibility(!isVisible)
   }
 
   clickOutside(event) {
     if (this.hasMenuTarget && !this.element.contains(event.target)) {
-      this.menuTarget.style.display = "none"
+      this.setVisibility(false)
+    }
+  }
+
+  setVisibility(visible) {
+    this.menuTarget.style.display = visible ? "block" : "none"
+    if (this.hasButtonTarget) {
+      this.buttonTarget.setAttribute("aria-expanded", visible ? "true" : "false")
     }
   }
 }

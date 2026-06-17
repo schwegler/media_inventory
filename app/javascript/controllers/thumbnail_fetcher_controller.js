@@ -152,7 +152,10 @@ export default class extends Controller {
       allResults.forEach((option) => {
         const imgBtn = document.createElement("div")
         imgBtn.className = "thumbnail-option-card"
-        
+        imgBtn.setAttribute("role", "button")
+        imgBtn.setAttribute("tabindex", "0")
+        imgBtn.setAttribute("aria-label", `Select cover for ${option.title}`)
+
         const badgeClass = option.is_local ? "local" : "web"
         const badgeText = option.is_local ? "Local" : "Web"
         
@@ -178,11 +181,14 @@ export default class extends Controller {
         `
 
         imgBtn.addEventListener("click", (e) => {
-          this.optionsGridTarget.querySelectorAll(".thumbnail-option-card").forEach(card => card.classList.remove("selected"))
-          imgBtn.classList.add("selected")
+          this.handleOptionSelection(imgBtn, option)
+        })
 
-          // User clicked explicitly, so populate all text fields and transition to details view!
-          this.selectOption(option, true)
+        imgBtn.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault()
+            this.handleOptionSelection(imgBtn, option)
+          }
         })
 
         this.optionsGridTarget.appendChild(imgBtn)
@@ -453,6 +459,14 @@ export default class extends Controller {
       console.error(`Error querying web API for ${mediaType}:`, err)
       return []
     }
+  }
+
+  handleOptionSelection(imgBtn, option) {
+    this.optionsGridTarget.querySelectorAll(".thumbnail-option-card").forEach(card => card.classList.remove("selected"))
+    imgBtn.classList.add("selected")
+
+    // User selected explicitly, so populate all text fields and transition to details view!
+    this.selectOption(option, true)
   }
 
   selectOption(option, isManualClick = false) {
