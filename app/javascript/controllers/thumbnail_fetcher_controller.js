@@ -63,10 +63,15 @@ export default class extends Controller {
     }
   }
 
-  showManualForm() {
+    showManualForm() {
+    // Force browser to sync any pending input before reading title
+    this.titleInputTarget.blur()
+    this.titleInputTarget.focus()
+
     const title = this.titleInputTarget.value.trim() || "New Item"
     this.showDetailsStage(title, this.hasReleaseYearTarget ? this.releaseYearTarget.value : null)
   }
+
 
   goToSearch() {
     if (this.hasSearchStageTarget) this.searchStageTarget.classList.remove("hidden")

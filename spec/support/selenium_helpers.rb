@@ -54,7 +54,7 @@ module SystemTestHelpers
       click_button 'Add Manually'
     else
       expect(page).to have_css('[data-connected="true"]')
-      page.execute_script("document.querySelector('button[data-action*=\"showManualForm\"]').click()")
+      click_button 'Add Manually'
     end
   end
 end
