@@ -35,7 +35,7 @@ jobs:
           bundler-cache: true
       # Add or replace database setup steps here
       - name: Build assets
-        run: bin/rails dartsass:build
+        run: bin/rails dartsass:build assets:precompile
       - name: Set up database schema
         run: bin/rails db:schema:load
       # Add or replace test runners here
