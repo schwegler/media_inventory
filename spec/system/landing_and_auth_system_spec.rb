@@ -60,14 +60,11 @@ RSpec.describe 'Landing and Authentication', type: :system do
     expect(page).to have_text('Welcome back, Active Tracker')
 
     # Log out
-    has_hidden_dropdown = page.has_css?('.btn-log',
-                                        visible: true) && page.has_no_css?('.dropdown-logout-btn', visible: true)
-    find('.btn-log').click if has_hidden_dropdown
-
-    if page.has_css?('.dropdown-logout-btn', visible: :any)
+    if Capybara.current_driver == :rack_test
       find('.dropdown-logout-btn', visible: :any).click
-    elsif page.has_button?('Sign Out')
-      click_button 'Sign Out'
+    else
+      find('.btn-log').click
+      find('.dropdown-logout-btn').click
     end
 
     # Confirm we are logged out
