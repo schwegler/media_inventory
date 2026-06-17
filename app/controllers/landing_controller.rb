@@ -9,7 +9,7 @@ class LandingController < ApplicationController
       @popular_reviews = fetch_popular_reviews
     else
       # Bolt: Fetch all activities, eager loading associations to avoid N+1 queries
-      @activities = Activity.includes(:user, trackable: { cover_image_attachment: :blob })
+      @activities = Activity.includes(:user, :trackable)
                             .order(created_at: :desc)
                             .page(params[:page])
                             .per(15)
@@ -20,15 +20,16 @@ class LandingController < ApplicationController
   private
 
   def fetch_friend_activities
-    # Bolt: Eager load cover images and users to avoid N+1 in dashboard
-    friend_activities = Activity.includes(:user, trackable: { cover_image_attachment: :blob })
+    # Bolt: Eager load basic associations to avoid N+1 in dashboard
+    # We avoid nested attachment includes here to prevent polymorphic association errors
+    friend_activities = Activity.includes(:user, :trackable)
                                 .where.not(user_id: current_user.id)
                                 .where(activity_type: %w[added consumed reviewed])
                                 .order(created_at: :desc)
                                 .limit(6)
     if friend_activities.size < 3
       # Fallback to all activities if there aren't enough from other users
-      friend_activities = Activity.includes(:user, trackable: { cover_image_attachment: :blob })
+      friend_activities = Activity.includes(:user, :trackable)
                                   .where(activity_type: %w[added consumed reviewed])
                                   .order(created_at: :desc)
                                   .limit(6)
@@ -56,6 +57,7 @@ class LandingController < ApplicationController
   def bulk_fetch_trackables(items_by_type)
     items_by_type.each_with_object({}) do |(type, ids), hash|
       klass = type.constantize
+      # Bolt: Safely eager load cover images only for models that support them
       records = if klass.respond_to?(:with_attached_cover_image)
                   klass.with_attached_cover_image.where(id: ids)
                 else
@@ -74,8 +76,8 @@ class LandingController < ApplicationController
   end
 
   def fetch_popular_reviews
-    # Bolt: Eager load cover images and users to avoid N+1 in dashboard
-    reviewed_activities = Activity.includes(:user, trackable: { cover_image_attachment: :blob })
+    # Bolt: Eager load basic associations to avoid N+1 in dashboard
+    reviewed_activities = Activity.includes(:user, :trackable)
                                   .where(activity_type: 'reviewed')
                                   .order(created_at: :desc)
                                   .limit(20)

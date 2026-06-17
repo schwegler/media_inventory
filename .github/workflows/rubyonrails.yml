@@ -28,19 +28,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-      # Add or replace dependency steps here
       - name: Install Ruby and gems
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
-      # Add or replace database setup steps here
       - name: Build assets
-        run: bin/rails dartsass:build assets:precompile
+        run: bundle exec rails dartsass:build
       - name: Set up database schema
-        run: bin/rails db:schema:load
-      # Add or replace test runners here
+        run: bundle exec rails db:schema:load
       - name: Run tests
-        run: bin/rake
+        run: bundle exec rake
+      - name: Verify asset directory (debug)
+        if: failure()
+        run: ls -R app/assets/builds
 
   lint:
     runs-on: ubuntu-latest
@@ -53,7 +53,6 @@ jobs:
           bundler-cache: true
       - name: Generate binstubs
         run: bundle binstubs bundler-audit brakeman rubocop
-      # Add or replace any other lints here
       - name: Security audit dependencies
         run: bin/bundler-audit --update
       - name: Security audit application code
