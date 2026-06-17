@@ -30,6 +30,7 @@ RSpec.describe 'Users Profile and Directory Management', type: :system do
     fill_in 'Email', with: user.email
     fill_in 'Password', with: 'password123'
     click_button 'Log in'
+    expect(page).to have_text('Logged in successfully')
 
     # Go to profile
     visit user_path(user)
@@ -51,6 +52,7 @@ RSpec.describe 'Users Profile and Directory Management', type: :system do
     fill_in 'Email', with: admin.email
     fill_in 'Password', with: 'password123'
     click_button 'Log in'
+    expect(page).to have_text('Logged in successfully')
 
     # Go to members directory
     visit users_path
@@ -58,7 +60,9 @@ RSpec.describe 'Users Profile and Directory Management', type: :system do
     expect(page).to have_text('Delete')
 
     # Delete normal user
-    click_button 'Delete'
+    accept_confirm do
+      click_button 'Delete'
+    end
 
     expect(page).to have_text('User deleted')
     expect(page).not_to have_text('Normal User')

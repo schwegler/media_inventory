@@ -19,6 +19,7 @@ RSpec.describe 'Albums Management', type: :system do
     fill_in 'Email', with: user.email
     fill_in 'Password', with: 'password123'
     click_button 'Log in'
+    expect(page).to have_text('Logged in successfully')
 
     # Create Album
     visit new_album_path

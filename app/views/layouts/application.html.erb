@@ -81,11 +81,13 @@
   <% end %>
 
 <main class="container">
-  <% flash.each do |message_type, message| %>
-    <div class="alert alert-<%= message_type %>" data-controller="flash" data-flash-dismiss-after-value="5000">
-      <%= message %>
-    </div>
-  <% end %>
+  <div id="flash-messages">
+    <% flash.each do |message_type, message| %>
+      <div class="alert alert-<%= message_type %>" data-controller="flash" data-flash-dismiss-after-value="5000">
+        <%= message %>
+      </div>
+    <% end %>
+  </div>
   <%= yield %>
 </main>
 

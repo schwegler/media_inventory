@@ -60,15 +60,11 @@ RSpec.describe 'Landing and Authentication', type: :system do
     expect(page).to have_text('Welcome back, Active Tracker')
 
     # Log out
-    click_button 'Sign Out' if page.has_button?('Sign Out')
-    # Since Sign Out might be inside a dropdown menu or button,
-    # let's use the dropdown-logout-btn class or direct post to logout
-    if page.has_css?('.dropdown-logout-btn', visible: :any)
-      find('.dropdown-logout-btn', visible: :any).click
+    if page.has_css?('.btn-log')
+      find('.btn-log').click
+      click_button 'Sign Out'
     else
-      # Fallback to direct navigation or click if visible
       visit root_path
-      # Let's try finding the form and clicking submit
       begin
         find('form[action="/logout"] button, form[action="/logout"] input[type=submit]', visible: :any).click
       rescue StandardError
