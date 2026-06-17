@@ -23,6 +23,7 @@ RSpec.describe 'TV Shows and Episodes Management', type: :system do
 
     # Create TV Show
     visit new_tv_show_path
+    expect(page).to have_css('[data-connected="true"]') unless Capybara.current_driver == :rack_test
     fill_in 'Title', with: 'Breaking Bad'
     click_add_manually
     fill_in 'Network', with: 'AMC'

@@ -46,7 +46,7 @@ else # Movie, TvShow, etc.
 end
 %>
 
-<div class="media-actions-container">
+<div id="media_actions_<%= item.class.name.underscore %>_<%= item.id %>" class="media-actions-container">
 
   <div class="actions-header">
     <% if logged_in? %>

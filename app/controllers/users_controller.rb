@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class UsersController < ApplicationController
-  before_action :logged_in_user, only: %i[index show edit update destroy]
+  before_action :logged_in_user, only: %i[index show edit update destroy following followers]
   before_action :correct_user,   only: %i[edit update]
   before_action :admin_user,     only: :destroy
 
@@ -56,13 +56,28 @@ class UsersController < ApplicationController
     redirect_to users_url, status: :see_other
   end
 
+  def following
+    @title = 'Following'
+    @user  = User.find(params[:id])
+    @users = @user.following.page(params[:page])
+    render 'show_follow'
+  end
+
+  def followers
+    @title = 'Followers'
+    @user  = User.find(params[:id])
+    @users = @user.followers.page(params[:page])
+    render 'show_follow'
+  end
+
   private
 
   def user_params
     params.require(:user).permit(
       :name, :email, :password, :password_confirmation,
       :bsky_handle, :bsky_app_password, :bsky_post_activity, :bsky_post_reviews,
-      :bsky_message_activity_template, :bsky_message_review_template
+      :bsky_message_activity_template, :bsky_message_review_template,
+      :username, :bio, :birthday, :avatar, :header_banner
     )
   end
 

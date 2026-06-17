@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_15_023045) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_17_023245) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -148,6 +148,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_023045) do
     t.index ["user_id"], name: "index_movies_on_user_id"
   end
 
+  create_table "relationships", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "followed_id"
+    t.integer "follower_id"
+    t.datetime "updated_at", null: false
+    t.index ["followed_id"], name: "index_relationships_on_followed_id"
+    t.index ["follower_id", "followed_id"], name: "index_relationships_on_follower_id_and_followed_id", unique: true
+    t.index ["follower_id"], name: "index_relationships_on_follower_id"
+  end
+
   create_table "tv_episodes", force: :cascade do |t|
     t.string "air_date"
     t.datetime "created_at", null: false
@@ -187,6 +197,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_023045) do
   create_table "users", force: :cascade do |t|
     t.boolean "admin", default: false
     t.string "avatar_url"
+    t.text "bio"
+    t.date "birthday"
     t.string "bsky_app_password"
     t.string "bsky_handle"
     t.string "bsky_message_activity_template"
@@ -197,11 +209,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_023045) do
     t.datetime "created_at", null: false
     t.string "email"
     t.string "name"
+    t.boolean "notify_email_comments", default: true
+    t.boolean "notify_email_follows", default: true
+    t.boolean "notify_email_likes", default: true
+    t.boolean "notify_email_posts", default: true
+    t.boolean "notify_push_comments", default: true
+    t.boolean "notify_push_follows", default: true
+    t.boolean "notify_push_likes", default: true
+    t.boolean "notify_push_posts", default: true
     t.string "password_digest"
     t.text "private_key"
     t.text "public_key"
     t.datetime "updated_at", null: false
+    t.string "username"
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["username"], name: "index_users_on_username", unique: true
   end
 
   create_table "video_games", force: :cascade do |t|

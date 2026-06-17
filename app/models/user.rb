@@ -11,6 +11,13 @@ class User < ApplicationRecord
                     format: { with: URI::MailTo::EMAIL_REGEXP },
                     uniqueness: { case_sensitive: false },
                     allow_nil: true
+  validates :username, length: { maximum: 30 },
+                       format: { with: /\A[a-zA-Z0-9_]+\z/ },
+                       uniqueness: { case_sensitive: false },
+                       allow_nil: true
+
+  has_one_attached :avatar
+  has_one_attached :header_banner
 
   has_many :albums
   has_many :comics
@@ -21,12 +28,35 @@ class User < ApplicationRecord
   has_many :comments, dependent: :destroy
   has_many :likes, dependent: :destroy
 
+  has_many :active_relationships, class_name: 'Relationship',
+                                  foreign_key: 'follower_id',
+                                  dependent: :destroy
+  has_many :passive_relationships, class_name: 'Relationship',
+                                   foreign_key: 'followed_id',
+                                   dependent: :destroy
+  has_many :following, through: :active_relationships,  source: :followed
+  has_many :followers, through: :passive_relationships, source: :follower
+
   def liked?(likeable)
     likes.exists?(likeable_type: likeable.class.name, likeable_id: likeable.id)
   end
 
+  def follow(other_user)
+    following << other_user unless self == other_user
+  end
+
+  def unfollow(other_user)
+    following.delete(other_user)
+  end
+
+  def following?(other_user)
+    following.include?(other_user)
+  end
+
   def display_handle
-    if bsky_handle.present?
+    if username.present?
+      "@#{username}"
+    elsif bsky_handle.present?
       "@#{bsky_handle.sub(/^@/, '')}"
     else
       email

@@ -1,21 +1,120 @@
-<div class="details-card">
-  <h2><%= @user.name %></h2>
-  
-  <div class="detail-row">
-    <strong>Email:</strong>
-    <span><%= @user.email %></span>
-  </div>
-  <% if @user.bsky_handle.present? %>
-    <div class="detail-row">
-      <strong>Bluesky:</strong>
-      <span><%= @user.display_handle %></span>
+<div class="profile-page">
+  <div class="profile-header">
+    <div class="header-banner">
+      <% if @user.header_banner.attached? %>
+        <%= image_tag @user.header_banner, class: "banner-img" %>
+      <% else %>
+        <div class="banner-placeholder"></div>
+      <% end %>
     </div>
-  <% end %>
 
-  <div class="actions" style="margin-top: 20px; display: flex; gap: 10px;">
-    <% if current_user?(@user) %>
-      <%= link_to 'Edit Profile', edit_user_path(@user), class: 'btn' %>
-    <% end %>
-    <%= link_to 'Back to Users', users_path, class: 'btn btn-secondary' %>
+    <div class="profile-info-bar">
+      <div class="avatar-container">
+        <%= user_avatar_tag(@user, size: 120) %>
+      </div>
+
+      <div class="profile-main-meta">
+        <h1 class="profile-display-name"><%= @user.name %></h1>
+        <p class="profile-handle"><%= @user.display_handle %></p>
+      </div>
+
+      <div class="profile-stats">
+        <%= link_to following_user_path(@user), class: "stat-item" do %>
+          <span class="stat-count"><%= @user.following.count %></span>
+          <span class="stat-label">Following</span>
+        <% end %>
+        <%= link_to followers_user_path(@user), class: "stat-item" do %>
+          <span class="stat-count"><%= @user.followers.count %></span>
+          <span class="stat-label">Followers</span>
+        <% end %>
+      </div>
+
+      <div class="profile-actions">
+        <% if current_user?(@user) %>
+          <%= link_to 'Edit Profile', settings_path, class: 'btn btn-outline' %>
+        <% elsif logged_in? %>
+          <%= render 'follow_form', user: @user %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-body">
+    <aside class="profile-sidebar">
+      <% if @user.bio.present? %>
+        <div class="bio-section card">
+          <h3>About</h3>
+          <p><%= @user.bio %></p>
+        </div>
+      <% end %>
+
+      <% if @user.birthday.present? %>
+        <div class="info-section card">
+          <div class="info-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg>
+            <span>Born <%= @user.birthday.strftime("%B %d, %Y") %></span>
+          </div>
+        </div>
+      <% end %>
+    </aside>
+
+    <main class="profile-content" data-controller="tabs">
+      <nav class="profile-tabs">
+        <button class="tab-btn active" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="posts">Posts</button>
+        <button class="tab-btn" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="media">Media</button>
+        <button class="tab-btn" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="likes">Likes</button>
+      </nav>
+
+      <div class="tab-content" data-tabs-target="content" data-tab-name="posts">
+        <div class="activities-feed">
+          <% if @user.activities.any? %>
+            <%= render @user.activities.order(created_at: :desc).limit(20) %>
+          <% else %>
+            <p class="empty-state">No recent activity.</p>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="tab-content hidden" data-tabs-target="content" data-tab-name="media">
+        <div class="media-grid">
+           <%# Aggregating public media items %>
+           <% media_items = [@user.movies, @user.albums, @user.comics, @user.tv_shows, @user.video_games].flatten.select(&:is_public).sort_by(&:created_at).reverse %>
+           <% if media_items.any? %>
+             <div class="grid-layout">
+               <% media_items.each do |item| %>
+                 <div class="media-card">
+                   <% if item.respond_to?(:thumbnail_url) && item.thumbnail_url.present? %>
+                     <%= image_tag item.thumbnail_url, class: "media-thumb" %>
+                   <% end %>
+                   <div class="media-details">
+                     <span class="media-title"><%= item.title %></span>
+                     <span class="media-type"><%= item.class.name.titleize %></span>
+                   </div>
+                 </div>
+               <% end %>
+             </div>
+           <% else %>
+             <p class="empty-state">No public media items.</p>
+           <% end %>
+        </div>
+      </div>
+
+      <div class="tab-content hidden" data-tabs-target="content" data-tab-name="likes">
+        <div class="likes-feed">
+          <% if @user.likes.any? %>
+            <% @user.likes.order(created_at: :desc).each do |like| %>
+              <div class="like-item card">
+                <span>Liked a <%= like.likeable_type.titleize %></span>
+                <% if like.likeable.respond_to?(:title) %>
+                  <strong><%= like.likeable.title %></strong>
+                <% end %>
+              </div>
+            <% end %>
+          <% else %>
+            <p class="empty-state">No likes yet.</p>
+          <% end %>
+        </div>
+      </div>
+    </main>
   </div>
 </div>

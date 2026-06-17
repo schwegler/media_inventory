@@ -1,0 +1,398 @@
+=> Booting Puma
+=> Rails 8.1.3 application starting in development
+=> Run `bin/rails server --help` for more startup options
+Puma starting in single mode...
+* Puma version: 8.0.2 ("Into the Arena")
+* Ruby version: ruby 3.2.3 (2024-01-18 revision 52bb2ac0a6) [x86_64-linux-gnu]
+*  Min threads: 0
+*  Max threads: 5
+*  Environment: development
+*          PID: 214872
+* Listening on http://127.0.0.1:3001
+* Listening on http://[::1]:3001
+Use Ctrl-C to stop
+Started GET "/login" for ::1 at 2026-06-17 02:47:45 +0000
+  [1m[36mActiveRecord::SchemaMigration Load (0.2ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC[0m
+Processing by SessionsController#new as HTML
+  Rendering layout layouts/application.html.erb
+  Rendering sessions/new.html.erb within layouts/application
+  Rendered sessions/new.html.erb within layouts/application (Duration: 8.4ms | GC: 0.4ms)
+  Rendered layout layouts/application.html.erb (Duration: 20.1ms | GC: 1.3ms)
+Completed 200 OK in 41ms (Views: 24.9ms | ActiveRecord: 0.0ms (0 queries, 0 cached) | GC: 3.4ms)
+
+
+Started GET "/login" for ::1 at 2026-06-17 02:48:58 +0000
+Processing by SessionsController#new as HTML
+  Rendering layout layouts/application.html.erb
+  Rendering sessions/new.html.erb within layouts/application
+  Rendered sessions/new.html.erb within layouts/application (Duration: 2.7ms | GC: 0.2ms)
+  Rendered layout layouts/application.html.erb (Duration: 3.8ms | GC: 0.2ms)
+Completed 200 OK in 6ms (Views: 4.5ms | ActiveRecord: 0.0ms (0 queries, 0 cached) | GC: 0.2ms)
+
+
+Started POST "/login" for ::1 at 2026-06-17 02:48:58 +0000
+Processing by SessionsController#create as TURBO_STREAM
+  Parameters: {"authenticity_token"=>"[FILTERED]", "session"=>{"email"=>"user@example.com", "password"=>"[FILTERED]"}, "commit"=>"Log in"}
+  [1m[36mUser Load (0.6ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."email" = ? LIMIT ?[0m  [["email", "user@example.com"], ["LIMIT", 1]]
+  ↳ app/controllers/sessions_controller.rb:11:in `create'
+Redirected to http://localhost:3001/users/2
+Completed 302 Found in 362ms (ActiveRecord: 3.6ms (1 query, 0 cached) | GC: 12.5ms)
+
+
+Started GET "/users/2" for ::1 at 2026-06-17 02:48:58 +0000
+Processing by UsersController#show as TURBO_STREAM
+  Parameters: {"id"=>"2"}
+  [1m[36mUser Load (3.6ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = ? LIMIT ?[0m  [["id", 2], ["LIMIT", 1]]
+  ↳ app/helpers/sessions_helper.rb:14:in `current_user'
+  [1m[36mUser Load (0.2ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = ? LIMIT ?[0m  [["id", 2], ["LIMIT", 1]]
+  ↳ app/controllers/users_controller.rb:13:in `show'
+  Rendering layout layouts/application.html.erb
+  Rendering users/show.html.erb within layouts/application
+  [1m[36mActiveStorage::Attachment Load (0.2ms)[0m  [1m[34mSELECT "active_storage_attachments".* FROM "active_storage_attachments" WHERE "active_storage_attachments"."record_id" = ? AND "active_storage_attachments"."record_type" = ? AND "active_storage_attachments"."name" = ? LIMIT ?[0m  [["record_id", 2], ["record_type", "User"], ["name", "header_banner"], ["LIMIT", 1]]
+  ↳ app/views/users/show.html.erb:4
+  [1m[36mUser Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "users" INNER JOIN "relationships" ON "users"."id" = "relationships"."followed_id" WHERE "relationships"."follower_id" = ?[0m  [["follower_id", 2]]
+  ↳ app/views/users/show.html.erb:23
+  [1m[36mUser Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "users" INNER JOIN "relationships" ON "users"."id" = "relationships"."follower_id" WHERE "relationships"."followed_id" = ?[0m  [["followed_id", 2]]
+  ↳ app/views/users/show.html.erb:27
+  [1m[36mActivity Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "activities" WHERE "activities"."user_id" = ? LIMIT ?[0m  [["user_id", 2], ["LIMIT", 1]]
+  ↳ app/views/users/show.html.erb:70
+  [1m[36mActivity Load (0.5ms)[0m  [1m[34mSELECT "activities".* FROM "activities" WHERE "activities"."user_id" = ? ORDER BY "activities"."created_at" DESC LIMIT ?[0m  [["user_id", 2], ["LIMIT", 20]]
+  ↳ app/views/users/show.html.erb:71
+  Rendered users/show.html.erb within layouts/application (Duration: 117.4ms | GC: 56.3ms)
+  Rendered layout layouts/application.html.erb (Duration: 121.2ms | GC: 59.7ms)
+Completed 500 Internal Server Error in 142ms (ActiveRecord: 6.2ms (7 queries, 0 cached) | GC: 74.4ms)
+
+
+
+ActionView::Template::Error (Missing partial activities/_activity with {:locale=>[:en], :formats=>[:html, :turbo_stream], :variants=>[], :handlers=>[:raw, :erb, :html, :builder, :ruby]}.
+
+Searched in:
+  * "/app/app/views"
+  * "/app/vendor/bundle/ruby/3.2.0/gems/kaminari-core-1.2.2/app/views"
+  * "/app/vendor/bundle/ruby/3.2.0/gems/turbo-rails-2.0.23/app/views"
+)
+Caused by: ActionView::MissingTemplate (Missing partial activities/_activity with {:locale=>[:en], :formats=>[:html, :turbo_stream], :variants=>[], :handlers=>[:raw, :erb, :html, :builder, :ruby]}.
+
+Searched in:
+  * "/app/app/views"
+  * "/app/vendor/bundle/ruby/3.2.0/gems/kaminari-core-1.2.2/app/views"
+  * "/app/vendor/bundle/ruby/3.2.0/gems/turbo-rails-2.0.23/app/views"
+)
+
+Information for: ActionView::Template::Error (Missing partial activities/_activity with {:locale=>[:en], :formats=>[:html, :turbo_stream], :variants=>[], :handlers=>[:raw, :erb, :html, :builder, :ruby]}.
+
+Searched in:
+  * "/app/app/views"
+  * "/app/vendor/bundle/ruby/3.2.0/gems/kaminari-core-1.2.2/app/views"
+  * "/app/vendor/bundle/ruby/3.2.0/gems/turbo-rails-2.0.23/app/views"
+):
+    68:       <div class="tab-content" data-tabs-target="content" data-tab-name="posts">
+    69:         <div class="activities-feed">
+    70:           <% if @user.activities.any? %>
+    71:             <%= render @user.activities.order(created_at: :desc).limit(20) %>
+    72:           <% else %>
+    73:             <p class="empty-state">No recent activity.</p>
+    74:           <% end %>
+
+app/views/users/show.html.erb:71
+
+Information for cause: ActionView::MissingTemplate (Missing partial activities/_activity with {:locale=>[:en], :formats=>[:html, :turbo_stream], :variants=>[], :handlers=>[:raw, :erb, :html, :builder, :ruby]}.
+
+Searched in:
+  * "/app/app/views"
+  * "/app/vendor/bundle/ruby/3.2.0/gems/kaminari-core-1.2.2/app/views"
+  * "/app/vendor/bundle/ruby/3.2.0/gems/turbo-rails-2.0.23/app/views"
+):
+
+app/views/users/show.html.erb:71
+Started GET "/login" for ::1 at 2026-06-17 02:51:52 +0000
+Processing by SessionsController#new as HTML
+  Rendering layout layouts/application.html.erb
+  Rendering sessions/new.html.erb within layouts/application
+  Rendered sessions/new.html.erb within layouts/application (Duration: 3.1ms | GC: 0.2ms)
+  Rendered layout layouts/application.html.erb (Duration: 7.8ms | GC: 0.4ms)
+Completed 200 OK in 11ms (Views: 9.4ms | ActiveRecord: 0.0ms (0 queries, 0 cached) | GC: 0.4ms)
+
+
+Started POST "/login" for ::1 at 2026-06-17 02:51:52 +0000
+Processing by SessionsController#create as TURBO_STREAM
+  Parameters: {"authenticity_token"=>"[FILTERED]", "session"=>{"email"=>"user@example.com", "password"=>"[FILTERED]"}, "commit"=>"Log in"}
+  [1m[36mUser Load (0.3ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."email" = ? LIMIT ?[0m  [["email", "user@example.com"], ["LIMIT", 1]]
+  ↳ app/controllers/sessions_controller.rb:11:in `create'
+Redirected to http://localhost:3001/users/2
+Completed 302 Found in 321ms (ActiveRecord: 2.1ms (1 query, 0 cached) | GC: 1.1ms)
+
+
+Started GET "/users/2" for ::1 at 2026-06-17 02:51:53 +0000
+Processing by UsersController#show as TURBO_STREAM
+  Parameters: {"id"=>"2"}
+  [1m[36mUser Load (0.4ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = ? LIMIT ?[0m  [["id", 2], ["LIMIT", 1]]
+  ↳ app/helpers/sessions_helper.rb:14:in `current_user'
+  [1m[36mUser Load (0.2ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = ? LIMIT ?[0m  [["id", 2], ["LIMIT", 1]]
+  ↳ app/controllers/users_controller.rb:13:in `show'
+  Rendering layout layouts/application.html.erb
+  Rendering users/show.html.erb within layouts/application
+  [1m[36mActiveStorage::Attachment Load (0.2ms)[0m  [1m[34mSELECT "active_storage_attachments".* FROM "active_storage_attachments" WHERE "active_storage_attachments"."record_id" = ? AND "active_storage_attachments"."record_type" = ? AND "active_storage_attachments"."name" = ? LIMIT ?[0m  [["record_id", 2], ["record_type", "User"], ["name", "header_banner"], ["LIMIT", 1]]
+  ↳ app/views/users/show.html.erb:4
+  [1m[36mUser Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "users" INNER JOIN "relationships" ON "users"."id" = "relationships"."followed_id" WHERE "relationships"."follower_id" = ?[0m  [["follower_id", 2]]
+  ↳ app/views/users/show.html.erb:23
+  [1m[36mUser Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "users" INNER JOIN "relationships" ON "users"."id" = "relationships"."follower_id" WHERE "relationships"."followed_id" = ?[0m  [["followed_id", 2]]
+  ↳ app/views/users/show.html.erb:27
+  [1m[36mActivity Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "activities" WHERE "activities"."user_id" = ? LIMIT ?[0m  [["user_id", 2], ["LIMIT", 1]]
+  ↳ app/views/users/show.html.erb:70
+  [1m[36mActivity Load (0.5ms)[0m  [1m[34mSELECT "activities".* FROM "activities" WHERE "activities"."user_id" = ? ORDER BY "activities"."created_at" DESC LIMIT ?[0m  [["user_id", 2], ["LIMIT", 20]]
+  ↳ app/views/users/show.html.erb:71
+  [1m[36mVideoGame Load (0.3ms)[0m  [1m[34mSELECT "video_games".* FROM "video_games" WHERE "video_games"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE VideoGame Load (0.0ms)[0m  [1m[34mSELECT "video_games".* FROM "video_games" WHERE "video_games"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE VideoGame Load (0.0ms)[0m  [1m[34mSELECT "video_games".* FROM "video_games" WHERE "video_games"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mVideoGame Load (0.2ms)[0m  [1m[34mSELECT "video_games".* FROM "video_games" WHERE "video_games"."id" = ? LIMIT ?[0m  [["id", 2], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE VideoGame Load (0.0ms)[0m  [1m[34mSELECT "video_games".* FROM "video_games" WHERE "video_games"."id" = ? LIMIT ?[0m  [["id", 2], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE VideoGame Load (0.0ms)[0m  [1m[34mSELECT "video_games".* FROM "video_games" WHERE "video_games"."id" = ? LIMIT ?[0m  [["id", 2], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mTvEpisode Load (0.2ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 236], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mTvShow Load (0.2ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.1ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 235], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.1ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 234], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.1ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 233], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.1ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.2ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 232], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.3ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 231], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.2ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 230], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.2ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 229], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.2ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 228], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.2ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 227], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.1ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 226], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.1ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 225], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.1ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 224], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.1ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 223], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  Rendered collection of activities/_activity.html.erb [20 times] (Duration: 129.6ms | GC: 12.0ms)
+  [1m[36mMovie Load (0.2ms)[0m  [1m[34mSELECT "movies".* FROM "movies" WHERE "movies"."user_id" = ?[0m  [["user_id", 2]]
+  ↳ app/views/users/show.html.erb:81:in `flatten'
+  [1m[36mAlbum Load (0.2ms)[0m  [1m[34mSELECT "albums".* FROM "albums" WHERE "albums"."user_id" = ?[0m  [["user_id", 2]]
+  ↳ app/views/users/show.html.erb:81:in `flatten'
+  [1m[36mComic Load (0.2ms)[0m  [1m[34mSELECT "comics".* FROM "comics" WHERE "comics"."user_id" = ?[0m  [["user_id", 2]]
+  ↳ app/views/users/show.html.erb:81:in `flatten'
+  [1m[36mTvShow Load (0.2ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."user_id" = ?[0m  [["user_id", 2]]
+  ↳ app/views/users/show.html.erb:81:in `flatten'
+  [1m[36mVideoGame Load (0.3ms)[0m  [1m[34mSELECT "video_games".* FROM "video_games" WHERE "video_games"."user_id" = ?[0m  [["user_id", 2]]
+  ↳ app/views/users/show.html.erb:81:in `flatten'
+  [1m[36mLike Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "likes" WHERE "likes"."user_id" = ? LIMIT ?[0m  [["user_id", 2], ["LIMIT", 1]]
+  ↳ app/views/users/show.html.erb:104
+  Rendered users/show.html.erb within layouts/application (Duration: 225.9ms | GC: 17.1ms)
+  Rendered layout layouts/application.html.erb (Duration: 228.1ms | GC: 17.1ms)
+Completed 200 OK in 235ms (Views: 218.3ms | ActiveRecord: 11.4ms (47 queries, 17 cached) | GC: 17.4ms)
+
+
+Started GET "/settings/basic_info" for ::1 at 2026-06-17 02:51:53 +0000
+Processing by SettingsController#basic_info as HTML
+  [1m[36mUser Load (0.3ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = ? LIMIT ?[0m  [["id", 2], ["LIMIT", 1]]
+  ↳ app/helpers/sessions_helper.rb:14:in `current_user'
+  Rendering layout layouts/application.html.erb
+  Rendering settings/basic_info.html.erb within layouts/application
+  Rendered settings/_sidebar.html.erb (Duration: 0.7ms | GC: 0.0ms)
+  Rendered shared/_error_messages.html.erb (Duration: 0.4ms | GC: 0.0ms)
+  [1m[36mActiveStorage::Attachment Load (0.2ms)[0m  [1m[34mSELECT "active_storage_attachments".* FROM "active_storage_attachments" WHERE "active_storage_attachments"."record_id" = ? AND "active_storage_attachments"."record_type" = ? AND "active_storage_attachments"."name" = ? LIMIT ?[0m  [["record_id", 2], ["record_type", "User"], ["name", "header_banner"], ["LIMIT", 1]]
+  ↳ app/views/settings/basic_info.html.erb:43
+  Rendered settings/basic_info.html.erb within layouts/application (Duration: 9.0ms | GC: 0.2ms)
+  Rendered layout layouts/application.html.erb (Duration: 11.2ms | GC: 0.5ms)
+Completed 200 OK in 15ms (Views: 11.7ms | ActiveRecord: 0.4ms (2 queries, 0 cached) | GC: 0.5ms)
+
+
+Started PATCH "/settings/update_basic_info" for ::1 at 2026-06-17 02:51:53 +0000
+Processing by SettingsController#update_basic_info as TURBO_STREAM
+  Parameters: {"authenticity_token"=>"[FILTERED]", "user"=>{"username"=>"jules_engineer", "name"=>"Example User", "birthday"=>"", "bio"=>"Full-stack engineer building the future of media tracking."}, "commit"=>"Save Changes"}
+  [1m[36mUser Load (0.2ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = ? LIMIT ?[0m  [["id", 2], ["LIMIT", 1]]
+  ↳ app/helpers/sessions_helper.rb:14:in `current_user'
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[36mBEGIN immediate TRANSACTION[0m
+  ↳ app/controllers/settings_controller.rb:17:in `update_basic_info'
+  [1m[36mUser Exists? (1.6ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE LOWER("users"."email") = LOWER(?) AND "users"."id" != ? LIMIT ?[0m  [["email", "user@example.com"], ["id", 2], ["LIMIT", 1]]
+  ↳ app/controllers/settings_controller.rb:17:in `update_basic_info'
+  [1m[36mUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE LOWER("users"."username") = LOWER(?) AND "users"."id" != ? LIMIT ?[0m  [["username", "jules_engineer"], ["id", 2], ["LIMIT", 1]]
+  ↳ app/controllers/settings_controller.rb:17:in `update_basic_info'
+  [1m[36mUser Update (0.1ms)[0m  [1m[33mUPDATE "users" SET "updated_at" = ?, "username" = ?, "bio" = ? WHERE "users"."id" = ?[0m  [["updated_at", "2026-06-17 02:51:54.007288"], ["username", "jules_engineer"], ["bio", "Full-stack engineer building the future of media tracking."], ["id", 2]]
+  ↳ app/controllers/settings_controller.rb:17:in `update_basic_info'
+  [1m[36mTRANSACTION (2.1ms)[0m  [1m[36mCOMMIT TRANSACTION[0m
+  ↳ app/controllers/settings_controller.rb:17:in `update_basic_info'
+Redirected to http://localhost:3001/settings/basic_info
+Completed 302 Found in 16ms (ActiveRecord: 4.2ms (4 queries, 0 cached) | GC: 1.0ms)
+
+
+Started GET "/settings/basic_info" for ::1 at 2026-06-17 02:51:54 +0000
+Processing by SettingsController#basic_info as TURBO_STREAM
+  [1m[36mUser Load (0.2ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = ? LIMIT ?[0m  [["id", 2], ["LIMIT", 1]]
+  ↳ app/helpers/sessions_helper.rb:14:in `current_user'
+  Rendering layout layouts/application.html.erb
+  Rendering settings/basic_info.html.erb within layouts/application
+  Rendered settings/_sidebar.html.erb (Duration: 0.3ms | GC: 0.0ms)
+  Rendered shared/_error_messages.html.erb (Duration: 0.0ms | GC: 0.0ms)
+  [1m[36mActiveStorage::Attachment Load (0.3ms)[0m  [1m[34mSELECT "active_storage_attachments".* FROM "active_storage_attachments" WHERE "active_storage_attachments"."record_id" = ? AND "active_storage_attachments"."record_type" = ? AND "active_storage_attachments"."name" = ? LIMIT ?[0m  [["record_id", 2], ["record_type", "User"], ["name", "header_banner"], ["LIMIT", 1]]
+  ↳ app/views/settings/basic_info.html.erb:43
+  Rendered settings/basic_info.html.erb within layouts/application (Duration: 4.3ms | GC: 0.0ms)
+  Rendered layout layouts/application.html.erb (Duration: 6.0ms | GC: 0.0ms)
+Completed 200 OK in 10ms (Views: 6.3ms | ActiveRecord: 0.5ms (2 queries, 0 cached) | GC: 0.8ms)
+
+
+Started GET "/settings/notifications" for ::1 at 2026-06-17 02:51:54 +0000
+Processing by SettingsController#notifications as HTML
+  [1m[36mUser Load (0.3ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = ? LIMIT ?[0m  [["id", 2], ["LIMIT", 1]]
+  ↳ app/helpers/sessions_helper.rb:14:in `current_user'
+  Rendering layout layouts/application.html.erb
+  Rendering settings/notifications.html.erb within layouts/application
+  Rendered settings/_sidebar.html.erb (Duration: 0.3ms | GC: 0.0ms)
+  Rendered settings/notifications.html.erb within layouts/application (Duration: 3.1ms | GC: 0.0ms)
+  Rendered layout layouts/application.html.erb (Duration: 4.9ms | GC: 0.0ms)
+Completed 200 OK in 8ms (Views: 5.5ms | ActiveRecord: 0.3ms (1 query, 0 cached) | GC: 0.0ms)
+
+
+Started GET "/users/2" for ::1 at 2026-06-17 02:51:54 +0000
+Processing by UsersController#show as HTML
+  Parameters: {"id"=>"2"}
+  [1m[36mUser Load (0.3ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = ? LIMIT ?[0m  [["id", 2], ["LIMIT", 1]]
+  ↳ app/helpers/sessions_helper.rb:14:in `current_user'
+  [1m[36mUser Load (0.2ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = ? LIMIT ?[0m  [["id", 2], ["LIMIT", 1]]
+  ↳ app/controllers/users_controller.rb:13:in `show'
+  Rendering layout layouts/application.html.erb
+  Rendering users/show.html.erb within layouts/application
+  [1m[36mActiveStorage::Attachment Load (0.1ms)[0m  [1m[34mSELECT "active_storage_attachments".* FROM "active_storage_attachments" WHERE "active_storage_attachments"."record_id" = ? AND "active_storage_attachments"."record_type" = ? AND "active_storage_attachments"."name" = ? LIMIT ?[0m  [["record_id", 2], ["record_type", "User"], ["name", "header_banner"], ["LIMIT", 1]]
+  ↳ app/views/users/show.html.erb:4
+  [1m[36mUser Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "users" INNER JOIN "relationships" ON "users"."id" = "relationships"."followed_id" WHERE "relationships"."follower_id" = ?[0m  [["follower_id", 2]]
+  ↳ app/views/users/show.html.erb:23
+  [1m[36mUser Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "users" INNER JOIN "relationships" ON "users"."id" = "relationships"."follower_id" WHERE "relationships"."followed_id" = ?[0m  [["followed_id", 2]]
+  ↳ app/views/users/show.html.erb:27
+  [1m[36mActivity Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "activities" WHERE "activities"."user_id" = ? LIMIT ?[0m  [["user_id", 2], ["LIMIT", 1]]
+  ↳ app/views/users/show.html.erb:70
+  [1m[36mActivity Load (1.2ms)[0m  [1m[34mSELECT "activities".* FROM "activities" WHERE "activities"."user_id" = ? ORDER BY "activities"."created_at" DESC LIMIT ?[0m  [["user_id", 2], ["LIMIT", 20]]
+  ↳ app/views/users/show.html.erb:71
+  [1m[36mVideoGame Load (0.3ms)[0m  [1m[34mSELECT "video_games".* FROM "video_games" WHERE "video_games"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE VideoGame Load (0.0ms)[0m  [1m[34mSELECT "video_games".* FROM "video_games" WHERE "video_games"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE VideoGame Load (0.0ms)[0m  [1m[34mSELECT "video_games".* FROM "video_games" WHERE "video_games"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mVideoGame Load (0.1ms)[0m  [1m[34mSELECT "video_games".* FROM "video_games" WHERE "video_games"."id" = ? LIMIT ?[0m  [["id", 2], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE VideoGame Load (0.0ms)[0m  [1m[34mSELECT "video_games".* FROM "video_games" WHERE "video_games"."id" = ? LIMIT ?[0m  [["id", 2], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE VideoGame Load (0.0ms)[0m  [1m[34mSELECT "video_games".* FROM "video_games" WHERE "video_games"."id" = ? LIMIT ?[0m  [["id", 2], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mTvEpisode Load (0.1ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 236], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mTvShow Load (0.2ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.1ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 235], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.1ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 234], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.1ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 233], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.2ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 232], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.1ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 231], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.1ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 230], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.1ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 229], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.1ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 228], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.2ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 227], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.2ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 226], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.1ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 225], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.1ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 224], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  [1m[36mTvEpisode Load (0.1ms)[0m  [1m[34mSELECT "tv_episodes".* FROM "tv_episodes" WHERE "tv_episodes"."id" = ? LIMIT ?[0m  [["id", 223], ["LIMIT", 1]]
+  ↳ app/views/activities/_activity.html.erb:1
+  [1m[36mCACHE TvShow Load (0.0ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."id" = ? LIMIT ?[0m  [["id", 4], ["LIMIT", 1]]
+  ↳ app/models/tv_episode.rb:14:in `title'
+  Rendered collection of activities/_activity.html.erb [20 times] (Duration: 48.1ms | GC: 2.8ms)
+  [1m[36mMovie Load (0.1ms)[0m  [1m[34mSELECT "movies".* FROM "movies" WHERE "movies"."user_id" = ?[0m  [["user_id", 2]]
+  ↳ app/views/users/show.html.erb:81:in `flatten'
+  [1m[36mAlbum Load (0.1ms)[0m  [1m[34mSELECT "albums".* FROM "albums" WHERE "albums"."user_id" = ?[0m  [["user_id", 2]]
+  ↳ app/views/users/show.html.erb:81:in `flatten'
+  [1m[36mComic Load (0.1ms)[0m  [1m[34mSELECT "comics".* FROM "comics" WHERE "comics"."user_id" = ?[0m  [["user_id", 2]]
+  ↳ app/views/users/show.html.erb:81:in `flatten'
+  [1m[36mTvShow Load (0.1ms)[0m  [1m[34mSELECT "tv_shows".* FROM "tv_shows" WHERE "tv_shows"."user_id" = ?[0m  [["user_id", 2]]
+  ↳ app/views/users/show.html.erb:81:in `flatten'
+  [1m[36mVideoGame Load (0.1ms)[0m  [1m[34mSELECT "video_games".* FROM "video_games" WHERE "video_games"."user_id" = ?[0m  [["user_id", 2]]
+  ↳ app/views/users/show.html.erb:81:in `flatten'
+  [1m[36mLike Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "likes" WHERE "likes"."user_id" = ? LIMIT ?[0m  [["user_id", 2], ["LIMIT", 1]]
+  ↳ app/views/users/show.html.erb:104
+  Rendered users/show.html.erb within layouts/application (Duration: 74.4ms | GC: 11.0ms)
+  Rendered layout layouts/application.html.erb (Duration: 76.6ms | GC: 11.0ms)
+Completed 200 OK in 82ms (Views: 72.5ms | ActiveRecord: 5.5ms (47 queries, 17 cached) | GC: 11.0ms)
+
+
+- Gracefully stopping, waiting for requests to finish
+Exiting
