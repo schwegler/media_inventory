@@ -9,6 +9,8 @@ class TvShow < ApplicationRecord
   has_many :comments, as: :commentable, dependent: :destroy
 
   validates :title, presence: true
+  validates :api_id, uniqueness: { scope: :user_id }, allow_blank: true
+  validates :title, uniqueness: { scope: :user_id, case_sensitive: false }, if: -> { api_id.blank? }
 
   after_commit :sync_episodes_from_api, on: %i[create update]
 

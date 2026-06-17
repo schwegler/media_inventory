@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_15_023045) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_17_024353) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -70,6 +70,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_023045) do
     t.string "title"
     t.datetime "updated_at", null: false
     t.integer "user_id"
+    t.index ["user_id", "api_id"], name: "index_albums_on_user_id_and_api_id", unique: true, where: "api_id IS NOT NULL"
+    t.index ["user_id", "title", "artist"], name: "index_albums_on_user_id_and_title_and_artist", unique: true, where: "api_id IS NULL"
     t.index ["user_id"], name: "index_albums_on_user_id"
   end
 
@@ -103,6 +105,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_023045) do
     t.datetime "updated_at", null: false
     t.integer "user_id"
     t.string "writer"
+    t.index ["user_id", "api_id"], name: "index_comics_on_user_id_and_api_id", unique: true, where: "api_id IS NOT NULL"
+    t.index ["user_id", "title", "issue_number"], name: "index_comics_on_user_id_and_title_and_issue_number", unique: true, where: "api_id IS NULL"
     t.index ["user_id"], name: "index_comics_on_user_id"
   end
 
@@ -145,6 +149,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_023045) do
     t.string "title"
     t.datetime "updated_at", null: false
     t.integer "user_id"
+    t.index ["user_id", "api_id"], name: "index_movies_on_user_id_and_api_id", unique: true, where: "api_id IS NOT NULL"
+    t.index ["user_id", "title", "release_year"], name: "index_movies_on_user_id_and_title_and_release_year", unique: true, where: "api_id IS NULL"
     t.index ["user_id"], name: "index_movies_on_user_id"
   end
 
@@ -181,6 +187,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_023045) do
     t.string "title"
     t.datetime "updated_at", null: false
     t.integer "user_id"
+    t.index ["user_id", "api_id"], name: "index_tv_shows_on_user_id_and_api_id", unique: true, where: "api_id IS NOT NULL"
+    t.index ["user_id", "title"], name: "index_tv_shows_on_user_id_and_title", unique: true, where: "api_id IS NULL"
     t.index ["user_id"], name: "index_tv_shows_on_user_id"
   end
 
@@ -223,6 +231,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_023045) do
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.integer "user_id"
+    t.index ["user_id", "api_id"], name: "index_video_games_on_user_id_and_api_id", unique: true, where: "api_id IS NOT NULL"
+    t.index ["user_id", "title", "platform"], name: "index_video_games_on_user_id_and_title_and_platform", unique: true, where: "api_id IS NULL"
     t.index ["user_id"], name: "index_video_games_on_user_id"
   end
 
