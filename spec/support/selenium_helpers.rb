@@ -50,12 +50,8 @@ module SystemTestHelpers
 
   # Safely clicks the "Add Manually" button, waiting for the Stimulus controller to be connected first.
   def click_add_manually
-    if Capybara.current_driver == :rack_test
-      click_button 'Add Manually'
-    else
-      expect(page).to have_css('[data-connected="true"]')
-      click_button 'Add Manually'
-    end
+    expect(page).to have_css('[data-connected="true"]') if Capybara.current_driver != :rack_test
+    click_button 'Add Manually'
   end
 end
 
