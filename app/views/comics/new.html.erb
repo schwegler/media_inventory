@@ -66,24 +66,28 @@
                     <%= f.file_field :cover_image, class: 'form-control' %>
                   </div>
 
-                  <div class="details-field-group">
-                    <%= f.label :issue_number %>
-                    <%= f.number_field :issue_number, data: { thumbnail_fetcher_target: "issueNumber" } %>
+                  <div class="details-form-row">
+                    <div class="details-field-group">
+                      <%= f.label :writer %>
+                      <%= f.text_field :writer, data: { thumbnail_fetcher_target: "secondaryInput writer", action: "input->thumbnail-fetcher#search" } %>
+                    </div>
+
+                    <div class="details-field-group">
+                      <%= f.label :artist %>
+                      <%= f.text_field :artist, data: { thumbnail_fetcher_target: "artist" } %>
+                    </div>
                   </div>
 
-                  <div class="details-field-group">
-                    <%= f.label :publisher %>
-                    <%= f.text_field :publisher, data: { thumbnail_fetcher_target: "publisher" } %>
-                  </div>
+                  <div class="details-form-row">
+                    <div class="details-field-group">
+                      <%= f.label :publisher %>
+                      <%= f.text_field :publisher, data: { thumbnail_fetcher_target: "publisher" } %>
+                    </div>
 
-                  <div class="details-field-group">
-                    <%= f.label :writer %>
-                    <%= f.text_field :writer, data: { thumbnail_fetcher_target: "secondaryInput writer", action: "input->thumbnail-fetcher#search" } %>
-                  </div>
-
-                  <div class="details-field-group">
-                    <%= f.label :artist %>
-                    <%= f.text_field :artist, data: { thumbnail_fetcher_target: "artist" } %>
+                    <div class="details-field-group">
+                      <%= f.label :issue_number %>
+                      <%= f.number_field :issue_number, data: { thumbnail_fetcher_target: "issueNumber" } %>
+                    </div>
                   </div>
 
                   <div class="form-row-toggles">
@@ -101,14 +105,16 @@
                     </div>
                   </div>
 
-                  <div class="details-field-group" data-consumed-toggle-target="dateRow" style="display: none;">
-                    <%= f.label :consumed_at, "Date Read" %>
-                    <%= f.date_field :consumed_at, value: Time.current.to_date %>
-                  </div>
+                  <div class="details-form-row">
+                    <div class="details-field-group">
+                      <%= f.label :rating %>
+                      <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]] %>
+                    </div>
 
-                  <div class="details-field-group">
-                    <%= f.label :rating %>
-                    <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]] %>
+                    <div class="details-field-group" data-consumed-toggle-target="dateRow" style="display: none;">
+                      <%= f.label :consumed_at, "Date Read" %>
+                      <%= f.date_field :consumed_at, value: Time.current.to_date %>
+                    </div>
                   </div>
 
                   <div class="details-field-group">

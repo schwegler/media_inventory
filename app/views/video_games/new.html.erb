@@ -66,24 +66,28 @@
                     <%= f.file_field :cover_image, class: 'form-control' %>
                   </div>
 
-                  <div class="details-field-group">
-                    <%= f.label :developer %>
-                    <%= f.text_field :developer, data: { thumbnail_fetcher_target: "secondaryInput developer", action: "input->thumbnail-fetcher#search" } %>
+                  <div class="details-form-row">
+                    <div class="details-field-group">
+                      <%= f.label :developer %>
+                      <%= f.text_field :developer, data: { thumbnail_fetcher_target: "secondaryInput developer", action: "input->thumbnail-fetcher#search" } %>
+                    </div>
+
+                    <div class="details-field-group">
+                      <%= f.label :publisher %>
+                      <%= f.text_field :publisher, data: { thumbnail_fetcher_target: "publisher" } %>
+                    </div>
                   </div>
 
-                  <div class="details-field-group">
-                    <%= f.label :publisher %>
-                    <%= f.text_field :publisher, data: { thumbnail_fetcher_target: "publisher" } %>
-                  </div>
+                  <div class="details-form-row">
+                    <div class="details-field-group">
+                      <%= f.label :platform %>
+                      <%= f.text_field :platform, placeholder: "e.g., PC, Nintendo Switch, PS5, Xbox", data: { thumbnail_fetcher_target: "platform" } %>
+                    </div>
 
-                  <div class="details-field-group">
-                    <%= f.label :platform %>
-                    <%= f.text_field :platform, placeholder: "e.g., PC, Nintendo Switch, PS5, Xbox", data: { thumbnail_fetcher_target: "platform" } %>
-                  </div>
-
-                  <div class="details-field-group">
-                    <%= f.label :release_year %>
-                    <%= f.number_field :release_year, data: { thumbnail_fetcher_target: "releaseYear" } %>
+                    <div class="details-field-group">
+                      <%= f.label :release_year %>
+                      <%= f.number_field :release_year, data: { thumbnail_fetcher_target: "releaseYear" } %>
+                    </div>
                   </div>
 
                   <div class="form-row-toggles">
@@ -101,14 +105,16 @@
                     </div>
                   </div>
 
-                  <div class="details-field-group" data-consumed-toggle-target="dateRow" style="display: none;">
-                    <%= f.label :consumed_at, "Date Played" %>
-                    <%= f.date_field :consumed_at, value: Time.current.to_date %>
-                  </div>
+                  <div class="details-form-row">
+                    <div class="details-field-group">
+                      <%= f.label :rating %>
+                      <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]] %>
+                    </div>
 
-                  <div class="details-field-group">
-                    <%= f.label :rating %>
-                    <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]] %>
+                    <div class="details-field-group" data-consumed-toggle-target="dateRow" style="display: none;">
+                      <%= f.label :consumed_at, "Date Played" %>
+                      <%= f.date_field :consumed_at, value: Time.current.to_date %>
+                    </div>
                   </div>
 
                   <div class="details-field-group">

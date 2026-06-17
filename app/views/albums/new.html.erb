@@ -71,14 +71,16 @@
                     <%= f.text_field :artist, data: { thumbnail_fetcher_target: "secondaryInput artist", action: "input->thumbnail-fetcher#search" } %>
                   </div>
 
-                  <div class="details-field-group">
-                    <%= f.label :release_year %>
-                    <%= f.number_field :release_year, data: { thumbnail_fetcher_target: "releaseYear" } %>
-                  </div>
+                  <div class="details-form-row">
+                    <div class="details-field-group">
+                      <%= f.label :release_year %>
+                      <%= f.number_field :release_year, data: { thumbnail_fetcher_target: "releaseYear" } %>
+                    </div>
 
-                  <div class="details-field-group">
-                    <%= f.label :genre %>
-                    <%= f.text_field :genre, data: { thumbnail_fetcher_target: "genre" } %>
+                    <div class="details-field-group">
+                      <%= f.label :genre %>
+                      <%= f.text_field :genre, data: { thumbnail_fetcher_target: "genre" } %>
+                    </div>
                   </div>
 
                   <div class="form-row-toggles">
@@ -96,14 +98,16 @@
                     </div>
                   </div>
 
-                  <div class="details-field-group" data-consumed-toggle-target="dateRow" style="display: none;">
-                    <%= f.label :consumed_at, "Date Listened" %>
-                    <%= f.date_field :consumed_at, value: Time.current.to_date %>
-                  </div>
+                  <div class="details-form-row">
+                    <div class="details-field-group">
+                      <%= f.label :rating %>
+                      <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]] %>
+                    </div>
 
-                  <div class="details-field-group">
-                    <%= f.label :rating %>
-                    <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]] %>
+                    <div class="details-field-group" data-consumed-toggle-target="dateRow" style="display: none;">
+                      <%= f.label :consumed_at, "Date Listened" %>
+                      <%= f.date_field :consumed_at, value: Time.current.to_date %>
+                    </div>
                   </div>
 
                   <div class="details-field-group">
