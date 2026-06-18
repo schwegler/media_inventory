@@ -31,7 +31,7 @@ RSpec.describe 'Albums Management', type: :system do
     fill_in 'album[genre]', with: 'Rock'
     select '★★★★★', from: 'album[rating]'
     fill_in 'album[review]', with: 'A classic masterpiece.'
-    safe_click_button 'Create Album'
+    click_button 'Create Album'
 
     expect(page).to have_text('Abbey Road')
     expect(page).to have_text('by The Beatles')
@@ -40,7 +40,7 @@ RSpec.describe 'Albums Management', type: :system do
     # Edit Album via inline form on the show page
     select '★★★★', from: 'album[rating]'
     fill_in 'album[review]', with: 'Classic Rock masterpiece!'
-    safe_click_button 'Save Review & Listening Status'
+    click_button 'Save Review & Listening Status'
 
     expect(page).to have_text('Album was successfully updated.')
     expect(page).to have_text('Classic Rock masterpiece!')

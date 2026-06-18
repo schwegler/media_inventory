@@ -29,7 +29,7 @@ RSpec.describe 'TV Shows and Episodes Management', type: :system do
     fill_in 'tv_show[network]', with: 'AMC'
     select '★★★★★', from: 'tv_show[rating]'
     fill_in 'tv_show[review]', with: 'Simply amazing.'
-    safe_click_button 'Create TV Show'
+    click_button 'Create TV Show'
 
     expect(page).to have_text('Breaking Bad')
     expect(page).to have_text('on AMC')
@@ -66,7 +66,7 @@ RSpec.describe 'TV Shows and Episodes Management', type: :system do
     # Edit TV Show via inline form
     select '★★★★', from: 'tv_show[rating]'
     fill_in 'tv_show[review]', with: 'Overrated but still good.'
-    safe_click_button 'Save Review & Watching Status'
+    click_button 'Save Review & Watching Status'
 
     expect(page).to have_text('Tv show was successfully updated.')
     expect(page).to have_text('Overrated but still good.')

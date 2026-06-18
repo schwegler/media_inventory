@@ -54,24 +54,12 @@ module SystemTestHelpers
       click_button 'Add Manually'
     else
       expect(page).to have_css('[data-connected="true"]')
-      # Force a blur to ensure input events have fired and state is synchronized
-      page.execute_script('document.activeElement.blur()')
-      # Execute the click via JS to bypass any overlapping element/animation issues that Selenium might have
-      page.execute_script('document.querySelector("button[data-action*=\'showManualForm\']").click()')
+      # Standard click_button works safely now that CSS animations are disabled in test env
+      # Capybara natively ensures the input event loop has settled before clicking
+      click_button 'Add Manually'
     end
   end
 
-  # Safely clicks a button by its text or locator, bypassing Selenium's flaky overlapping element checks
-  def safe_click_button(locator)
-    if Capybara.current_driver == :rack_test
-      click_button(locator)
-    else
-      # Find the button using Capybara to ensure it exists and wait for it
-      button = find(:button, locator)
-      # Execute the click via JS on the specific DOM element
-      page.execute_script('arguments[0].click();', button)
-    end
-  end
 end
 
 RSpec.configure do |config|

@@ -32,7 +32,7 @@ RSpec.describe 'Video Games Management', type: :system do
     fill_in 'video_game[release_year]', with: '2017'
     select '★★★★★', from: 'video_game[rating]'
     fill_in 'video_game[review]', with: 'An absolute masterpiece.'
-    safe_click_button 'Create Video Game'
+    click_button 'Create Video Game'
 
     expect(page).to have_text('The Legend of Zelda')
     expect(page).to have_text('Nintendo')
@@ -41,7 +41,7 @@ RSpec.describe 'Video Games Management', type: :system do
     # Edit Video Game via inline form
     select '★★★★', from: 'video_game[rating]'
     fill_in 'video_game[review]', with: 'Great exploration game!'
-    safe_click_button 'Save Review & Playing Status'
+    click_button 'Save Review & Playing Status'
 
     expect(page).to have_text('Video game was successfully updated.')
     expect(page).to have_text('Great exploration game!')
