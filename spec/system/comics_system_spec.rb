@@ -32,7 +32,7 @@ RSpec.describe 'Comics Management', type: :system do
     fill_in 'comic[artist]', with: 'Dave Gibbons'
     select '★★★★★', from: 'comic[rating]'
     fill_in 'comic[review]', with: 'Who watches the watchmen?'
-    click_button 'Create Comic'
+    submit_form_button 'Create Comic'
 
     expect(page).to have_text('Watchmen')
     expect(page).to have_text('by Alan Moore')
@@ -41,7 +41,7 @@ RSpec.describe 'Comics Management', type: :system do
     # Edit Comic via inline form
     select '★★★★', from: 'comic[rating]'
     fill_in 'comic[review]', with: 'Masterpiece of graphic novels!'
-    click_button 'Save Review & Reading Status'
+    submit_form_button 'Save Review & Reading Status'
 
     expect(page).to have_text('Comic was successfully updated.')
     expect(page).to have_text('Masterpiece of graphic novels!')

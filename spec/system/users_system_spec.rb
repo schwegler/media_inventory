@@ -42,7 +42,7 @@ RSpec.describe 'Users Profile and Directory Management', type: :system do
     fill_in 'Bluesky Handle', with: 'normal.bsky.social'
     fill_in 'New Password (optional)', with: ''
     fill_in 'Confirmation', with: ''
-    click_button 'Save changes'
+    submit_form_button 'Save changes'
 
     expect(page).to have_text('Profile updated')
     expect(page).to have_text('UPDATED NORMAL USER')

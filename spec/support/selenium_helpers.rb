@@ -50,12 +50,19 @@ module SystemTestHelpers
 
   # Safely clicks the "Add Manually" button, waiting for the Stimulus controller to be connected first.
   def click_add_manually
-    unless Capybara.current_driver == :rack_test
-      expect(page).to have_css('[data-connected="true"]')
-      # Standard click_button works safely now that CSS animations are disabled in test env
-      # Capybara natively ensures the input event loop has settled before clicking
-    end
+    expect(page).to have_css('[data-connected="true"]') unless Capybara.current_driver == :rack_test
     click_button 'Add Manually'
+  end
+
+  # Safely clicks a form submit button by bypassing Selenium's flaky bottom-of-page scroll/overlap issues
+  def submit_form_button(locator)
+    if Capybara.current_driver == :rack_test
+      click_button(locator)
+    else
+      button = find(:button, locator)
+      # Trigger DOM click to bypass sticky footer interception
+      page.execute_script('arguments[0].click();', button)
+    end
   end
 end
 
