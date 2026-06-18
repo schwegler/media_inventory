@@ -50,16 +50,13 @@ module SystemTestHelpers
 
   # Safely clicks the "Add Manually" button, waiting for the Stimulus controller to be connected first.
   def click_add_manually
-    if Capybara.current_driver == :rack_test
-      click_button 'Add Manually'
-    else
+    unless Capybara.current_driver == :rack_test
       expect(page).to have_css('[data-connected="true"]')
       # Standard click_button works safely now that CSS animations are disabled in test env
       # Capybara natively ensures the input event loop has settled before clicking
-      click_button 'Add Manually'
     end
+    click_button 'Add Manually'
   end
-
 end
 
 RSpec.configure do |config|
