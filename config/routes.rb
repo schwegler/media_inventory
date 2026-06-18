@@ -49,9 +49,11 @@ SampleApp::Application.routes.draw do
   }
 
   # OmniAuth routes
-  match '/auth/:provider/setup', to: 'omniauth_callbacks#setup', via: [:get, :post]
-  match '/auth/:provider/callback', to: 'omniauth_callbacks#mastodon', constraints: { provider: 'mastodon' }, via: [:get, :post]
-  match '/auth/:provider/callback', to: 'omniauth_callbacks#atproto', constraints: { provider: 'atproto' }, via: [:get, :post]
+  match '/auth/:provider/setup', to: 'omniauth_callbacks#setup', via: %i[get post]
+  match '/auth/:provider/callback', to: 'omniauth_callbacks#mastodon', constraints: { provider: 'mastodon' },
+                                    via: %i[get post]
+  match '/auth/:provider/callback', to: 'omniauth_callbacks#atproto', constraints: { provider: 'atproto' },
+                                    via: %i[get post]
   get '/auth/failure', to: 'omniauth_callbacks#failure'
 
   # Client metadata endpoint for Bluesky OAuth

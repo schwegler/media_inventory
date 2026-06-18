@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/ModuleLength
 module Trackable
   extend ActiveSupport::Concern
 
@@ -111,14 +112,30 @@ module Trackable
 
   def build_social_message(activity_type, platform)
     is_review = (activity_type == 'reviewed')
-    
+
     template = if platform == :bsky
-                 is_review ? user.bsky_message_review_template.presence || 'Reviewed [title]: [review] ([rating] stars)' : user.bsky_message_activity_template.presence || 'Added [title] to my [type] list!'
+                 bsky_template(is_review)
                else
-                 is_review ? user.mastodon_message_review_template.presence || 'Reviewed [title]: [review] ([rating] stars)' : user.mastodon_message_activity_template.presence || 'Added [title] to my [type] list!'
+                 mastodon_template(is_review)
                end
 
     interpolate_social_template(template, activity_type)
+  end
+
+  def bsky_template(is_review)
+    if is_review
+      user.bsky_message_review_template.presence || 'Reviewed [title]: [review] ([rating] stars)'
+    else
+      user.bsky_message_activity_template.presence || 'Added [title] to my [type] list!'
+    end
+  end
+
+  def mastodon_template(is_review)
+    if is_review
+      user.mastodon_message_review_template.presence || 'Reviewed [title]: [review] ([rating] stars)'
+    else
+      user.mastodon_message_activity_template.presence || 'Added [title] to my [type] list!'
+    end
   end
 
   def interpolate_social_template(template, activity_type)
@@ -140,3 +157,4 @@ module Trackable
     change.nil? || change[0].blank?
   end
 end
+# rubocop:enable Metrics/ModuleLength

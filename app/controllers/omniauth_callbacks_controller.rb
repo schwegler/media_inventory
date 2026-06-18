@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class OmniauthCallbacksController < ApplicationController
   skip_before_action :verify_authenticity_token, only: %i[setup atproto mastodon]
 
@@ -5,48 +7,18 @@ class OmniauthCallbacksController < ApplicationController
     request = env['omniauth.strategy'].request
     provider = env['omniauth.strategy'].name
 
-    if provider == 'mastodon'
-      server = request.params['mastodon_server']
-      if server.blank?
-        # Handle error or render form
-        render plain: "Mastodon server required", status: 400
-        return
-      end
-
-      # Construct callback url dynamically
-      callback_url = url_for(action: :mastodon, controller: 'omniauth_callbacks', only_path: false)
-      callback_url.sub!(%r{/setup$}, '/callback') # Adjust if necessary since omniauth handles callback
-
-      app = MastodonAppRegistration.register(server, callback_url)
-      unless app
-        render plain: "Failed to register application on #{server}", status: 500
-        return
-      end
-
-      env['omniauth.strategy'].options.client_id = app.client_id
-      env['omniauth.strategy'].options.client_secret = app.client_secret
-      env['omniauth.strategy'].options.client_options.site = "https://#{app.server}"
-
-    elsif provider == 'atproto'
-      # AT Proto setup might involve resolving the user's handle to their PDS
-      # omniauth-atproto handles most of it, but we might need to set dynamic options based on params.
-      handle = request.params['bsky_handle']
-      if handle.present?
-        env['omniauth.strategy'].options.handle = handle
-      end
-      # We assume BSKY_CLIENT_ID is set in ENV for localhost or production
-      client_id = ENV['BSKY_CLIENT_ID'] || url_for(controller: 'client_metadata', action: :show, format: :json, only_path: false)
-      env['omniauth.strategy'].options.client_id = client_id
+    case provider
+    when 'mastodon'
+      setup_mastodon(request)
+    when 'atproto'
+      setup_atproto(request)
     end
-
-    render plain: "Setup complete", status: 404 # OmniAuth catches 404 from setup and continues to request phase
   end
 
   def mastodon
     auth = request.env['omniauth.auth']
-    user = current_user || User.find_by(mastodon_uid: auth.uid) || User.new
+    user = find_or_initialize_mastodon_user(auth)
 
-    user.mastodon_uid = auth.uid
     user.mastodon_server = auth.extra.server
     user.mastodon_access_token = auth.credentials.token
     user.mastodon_refresh_token = auth.credentials.refresh_token
@@ -57,13 +29,11 @@ class OmniauthCallbacksController < ApplicationController
       user.email = auth.info.email
       # Generate a random password for new OAuth users
       user.password = SecureRandom.hex(16)
-      user.save!
-    else
-      user.save!
     end
+    user.save!
 
     session[:user_id] = user.id unless current_user
-    redirect_to root_path, notice: "Successfully connected to Mastodon!"
+    redirect_to root_path, notice: 'Successfully connected to Mastodon!'
   end
 
   def atproto
@@ -79,16 +49,54 @@ class OmniauthCallbacksController < ApplicationController
       user.name = auth.info.name || user.bsky_handle
       user.username = user.bsky_handle.gsub(/[^a-zA-Z0-9_]/, '_')
       user.password = SecureRandom.hex(16)
-      user.save!
-    else
-      user.save!
     end
+    user.save!
 
     session[:user_id] = user.id unless current_user
-    redirect_to root_path, notice: "Successfully connected to Bluesky!"
+    redirect_to root_path, notice: 'Successfully connected to Bluesky!'
   end
 
   def failure
     redirect_to root_path, alert: "Authentication failed: #{params[:message]}"
+  end
+
+  private
+
+  def setup_mastodon(request)
+    server = request.params['mastodon_server']
+    if server.blank?
+      render plain: 'Mastodon server required', status: 400
+      return
+    end
+
+    callback_url = url_for(action: :mastodon, controller: 'omniauth_callbacks', only_path: false)
+    callback_url.sub!(%r{/setup$}, '/callback')
+
+    app = MastodonAppRegistration.register(server, callback_url)
+    unless app
+      render plain: "Failed to register application on #{server}", status: 500
+      return
+    end
+
+    env['omniauth.strategy'].options.client_id = app.client_id
+    env['omniauth.strategy'].options.client_secret = app.client_secret
+    env['omniauth.strategy'].options.client_options.site = "https://#{app.server}"
+    render plain: 'Setup complete', status: 404
+  end
+
+  def setup_atproto(request)
+    handle = request.params['bsky_handle']
+    env['omniauth.strategy'].options.handle = handle if handle.present?
+
+    client_id = ENV.fetch('BSKY_CLIENT_ID',
+                          url_for(controller: 'client_metadata', action: :show, format: :json, only_path: false))
+    env['omniauth.strategy'].options.client_id = client_id
+    render plain: 'Setup complete', status: 404
+  end
+
+  def find_or_initialize_mastodon_user(auth)
+    user = current_user || User.find_by(mastodon_uid: auth.uid) || User.new
+    user.mastodon_uid = auth.uid
+    user
   end
 end

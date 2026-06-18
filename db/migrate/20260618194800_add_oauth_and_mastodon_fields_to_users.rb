@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddOauthAndMastodonFieldsToUsers < ActiveRecord::Migration[8.1]
   def change
     create_table :mastodon_oauth_applications do |t|

@@ -50,7 +50,7 @@ gem 'bcrypt', '~> 3.1'
 
 gem 'kaminari', '~> 1.2'
 
-gem "omniauth", "~> 2.1"
-gem "omniauth-rails_csrf_protection", "~> 2.0"
-gem "omniauth-atproto", "~> 0.1.4"
-gem "omniauth-oauth2", "~> 1.9"
+gem 'omniauth', '~> 2.1'
+gem 'omniauth-atproto', '~> 0.1.4'
+gem 'omniauth-oauth2', '~> 1.9'
+gem 'omniauth-rails_csrf_protection', '~> 2.0'

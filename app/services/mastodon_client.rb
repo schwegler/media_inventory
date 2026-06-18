@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'net/http'
 require 'json'
 
@@ -11,9 +13,9 @@ class MastodonClient
 
     uri = URI("https://#{@user.mastodon_server}/api/v1/statuses")
     req = Net::HTTP::Post.new(uri, {
-      'Content-Type' => 'application/json',
-      'Authorization' => "Bearer #{@user.mastodon_access_token}"
-    })
+                                'Content-Type' => 'application/json',
+                                'Authorization' => "Bearer #{@user.mastodon_access_token}"
+                              })
 
     req.body = {
       status: text,
