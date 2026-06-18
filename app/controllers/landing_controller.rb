@@ -9,7 +9,7 @@ class LandingController < ApplicationController
       @popular_reviews = fetch_popular_reviews
     else
       # Fetch all activities, ordered by newest first, with pagination (Kaminari)
-      @activities = Activity.includes(:user, :trackable)
+      @activities = Activity.includes(:user, trackable: { cover_image_attachment: :blob })
                             .order(created_at: :desc)
                             .page(params[:page])
                             .per(15)
@@ -20,14 +20,14 @@ class LandingController < ApplicationController
   private
 
   def fetch_friend_activities
-    friend_activities = Activity.includes(:user, :trackable)
+    friend_activities = Activity.includes(:user, trackable: { cover_image_attachment: :blob })
                                 .where.not(user_id: current_user.id)
                                 .where(activity_type: %w[added consumed reviewed])
                                 .order(created_at: :desc)
                                 .limit(6)
     if friend_activities.size < 3
       # Fallback to all activities if there aren't enough from other users
-      friend_activities = Activity.includes(:user, :trackable)
+      friend_activities = Activity.includes(:user, trackable: { cover_image_attachment: :blob })
                                   .where(activity_type: %w[added consumed reviewed])
                                   .order(created_at: :desc)
                                   .limit(6)
@@ -40,28 +40,43 @@ class LandingController < ApplicationController
                                        .order('count_all DESC')
                                        .limit(6)
                                        .count
-    popular_items = popular_trackable_counts.map do |(type, id), _|
+
+    # Group IDs by type for bulk fetching to avoid N+1 queries
+    ids_by_type = popular_trackable_counts.keys.each_with_object({}) do |(type, id), hash|
       next if type.nil? || id.nil?
 
-      begin
-        type.constantize.find_by(id: id)
-      rescue NameError
-        nil
-      end
+      (hash[type] ||= []) << id
+    end
+
+    # Bulk fetch items by type and store in a lookup hash
+    fetched_items = ids_by_type.each_with_object({}) do |(type, ids), hash|
+      klass = type.constantize
+      # Eager load Active Storage attachments if the model supports it
+      scope = klass.where(id: ids)
+      scope = scope.includes(cover_image_attachment: :blob) if klass.reflect_on_association(:cover_image_attachment)
+      hash[type] = scope.index_by(&:id)
+    rescue NameError
+      hash[type] = {}
+    end
+
+    # Map back to original ordered list from the lookup hash
+    popular_items = popular_trackable_counts.map do |(type, id), _|
+      fetched_items.dig(type, id)
     end.compact
 
     if popular_items.empty?
       # Fallback to recent public items if no activity exists
-      (Movie.where(is_public: true).limit(2).to_a +
-                        Album.where(is_public: true).limit(2).to_a +
-                        VideoGame.where(is_public: true).limit(2).to_a).sample(6)
+      # Eager load Active Storage attachments for fallback items
+      (Movie.includes(cover_image_attachment: :blob).where(is_public: true).limit(2).to_a +
+       Album.includes(cover_image_attachment: :blob).where(is_public: true).limit(2).to_a +
+       VideoGame.includes(cover_image_attachment: :blob).where(is_public: true).limit(2).to_a).sample(6)
     else
       popular_items
     end
   end
 
   def fetch_popular_reviews
-    reviewed_activities = Activity.includes(:user, :trackable)
+    reviewed_activities = Activity.includes(:user, trackable: { cover_image_attachment: :blob })
                                   .where(activity_type: 'reviewed')
                                   .order(created_at: :desc)
                                   .limit(20)
