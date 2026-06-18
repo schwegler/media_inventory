@@ -54,8 +54,11 @@ module SystemTestHelpers
       expect(page).to have_css('[data-connected="true"]')
       # Force a blur to ensure input events have fired and state is synchronized
       page.execute_script('document.activeElement.blur()')
+      # Execute the click via JS to bypass any overlapping element/animation issues that Selenium might have
+      page.execute_script('document.querySelector("button[data-action*=\'showManualForm\']").click()')
+    else
+      click_button 'Add Manually'
     end
-    click_button 'Add Manually'
   end
 end
 

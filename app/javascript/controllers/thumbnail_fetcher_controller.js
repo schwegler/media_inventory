@@ -37,7 +37,7 @@ export default class extends Controller {
     const hasErrors = this.element.querySelector("#error_explanation") !== null
     if (hasErrors) {
       const currentTitle = this.titleInputTarget.value || "Details"
-      const releaseYearVal = this.releaseYearTargets.length > 0 ? this.releaseYearTarget.value : null
+      const releaseYearVal = this.hasReleaseYearTarget ? this.releaseYearTarget.value : null
       this.showDetailsStage(currentTitle, releaseYearVal)
     } else {
       this.goToSearch()
@@ -66,7 +66,7 @@ export default class extends Controller {
 
   showManualForm() {
     const title = this.titleInputTarget.value.trim() || "New Item"
-    const releaseYearVal = this.releaseYearTargets.length > 0 ? this.releaseYearTarget.value : null
+    const releaseYearVal = this.hasReleaseYearTarget ? this.releaseYearTarget.value : null
     this.showDetailsStage(title, releaseYearVal)
   }
 
@@ -476,7 +476,7 @@ export default class extends Controller {
       if (this.hasArtistTarget) this.artistTarget.value = option.artist || ""
       if (this.hasWriterTarget) this.writerTarget.value = option.writer || ""
       if (this.hasPublisherTarget) this.publisherTarget.value = option.publisher || ""
-      if (this.releaseYearTargets.length > 0) this.releaseYearTarget.value = option.release_year || ""
+      if (this.hasReleaseYearTarget) this.releaseYearTarget.value = option.release_year || ""
       if (this.hasGenreTarget) this.genreTarget.value = option.genre || ""
       if (this.hasNetworkTarget) this.networkTarget.value = option.network || ""
       if (this.hasDeveloperTarget) this.developerTarget.value = option.developer || ""
