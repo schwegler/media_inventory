@@ -41,6 +41,8 @@ class LandingController < ApplicationController
                                        .limit(6)
                                        .count
 
+    return fallback_popular_items if popular_trackable_counts.empty?
+
     # Group IDs by type for bulk fetching to avoid N+1 queries
     ids_by_type = popular_trackable_counts.keys.each_with_object({}) do |(type, id), hash|
       next if type.nil? || id.nil?
@@ -48,8 +50,16 @@ class LandingController < ApplicationController
       (hash[type] ||= []) << id
     end
 
-    # Bulk fetch items by type and store in a lookup hash
-    fetched_items = ids_by_type.each_with_object({}) do |(type, ids), hash|
+    fetched_items = bulk_fetch_trackables(ids_by_type)
+
+    # Map back to original ordered list from the lookup hash
+    popular_trackable_counts.map do |(type, id), _|
+      fetched_items.dig(type, id)
+    end.compact
+  end
+
+  def bulk_fetch_trackables(ids_by_type)
+    ids_by_type.each_with_object({}) do |(type, ids), hash|
       klass = type.constantize
       # Eager load Active Storage attachments if the model supports it
       scope = klass.where(id: ids)
@@ -58,21 +68,14 @@ class LandingController < ApplicationController
     rescue NameError
       hash[type] = {}
     end
+  end
 
-    # Map back to original ordered list from the lookup hash
-    popular_items = popular_trackable_counts.map do |(type, id), _|
-      fetched_items.dig(type, id)
-    end.compact
-
-    if popular_items.empty?
-      # Fallback to recent public items if no activity exists
-      # Eager load Active Storage attachments for fallback items
-      (Movie.includes(cover_image_attachment: :blob).where(is_public: true).limit(2).to_a +
-       Album.includes(cover_image_attachment: :blob).where(is_public: true).limit(2).to_a +
-       VideoGame.includes(cover_image_attachment: :blob).where(is_public: true).limit(2).to_a).sample(6)
-    else
-      popular_items
-    end
+  def fallback_popular_items
+    # Fallback to recent public items if no activity exists
+    # Eager load Active Storage attachments for fallback items
+    (Movie.includes(cover_image_attachment: :blob).where(is_public: true).limit(2).to_a +
+     Album.includes(cover_image_attachment: :blob).where(is_public: true).limit(2).to_a +
+     VideoGame.includes(cover_image_attachment: :blob).where(is_public: true).limit(2).to_a).sample(6)
   end
 
   def fetch_popular_reviews
