@@ -4,15 +4,17 @@ class LandingController < ApplicationController
   def index
     if logged_in?
       # Dashboard Queries
-      @new_from_friends = fetch_friend_activities
+      @new_from_friends = preload_trackable_attachments(fetch_friend_activities)
       @popular_items = fetch_popular_items
-      @popular_reviews = fetch_popular_reviews
+      @popular_reviews = preload_trackable_attachments(fetch_popular_reviews)
     else
       # Fetch all activities, ordered by newest first, with pagination (Kaminari)
-      @activities = Activity.includes(:user, trackable: { cover_image_attachment: :blob })
-                            .order(created_at: :desc)
-                            .page(params[:page])
-                            .per(15)
+      @activities = preload_trackable_attachments(
+        Activity.includes(:user, :trackable)
+                .order(created_at: :desc)
+                .page(params[:page])
+                .per(15)
+      )
       @active_trackers = User.where.not(confirmed_at: nil).limit(5)
     end
   end
@@ -20,14 +22,14 @@ class LandingController < ApplicationController
   private
 
   def fetch_friend_activities
-    friend_activities = Activity.includes(:user, trackable: { cover_image_attachment: :blob })
+    friend_activities = Activity.includes(:user, :trackable)
                                 .where.not(user_id: current_user.id)
                                 .where(activity_type: %w[added consumed reviewed])
                                 .order(created_at: :desc)
                                 .limit(6)
     if friend_activities.size < 3
       # Fallback to all activities if there aren't enough from other users
-      friend_activities = Activity.includes(:user, trackable: { cover_image_attachment: :blob })
+      friend_activities = Activity.includes(:user, :trackable)
                                   .where(activity_type: %w[added consumed reviewed])
                                   .order(created_at: :desc)
                                   .limit(6)
@@ -53,9 +55,11 @@ class LandingController < ApplicationController
     fetched_items = bulk_fetch_trackables(ids_by_type)
 
     # Map back to original ordered list from the lookup hash
-    popular_trackable_counts.map do |(type, id), _|
+    popular_items = popular_trackable_counts.map do |(type, id), _|
       fetched_items.dig(type, id)
     end.compact
+
+    popular_items.empty? ? fallback_popular_items : popular_items
   end
 
   def bulk_fetch_trackables(ids_by_type)
@@ -79,11 +83,27 @@ class LandingController < ApplicationController
   end
 
   def fetch_popular_reviews
-    reviewed_activities = Activity.includes(:user, trackable: { cover_image_attachment: :blob })
+    reviewed_activities = Activity.includes(:user, :trackable)
                                   .where(activity_type: 'reviewed')
                                   .order(created_at: :desc)
                                   .limit(20)
     reviewed_activities.select { |a| a.trackable&.review.present? }.first(3)
+  end
+
+  def preload_trackable_attachments(activities)
+    return activities if activities.empty?
+
+    # Group trackables by type to check for cover_image_attachment association
+    trackables = activities.map(&:trackable).compact
+    trackables_by_type = trackables.group_by(&:class)
+
+    trackables_by_type.each do |klass, records|
+      if klass.reflect_on_association(:cover_image_attachment)
+        ActiveRecord::Associations::Preloader.new(records: records, associations: { cover_image_attachment: :blob }).call
+      end
+    end
+
+    activities
   end
 
   def db_status
