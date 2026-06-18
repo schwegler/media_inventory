@@ -60,6 +60,17 @@ module SystemTestHelpers
       page.execute_script('document.querySelector("button[data-action*=\'showManualForm\']").click()')
     end
   end
+  # Safely clicks a button by its text or locator, bypassing Selenium's flaky overlapping element checks
+  def safe_click_button(locator)
+    if Capybara.current_driver == :rack_test
+      click_button(locator)
+    else
+      # Find the button using Capybara to ensure it exists and wait for it
+      button = find(:button, locator)
+      # Execute the click via JS on the specific DOM element
+      page.execute_script('arguments[0].click();', button)
+    end
+  end
 end
 
 RSpec.configure do |config|

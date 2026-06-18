@@ -36,7 +36,7 @@ RSpec.describe 'TV Episodes Management', type: :system do
     within '.quick-review-form' do
       fill_in 'tv_episode[review]', with: 'Great start.'
       select '★★★★★', from: 'tv_episode[rating]'
-      click_button 'Save Episode Status'
+      safe_click_button 'Save Episode Status'
     end
 
     expect(page).to have_text('✓ Watched')

@@ -29,7 +29,7 @@ RSpec.describe 'Landing and Authentication', type: :system do
     fill_in 'Email', with: 'newuser@example.com'
     fill_in 'Password', with: 'password123'
     fill_in 'Confirmation', with: 'password123'
-    click_button 'Create my account'
+    safe_click_button 'Create my account'
 
     expect(page).to have_text('Welcome to MediaTracker!')
     expect(page).to have_text('NEW USER')

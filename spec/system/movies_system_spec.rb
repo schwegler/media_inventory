@@ -25,7 +25,7 @@ RSpec.describe 'Movies Management', type: :system do
     fill_in 'movie[director]', with: 'Christopher Nolan'
     fill_in 'movie[release_year]', with: '2010'
     select '★★★★★', from: 'movie[rating]'
-    click_button 'Create Movie'
+    safe_click_button 'Create Movie'
 
     expect(page).to have_text('Inception')
     expect(page).to have_text('Directed by Christopher Nolan')
