@@ -7,7 +7,6 @@ class MoviesController < InventoryController
     @movies = Movie.page(params[:page])
   end
 
-
   private
 
   def resource_params
