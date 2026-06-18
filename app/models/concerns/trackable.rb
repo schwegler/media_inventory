@@ -68,43 +68,60 @@ module Trackable
       activity_type: activity_type
     )
     post_to_bluesky_if_enabled(activity_type)
+    post_to_mastodon_if_enabled(activity_type)
   end
 
   def post_to_bluesky_if_enabled(activity_type)
     return unless bsky_configured?
     return unless should_post_to_bsky?(activity_type)
 
-    msg = build_bsky_message(activity_type)
+    msg = build_social_message(activity_type, :bsky)
     Thread.new do
-      client = BlueskyClient.new(user.bsky_handle, user.bsky_app_password)
+      client = BlueskyClient.new(user)
       client.post(msg)
     end
   end
 
   def bsky_configured?
-    respond_to?(:user) && user.present? && user.bsky_handle.present? && user.bsky_app_password.present?
+    respond_to?(:user) && user.present? && user.bsky_access_token.present?
   end
 
   def should_post_to_bsky?(activity_type)
-    if activity_type == 'reviewed'
-      user.bsky_post_reviews?
-    else
-      user.bsky_post_activity?
+    activity_type == 'reviewed' ? user.bsky_post_reviews? : user.bsky_post_activity?
+  end
+
+  def post_to_mastodon_if_enabled(activity_type)
+    return unless mastodon_configured?
+    return unless should_post_to_mastodon?(activity_type)
+
+    msg = build_social_message(activity_type, :mastodon)
+    Thread.new do
+      client = MastodonClient.new(user)
+      client.post(msg)
     end
   end
 
-  def build_bsky_message(activity_type)
-    is_review = (activity_type == 'reviewed')
-    template = if is_review
-                 user.bsky_message_review_template.presence || 'Reviewed [title]: [review] ([rating] stars)'
-               else
-                 user.bsky_message_activity_template.presence || 'Added [title] to my [type] list!'
-               end
-
-    interpolate_bsky_template(template, activity_type)
+  def mastodon_configured?
+    respond_to?(:user) && user.present? && user.mastodon_access_token.present? && user.mastodon_server.present?
   end
 
-  def interpolate_bsky_template(template, activity_type)
+  def should_post_to_mastodon?(activity_type)
+    activity_type == 'reviewed' ? user.mastodon_post_reviews? : user.mastodon_post_activity?
+  end
+
+  def build_social_message(activity_type, platform)
+    is_review = (activity_type == 'reviewed')
+    
+    template = if platform == :bsky
+                 is_review ? user.bsky_message_review_template.presence || 'Reviewed [title]: [review] ([rating] stars)' : user.bsky_message_activity_template.presence || 'Added [title] to my [type] list!'
+               else
+                 is_review ? user.mastodon_message_review_template.presence || 'Reviewed [title]: [review] ([rating] stars)' : user.mastodon_message_activity_template.presence || 'Added [title] to my [type] list!'
+               end
+
+    interpolate_social_template(template, activity_type)
+  end
+
+  def interpolate_social_template(template, activity_type)
     msg = template.dup
     msg.gsub!('[title]', title.to_s) if msg.include?('[title]')
     msg.gsub!('[rating]', rating.to_s.presence || 'Unrated') if respond_to?(:rating) && msg.include?('[rating]')

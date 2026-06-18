@@ -27,43 +27,111 @@
 
       <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.5rem; margin-top: 1.5rem; margin-bottom: 1.5rem;">
         <h3 style="font-size: 1.25rem; color: #fff; margin-bottom: 0.5rem;">🦋 Bluesky Integration</h3>
-        <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem; line-height: 1.4;">
-          Connect your Bluesky (bsky.app) account to automatically post updates and reviews.
-          Please generate and use an <strong>App Password</strong> in your Bluesky settings.
-        </p>
-
-        <div class="form-group">
-          <%= f.label :bsky_handle, "Bluesky Handle" %>
-          <%= f.text_field :bsky_handle, class: 'form-control', placeholder: 'e.g. username.bsky.social' %>
-        </div>
-
-        <div class="form-group" style="margin-top: 15px;">
-          <%= f.label :bsky_app_password, "Bluesky App Password" %>
-          <%= f.password_field :bsky_app_password, class: 'form-control', placeholder: 'e.g. xxxx-xxxx-xxxx-xxxx', value: @user.bsky_app_password %>
-        </div>
-
-        <div style="margin-top: 15px; display: flex; gap: 20px; flex-wrap: wrap;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <%= f.check_box :bsky_post_activity %>
-            <%= f.label :bsky_post_activity, "Auto-post new additions", style: "margin-bottom: 0;" %>
+        
+        <% if @user.bsky_access_token.present? %>
+          <div style="padding: 1rem; background: rgba(2, 132, 199, 0.1); border-left: 4px solid #0284c7; margin-bottom: 1rem;">
+            <p style="margin: 0;">✅ Connected as <strong><%= @user.bsky_handle %></strong></p>
           </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <%= f.check_box :bsky_post_reviews %>
-            <%= f.label :bsky_post_reviews, "Auto-post reviews", style: "margin-bottom: 0;" %>
+          
+          <div style="margin-top: 15px; display: flex; gap: 20px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <%= f.check_box :bsky_post_activity %>
+              <%= f.label :bsky_post_activity, "Auto-post new additions", style: "margin-bottom: 0;" %>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <%= f.check_box :bsky_post_reviews %>
+              <%= f.label :bsky_post_reviews, "Auto-post reviews", style: "margin-bottom: 0;" %>
+            </div>
           </div>
-        </div>
 
-        <div class="form-group" style="margin-top: 15px;">
-          <%= f.label :bsky_message_activity_template, "Activity Template" %>
-          <%= f.text_field :bsky_message_activity_template, class: 'form-control', placeholder: 'Just added [title] to my library! #mediatracker' %>
-          <small style="color: #64748b; font-size: 0.75rem;">Placeholders: [title], [type]</small>
-        </div>
+          <div class="form-group" style="margin-top: 15px;">
+            <%= f.label :bsky_message_activity_template, "Activity Template" %>
+            <%= f.text_field :bsky_message_activity_template, class: 'form-control', placeholder: 'Just added [title] to my library! #mediatracker' %>
+            <small style="color: #64748b; font-size: 0.75rem;">Placeholders: [title], [type]</small>
+          </div>
 
-        <div class="form-group" style="margin-top: 15px;">
-          <%= f.label :bsky_message_review_template, "Review Template" %>
-          <%= f.text_field :bsky_message_review_template, class: 'form-control', placeholder: 'My review of [title]: [review] - [rating]★ #mediatracker' %>
-          <small style="color: #64748b; font-size: 0.75rem;">Placeholders: [title], [review], [rating]</small>
-        </div>
+          <div class="form-group" style="margin-top: 15px;">
+            <%= f.label :bsky_message_review_template, "Review Template" %>
+            <%= f.text_field :bsky_message_review_template, class: 'form-control', placeholder: 'My review of [title]: [review] - [rating]★ #mediatracker' %>
+            <small style="color: #64748b; font-size: 0.75rem;">Placeholders: [title], [review], [rating]</small>
+          </div>
+        <% else %>
+          <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem; line-height: 1.4;">
+            Connect your Bluesky (bsky.app) account to automatically post updates and reviews.
+          </p>
+          <%= button_to "Connect Bluesky", "/auth/atproto", method: :post, data: { turbo: false }, class: "btn btn-secondary", style: "background: #0284c7; border: none; color: #fff;" %>
+        <% end %>
+      </div>
+
+      <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.5rem; margin-top: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style="font-size: 1.25rem; color: #fff; margin-bottom: 0.5rem;">🐘 Mastodon Integration</h3>
+        
+        <% if @user.mastodon_access_token.present? %>
+          <div style="padding: 1rem; background: rgba(86, 58, 204, 0.1); border-left: 4px solid #563acc; margin-bottom: 1rem;">
+            <p style="margin: 0;">✅ Connected to <strong><%= @user.mastodon_server %></strong></p>
+          </div>
+          
+          <div style="margin-top: 15px; display: flex; gap: 20px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <%= f.check_box :mastodon_post_activity %>
+              <%= f.label :mastodon_post_activity, "Auto-post new additions", style: "margin-bottom: 0;" %>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <%= f.check_box :mastodon_post_reviews %>
+              <%= f.label :mastodon_post_reviews, "Auto-post reviews", style: "margin-bottom: 0;" %>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 15px;">
+            <%= f.label :mastodon_message_activity_template, "Activity Template" %>
+            <%= f.text_field :mastodon_message_activity_template, class: 'form-control', placeholder: 'Just added [title] to my library! #mediatracker' %>
+            <small style="color: #64748b; font-size: 0.75rem;">Placeholders: [title], [type]</small>
+          </div>
+
+          <div class="form-group" style="margin-top: 15px;">
+            <%= f.label :mastodon_message_review_template, "Review Template" %>
+            <%= f.text_field :mastodon_message_review_template, class: 'form-control', placeholder: 'My review of [title]: [review] - [rating]★ #mediatracker' %>
+            <small style="color: #64748b; font-size: 0.75rem;">Placeholders: [title], [review], [rating]</small>
+          </div>
+        <% else %>
+          <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem; line-height: 1.4;">
+            Connect your Mastodon account to automatically post updates and reviews.
+          </p>
+          <div style="margin-bottom: 15px;">
+            <%= label_tag :mastodon_server, "Mastodon Server URL" %>
+            <%= text_field_tag :mastodon_server, nil, class: 'form-control', placeholder: 'e.g. mastodon.social', id: 'mastodon_server_input' %>
+          </div>
+          <button type="button" class="btn btn-secondary" style="background: #563acc; border: none; color: #fff;" onclick="connectMastodon()">Connect Mastodon</button>
+          
+          <script>
+            function connectMastodon() {
+              const server = document.getElementById('mastodon_server_input').value;
+              if (!server) {
+                alert('Please enter a Mastodon server URL');
+                return;
+              }
+              const form = document.createElement('form');
+              form.method = 'POST';
+              form.action = '/auth/mastodon';
+              
+              const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+              const csrfInput = document.createElement('input');
+              csrfInput.type = 'hidden';
+              csrfInput.name = 'authenticity_token';
+              csrfInput.value = csrfToken;
+              form.appendChild(csrfInput);
+
+              const serverInput = document.createElement('input');
+              serverInput.type = 'hidden';
+              serverInput.name = 'mastodon_server';
+              serverInput.value = server;
+              form.appendChild(serverInput);
+              
+              document.body.appendChild(form);
+              form.submit();
+            }
+          </script>
+        <% end %>
       </div>
 
       <%= f.submit "Save changes", class: "btn btn-primary", style: "margin-top: 20px;" %>

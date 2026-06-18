@@ -74,10 +74,16 @@ class UsersController < ApplicationController
 
   def user_params
     params.require(:user).permit(
-      :name, :email, :password, :password_confirmation,
-      :bsky_handle, :bsky_app_password, :bsky_post_activity, :bsky_post_reviews,
+      :name, :username, :email, :password, :password_confirmation,
+      :avatar, :header_banner, :bio, :birthday,
+      :bsky_post_activity, :bsky_post_reviews,
       :bsky_message_activity_template, :bsky_message_review_template,
-      :username, :bio, :birthday, :avatar, :header_banner
+      :mastodon_post_activity, :mastodon_post_reviews,
+      :mastodon_message_activity_template, :mastodon_message_review_template,
+      :notify_email_posts, :notify_email_comments,
+      :notify_email_likes, :notify_email_follows,
+      :notify_push_posts, :notify_push_comments,
+      :notify_push_likes, :notify_push_follows
     )
   end
 
