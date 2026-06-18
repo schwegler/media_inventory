@@ -60,6 +60,7 @@ module SystemTestHelpers
       page.execute_script('document.querySelector("button[data-action*=\'showManualForm\']").click()')
     end
   end
+
   # Safely clicks a button by its text or locator, bypassing Selenium's flaky overlapping element checks
   def safe_click_button(locator)
     if Capybara.current_driver == :rack_test
