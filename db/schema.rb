@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_17_023245) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_18_194800) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -128,6 +128,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_17_023245) do
     t.index ["user_id"], name: "index_likes_on_user_id"
   end
 
+  create_table "mastodon_oauth_applications", force: :cascade do |t|
+    t.string "client_id", null: false
+    t.string "client_secret", null: false
+    t.datetime "created_at", null: false
+    t.string "server", null: false
+    t.datetime "updated_at", null: false
+    t.index ["server"], name: "index_mastodon_oauth_applications_on_server", unique: true
+  end
+
   create_table "movies", force: :cascade do |t|
     t.string "api_id"
     t.boolean "consumed", default: false, null: false
@@ -199,15 +208,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_17_023245) do
     t.string "avatar_url"
     t.text "bio"
     t.date "birthday"
-    t.string "bsky_app_password"
+    t.string "bsky_access_token"
+    t.string "bsky_did"
     t.string "bsky_handle"
     t.string "bsky_message_activity_template"
     t.string "bsky_message_review_template"
     t.boolean "bsky_post_activity", default: false, null: false
     t.boolean "bsky_post_reviews", default: false, null: false
+    t.string "bsky_refresh_token"
     t.datetime "confirmed_at"
     t.datetime "created_at", null: false
     t.string "email"
+    t.string "mastodon_access_token"
+    t.string "mastodon_message_activity_template"
+    t.string "mastodon_message_review_template"
+    t.boolean "mastodon_post_activity", default: false, null: false
+    t.boolean "mastodon_post_reviews", default: false, null: false
+    t.string "mastodon_refresh_token"
+    t.string "mastodon_server"
+    t.string "mastodon_uid"
     t.string "name"
     t.boolean "notify_email_comments", default: true
     t.boolean "notify_email_follows", default: true

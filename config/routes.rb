@@ -48,8 +48,16 @@ SampleApp::Application.routes.draw do
     episode ? "/tv_shows/#{episode.tv_show_id}" : '/tv_shows'
   }
 
-  # Bluesky custom session creation
-  post '/sessions/bsky_login', to: 'sessions#bsky_create'
+  # OmniAuth routes
+  match '/auth/:provider/setup', to: 'omniauth_callbacks#setup', via: %i[get post]
+  match '/auth/:provider/callback', to: 'omniauth_callbacks#mastodon', constraints: { provider: 'mastodon' },
+                                    via: %i[get post]
+  match '/auth/:provider/callback', to: 'omniauth_callbacks#atproto', constraints: { provider: 'atproto' },
+                                    via: %i[get post]
+  get '/auth/failure', to: 'omniauth_callbacks#failure'
+
+  # Client metadata endpoint for Bluesky OAuth
+  get '/client-metadata.json', to: 'client_metadata#show', as: :client_metadata
 
   # ActivityPub & WebFinger
   get '/.well-known/webfinger', to: 'webfinger#show'
