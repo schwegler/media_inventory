@@ -26,9 +26,9 @@ RSpec.describe 'TV Shows and Episodes Management', type: :system do
     expect(page).to have_css('[data-connected="true"]') unless Capybara.current_driver == :rack_test
     fill_in 'Title', with: 'Breaking Bad'
     click_add_manually
-    fill_in 'Network', with: 'AMC'
-    select '★★★★★', from: 'Rating'
-    fill_in 'Review', with: 'Simply amazing.'
+    fill_in 'tv_show[network]', with: 'AMC'
+    select '★★★★★', from: 'tv_show[rating]'
+    fill_in 'tv_show[review]', with: 'Simply amazing.'
     click_button 'Create TV Show'
 
     expect(page).to have_text('Breaking Bad')

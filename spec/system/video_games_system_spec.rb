@@ -26,12 +26,12 @@ RSpec.describe 'Video Games Management', type: :system do
     expect(page).to have_css('[data-connected="true"]') unless Capybara.current_driver == :rack_test
     fill_in 'Title', with: 'The Legend of Zelda'
     click_add_manually
-    fill_in 'Developer', with: 'Nintendo'
-    fill_in 'Publisher', with: 'Nintendo'
-    fill_in 'Platform', with: 'Nintendo Switch'
-    fill_in 'Release year', with: '2017'
-    select '★★★★★', from: 'Rating'
-    fill_in 'Review', with: 'An absolute masterpiece.'
+    fill_in 'video_game[developer]', with: 'Nintendo'
+    fill_in 'video_game[publisher]', with: 'Nintendo'
+    fill_in 'video_game[platform]', with: 'Nintendo Switch'
+    fill_in 'video_game[release_year]', with: '2017'
+    select '★★★★★', from: 'video_game[rating]'
+    fill_in 'video_game[review]', with: 'An absolute masterpiece.'
     click_button 'Create Video Game'
 
     expect(page).to have_text('The Legend of Zelda')

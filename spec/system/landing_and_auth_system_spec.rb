@@ -63,6 +63,7 @@ RSpec.describe 'Landing and Authentication', type: :system do
     if Capybara.current_driver == :rack_test
       find('.dropdown-logout-btn', visible: :any).click
     else
+      expect(page).to have_css('.nav-dropdown[data-connected="true"]')
       find('.btn-log').click
       find('.dropdown-logout-btn').click
     end
