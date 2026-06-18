@@ -15,6 +15,15 @@
   <% if hotwire_native_app? %>
     <meta name="turbo-visit-control" content="reload">
   <% end %>
+  <% if Rails.env.test? %>
+    <style>
+      *, *::before, *::after {
+        transition: none !important;
+        animation: none !important;
+        scroll-behavior: auto !important;
+      }
+    </style>
+  <% end %>
 </head>
 <body <% if hotwire_native_app? %>data-native="true"<% end %>>
 
