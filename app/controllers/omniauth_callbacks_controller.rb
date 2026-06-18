@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class OmniauthCallbacksController < ApplicationController
+class OmniAuthCallbacksController < ApplicationController
   skip_before_action :verify_authenticity_token, only: %i[setup atproto mastodon]
 
   def setup
