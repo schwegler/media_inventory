@@ -4,14 +4,14 @@ class OmniAuthCallbacksController < ApplicationController
   skip_before_action :verify_authenticity_token, only: %i[setup atproto mastodon]
 
   def setup
-    request = env['omniauth.strategy'].request
-    provider = env['omniauth.strategy'].name
+    req = request.env['omniauth.strategy'].request
+    provider = request.env['omniauth.strategy'].name
 
     case provider
     when 'mastodon'
-      setup_mastodon(request)
+      setup_mastodon(req)
     when 'atproto'
-      setup_atproto(request)
+      setup_atproto(req)
     end
   end
 
@@ -62,8 +62,8 @@ class OmniAuthCallbacksController < ApplicationController
 
   private
 
-  def setup_mastodon(request)
-    server = request.params['mastodon_server']
+  def setup_mastodon(req)
+    server = req.params['mastodon_server']
     if server.blank?
       render plain: 'Mastodon server required', status: 400
       return
@@ -78,19 +78,19 @@ class OmniAuthCallbacksController < ApplicationController
       return
     end
 
-    env['omniauth.strategy'].options.client_id = app.client_id
-    env['omniauth.strategy'].options.client_secret = app.client_secret
-    env['omniauth.strategy'].options.client_options.site = "https://#{app.server}"
+    request.env['omniauth.strategy'].options.client_id = app.client_id
+    request.env['omniauth.strategy'].options.client_secret = app.client_secret
+    request.env['omniauth.strategy'].options.client_options.site = "https://#{app.server}"
     render plain: 'Setup complete', status: 404
   end
 
-  def setup_atproto(request)
-    handle = request.params['bsky_handle']
-    env['omniauth.strategy'].options.handle = handle if handle.present?
+  def setup_atproto(req)
+    handle = req.params['bsky_handle']
+    request.env['omniauth.strategy'].options.handle = handle if handle.present?
 
     client_id = ENV.fetch('BSKY_CLIENT_ID',
                           url_for(controller: 'client_metadata', action: :show, format: :json, only_path: false))
-    env['omniauth.strategy'].options.client_id = client_id
+    request.env['omniauth.strategy'].options.client_id = client_id
     render plain: 'Setup complete', status: 404
   end
 
