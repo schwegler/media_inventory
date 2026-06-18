@@ -7,9 +7,6 @@ class MoviesController < InventoryController
     @movies = Movie.page(params[:page])
   end
 
-  def show
-    @movie = Movie.find(params[:id])
-  end
 
   private
 

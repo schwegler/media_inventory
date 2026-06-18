@@ -67,7 +67,15 @@ module ApplicationHelper
 
   def community_stats_for(item)
     klass = item.class
-    matching_items = klass.where('LOWER(title) = ?', item.title.to_s.strip.downcase).includes(:user)
+    matching_items = if logged_in?
+                       klass.where('LOWER(title) = ? AND (is_public = ? OR user_id = ?)',
+                                   item.title.to_s.strip.downcase, true, current_user.id)
+                            .includes(:user)
+                     else
+                       klass.where('LOWER(title) = ? AND is_public = ?',
+                                   item.title.to_s.strip.downcase, true)
+                            .includes(:user)
+                     end
 
     ratings = matching_items.map { |i| i.rating.to_f if i.rating.present? }.compact
     avg_rating = ratings.any? ? (ratings.sum.to_f / ratings.size).round(1) : nil
