@@ -26,12 +26,12 @@ RSpec.describe 'Comics Management', type: :system do
     expect(page).to have_css('[data-connected="true"]') unless Capybara.current_driver == :rack_test
     fill_in 'Title', with: 'Watchmen'
     click_add_manually
-    fill_in 'Issue number', with: '1'
-    fill_in 'Publisher', with: 'DC Comics'
-    fill_in 'Writer', with: 'Alan Moore'
-    fill_in 'Artist', with: 'Dave Gibbons'
-    select '★★★★★', from: 'Rating'
-    fill_in 'Review', with: 'Who watches the watchmen?'
+    fill_in 'comic[issue_number]', with: '1'
+    fill_in 'comic[publisher]', with: 'DC Comics'
+    fill_in 'comic[writer]', with: 'Alan Moore'
+    fill_in 'comic[artist]', with: 'Dave Gibbons'
+    select '★★★★★', from: 'comic[rating]'
+    fill_in 'comic[review]', with: 'Who watches the watchmen?'
     click_button 'Create Comic'
 
     expect(page).to have_text('Watchmen')

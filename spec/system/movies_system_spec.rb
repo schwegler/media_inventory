@@ -20,11 +20,11 @@ RSpec.describe 'Movies Management', type: :system do
     fill_in 'Title', with: 'Inception'
     click_add_manually
 
-    expect(page).to have_field('Director', visible: true)
+    expect(page).to have_field('movie[director]', visible: true)
 
-    fill_in 'Director', with: 'Christopher Nolan'
-    fill_in 'Release year', with: '2010'
-    select '★★★★★', from: 'Rating'
+    fill_in 'movie[director]', with: 'Christopher Nolan'
+    fill_in 'movie[release_year]', with: '2010'
+    select '★★★★★', from: 'movie[rating]'
     click_button 'Create Movie'
 
     expect(page).to have_text('Inception')
