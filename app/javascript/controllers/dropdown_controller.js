@@ -11,6 +11,7 @@ export default class extends Controller {
     if (this.hasMenuTarget) {
       this.hide()
     }
+    this.element.dataset.connected = "true"
   }
 
   disconnect() {
