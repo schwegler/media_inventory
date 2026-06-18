@@ -8,7 +8,12 @@ RSpec.describe InventoryController, type: :controller do
     Class.new do
       include ActiveModel::Model
 
-      attr_accessor :id, :user, :title
+      attr_accessor :id, :user, :title, :is_public
+
+      def initialize(params = {})
+        super
+        @is_public = true
+      end
 
       def self.page(_page)
         [:page_data]

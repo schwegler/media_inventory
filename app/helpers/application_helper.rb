@@ -66,21 +66,28 @@ module ApplicationHelper
   end
 
   def community_stats_for(item)
-    klass = item.class
-    matching_items = klass.where('LOWER(title) = ?', item.title.to_s.strip.downcase).includes(:user)
+    matching_items = fetch_matching_items(item)
 
     ratings = matching_items.map { |i| i.rating.to_f if i.rating.present? }.compact
     avg_rating = ratings.any? ? (ratings.sum.to_f / ratings.size).round(1) : nil
 
-    watchers = matching_items.select { |i| i.in_watchlist? || i.consumed? }.map(&:user).uniq.compact
-    collectors = matching_items.select(&:is_collected?).map(&:user).uniq.compact
-    reviews = matching_items.select { |i| i.review.present? }
-
     {
       avg_rating: avg_rating,
-      watchers: watchers,
-      collectors: collectors,
-      reviews: reviews
+      watchers: matching_items.select { |i| i.in_watchlist? || i.consumed? }.map(&:user).uniq.compact,
+      collectors: matching_items.select(&:is_collected?).map(&:user).uniq.compact,
+      reviews: matching_items.select { |i| i.review.present? }
     }
+  end
+
+  private
+
+  def fetch_matching_items(item)
+    klass = item.class
+    query = klass.where('LOWER(title) = ?', item.title.to_s.strip.downcase)
+    if logged_in?
+      query.where('is_public = ? OR user_id = ?', true, current_user.id).includes(:user)
+    else
+      query.where(is_public: true).includes(:user)
+    end
   end
 end

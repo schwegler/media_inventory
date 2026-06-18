@@ -7,10 +7,6 @@ class VideoGamesController < InventoryController
     @video_games = VideoGame.page(params[:page])
   end
 
-  def show
-    @video_game = VideoGame.find(params[:id])
-  end
-
   private
 
   def resource_params
