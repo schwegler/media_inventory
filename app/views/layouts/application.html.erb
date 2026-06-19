@@ -48,15 +48,18 @@
         <% end %>
       </ul>
 
-      <div class="nav-user-section">
+      <div class="nav-user-section" style="display: flex; align-items: center; gap: 15px;">
         <% if logged_in? %>
-          <div class="nav-user-info">
+          <div class="nav-user-info" style="display: flex; align-items: center; gap: 8px;">
             <%= user_avatar_tag(current_user, size: 24) %>
             <%= link_to current_user.name.upcase, current_user, class: 'nav-username' %>
           </div>
           
-          <div class="nav-dropdown" data-controller="dropdown">
-            <button class="btn btn-success btn-log" type="button" data-action="click->dropdown#toggle" data-dropdown-target="button" aria-haspopup="true" aria-expanded="false" aria-label="Toggle log menu">
+          <%= link_to "⚙️ Settings", settings_path, class: "sleek-btn sleek-btn-secondary", style: "padding: 6px 12px; font-size: 0.8rem;" %>
+          <%= button_to "Sign Out", logout_path, method: :delete, class: "sleek-btn sleek-btn-outline", style: "padding: 6px 12px; font-size: 0.8rem;" %>
+
+          <div class="nav-dropdown" data-controller="dropdown" style="margin-left: 10px;">
+            <button class="sleek-btn sleek-btn-success btn-log" type="button" data-action="click->dropdown#toggle" data-dropdown-target="button" aria-haspopup="true" aria-expanded="false" aria-label="Toggle log menu">
               <span>+ LOG</span>
               <svg class="dropdown-chevron" viewBox="0 0 20 20" fill="currentColor" style="width: 14px; height: 14px; margin-left: 4px;" aria-hidden="true">
                 <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
@@ -68,12 +71,10 @@
               <%= link_to "📚 Log Comic", new_comic_path, class: "dropdown-item", role: "menuitem", data: { turbo_frame: "modal" } %>
               <%= link_to "📺 Log TV Show", new_tv_show_path, class: "dropdown-item", role: "menuitem", data: { turbo_frame: "modal" } %>
               <%= link_to "🎮 Log Video Game", new_video_game_path, class: "dropdown-item", role: "menuitem", data: { turbo_frame: "modal" } %>
-              <div class="dropdown-divider"></div>
-              <%= button_to "Sign Out", logout_path, method: :delete, class: "dropdown-item dropdown-logout-btn", role: "menuitem", form_class: "dropdown-logout-form" %>
             </div>
           </div>
         <% else %>
-          <%= link_to "LOG IN", login_path, class: 'btn btn-secondary btn-login-nav' %>
+          <%= link_to "LOG IN", login_path, class: 'sleek-btn sleek-btn-secondary' %>
         <% end %>
       </div>
     </nav>

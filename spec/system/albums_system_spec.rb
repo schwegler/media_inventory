@@ -65,6 +65,6 @@ RSpec.describe 'Albums Management', type: :system do
     visit albums_path
 
     expect(page).to have_text('Dark Side of the Moon')
-    expect(page).to have_text('Artist: Pink Floyd')
+    expect(page).to have_text('Pink Floyd')
   end
 end

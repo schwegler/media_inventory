@@ -9,57 +9,12 @@
       <%= link_to "ALL ACTIVITY", activities_path, class: "section-more-link" rescue "#" %>
     </div>
     
-    <div class="friends-activity-grid">
+    <div class="media-grid-2026">
       <% @new_from_friends.each do |activity| %>
         <% lib_item = activity.trackable %>
         <% next if lib_item.nil? %>
         <% media = lib_item.is_a?(LibraryItem) ? lib_item.item : lib_item %>
-        <div class="friend-card">
-          <div class="friend-card-poster">
-            <% if media.respond_to?(:cover_image) && media.cover_image.attached? %>
-              <%= image_tag media.cover_image, alt: media.title, class: 'poster-img' %>
-            <% elsif media.respond_to?(:thumbnail_url) && media.thumbnail_url.present? %>
-              <img src="<%= media.thumbnail_url %>" alt="<%= media.title %>" class="poster-img">
-            <% else %>
-              <div class="poster-fallback">
-                <span class="fallback-emoji">
-                  <%= case media.class.name
-                      when 'Movie' then '🎬'
-                      when 'Album' then '💿'
-                      when 'Comic' then '📚'
-                      when 'TvShow' then '📺'
-                      when 'VideoGame' then '🎮'
-                      else '📦'
-                      end %>
-                </span>
-              </div>
-            <% end %>
-            <div class="friend-card-overlay">
-              <div class="overlay-details">
-                <%= link_to "View details", media, class: "overlay-link stretched-link" %>
-              </div>
-            </div>
-          </div>
-          
-          <div class="friend-card-footer">
-            <div class="friend-meta">
-              <%= user_avatar_tag(activity.user, size: 20) %>
-              <span class="friend-name"><%= link_to activity.user.name, activity.user %></span>
-            </div>
-            <div class="friend-rating-row">
-              <% if lib_item.respond_to?(:rating) && lib_item.rating.present? %>
-                <span class="friend-stars"><%= render_stars(lib_item.rating) %></span>
-              <% end %>
-              <% if lib_item.respond_to?(:rating) && lib_item.rating.to_f >= 4.0 %>
-                <span class="heart-icon">🧡</span>
-              <% end %>
-              <% if activity.activity_type == 'consumed' || (lib_item.respond_to?(:consumed?) && lib_item.consumed?) %>
-                <span class="repeat-icon" title="Consumed/Played">↻</span>
-              <% end %>
-              <span class="friend-date"><%= activity.created_at.strftime("%b %d") %></span>
-            </div>
-          </div>
-        </div>
+        <%= render partial: 'shared/activity_card', locals: { media_item: media, activity: activity, lib_item: lib_item } %>
       <% end %>
     </div>
   </section>
@@ -71,32 +26,10 @@
       <span class="section-more-link">MORE</span>
     </div>
 
-    <div class="popular-items-grid">
+    <div class="media-grid-2026">
       <% @popular_items.each do |item| %>
         <% media = item.is_a?(LibraryItem) ? item.item : item %>
-        <div class="popular-card">
-          <div class="popular-card-poster">
-            <% if media.respond_to?(:cover_image) && media.cover_image.attached? %>
-              <%= image_tag media.cover_image, alt: media.title, class: 'poster-img' %>
-            <% elsif media.respond_to?(:thumbnail_url) && media.thumbnail_url.present? %>
-              <img src="<%= media.thumbnail_url %>" alt="<%= media.title %>" class="poster-img">
-            <% else %>
-              <div class="poster-fallback">
-                <span class="fallback-emoji">
-                  <%= case media.class.name
-                      when 'Movie' then '🎬'
-                      when 'Album' then '💿'
-                      when 'Comic' then '📚'
-                      when 'TvShow' then '📺'
-                      when 'VideoGame' then '🎮'
-                      else '📦'
-                      end %>
-                </span>
-              </div>
-            <% end %>
-            <%= link_to "", media, class: "stretched-link" %>
-          </div>
-        </div>
+        <%= render partial: 'shared/media_card', locals: { media_item: media } %>
       <% end %>
     </div>
   </section>

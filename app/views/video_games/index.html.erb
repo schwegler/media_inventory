@@ -1,30 +1,15 @@
 <div class="page-header">
   <h1>Video Games</h1>
   <% if logged_in? %>
-    <%= link_to 'New Video Game', new_video_game_path, class: 'btn btn-primary' %>
+    <%= link_to 'New Video Game', new_video_game_path, class: 'sleek-btn sleek-btn-primary' %>
   <% end %>
 </div>
 
-<ul class="media-grid">
+<div class="media-grid-2026">
   <% @video_games.each do |video_game| %>
-    <li class="media-card">
-      <div class="card-cover" style="width: 80px; height: 110px; flex-shrink: 0; border-radius: 8px; overflow: hidden; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center;">
-        <% if video_game.cover_image.attached? %>
-          <%= image_tag video_game.cover_image, alt: "Cover", style: "width: 100%; height: 100%; object-fit: cover;" %>
-        <% elsif video_game.thumbnail_url.present? %>
-          <img src="<%= video_game.thumbnail_url %>" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
-        <% else %>
-          <span style="font-size: 2rem;">🎮</span>
-        <% end %>
-      </div>
-      <div class="card-content">
-        <h3><%= link_to video_game.title, video_game, data: { turbo_frame: "_top" } %></h3>
-        <span class="card-meta">Developer: <%= video_game.developer.presence || 'Unknown' %></span>
-        <span class="card-meta">Platform: <%= video_game.platform.presence || 'Unknown' %></span>
-      </div>
-    </li>
+    <%= render partial: 'shared/media_card', locals: { media_item: video_game } %>
   <% end %>
-</ul>
+</div>
 
 <div class="pagination-wrapper">
   <%= paginate @video_games %>
