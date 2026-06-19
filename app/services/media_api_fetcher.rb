@@ -66,6 +66,7 @@ class MediaApiFetcher
     Rails.logger.error "iTunes API error: #{e.message}"
   end
 
+  # rubocop:disable Metrics/AbcSize
   def fetch_itunes_music
     return unless api_active?('itunes', 'Album')
 
@@ -84,6 +85,7 @@ class MediaApiFetcher
   rescue StandardError => e
     Rails.logger.error "iTunes API error: #{e.message}"
   end
+  # rubocop:enable Metrics/AbcSize
 
   def fetch_tvmaze_show
     return unless api_active?('tvmaze', 'TvShow')

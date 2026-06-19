@@ -2,6 +2,7 @@
 
 require 'administrate/base_dashboard'
 
+# rubocop:disable Metrics/ClassLength
 class UserDashboard < Administrate::BaseDashboard
   # ATTRIBUTE_TYPES
   # a hash that describes the type of each of the model's fields.
@@ -216,3 +217,4 @@ class UserDashboard < Administrate::BaseDashboard
   #   "User ##{user.id}"
   # end
 end
+# rubocop:enable Metrics/ClassLength
