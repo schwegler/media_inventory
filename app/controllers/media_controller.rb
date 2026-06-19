@@ -6,7 +6,7 @@ class MediaController < ApplicationController
 
   def copy
     source_type = params[:source_type].to_s.strip
-    allowed_types = %w[Movie TvShow Album Comic VideoGame]
+    allowed_types = %w[Movie TvShow TvEpisode Album Comic VideoGame]
     unless allowed_types.include?(source_type)
       redirect_back fallback_location: root_path, alert: 'Invalid media type.'
       return
@@ -14,6 +14,12 @@ class MediaController < ApplicationController
 
     klass = source_type.constantize
     item = klass.find(params[:source_id])
+
+    unless can_access?(item)
+      redirect_to root_path, alert: 'Not authorized'
+      return
+    end
+
     new_item = build_copied_item(item, params[:target_list].to_s.strip)
 
     if new_item.save

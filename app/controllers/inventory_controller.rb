@@ -29,7 +29,7 @@ class InventoryController < ApplicationController
 
   def show
     @resource = resource_class.find(params[:id])
-    unless @resource.is_public || @resource.user == current_user
+    unless can_access?(@resource)
       redirect_to root_path, alert: 'Not authorized'
       return
     end
@@ -38,7 +38,10 @@ class InventoryController < ApplicationController
 
   def edit
     @resource = resource_class.find(params[:id])
-    redirect_to root_path, alert: 'Not authorized' unless @resource.user == current_user
+    unless @resource.user == current_user
+      redirect_to root_path, alert: 'Not authorized'
+      return
+    end
     instance_variable_set("@#{resource_name}", @resource)
   end
 

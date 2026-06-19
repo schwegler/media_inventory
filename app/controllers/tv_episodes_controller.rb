@@ -5,6 +5,7 @@ class TvEpisodesController < ApplicationController
 
   def show
     @tv_episode = TvEpisode.find(params[:id])
+    redirect_to root_path, alert: 'Not authorized' unless can_access?(@tv_episode)
   end
 
   def toggle_watched
