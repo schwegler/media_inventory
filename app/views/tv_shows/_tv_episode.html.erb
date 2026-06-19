@@ -20,7 +20,7 @@
               <% if ep_lib&.consumed? %>
                 <span class="episode-badge-watched">✓ Watched</span>
 
-                <%= button_to "Unwatch",
+                <%= button_to "X",
                               toggle_watched_tv_episode_path(ep),
                               method: :patch,
                               params: { tv_episode: { consumed: false, rating: nil, review: nil, consumed_at: nil } },

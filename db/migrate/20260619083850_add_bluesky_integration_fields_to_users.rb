@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddBlueskyIntegrationFieldsToUsers < ActiveRecord::Migration[8.1]
   def change
     add_column :users, :bsky_app_password, :string

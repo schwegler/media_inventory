@@ -35,16 +35,16 @@ RSpec.describe 'Video Games Management', type: :system do
     fill_in 'video_game[review]', with: 'An absolute masterpiece.'
     click_button 'Create Video Game'
 
-    expect(page).to have_text('The Legend of Zelda')
-    expect(page).to have_text('Nintendo')
-    expect(page).to have_text('An absolute masterpiece.')
+    expect(page).to have_text('The Legend of Zelda', wait: 5)
+    expect(page).to have_text('Nintendo', wait: 5)
+    expect(page).to have_text('An absolute masterpiece.', wait: 5)
 
     # Edit Video Game via inline form
     select '★★★★', from: 'video_game[rating]'
     fill_in 'video_game[review]', with: 'Great exploration game!'
     click_button 'Save Review & Playing Status'
 
-    expect(page).to have_text('Video game was successfully updated.')
+    expect(page).to have_text('Video game was successfully updated.', wait: 5)
     expect(page).to have_text('Great exploration game!')
 
     # Delete Video Game

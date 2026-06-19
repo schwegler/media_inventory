@@ -761,9 +761,9 @@ turbo-frame {
   transition: all 0.3s ease;
   height: 120px;
   position: relative;
-  
+
   &:hover {
-    box-shadow: 0 12px 24px rgba(0,0,0,0.5);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
     border-color: rgba(6, 182, 212, 0.3);
   }
 
@@ -775,7 +775,7 @@ turbo-frame {
     align-items: center;
     justify-content: center;
     position: relative;
-    
+
     img {
       width: 100%;
       height: 100%;
@@ -801,7 +801,7 @@ turbo-frame {
     margin: 0 0 6px 0;
     font-weight: 700;
     white-space: nowrap;
-    overflow: hidden;
+    overflow: visible;
     text-overflow: ellipsis;
 
     a {
@@ -1681,17 +1681,17 @@ header nav ul.nav-links {
   display: flex;
   align-items: center;
   gap: 8px;
+}
 
-  .nav-username {
-    color: #f0f6fc;
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-decoration: none;
+.nav-username {
+  color: black;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
 
-    &:hover {
-      color: $accent-orange;
-    }
+  &:hover {
+    color: white;
   }
 }
 
@@ -2764,8 +2764,13 @@ header nav ul.nav-links {
     flex-shrink: 0;
   }
 
+  .btn-danger {
+    color: white;
+  }
+
   .btn-delete-item {
     background: #ef4444;
+    color: white;
 
     &:hover {
       background: color.adjust(#ef4444, $lightness: 6%);
@@ -3037,10 +3042,11 @@ header nav ul.nav-links {
   padding-bottom: 10px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   scrollbar-width: thin;
-  
+
   &::-webkit-scrollbar {
     height: 4px;
   }
+
   &::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 2px;
@@ -3058,13 +3064,13 @@ header nav ul.nav-links {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: #8b949e;
-  
+
   &:hover {
     color: #f0f6fc;
     border-color: rgba(255, 255, 255, 0.2);
     background: rgba(255, 255, 255, 0.06);
   }
-  
+
   &.active-tab {
     background: #ff6b35;
     border-color: #ff6b35;
@@ -3247,6 +3253,7 @@ header nav ul.nav-links {
     background: #4338ca;
   }
 }
+
 /* --- Profile Page Styling --- */
 .profile-page {
   max-width: 1000px;
@@ -3261,7 +3268,7 @@ header nav ul.nav-links {
   border: 1px solid $card-border;
   border-radius: $radius-lg;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   margin-bottom: 24px;
 }
 
@@ -3292,7 +3299,7 @@ header nav ul.nav-links {
   border-radius: 50%;
   background: $bg-surface;
   z-index: 2;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
 .profile-main-meta {
@@ -3324,7 +3331,7 @@ header nav ul.nav-links {
   gap: 6px;
   font-size: 14px;
   transition: opacity 0.2s ease;
-  
+
   &:hover {
     opacity: 0.8;
   }
@@ -3362,7 +3369,7 @@ header nav ul.nav-links {
   border: 1px solid $card-border;
   border-radius: $radius-lg;
   padding: 20px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   margin-bottom: 20px;
   color: $text-main;
 }
@@ -3392,7 +3399,7 @@ header nav ul.nav-links {
   cursor: pointer;
   position: relative;
   transition: color 0.2s ease;
-  
+
   &:hover {
     color: $text-main;
   }
@@ -3401,7 +3408,8 @@ header nav ul.nav-links {
 // ==========================================================================
 //  2026 Sleek Button System
 // ==========================================================================
-.btn, .sleek-btn {
+.btn,
+.sleek-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -3415,26 +3423,53 @@ header nav ul.nav-links {
   cursor: pointer;
   text-decoration: none;
   border: 1px solid transparent;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   white-space: nowrap;
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
     text-decoration: none;
   }
-  
+
   &:active {
     transform: translateY(1px);
     box-shadow: none;
   }
 }
 
-.btn-primary, .sleek-btn-primary {
+.usr-btn {
+  background-color: $accent-cyan;
+  font-family: $font-family-headings;
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  padding: 1px 9px;
+  border-radius: 7px;
+  border: none;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background: $accent-cyan-hover;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 230, 118, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.btn-primary,
+.sleek-btn-primary {
   background: $accent-cyan;
   color: #fff;
   border-color: $accent-cyan-hover;
-  
+
   &:hover {
     background: $accent-cyan-hover;
     color: #fff;
@@ -3442,11 +3477,12 @@ header nav ul.nav-links {
   }
 }
 
-.btn-secondary, .sleek-btn-secondary {
+.btn-secondary,
+.sleek-btn-secondary {
   background: transparent;
   color: $text-main;
   border-color: rgba(255, 255, 255, 0.2);
-  
+
   &:hover {
     background: rgba(255, 255, 255, 0.05);
     border-color: rgba(255, 255, 255, 0.4);
@@ -3454,11 +3490,12 @@ header nav ul.nav-links {
   }
 }
 
-.btn-success, .sleek-btn-success {
+.btn-success,
+.sleek-btn-success {
   background: $accent-green;
   color: #fff;
   border-color: $accent-green-hover;
-  
+
   &:hover {
     background: $accent-green-hover;
     color: #fff;
@@ -3466,11 +3503,33 @@ header nav ul.nav-links {
   }
 }
 
-.btn-danger, .sleek-btn-danger {
+.heart {
+  display: inline-block;
+  transition: color 0.2s ease;
+}
+
+/* If you want a literal outline look on modern browsers */
+.heart.is-unliked {
+  color: transparent;
+  -webkit-text-stroke: 1px #000;
+  /* Use your desired outline color */
+}
+
+/* Or just make it a subtle gray/opaque version of the solid heart */
+.heart.is-unliked {
+  color: #ccc;
+}
+
+.heart.is-liked {
+  color: red;
+}
+
+.btn-danger,
+.sleek-btn-danger {
   background: transparent;
-  color: #f43f5e;
+  color: #ffffff;
   border-color: rgba(244, 63, 94, 0.3);
-  
+
   &:hover {
     background: rgba(244, 63, 94, 0.1);
     border-color: #f43f5e;
@@ -3478,11 +3537,12 @@ header nav ul.nav-links {
   }
 }
 
-.btn-outline, .sleek-btn-outline {
+.btn-outline,
+.sleek-btn-outline {
   background: transparent;
   color: $accent-cyan;
   border-color: $accent-cyan;
-  
+
   &:hover {
     background: rgba(6, 182, 212, 0.1);
     color: $accent-cyan;
@@ -3513,6 +3573,7 @@ header nav ul.nav-links {
 
   &.liked {
     color: #f43f5e;
+
     .heart-empty {
       animation: heartbeat 0.4s ease-in-out;
     }
@@ -3522,18 +3583,27 @@ header nav ul.nav-links {
     font-size: 0.85rem;
     font-weight: 600;
   }
+
   .likes-count {
     font-size: 0.8rem;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     padding: 2px 8px;
     border-radius: 12px;
   }
 }
 
 @keyframes heartbeat {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.3); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.3);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 // Typography Links
@@ -3594,19 +3664,27 @@ a {
 }
 
 .settings-nav-item:hover {
-  background: #f3f4f6;
+  background: #1a2035;
+  text-decoration: none;
 }
 
 .settings-nav-item.active {
-  background: #eef2ff;
+  background: #1a2035;
   color: #4f46e5;
 }
 
 .settings-content {
-  background: #fff;
+  background: #1a2035;
   padding: 32px;
   border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  .form-group {
+
+    label {
+      color: white;
+    }
+  }
 }
 
 .settings-title {
@@ -3679,15 +3757,15 @@ a {
   border-radius: 50%;
 }
 
-input:checked + .slider {
+input:checked+.slider {
   background-color: #4f46e5;
 }
 
-input:focus + .slider {
+input:focus+.slider {
   box-shadow: 0 0 1px #4f46e5;
 }
 
-input:checked + .slider:before {
+input:checked+.slider:before {
   transform: translateX(20px);
 }
 
@@ -3715,7 +3793,7 @@ input:checked + .slider:before {
 
 .row-label {
   font-weight: 500;
-  color: #111827;
+  color: #d7d7d7;
 }
 
 .image-upload-wrapper {
@@ -3761,7 +3839,7 @@ input:checked + .slider:before {
   display: flex;
   gap: 16px;
   background: #1a1a1a;
-  border: 1px solid rgba(255,255,255,0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   padding: 16px;
 }
@@ -3823,9 +3901,20 @@ input:checked + .slider:before {
   border-radius: 4px;
 }
 
-.badge-reviewed { background: #ff6b35; color: #fff; }
-.badge-consumed { background: #4f46e5; color: #fff; }
-.badge-added { background: #10b981; color: #fff; }
+.badge-reviewed {
+  background: #ff6b35;
+  color: #fff;
+}
+
+.badge-consumed {
+  background: #4f46e5;
+  color: #fff;
+}
+
+.badge-added {
+  background: #10b981;
+  color: #fff;
+}
 
 .activity-time {
   font-size: 12px;
@@ -3843,7 +3932,7 @@ input:checked + .slider:before {
   background: #1a1a1a;
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .media-thumb {
@@ -3885,12 +3974,17 @@ input:checked + .slider:before {
   background: #1a1a1a;
   border-radius: 16px;
   padding: 24px;
-  border: 1px solid rgba(255,255,255,0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   color: #fff;
 }
 
-.text-danger { color: #ef4444; }
-.text-muted { color: #6b7280; }
+.text-danger {
+  color: #ef4444;
+}
+
+.text-muted {
+  color: #6b7280;
+}
 
 .btn-outline {
   border: 1px solid #d1d5db;
@@ -3916,13 +4010,40 @@ input:checked + .slider:before {
   margin: 32px 0;
 }
 
-.alert-notice { background: #3b82f6; color: #fff; }
-.alert-notice { background: #10b981; color: #fff; }
-.alert-success { background: #10b981; color: #fff; }
-.alert-danger { background: #ef4444; color: #fff; }
-.alert-notice { background: #10b981; color: #fff; }
-.alert-success { background: #10b981; color: #fff; }
-.alert-danger { background: #ef4444; color: #fff; }
+.alert-notice {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.alert-notice {
+  background: #10b981;
+  color: #fff;
+}
+
+.alert-success {
+  background: #10b981;
+  color: #fff;
+}
+
+.alert-danger {
+  background: #ef4444;
+  color: #fff;
+}
+
+.alert-notice {
+  background: #10b981;
+  color: #fff;
+}
+
+.alert-success {
+  background: #10b981;
+  color: #fff;
+}
+
+.alert-danger {
+  background: #ef4444;
+  color: #fff;
+}
 
 // ==========================================================================
 //  Accessibility & Focus States

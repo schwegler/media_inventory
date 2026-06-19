@@ -2,7 +2,7 @@
 
 <div class="row">
   <div class="col-md-6 col-md-offset-3">
-    <%= form_with(model: @user, local: true, class: "standard-form") do |f| %>
+    <%= form_with(model: @user, local: true, multipart: true, class: "standard-form") do |f| %>
       <%= render 'shared/error_messages', object: f.object %>
 
       <div class="form-group">
@@ -50,17 +50,27 @@
         <%= f.password_field :bsky_app_password, class: 'form-control' %>
       </div>
 
-      <div class="form-group" style="margin-top: 15px;">
-        <label>
-          <%= f.check_box :bsky_post_reviews_only %>
-          Only post to Bluesky when I write a review
-        </label>
+      <div style="margin-top: 15px; display: flex; gap: 20px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <%= f.check_box :bsky_post_activity %>
+          <%= f.label :bsky_post_activity, "Auto-post new additions", style: "margin-bottom: 0;" %>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <%= f.check_box :bsky_post_reviews %>
+          <%= f.label :bsky_post_reviews, "Auto-post reviews", style: "margin-bottom: 0;" %>
+        </div>
       </div>
 
       <div class="form-group" style="margin-top: 15px;">
-        <%= f.label :bsky_custom_message, "Custom Message Format" %>
-        <p style="font-size: 0.85em; color: #94a3b8; margin-top: 0; margin-bottom: 5px;">Use <code>[title]</code> to insert the media title. (e.g. "Just logged [title] on MediaTracker!")</p>
-        <%= f.text_area :bsky_custom_message, class: 'form-control', rows: 3 %>
+        <%= f.label :bsky_message_activity_template, "Activity Template" %>
+        <%= f.text_field :bsky_message_activity_template, class: 'form-control', placeholder: 'Just added [title] to my library! #mediatracker' %>
+        <small style="color: #64748b; font-size: 0.75rem;">Placeholders: [title], [type]</small>
+      </div>
+
+      <div class="form-group" style="margin-top: 15px;">
+        <%= f.label :bsky_message_review_template, "Review Template" %>
+        <%= f.text_field :bsky_message_review_template, class: 'form-control', placeholder: 'My review of [title]: [review] - [rating]★ #mediatracker' %>
+        <small style="color: #64748b; font-size: 0.75rem;">Placeholders: [title], [review], [rating]</small>
       </div>
 
       <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.5rem; margin-top: 1.5rem; margin-bottom: 1.5rem;">

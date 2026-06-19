@@ -21,6 +21,7 @@ Welcome to the **Media Inventory Application**, a modern Ruby on Rails 8.1 web p
 *   **Hotwire Native iOS App:** A native iOS WKWebView wrapper using the `hotwire-native-ios` SDK. Supports native tab bars, page transitions, and native bridge components.
 *   **Tauri 2 Desktop App:** A cross-platform desktop application wrapper targeting macOS, Windows, and Linux. Built with Rust and Tauri 2.
 *   **Flexible Database Support:** Dynamically routes to PostgreSQL when run inside Docker containers, and falls back to SQLite3 for simple local host execution.
+*   **Social Integrations:** Built-in support for automated status updates and cross-posting to Mastodon and Bluesky via user-configured credentials.
 
 ---
 

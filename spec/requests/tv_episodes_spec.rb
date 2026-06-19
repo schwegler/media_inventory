@@ -23,9 +23,9 @@ RSpec.describe 'TvEpisodes', type: :request do
 
   describe 'PATCH /tv_episodes/:id/toggle_watched' do
     it 'updates watched status successfully' do
-      patch toggle_watched_tv_episode_path(tv_episode), params: { tv_episode: { watched: true } }
+      patch toggle_watched_tv_episode_path(tv_episode), params: { tv_episode: { consumed: true } }
       expect(response).to redirect_to(tv_show)
-      expect(tv_episode.reload.watched).to be(true)
+      expect(LibraryItem.find_by(user: user, item: tv_episode).consumed).to be(true)
     end
   end
 

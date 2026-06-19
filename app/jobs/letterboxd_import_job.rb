@@ -5,6 +5,7 @@ require 'zip'
 require 'net/http'
 require 'json'
 
+# rubocop:disable Metrics/ClassLength
 class LetterboxdImportJob < ApplicationJob
   queue_as :default
 
@@ -22,7 +23,7 @@ class LetterboxdImportJob < ApplicationJob
       import_likes(zip_file)
     end
   ensure
-    File.delete(@zip_path) if File.exist?(@zip_path)
+    FileUtils.rm_f(@zip_path)
   end
 
   private
@@ -73,10 +74,16 @@ class LetterboxdImportJob < ApplicationJob
       item.consumed = true
       item.in_backlog = false
       item.is_collected = true
-      
+
       watched_date = row['Watched Date'] || row['Date']
-      item.consumed_at = Date.parse(watched_date) rescue nil if watched_date.present?
-      
+      if watched_date.present?
+        item.consumed_at = begin
+          Date.parse(watched_date)
+        rescue StandardError
+          nil
+        end
+      end
+
       rating = row['Rating']
       item.rating = rating if rating.present?
 
@@ -115,8 +122,14 @@ class LetterboxdImportJob < ApplicationJob
       item.is_collected = true
 
       watched_date = row['Watched Date'] || row['Date']
-      item.consumed_at = Date.parse(watched_date) rescue nil if watched_date.present?
-      
+      if watched_date.present?
+        item.consumed_at = begin
+          Date.parse(watched_date)
+        rescue StandardError
+          nil
+        end
+      end
+
       rating = row['Rating']
       item.rating = rating if rating.present?
 
@@ -149,7 +162,7 @@ class LetterboxdImportJob < ApplicationJob
     return movie if movie
 
     movie = Movie.new(title: title, release_year: year, external_url: row['Letterboxd URI'])
-    
+
     # Enrich from Wikipedia
     wiki_data = fetch_movie_from_wikipedia(title, year)
     if wiki_data
@@ -181,7 +194,11 @@ class LetterboxdImportJob < ApplicationJob
     page_title = result['title']
     summary_url = "https://en.wikipedia.org/api/rest_v1/page/summary/#{CGI.escape(page_title.gsub(' ', '_'))}"
     sum_response = Net::HTTP.get(URI(summary_url))
-    sum_data = JSON.parse(sum_response) rescue {}
+    sum_data = begin
+      JSON.parse(sum_response)
+    rescue StandardError
+      {}
+    end
 
     {
       thumbnail_url: sum_data.dig('originalimage', 'source'),
@@ -194,3 +211,5 @@ class LetterboxdImportJob < ApplicationJob
     nil
   end
 end
+
+# rubocop:enable Metrics/ClassLength

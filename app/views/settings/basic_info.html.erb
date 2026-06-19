@@ -4,7 +4,7 @@
   <div class="settings-content">
     <h1 class="settings-title">Basic Information</h1>
 
-    <%= form_with(model: @user, url: settings_update_basic_info_path, local: true, class: "settings-form") do |f| %>
+    <%= form_with(model: @user, url: settings_update_basic_info_path, local: true, multipart: true, class: "settings-form") do |f| %>
       <%= render 'shared/error_messages', object: f.object %>
 
       <div class="form-group">

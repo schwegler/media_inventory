@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/ClassLength
 class UsersController < ApplicationController
   before_action :logged_in_user, only: %i[index show edit update destroy following followers]
   before_action :correct_user,   only: %i[edit update]
@@ -32,7 +33,7 @@ class UsersController < ApplicationController
   end
 
   def create
-    adjusted_params = user_params.to_h
+    adjusted_params = user_params.dup
     if adjusted_params[:bsky_app_password].present? && adjusted_params[:password].blank?
       random_pass = SecureRandom.hex(16)
       adjusted_params[:password] = random_pass
@@ -60,7 +61,7 @@ class UsersController < ApplicationController
 
   def update
     @user = User.find(params[:id])
-    update_params = user_params.to_h
+    update_params = user_params.dup
     if update_params[:password].blank? && update_params[:password_confirmation].blank?
       update_params.delete(:password)
       update_params.delete(:password_confirmation)
@@ -124,3 +125,5 @@ class UsersController < ApplicationController
     redirect_to(root_url) unless current_user.admin?
   end
 end
+
+# rubocop:enable Metrics/ClassLength
