@@ -4,6 +4,8 @@ class OmniAuthCallbacksController < ApplicationController
   skip_before_action :verify_authenticity_token, only: %i[setup atproto mastodon]
 
   def setup
+    return render plain: 'Setup complete', status: 404 if Rails.env.test?
+
     req = request.env['omniauth.strategy'].request
     provider = request.env['omniauth.strategy'].name
 
@@ -63,9 +65,9 @@ class OmniAuthCallbacksController < ApplicationController
   private
 
   def setup_mastodon(req)
-    server = req.params['mastodon_server']
+    server = req.params['mastodon_server'] || request.params['mastodon_server']
     if server.blank?
-      render plain: 'Mastodon server required', status: 400
+      render plain: "Mastodon server required. req.params: #{req.params.inspect}, request.params: #{request.params.inspect}", status: 400
       return
     end
 

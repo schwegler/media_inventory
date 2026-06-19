@@ -22,22 +22,26 @@
 
     <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 2rem 0;">
 
-    <h2 style="font-size: 1.25rem; text-align: center; margin-bottom: 1.5rem;">🦋 Log in with Bluesky</h2>
-    <div style="text-align: center;">
-      <%= button_to "Log in via Bluesky", "/auth/atproto", method: :post, data: { turbo: false }, class: "btn btn-secondary", style: "margin-top: 20px; width: 100%; background: #0284c7; border: none; color: #fff;" %>
-    </div>
-  </div>
-
-  <div class="auth-section" style="flex: 1; padding: 2rem; background: #2d3748; border-radius: 8px;">
-    <h2 style="font-size: 1.25rem; text-align: center; margin-bottom: 1.5rem;">🐘 Log in with Mastodon</h2>
-    <div style="text-align: center;">
-      <%= form_tag "/auth/mastodon", method: :post, data: { turbo: false } do %>
-        <div class="form-group" style="margin-bottom: 1.5rem;">
-          <%= label_tag :mastodon_server, "Mastodon Server URL" %>
-          <%= text_field_tag :mastodon_server, nil, class: 'form-control', placeholder: 'e.g. mastodon.social', required: true %>
+    <div class="auth-sections-container">
+      <div class="auth-section" style="margin-bottom: 2rem;">
+        <h2 style="font-size: 1.25rem; text-align: center; margin-bottom: 1.5rem;">🦋 Log in with Bluesky</h2>
+        <div style="text-align: center;">
+          <%= button_to "Log in via Bluesky", "/auth/atproto", method: :post, data: { turbo: false }, class: "sleek-btn sleek-btn-secondary", style: "margin: 0 auto; width: 100%; background: #0284c7; border-color: #0ea5e9;" %>
         </div>
-        <%= submit_tag "Log in via Mastodon", class: "btn btn-secondary", style: "width: 100%; background: #563acc; border: none; color: #fff;" %>
-      <% end %>
+      </div>
+
+      <div class="auth-section" style="padding: 1.5rem; background: rgba(30, 41, 59, 0.3); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px;">
+        <h2 style="font-size: 1.25rem; text-align: center; margin-bottom: 1.5rem;">🐘 Log in with Mastodon</h2>
+        <div style="text-align: center;">
+          <%= form_tag "/auth/mastodon", method: :post, data: { turbo: false } do %>
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+              <%= label_tag :mastodon_server, "Mastodon Server URL" %>
+              <%= text_field_tag :mastodon_server, nil, class: 'form-control', placeholder: 'e.g. mastodon.social', required: true %>
+            </div>
+            <%= submit_tag "Log in via Mastodon", class: "sleek-btn sleek-btn-secondary", style: "width: 100%; background: #563acc; border-color: #7c3aed;" %>
+          <% end %>
+        </div>
+      </div>
     </div>
   </div>
 </div>

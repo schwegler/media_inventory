@@ -60,8 +60,12 @@ RSpec.describe 'Landing and Authentication', type: :system do
     expect(page).to have_text('Welcome back, Active Tracker')
 
     # Log out
-    click_button 'Sign Out'
-
+    if Capybara.current_driver == :rack_test
+      find('form.dropdown-logout-form button', visible: :all).click
+    else
+      find('.nav-user-info').click
+      click_button 'Sign Out'
+    end
     # Confirm we are logged out
     visit root_path
     expect(page).to have_text('Community Activity')
