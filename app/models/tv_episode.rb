@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 class TvEpisode < ApplicationRecord
-  include Trackable
-
   belongs_to :tv_show
   has_many :comments, as: :commentable, dependent: :destroy
 

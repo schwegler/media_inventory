@@ -8,7 +8,10 @@ RSpec.describe 'TvEpisodes', type: :request do
                  password_confirmation: 'password123', confirmed_at: Time.current)
   end
   let!(:tv_show) do
-    user.tv_shows.create!(title: '30 Rock')
+    TvShow.create!(title: '30 Rock')
+  end
+  let!(:library_item) do
+    LibraryItem.create!(user: user, item: tv_show)
   end
   let!(:tv_episode) do
     tv_show.tv_episodes.create!(name: 'Pilot', season: 1, episode: 1)

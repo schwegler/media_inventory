@@ -27,6 +27,7 @@ RSpec.describe 'TV Shows and Episodes Management', type: :system do
     fill_in 'Title', with: 'Breaking Bad'
     click_add_manually
     fill_in 'tv_show[network]', with: 'AMC'
+    check 'In Collection'
     select '★★★★★', from: 'tv_show[rating]'
     fill_in 'tv_show[review]', with: 'Simply amazing.'
     click_button 'Create TV Show'
@@ -83,7 +84,8 @@ RSpec.describe 'TV Shows and Episodes Management', type: :system do
   end
 
   it 'displays a list of TV shows' do
-    TvShow.create!(title: 'The Wire', network: 'HBO', user: user)
+    show = TvShow.find_or_create_by!(title: 'The Wire', network: 'HBO')
+    LibraryItem.create!(item: show, user: user)
 
     visit tv_shows_path
 

@@ -25,10 +25,10 @@ RSpec.describe 'Collections Viewing', type: :system do
 
   it "displays a confirmed user's public collection items" do
     # Create public items
-    Movie.create!(title: 'Public Movie', is_public: true, user: confirmed_user)
-    Album.create!(title: 'Public Album', is_public: true, user: confirmed_user)
+    LibraryItem.create!(item: Movie.find_or_create_by!(title: 'Public Movie'), is_public: true, is_collected: true, user: confirmed_user)
+    LibraryItem.create!(item: Album.find_or_create_by!(title: 'Public Album'), is_public: true, is_collected: true, user: confirmed_user)
     # Create non-public item to ensure it is hidden
-    Movie.create!(title: 'Private Movie', is_public: false, user: confirmed_user)
+    LibraryItem.create!(item: Movie.find_or_create_by!(title: 'Private Movie'), is_public: false, is_collected: true, user: confirmed_user)
 
     visit collection_path(confirmed_user)
 

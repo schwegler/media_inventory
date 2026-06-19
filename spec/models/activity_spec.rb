@@ -10,42 +10,46 @@ RSpec.describe Activity, type: :model do
   describe 'callbacks' do
     it 'creates an added activity when media is created with is_collected: true' do
       expect do
-        Movie.create!(title: 'Buffy the Vampire Slayer', user: user, is_collected: true)
+        movie = Movie.find_or_create_by!(title: 'Buffy the Vampire Slayer')
+        LibraryItem.create!(item: movie, user: user, is_collected: true)
       end.to change(Activity.where(activity_type: 'added'), :count).by(1)
     end
 
     it 'creates a watchlist activity when media is created with in_watchlist: true' do
       expect do
-        Movie.create!(title: 'Buffy the Vampire Slayer', user: user, in_watchlist: true, is_collected: false)
+        movie = Movie.find_or_create_by!(title: 'Buffy the Vampire Slayer')
+        LibraryItem.create!(item: movie, user: user, in_watchlist: true, is_collected: false)
       end.to change(Activity.where(activity_type: 'watchlist'), :count).by(1)
     end
 
     it 'creates a consumed activity when media is marked as consumed' do
       expect do
-        Album.create!(title: '7 Songs', artist: 'Fugazi', user: user, consumed: true)
+        album = Album.find_or_create_by!(title: '7 Songs', artist: 'Fugazi')
+        LibraryItem.create!(item: album, user: user, consumed: true)
       end.to change(Activity.where(activity_type: 'consumed'), :count).by(1)
     end
 
     it 'creates a reviewed activity when media is created with review' do
       expect do
-        TvShow.create!(title: 'Buffy the Vampire Slayer', user: user, review: 'Amazing show!',
-                       rating: '5')
+        show = TvShow.find_or_create_by!(title: 'Buffy the Vampire Slayer')
+        LibraryItem.create!(item: show, user: user, review: 'Amazing show!', rating: '5')
       end.to change(Activity.where(activity_type: 'reviewed'), :count).by(1)
     end
   end
 
   describe '#description' do
     it 'formats tv show reviewed activity correctly' do
-      show = TvShow.create!(title: 'Buffy the Vampire Slayer', user: user, review: 'Great show!',
-                            rating: '5')
-      activity = show.activities.find_by(activity_type: 'reviewed')
+      show = TvShow.find_or_create_by!(title: 'Buffy the Vampire Slayer')
+      lib_item = LibraryItem.create!(item: show, user: user, review: 'Great show!', rating: '5')
+      activity = lib_item.activities.find_by(activity_type: 'reviewed')
       expect(activity.description).to eq("Andrew reviewed TV show 'Buffy the Vampire Slayer' (Rating: 5)")
     end
 
     it 'formats tv episode reviewed activity correctly' do
-      show = TvShow.create!(title: 'Buffy the Vampire Slayer', user: user)
-      episode = show.tv_episodes.create!(name: "Teacher's Pet", season: 1, episode: 4, rating: '5', review: 'Great S1E04!')
-      activity = episode.activities.find_by(activity_type: 'reviewed')
+      show = TvShow.find_or_create_by!(title: 'Buffy the Vampire Slayer')
+      episode = show.tv_episodes.create!(name: "Teacher's Pet", season: 1, episode: 4)
+      lib_item = LibraryItem.create!(item: episode, user: user, review: 'Great S1E04!', rating: '5')
+      activity = lib_item.activities.find_by(activity_type: 'reviewed')
       expected_desc = "Andrew reviewed episode 'Buffy the Vampire Slayer S1E4: Teacher's Pet' (Rating: 5)"
       expect(activity.description).to eq(expected_desc)
     end

@@ -13,7 +13,8 @@ RSpec.describe 'TV Episodes Management', type: :system do
     )
   end
 
-  let!(:tv_show) { TvShow.create!(title: 'Breaking Bad', user: user) }
+  let!(:tv_show) { TvShow.create!(title: 'Breaking Bad') }
+  let!(:library_item) { LibraryItem.create!(item: tv_show, user: user, is_collected: true) }
   let!(:episode) do
     tv_show.tv_episodes.create!(
       name: 'Pilot',

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 class TvShow < ApplicationRecord
-  include Trackable
   include LibraryItemFormAttributes
 
   has_one_attached :cover_image
