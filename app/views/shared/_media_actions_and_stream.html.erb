@@ -72,6 +72,9 @@ end
                           params: { item.class.name.underscore.to_sym => { consumed: !item.consumed?, consumed_at: (item.consumed? ? nil : Time.current.to_date) } },
                           class: "btn #{item.consumed? ? 'btn-danger' : 'btn-success'}" %>
           </div>
+          <div class="actions-buttons-row" style="margin-top: 8px;">
+            <%= render 'likes/like_button', item: item %>
+          </div>
         </div>
 
         <div class="actions-delete-box">

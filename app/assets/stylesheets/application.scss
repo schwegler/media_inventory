@@ -404,11 +404,12 @@ a {
 //  Forms
 // ==========================================================================
 form.standard-form {
-  background: rgba(22, 27, 34, 0.6);
+  background: $card-bg;
   border: 1px solid $card-border;
   padding: 2rem;
   border-radius: $radius-xl;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   max-width: 550px;
   margin: 1rem auto 3rem;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
@@ -432,9 +433,9 @@ textarea {
   padding: 0.75rem 1rem;
   font-size: 0.95rem;
   font-family: $font-family-body;
-  color: #ffffff;
-  background-color: rgba(13, 17, 23, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: $text-main;
+  background-color: rgba(13, 17, 23, 0.5);
+  border: 1px solid $card-border;
   border-radius: $radius-md;
   box-sizing: border-box;
   transition: all 0.2s ease;
@@ -447,7 +448,7 @@ textarea {
   }
 
   &::placeholder {
-    color: #484f58;
+    color: $text-muted;
   }
 }
 
@@ -3164,17 +3165,21 @@ header nav ul.nav-links {
 }
 
 .profile-header {
-  background: #fff;
-  border-radius: 16px;
+  background: $card-bg;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid $card-border;
+  border-radius: $radius-lg;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
   margin-bottom: 24px;
 }
 
 .header-banner {
   height: 200px;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.2) 0%, rgba(247, 201, 72, 0.2) 100%);
   position: relative;
+  border-bottom: 1px solid $card-border;
 }
 
 .banner-img {
@@ -3193,10 +3198,11 @@ header nav ul.nav-links {
 
 .avatar-container {
   margin-top: -60px;
-  border: 4px solid #fff;
+  border: 4px solid $bg-surface;
   border-radius: 50%;
-  background: #fff;
+  background: $bg-surface;
   z-index: 2;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
 
 .profile-main-meta {
@@ -3208,11 +3214,11 @@ header nav ul.nav-links {
   font-size: 24px;
   font-weight: 800;
   margin: 0;
-  color: #1a1a1a;
+  color: $text-main;
 }
 
 .profile-handle {
-  color: #666;
+  color: $text-muted;
   margin: 0;
 }
 
@@ -3227,15 +3233,20 @@ header nav ul.nav-links {
   display: flex;
   gap: 6px;
   font-size: 14px;
+  transition: opacity 0.2s ease;
+  
+  &:hover {
+    opacity: 0.8;
+  }
 }
 
 .stat-count {
   font-weight: 700;
-  color: #1a1a1a;
+  color: $text-main;
 }
 
 .stat-label {
-  color: #666;
+  color: $text-muted;
 }
 
 .profile-actions {
@@ -3255,23 +3266,28 @@ header nav ul.nav-links {
 }
 
 .card {
-  background: #fff;
-  border-radius: 12px;
+  background: $card-bg;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid $card-border;
+  border-radius: $radius-lg;
   padding: 20px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
   margin-bottom: 20px;
+  color: $text-main;
 }
 
 .bio-section h3 {
-  font-size: 16px;
+  font-size: 1.1rem;
   font-weight: 700;
   margin-bottom: 12px;
+  color: $text-main;
 }
 
 /* --- Tabs --- */
 .profile-tabs {
   display: flex;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid $card-border;
   margin-bottom: 20px;
   gap: 32px;
 }
@@ -3280,15 +3296,20 @@ header nav ul.nav-links {
   background: none;
   border: none;
   padding: 12px 0;
-  font-size: 15px;
+  font-size: 0.95rem;
   font-weight: 600;
-  color: #666;
+  color: $text-muted;
   cursor: pointer;
   position: relative;
+  transition: color 0.2s ease;
+  
+  &:hover {
+    color: $text-main;
+  }
 }
 
 .tab-btn.active {
-  color: #6366f1;
+  color: $accent-orange;
 }
 
 .tab-btn.active::after {
@@ -3298,7 +3319,7 @@ header nav ul.nav-links {
   left: 0;
   right: 0;
   height: 2px;
-  background: #6366f1;
+  background-color: $accent-orange;
 }
 
 .hidden {

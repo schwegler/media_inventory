@@ -108,7 +108,7 @@
                <div class="grid-layout poster-grid">
                  <% collection_items.each do |lib_item| %>
                    <% item = lib_item.item %>
-                   <div class="media-card poster-card">
+                   <div class="poster-card">
                      <% if item.respond_to?(:thumbnail_url) && item.thumbnail_url.present? %>
                        <%= image_tag item.thumbnail_url, class: "media-thumb poster-img" %>
                      <% else %>
@@ -137,7 +137,7 @@
              <div class="grid-layout poster-grid">
                <% backlog_items.each do |lib_item| %>
                  <% item = lib_item.item %>
-                 <div class="media-card poster-card">
+                 <div class="poster-card">
                    <% if item.respond_to?(:thumbnail_url) && item.thumbnail_url.present? %>
                      <%= image_tag item.thumbnail_url, class: "media-thumb poster-img" %>
                    <% else %>

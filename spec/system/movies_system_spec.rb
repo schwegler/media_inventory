@@ -29,5 +29,10 @@ RSpec.describe 'Movies Management', type: :system do
 
     expect(page).to have_text('Inception')
     expect(page).to have_text('Directed by Christopher Nolan')
+
+    # Test the like button
+    expect(page).to have_button('Like')
+    click_button 'Like'
+    expect(page).to have_text('Like 1')
   end
 end

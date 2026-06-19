@@ -7,5 +7,5 @@
               id: "like_button_#{item.class.name}_#{item.id}",
               class: "btn-like-review #{'liked' if liked}",
               form: { data: { turbo: true } } do %>
-  <span class="heart-empty"><%= liked ? '♥' : '♡' %></span> Like review <span class="likes-count"><%= likes_count %></span> likes
+  <span class="heart-empty"><%= liked ? '♥' : '♡' %></span> <span class="like-text">Like</span> <span class="likes-count"><%= likes_count %></span>
 <% end %>
