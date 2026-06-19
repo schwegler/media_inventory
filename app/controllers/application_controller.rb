@@ -41,4 +41,29 @@ class ApplicationController < ActionController::Base
     flash[:danger] = 'Please log in.'
     redirect_to login_url
   end
+
+  def can_access?(resource)
+    return false if resource.nil?
+
+    # 1. Owner access
+    if resource.respond_to?(:user) && resource.user.present?
+      return true if resource.user == current_user
+    end
+
+    # 2. Public access (explicitly marked)
+    if resource.respond_to?(:is_public) && resource.is_public
+      return true
+    end
+
+    # 3. Special case for TvEpisode public access (inherits from TvShow)
+    if resource.is_a?(TvEpisode) && resource.tv_show&.is_public
+      return true
+    end
+
+    # 4. Fallback: if it has no owner, it's public (for seeds/global items)
+    # Sentinel note: Ideally all items should have owners, but we allow this for compatibility.
+    return true if resource.respond_to?(:user) && resource.user.nil?
+
+    false
+  end
 end
