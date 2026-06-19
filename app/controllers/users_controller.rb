@@ -90,6 +90,7 @@ class UsersController < ApplicationController
     params.require(:user).permit(
       :name, :username, :email, :password, :password_confirmation,
       :avatar, :header_banner, :bio, :birthday,
+      :bsky_handle, :bsky_password,
       :bsky_post_activity, :bsky_post_reviews,
       :bsky_message_activity_template, :bsky_message_review_template,
       :mastodon_post_activity, :mastodon_post_reviews,

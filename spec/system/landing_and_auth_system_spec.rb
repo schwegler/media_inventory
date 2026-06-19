@@ -29,7 +29,7 @@ RSpec.describe 'Landing and Authentication', type: :system do
     fill_in 'Email', with: 'newuser@example.com'
     fill_in 'Password', with: 'password123'
     fill_in 'Confirmation', with: 'password123'
-    click_button 'Create my account'
+    click_button 'Sign up'
 
     expect(page).to have_text('Welcome to MediaTracker!')
     expect(page).to have_text('NEW USER')
@@ -61,13 +61,11 @@ RSpec.describe 'Landing and Authentication', type: :system do
 
     # Log out
     if Capybara.current_driver == :rack_test
-      find('.dropdown-logout-btn', visible: :any).click
+      find('form.dropdown-logout-form button', visible: :all).click
     else
-      expect(page).to have_css('.nav-dropdown[data-connected="true"]')
-      find('.btn-log').click
-      find('.dropdown-logout-btn').click
+      find('.nav-user-info').click
+      click_button 'Sign Out'
     end
-
     # Confirm we are logged out
     visit root_path
     expect(page).to have_text('Community Activity')

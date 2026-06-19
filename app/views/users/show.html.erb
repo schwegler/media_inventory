@@ -105,22 +105,10 @@
              <% collection_items = collection_items.order(created_at: :desc) %>
              
              <% if collection_items.any? %>
-               <div class="grid-layout poster-grid">
+               <div class="media-grid-2026">
                  <% collection_items.each do |lib_item| %>
                    <% item = lib_item.item %>
-                   <div class="media-card poster-card">
-                     <% if item.respond_to?(:thumbnail_url) && item.thumbnail_url.present? %>
-                       <%= image_tag item.thumbnail_url, class: "media-thumb poster-img" %>
-                     <% else %>
-                       <div class="poster-placeholder"><%= item.title %></div>
-                     <% end %>
-                     <div class="poster-overlay">
-                       <span class="media-title"><%= item.title %></span>
-                       <% if lib_item.rating.present? %>
-                         <span class="media-rating"><%= lib_item.rating %></span>
-                       <% end %>
-                     </div>
-                   </div>
+                   <%= render partial: 'shared/media_card', locals: { media_item: item } %>
                  <% end %>
                </div>
              <% else %>
@@ -134,19 +122,10 @@
         <div class="media-grid">
            <% backlog_items = @user.library_items.where(in_backlog: true).order(created_at: :desc) %>
            <% if backlog_items.any? %>
-             <div class="grid-layout poster-grid">
+             <div class="media-grid-2026">
                <% backlog_items.each do |lib_item| %>
                  <% item = lib_item.item %>
-                 <div class="media-card poster-card">
-                   <% if item.respond_to?(:thumbnail_url) && item.thumbnail_url.present? %>
-                     <%= image_tag item.thumbnail_url, class: "media-thumb poster-img" %>
-                   <% else %>
-                     <div class="poster-placeholder"><%= item.title %></div>
-                   <% end %>
-                   <div class="poster-overlay">
-                     <span class="media-title"><%= item.title %></span>
-                   </div>
-                 </div>
+                 <%= render partial: 'shared/media_card', locals: { media_item: item } %>
                <% end %>
              </div>
            <% else %>

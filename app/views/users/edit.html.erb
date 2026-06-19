@@ -16,6 +16,16 @@
       </div>
 
       <div class="form-group" style="margin-top: 15px;">
+        <%= f.label :avatar, "Profile Avatar" %>
+        <%= f.file_field :avatar, class: 'form-control' %>
+      </div>
+
+      <div class="form-group" style="margin-top: 15px;">
+        <%= f.label :header_banner, "Profile Banner" %>
+        <%= f.file_field :header_banner, class: 'form-control' %>
+      </div>
+
+      <div class="form-group" style="margin-top: 15px;">
         <%= f.label :password, "New Password (optional)" %>
         <%= f.password_field :password, class: 'form-control', autocomplete: 'new-password' %>
       </div>
@@ -28,7 +38,7 @@
       <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.5rem; margin-top: 1.5rem; margin-bottom: 1.5rem;">
         <h3 style="font-size: 1.25rem; color: #fff; margin-bottom: 0.5rem;">🦋 Bluesky Integration</h3>
         
-        <% if @user.bsky_access_token.present? %>
+        <% if @user.bsky_access_token.present? || @user.bsky_password.present? %>
           <div style="padding: 1rem; background: rgba(2, 132, 199, 0.1); border-left: 4px solid #0284c7; margin-bottom: 1rem;">
             <p style="margin: 0;">✅ Connected as <strong><%= @user.bsky_handle %></strong></p>
           </div>
@@ -59,7 +69,16 @@
           <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem; line-height: 1.4;">
             Connect your Bluesky (bsky.app) account to automatically post updates and reviews.
           </p>
-          <%= button_to "Connect Bluesky", "/auth/atproto", method: :post, data: { turbo: false }, class: "btn btn-secondary", style: "background: #0284c7; border: none; color: #fff;" %>
+          <div style="margin-bottom: 15px;">
+            <%= f.label :bsky_handle, "Bluesky Handle (App Password)" %>
+            <%= f.text_field :bsky_handle, class: 'form-control', placeholder: 'e.g. alice.bsky.social' %>
+          </div>
+          <div style="margin-bottom: 15px;">
+            <%= f.label :bsky_password, "Bluesky App Password" %>
+            <%= f.password_field :bsky_password, class: 'form-control', placeholder: 'xxxx-xxxx-xxxx-xxxx' %>
+          </div>
+          <p style="text-align: center; margin: 10px 0; color: #94a3b8;">OR</p>
+          <%= button_to "Connect Bluesky via OAuth", "/auth/atproto", method: :post, data: { turbo: false }, class: "sleek-btn sleek-btn-primary", style: "width: 100%; background: #0284c7; border-color: #0ea5e9;" %>
         <% end %>
       </div>
 
@@ -101,7 +120,7 @@
             <%= label_tag :mastodon_server, "Mastodon Server URL" %>
             <%= text_field_tag :mastodon_server, nil, class: 'form-control', placeholder: 'e.g. mastodon.social', id: 'mastodon_server_input' %>
           </div>
-          <button type="button" class="btn btn-secondary" style="background: #563acc; border: none; color: #fff;" onclick="connectMastodon()">Connect Mastodon</button>
+          <button type="button" class="sleek-btn sleek-btn-primary" style="background: #563acc; border-color: #7c3aed;" onclick="connectMastodon()">Connect Mastodon</button>
           
           <script>
             function connectMastodon() {
@@ -134,7 +153,7 @@
         <% end %>
       </div>
 
-      <%= f.submit "Save changes", class: "btn btn-primary", style: "margin-top: 20px;" %>
+      <%= f.submit "Save changes", class: "sleek-btn sleek-btn-primary", style: "margin-top: 20px; width: 100%;" %>
     <% end %>
   </div>
 </div>

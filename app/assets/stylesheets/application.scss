@@ -1,35 +1,34 @@
 @use "sass:color";
-@import "letterboxd";
-
 // ==========================================================================
-//  TROVE — Design System Variables
+//  TROVE — 2026 Next-Gen Design System Variables
 // ==========================================================================
-$bg-dark: #0d1117;
-$bg-darker: #010409;
-$bg-surface: #161b22;
-$card-bg: rgba(22, 27, 34, 0.65);
-$card-bg-solid: #1c2128;
-$card-border: rgba(255, 255, 255, 0.06);
-$text-main: #f0f6fc;
-$text-muted: #8b949e;
-$text-dim: #484f58;
-$accent-orange: #ff6b35;
-$accent-gold: #f7c948;
-$accent-green: #00e676;
-$accent-green-hover: #00c853;
-$primary-color: #ff6b35;
-$primary-hover: #e55a2b;
-$secondary-color: #818cf8;
-$accent-glow: rgba(255, 107, 53, 0.12);
-$star-color: #f59e0b;
+$bg-dark: #07090e;
+$bg-darker: #0b0f19;
+$bg-surface: #1a2035;
+$card-bg: #1a2035;
+$card-bg-solid: #1f2940;
+$card-border: rgba(255, 255, 255, 0.05);
+$text-main: #f8fafc;
+$text-muted: #94a3b8;
+$text-dim: #64748b;
+$accent-cyan: #06b6d4;
+$accent-cyan-hover: #0891b2;
+$accent-orange: #f97316;
+$accent-gold: #fbbf24;
+$accent-green: #10b981;
+$accent-green-hover: #059669;
+$primary-color: #06b6d4;
+$primary-hover: #0891b2;
+$secondary-color: #6366f1;
+$star-color: #fbbf24;
 
 $font-family-headings: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
 $font-family-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
 
-$radius-sm: 6px;
-$radius-md: 10px;
+$radius-sm: 8px;
+$radius-md: 12px;
 $radius-lg: 16px;
-$radius-xl: 20px;
+$radius-xl: 24px;
 
 // ==========================================================================
 //  Base Styles
@@ -37,10 +36,6 @@ $radius-xl: 20px;
 body {
   font-family: $font-family-body;
   background-color: $bg-darker;
-  background-image:
-    radial-gradient(at 0% 0%, rgba(255, 107, 53, 0.04) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(247, 201, 72, 0.03) 0px, transparent 50%);
-  background-attachment: fixed;
   color: $text-main;
   margin: 0;
   padding: 0;
@@ -404,14 +399,13 @@ a {
 //  Forms
 // ==========================================================================
 form.standard-form {
-  background: rgba(22, 27, 34, 0.6);
+  background: $card-bg;
   border: 1px solid $card-border;
   padding: 2rem;
-  border-radius: $radius-xl;
-  backdrop-filter: blur(10px);
-  max-width: 550px;
+  border-radius: $radius-lg;
+  max-width: 600px;
   margin: 1rem auto 3rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   box-sizing: border-box;
 
   div {
@@ -432,22 +426,22 @@ textarea {
   padding: 0.75rem 1rem;
   font-size: 0.95rem;
   font-family: $font-family-body;
-  color: #ffffff;
-  background-color: rgba(13, 17, 23, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: $text-main;
+  background-color: rgba(13, 17, 23, 0.5);
+  border: 1px solid $card-border;
   border-radius: $radius-md;
   box-sizing: border-box;
   transition: all 0.2s ease;
 
   &:focus {
-    background-color: rgba(13, 17, 23, 0.95);
-    border-color: $accent-orange;
-    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15);
+    background-color: #07090e;
+    border-color: $accent-cyan;
+    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
     outline: none;
   }
 
   &::placeholder {
-    color: #484f58;
+    color: $text-muted;
   }
 }
 
@@ -735,13 +729,107 @@ turbo-frame {
 }
 
 /* Hotwire Native — hide elements when in native app */
-body[data-native="true"] {
-
-  header,
-  footer {
-    display: none;
+.tab-content {
+  display: none;
+  &.active {
+    display: block;
   }
 }
+
+// ==========================================================================
+//  2026 Universal Card Grid
+// ==========================================================================
+
+.media-grid-2026 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  padding: 0;
+  margin: 1.5rem 0;
+  list-style: none;
+}
+
+.card-2026 {
+  display: flex;
+  background: $card-bg;
+  border-radius: $radius-lg;
+  border: 1px solid $card-border;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  height: 120px;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.5);
+    border-color: rgba(6, 182, 212, 0.3);
+  }
+
+  &-cover {
+    width: 80px;
+    flex-shrink: 0;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .fallback-emoji {
+      font-size: 2rem;
+    }
+  }
+
+  &-content {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &-title {
+    font-size: 1.1rem;
+    margin: 0 0 6px 0;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    a {
+      color: $text-main;
+      text-decoration: none;
+
+      &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+
+      &:hover {
+        color: $accent-cyan;
+      }
+    }
+  }
+
+  &-meta {
+    font-size: 0.85rem;
+    color: $text-muted;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+  }
+}
+
 
 // ==========================================================================
 //  Thumbnail Fetcher Component
@@ -2607,24 +2695,6 @@ header nav ul.nav-links {
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 12px;
 
-  .btn {
-    font-size: 0.85rem;
-    padding: 8px 14px;
-    border: 1px solid transparent;
-    box-shadow: none;
-    height: 38px;
-    box-sizing: border-box;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    white-space: nowrap;
-
-    &:hover {
-      transform: none;
-      box-shadow: none;
-    }
-  }
-
   .actions-header {
     display: flex;
     flex-direction: column;
@@ -3164,17 +3234,21 @@ header nav ul.nav-links {
 }
 
 .profile-header {
-  background: #fff;
-  border-radius: 16px;
+  background: $card-bg;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid $card-border;
+  border-radius: $radius-lg;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
   margin-bottom: 24px;
 }
 
 .header-banner {
   height: 200px;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.2) 0%, rgba(247, 201, 72, 0.2) 100%);
   position: relative;
+  border-bottom: 1px solid $card-border;
 }
 
 .banner-img {
@@ -3193,10 +3267,11 @@ header nav ul.nav-links {
 
 .avatar-container {
   margin-top: -60px;
-  border: 4px solid #fff;
+  border: 4px solid $bg-surface;
   border-radius: 50%;
-  background: #fff;
+  background: $bg-surface;
   z-index: 2;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
 
 .profile-main-meta {
@@ -3208,11 +3283,11 @@ header nav ul.nav-links {
   font-size: 24px;
   font-weight: 800;
   margin: 0;
-  color: #1a1a1a;
+  color: $text-main;
 }
 
 .profile-handle {
-  color: #666;
+  color: $text-muted;
   margin: 0;
 }
 
@@ -3227,15 +3302,20 @@ header nav ul.nav-links {
   display: flex;
   gap: 6px;
   font-size: 14px;
+  transition: opacity 0.2s ease;
+  
+  &:hover {
+    opacity: 0.8;
+  }
 }
 
 .stat-count {
   font-weight: 700;
-  color: #1a1a1a;
+  color: $text-main;
 }
 
 .stat-label {
-  color: #666;
+  color: $text-muted;
 }
 
 .profile-actions {
@@ -3255,23 +3335,28 @@ header nav ul.nav-links {
 }
 
 .card {
-  background: #fff;
-  border-radius: 12px;
+  background: $card-bg;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid $card-border;
+  border-radius: $radius-lg;
   padding: 20px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
   margin-bottom: 20px;
+  color: $text-main;
 }
 
 .bio-section h3 {
-  font-size: 16px;
+  font-size: 1.1rem;
   font-weight: 700;
   margin-bottom: 12px;
+  color: $text-main;
 }
 
 /* --- Tabs --- */
 .profile-tabs {
   display: flex;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid $card-border;
   margin-bottom: 20px;
   gap: 32px;
 }
@@ -3280,15 +3365,170 @@ header nav ul.nav-links {
   background: none;
   border: none;
   padding: 12px 0;
-  font-size: 15px;
+  font-size: 0.95rem;
   font-weight: 600;
-  color: #666;
+  color: $text-muted;
   cursor: pointer;
   position: relative;
+  transition: color 0.2s ease;
+  
+  &:hover {
+    color: $text-main;
+  }
+}
+
+// ==========================================================================
+//  2026 Sleek Button System
+// ==========================================================================
+.btn, .sleek-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: $font-family-body;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 8px 16px;
+  border-radius: $radius-xl; // Pill shape
+  transition: all 0.25s ease;
+  cursor: pointer;
+  text-decoration: none;
+  border: 1px solid transparent;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  white-space: nowrap;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+    text-decoration: none;
+  }
+  
+  &:active {
+    transform: translateY(1px);
+    box-shadow: none;
+  }
+}
+
+.btn-primary, .sleek-btn-primary {
+  background: $accent-cyan;
+  color: #fff;
+  border-color: $accent-cyan-hover;
+  
+  &:hover {
+    background: $accent-cyan-hover;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+  }
+}
+
+.btn-secondary, .sleek-btn-secondary {
+  background: transparent;
+  color: $text-main;
+  border-color: rgba(255, 255, 255, 0.2);
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: #fff;
+  }
+}
+
+.btn-success, .sleek-btn-success {
+  background: $accent-green;
+  color: #fff;
+  border-color: $accent-green-hover;
+  
+  &:hover {
+    background: $accent-green-hover;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  }
+}
+
+.btn-danger, .sleek-btn-danger {
+  background: transparent;
+  color: #f43f5e;
+  border-color: rgba(244, 63, 94, 0.3);
+  
+  &:hover {
+    background: rgba(244, 63, 94, 0.1);
+    border-color: #f43f5e;
+    color: #f43f5e;
+  }
+}
+
+.btn-outline, .sleek-btn-outline {
+  background: transparent;
+  color: $accent-cyan;
+  border-color: $accent-cyan;
+  
+  &:hover {
+    background: rgba(6, 182, 212, 0.1);
+    color: $accent-cyan;
+  }
+}
+
+// Like Button (Animated Icon)
+.btn-like-icon {
+  background: transparent;
+  border: none;
+  color: $text-muted;
+  cursor: pointer;
+  font-size: 1.25rem;
+  padding: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: none;
+
+  &:hover {
+    transform: scale(1.1);
+    color: #f43f5e;
+    background: rgba(244, 63, 94, 0.1);
+    box-shadow: none;
+  }
+
+  &.liked {
+    color: #f43f5e;
+    .heart-empty {
+      animation: heartbeat 0.4s ease-in-out;
+    }
+  }
+
+  .like-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .likes-count {
+    font-size: 0.8rem;
+    background: rgba(255,255,255,0.1);
+    padding: 2px 8px;
+    border-radius: 12px;
+  }
+}
+
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+// Typography Links
+a {
+  color: $accent-cyan;
+  text-decoration: none;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: $accent-cyan-hover;
+    text-decoration: underline;
+  }
 }
 
 .tab-btn.active {
-  color: #6366f1;
+  color: $accent-orange;
 }
 
 .tab-btn.active::after {
@@ -3298,7 +3538,7 @@ header nav ul.nav-links {
   left: 0;
   right: 0;
   height: 2px;
-  background: #6366f1;
+  background-color: $accent-orange;
 }
 
 .hidden {
@@ -3685,4 +3925,53 @@ input[type="submit"]:focus-visible {
   outline: 2px solid #fff;
   outline-offset: 2px;
   box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.4);
+}
+
+// ==========================================================================
+//  Auth Tabs
+// ==========================================================================
+.auth-tabs-container {
+  background: rgba(30, 41, 59, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.auth-tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.auth-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 1rem 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+
+  &:hover {
+    color: #e2e8f0;
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  &.active {
+    color: #fff;
+    border-bottom-color: $accent-orange;
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+.auth-tab-content {
+  padding: 1.5rem;
+
+  &.hidden {
+    display: none;
+  }
 }

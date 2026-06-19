@@ -13,7 +13,7 @@ Rails.application.configure do
     policy.img_src     :self, :https, :data
     policy.object_src  :none
     policy.script_src  :self
-    policy.style_src   :self
+    policy.style_src   :self, :https
     # Specify URI for violation reports
     # policy.report_uri "/csp-violation-report-endpoint"
 
@@ -21,7 +21,7 @@ Rails.application.configure do
     policy.base_uri    :self
     policy.connect_src :self, 'https://itunes.apple.com', 'https://www.googleapis.com',
                        'https://api.tvmaze.com', 'https://openlibrary.org', 'https://covers.openlibrary.org'
-    policy.form_action :self
+    policy.form_action :self, :https
   end
 
   # Generate session nonces for permitted importmap, inline scripts, and inline styles.

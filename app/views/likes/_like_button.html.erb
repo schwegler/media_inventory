@@ -5,7 +5,7 @@
 <%= button_to toggle_like_path(likeable_type: item.class.name, likeable_id: item.id),
               method: :post,
               id: "like_button_#{item.class.name}_#{item.id}",
-              class: "btn-like-review #{'liked' if liked}",
+              class: "btn-like-icon #{'liked' if liked}",
               form: { data: { turbo: true } } do %>
-  <span class="heart-empty"><%= liked ? '♥' : '♡' %></span> Like review <span class="likes-count"><%= likes_count %></span> likes
+  <span class="heart-empty"><%= liked ? '♥' : '♡' %></span> <span class="like-text">Like</span> <span class="likes-count"><%= likes_count %></span>
 <% end %>

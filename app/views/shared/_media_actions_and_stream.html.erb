@@ -58,19 +58,22 @@ end
                           polymorphic_path(item),
                           method: :patch,
                           params: { item.class.name.underscore.to_sym => { is_collected: !item.is_collected? } },
-                          class: "btn #{item.is_collected? ? 'btn-danger' : 'btn-primary'}" %>
+                          class: "sleek-btn #{item.is_collected? ? 'sleek-btn-danger' : 'sleek-btn-primary'}" %>
 
             <%= button_to item.in_watchlist? ? watchlist_remove_label : watchlist_add_label,
                           polymorphic_path(item),
                           method: :patch,
                           params: { item.class.name.underscore.to_sym => { in_watchlist: !item.in_watchlist? } },
-                          class: "btn #{item.in_watchlist? ? 'btn-danger' : 'btn-secondary'}" %>
+                          class: "sleek-btn #{item.in_watchlist? ? 'sleek-btn-danger' : 'sleek-btn-secondary'}" %>
 
             <%= button_to item.consumed? ? consumed_remove_label : consumed_add_label,
                           polymorphic_path(item),
                           method: :patch,
                           params: { item.class.name.underscore.to_sym => { consumed: !item.consumed?, consumed_at: (item.consumed? ? nil : Time.current.to_date) } },
-                          class: "btn #{item.consumed? ? 'btn-danger' : 'btn-success'}" %>
+                          class: "sleek-btn #{item.consumed? ? 'sleek-btn-danger' : 'sleek-btn-success'}" %>
+          </div>
+          <div class="actions-buttons-row" style="margin-top: 8px;">
+            <%= render 'likes/like_button', item: item %>
           </div>
         </div>
 
@@ -79,7 +82,7 @@ end
                         polymorphic_path(item),
                         method: :delete,
                         data: { turbo_confirm: "Are you sure you want to delete this from your library?" },
-                        class: 'btn btn-danger btn-delete-item' %>
+                        class: 'sleek-btn sleek-btn-danger btn-delete-item' %>
         </div>
       <% else %>
         <div class="actions-section-full">
@@ -89,13 +92,13 @@ end
                           polymorphic_path(item),
                           method: :patch,
                           params: { item.class.name.underscore.to_sym => { is_collected: true } },
-                          class: "btn btn-primary" %>
+                          class: "sleek-btn sleek-btn-primary" %>
 
             <%= button_to watchlist_copy_label,
                           polymorphic_path(item),
                           method: :patch,
                           params: { item.class.name.underscore.to_sym => { in_watchlist: true } },
-                          class: "btn btn-secondary" %>
+                          class: "sleek-btn sleek-btn-secondary" %>
           </div>
         </div>
       <% end %>
@@ -134,7 +137,7 @@ end
         </div>
 
         <div class="quick-review-submit-row">
-          <%= f.submit submit_review_label, class: "btn btn-primary quick-review-submit-btn" %>
+          <%= f.submit submit_review_label, class: "sleek-btn sleek-btn-primary quick-review-submit-btn" %>
         </div>
       <% end %>
     </div>

@@ -24,8 +24,9 @@
         <%= f.label :password_confirmation, "Confirmation" %>
         <%= f.password_field :password_confirmation, class: 'form-control', required: true %>
       </div>
-
-      <%= f.submit "Create my account", class: "btn btn-primary", style: "margin-top: 20px;" %>
+      <div style="margin-top: 15px;">
+        <%= f.submit "Sign up", class: "sleek-btn sleek-btn-primary", style: "width: 100%; justify-content: center;" %>
+      </div>
     <% end %>
 
     <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 2rem 0;">

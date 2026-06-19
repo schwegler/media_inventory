@@ -1,0 +1,43 @@
+<div class="card-2026">
+  <div class="card-2026-cover">
+    <% if media_item.respond_to?(:cover_image) && media_item.cover_image.attached? %>
+      <%= image_tag media_item.cover_image, alt: "Cover" %>
+    <% elsif media_item.respond_to?(:thumbnail_url) && media_item.thumbnail_url.present? %>
+      <img src="<%= media_item.thumbnail_url %>" alt="Cover">
+    <% else %>
+      <span class="fallback-emoji">
+        <%= case media_item.class.name
+            when 'Movie' then '🎬'
+            when 'Album' then '💿'
+            when 'Comic' then '📚'
+            when 'TvShow' then '📺'
+            when 'VideoGame' then '🎮'
+            else '📦'
+            end %>
+      </span>
+    <% end %>
+  </div>
+  <div class="card-2026-content">
+    <h3 class="card-2026-title"><%= link_to media_item.title, media_item, data: { turbo_frame: "_top" } %></h3>
+    
+    <% if media_item.respond_to?(:director) && media_item.director.present? %>
+      <span class="card-2026-meta"><%= media_item.director %></span>
+    <% end %>
+    
+    <% if media_item.respond_to?(:artist) && media_item.artist.present? %>
+      <span class="card-2026-meta"><%= media_item.artist %></span>
+    <% end %>
+    
+    <% if media_item.respond_to?(:developer) && media_item.developer.present? %>
+      <span class="card-2026-meta"><%= media_item.developer %></span>
+    <% end %>
+    
+    <% if media_item.respond_to?(:network) && media_item.network.present? %>
+      <span class="card-2026-meta"><%= media_item.network %></span>
+    <% end %>
+    
+    <% if media_item.respond_to?(:release_year) && media_item.release_year.present? %>
+      <span class="card-2026-meta card-2026-year"><%= media_item.release_year %></span>
+    <% end %>
+  </div>
+</div>
