@@ -83,7 +83,7 @@ class SettingsController < ApplicationController
   end
 
   def basic_info_params
-    params.require(:user).permit(:username, :name, :birthday, :bio, :avatar, :header_banner)
+    params.require(:user).permit(:username, :name, :birthday, :bio, :avatar, :header_banner, :theme)
   end
 
   def notification_params

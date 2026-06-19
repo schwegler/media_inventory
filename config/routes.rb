@@ -1,6 +1,55 @@
 # frozen_string_literal: true
 
 SampleApp::Application.routes.draw do
+  namespace :admin do
+    resources :api_configurations
+    resources :activities
+    resources :albums do
+      member do
+        get :merge
+        post :do_merge
+        post :fetch_api_data
+      end
+    end
+    resources :comics do
+      member do
+        get :merge
+        post :do_merge
+        post :fetch_api_data
+      end
+    end
+    resources :comic_issues
+    resources :comments
+    resources :library_items
+    resources :likes
+    resources :mastodon_oauth_applications
+    resources :movies do
+      member do
+        get :merge
+        post :do_merge
+        post :fetch_api_data
+      end
+    end
+    resources :relationships
+    resources :tv_episodes
+    resources :tv_shows do
+      member do
+        get :merge
+        post :do_merge
+        post :fetch_api_data
+      end
+    end
+    resources :users
+    resources :video_games do
+      member do
+        get :merge
+        post :do_merge
+        post :fetch_api_data
+      end
+    end
+
+    root to: 'activities#index'
+  end
   root 'landing#index'
   get '/collections/:user_id', to: 'collections#show', as: 'collection'
   get    '/login',   to: 'sessions#new'

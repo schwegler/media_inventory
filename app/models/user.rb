@@ -15,6 +15,7 @@ class User < ApplicationRecord
                        format: { with: /\A[a-zA-Z0-9_]+\z/ },
                        uniqueness: { case_sensitive: false },
                        allow_nil: true
+  validates :theme, inclusion: { in: %w[light dark os] }
 
   has_one_attached :avatar
   has_one_attached :header_banner
@@ -75,7 +76,7 @@ class User < ApplicationRecord
     elsif bsky_handle.present?
       "@#{bsky_handle.sub(/^@/, '')}"
     else
-      email
+      ''
     end
   end
 

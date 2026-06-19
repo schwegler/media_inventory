@@ -1,0 +1,36 @@
+<%#
+# Merge View
+%>
+<% content_for(:title) { "Merge \#{@source_item.title}" } %>
+
+<header class="main-content__header" role="banner">
+  <h1 class="main-content__page-title">
+    Merge "<%= @source_item.title %>"
+  </h1>
+
+  <div>
+    <%= link_to "Back", :back, class: "button" %>
+  </div>
+</header>
+
+<section class="main-content__body">
+  <div class="card">
+    <p>Select the target item you want to merge <strong><%= @source_item.title %></strong> into.</p>
+    <p>All Library Items, Activities, Comments, and Likes will be transferred to the target item. The source item will be permanently deleted.</p>
+
+    <%= form_with url: polymorphic_path([:do_merge, :admin, @source_item]), method: :post, local: true do |f| %>
+      <div class="field-unit">
+        <div class="field-unit__label">
+          <%= f.label :target_id, "Target Item" %>
+        </div>
+        <div class="field-unit__field">
+          <%= f.collection_select :target_id, @target_items, :id, :title, { prompt: "Select target to merge into" }, class: "select-input" %>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <%= f.submit "Merge Items", class: "button", data: { confirm: "Are you sure you want to merge? This cannot be undone." } %>
+      </div>
+    <% end %>
+  </div>
+</section>

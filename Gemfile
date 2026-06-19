@@ -55,3 +55,7 @@ gem 'omniauth-atproto', '~> 0.1.4'
 gem 'omniauth-oauth2', '~> 1.9'
 gem 'omniauth-rails_csrf_protection', '~> 2.0'
 gem 'rubyzip', '~> 2.3.0'
+
+gem 'administrate', '~> 1.0'
+
+gem 'webmock', '~> 3.26', group: :test

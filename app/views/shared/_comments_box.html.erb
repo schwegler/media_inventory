@@ -14,7 +14,7 @@
       <%= cf.hidden_field :commentable_type, value: matching_item.class.name %>
       <%= cf.hidden_field :commentable_id, value: matching_item.id %>
       <%= cf.text_field :content, placeholder: 'Write a comment...', required: true, style: 'flex: 1; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); color: #fff;' %>
-      <%= cf.submit 'Reply', style: 'padding: 6px 12px; font-size: 0.8rem; font-weight: 600; background: #4f46e5; border: none; border-radius: 6px; color: #fff; cursor: pointer;' %>
+      <div class="quick-review-submit-row"><%= cf.submit 'Reply', class: 'btn btn-primary quick-review-submit-btn' %></div>
     <% end %>
   <% end %>
 </div>

@@ -4,13 +4,13 @@
   if tv_show.cover_image.attached?
     backdrop_url = url_for(tv_show.cover_image)
   elsif tv_show.thumbnail_url.present?
-    backdrop_url = tv_show.thumbnail_url
+    backdrop_url = @tv_episode.thumbnail_url.presence || tv_show.thumbnail_url
   end
 %>
 
 <div class="show-hero">
   <% if backdrop_url %>
-    <div class="show-hero-backdrop" style="background-image: url('<%= backdrop_url %>');"></div>
+    <img class="show-hero-backdrop" src="<%= backdrop_url %>" alt="" />
   <% end %>
   <div class="show-hero-gradient"></div>
 </div>

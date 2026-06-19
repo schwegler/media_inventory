@@ -9,10 +9,11 @@
 
 <div class="show-hero">
   <% if backdrop_url %>
-    <div class="show-hero-backdrop" style="background-image: url('<%= backdrop_url %>');"></div>
+    <img class="show-hero-backdrop" src="<%= backdrop_url %>" alt="" />
   <% end %>
   <div class="show-hero-gradient"></div>
 </div>
+
 
 <div class="show-container container">
   <!-- Left Column: Poster and Quick Actions -->
