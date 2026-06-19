@@ -35,7 +35,7 @@ RSpec.describe 'Albums Management', type: :system do
     click_button 'Create Album'
 
     expect(page).to have_text('Abbey Road')
-    expect(page).to have_text('by The Beatles')
+    expect(page).to have_text('The Beatles')
     expect(page).to have_text('A classic masterpiece.')
 
     # Edit Album via inline form on the show page

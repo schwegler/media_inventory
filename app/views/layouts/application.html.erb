@@ -48,21 +48,21 @@
         <% end %>
       </ul>
 
-      <div class="nav-user-section" style="display: flex; align-items: center; gap: 15px;">
+      <div class="nav-user-section">
         <% if logged_in? %>
           <div class="nav-dropdown" data-controller="dropdown">
-            <button class="nav-user-info" type="button" data-action="click->dropdown#toggle" data-dropdown-target="button" aria-haspopup="true" aria-expanded="false" style="display: flex; align-items: center; gap: 8px; background: transparent; border: none; cursor: pointer; padding: 0;">
+            <button class="nav-user-info dropdown-toggle" type="button" data-action="click->dropdown#toggle" data-dropdown-target="button" aria-haspopup="true" aria-expanded="false">
               <%= user_avatar_tag(current_user, size: 24) %>
               <span class="nav-username"><%= current_user.name.upcase %></span>
-              <svg class="dropdown-chevron" viewBox="0 0 20 20" fill="currentColor" style="width: 14px; height: 14px; margin-left: 4px; color: #94a3b8;" aria-hidden="true">
+              <svg class="dropdown-chevron" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
               </svg>
             </button>
-            <div class="dropdown-menu" data-dropdown-target="menu" style="display: none; min-width: 150px; right: 0; left: auto;" role="menu">
+            <div class="dropdown-menu user-dropdown-menu" data-dropdown-target="menu" role="menu">
               <%= link_to "Profile", current_user, class: "dropdown-item", role: "menuitem" %>
               <%= link_to "Settings", settings_path, class: "dropdown-item", role: "menuitem" %>
               <div class="dropdown-divider"></div>
-              <%= button_to "Sign Out", logout_path, method: :delete, class: "dropdown-item dropdown-logout-btn", role: "menuitem", form_class: "dropdown-logout-form", style: "text-align: left; padding: 10px 16px; width: 100%; border: none; background: transparent; color: #fff;" %>
+              <%= button_to "Sign Out", logout_path, method: :delete, class: "dropdown-item dropdown-logout-btn", role: "menuitem", form_class: "dropdown-logout-form" %>
             </div>
           </div>
 

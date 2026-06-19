@@ -67,7 +67,10 @@ class OmniAuthCallbacksController < ApplicationController
   def setup_mastodon(req)
     server = req.params['mastodon_server'] || request.params['mastodon_server']
     if server.blank?
-      render plain: "Mastodon server required. req.params: #{req.params.inspect}, request.params: #{request.params.inspect}", status: 400
+      render plain: "Mastodon server required.
+              req.params: #{req.params.inspect},
+              request.params: #{request.params.inspect}",
+             status: 400
       return
     end
 
@@ -87,8 +90,20 @@ class OmniAuthCallbacksController < ApplicationController
   end
 
   def setup_atproto(req)
-    handle = req.params['bsky_handle']
-    request.env['omniauth.strategy'].options.handle = handle if handle.present?
+    handle = req.params['bsky_handle'] || req.params['handle']
+
+    if handle.present?
+      request.env['omniauth.strategy'].options.handle = handle
+      request.env['rack.request.form_hash'] ||= {}
+      request.env['rack.request.form_hash']['handle'] = handle
+
+      # Call the gem's default setup block to resolve DID and PDS authorization server
+      begin
+        OmniAuth::Strategies::Atproto.setup.call(request.env)
+      rescue StandardError => e
+        return render plain: "Bluesky setup failed: #{e.message}", status: 400
+      end
+    end
 
     client_id = ENV.fetch('BSKY_CLIENT_ID',
                           url_for(controller: 'client_metadata', action: :show, format: :json, only_path: false))

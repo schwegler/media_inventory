@@ -3926,3 +3926,52 @@ input[type="submit"]:focus-visible {
   outline-offset: 2px;
   box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.4);
 }
+
+// ==========================================================================
+//  Auth Tabs
+// ==========================================================================
+.auth-tabs-container {
+  background: rgba(30, 41, 59, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.auth-tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.auth-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 1rem 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+
+  &:hover {
+    color: #e2e8f0;
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  &.active {
+    color: #fff;
+    border-bottom-color: $accent-orange;
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+.auth-tab-content {
+  padding: 1.5rem;
+
+  &.hidden {
+    display: none;
+  }
+}
