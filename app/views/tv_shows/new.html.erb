@@ -1,6 +1,6 @@
 <%= turbo_frame_tag "modal" do %>
   <div class="modal-overlay" data-controller="modal" data-modal-target="overlay" data-action="click->modal#closeOnBackdrop keydown@window->modal#closeOnEsc">
-    <div class="modal-container">
+    <div class="modal-container" data-controller="thumbnail-fetcher consumed-toggle" data-thumbnail-fetcher-media-type-value="tv_show">
       <div class="modal-header">
         <div style="display: flex; align-items: center; gap: 0.75rem;">
           <button type="button" class="modal-back-btn hidden" data-thumbnail-fetcher-target="backBtn" data-action="click->thumbnail-fetcher#goToSearch">&larr; BACK</button>
@@ -9,7 +9,7 @@
         <button class="modal-close" data-action="click->modal#close" aria-label="Close modal">&times;</button>
       </div>
       <div class="modal-body">
-        <div data-controller="thumbnail-fetcher consumed-toggle" data-thumbnail-fetcher-media-type-value="tv_show">
+        <div>
           <%= form_with model: @tv_show, class: "standard-form", data: { turbo_frame: "_top" } do |f| %>
             <% if @tv_show.errors.any? %>
               <div id="error_explanation">

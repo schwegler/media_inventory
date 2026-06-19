@@ -62,6 +62,11 @@ export default class extends Controller {
     if (this.hasModalTitleTarget) {
       this.modalTitleTarget.textContent = "Log Details"
     }
+
+    // Ensure focus is moved to an interactive element in the new stage
+    if (this.hasBackBtnTarget) {
+      setTimeout(() => this.backBtnTarget.focus(), 50)
+    }
   }
 
   showManualForm() {
@@ -84,6 +89,11 @@ export default class extends Controller {
         video_game: "Log Video Game"
       }
       this.modalTitleTarget.textContent = mediaNames[this.mediaTypeValue] || "Log Media"
+    }
+
+    // Focus search input when returning to search stage
+    if (this.hasTitleInputTarget) {
+      setTimeout(() => this.titleInputTarget.focus(), 50)
     }
   }
 
@@ -155,6 +165,9 @@ export default class extends Controller {
       allResults.forEach((option) => {
         const imgBtn = document.createElement("div")
         imgBtn.className = "thumbnail-option-card"
+        imgBtn.setAttribute("tabindex", "0")
+        imgBtn.setAttribute("role", "button")
+        imgBtn.setAttribute("aria-label", `Select ${option.title}`)
         
         const badgeClass = option.is_local ? "local" : "web"
         const badgeText = option.is_local ? "Local" : "Web"
@@ -186,6 +199,15 @@ export default class extends Controller {
 
           // User clicked explicitly, so populate all text fields and transition to details view!
           this.selectOption(option, true)
+        })
+
+        imgBtn.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault()
+            this.optionsGridTarget.querySelectorAll(".thumbnail-option-card").forEach(card => card.classList.remove("selected"))
+            imgBtn.classList.add("selected")
+            this.selectOption(option, true)
+          }
         })
 
         this.optionsGridTarget.appendChild(imgBtn)

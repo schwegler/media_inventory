@@ -1,8 +1,0 @@
-🎯 **What:**
-Fixed a Denial of Service (DoS) vulnerability in `SessionsController#create` caused by an unhandled `ActiveRecord::RecordInvalid` exception when an invalid email is provided to `User.create!`.
-
-⚠️ **Risk:**
-If left unfixed, an attacker could submit invalid email addresses via the login form, triggering unhandled `ActiveRecord::RecordInvalid` exceptions. This causes a 500 Internal Server Error for each request, which could be exploited to crash application instances, consume server resources, and lead to a Denial of Service.
-
-🛡️ **Solution:**
-Changed `User.create!` to `User.new` followed by an `if user.save` check. If the email format is invalid and `user.save` fails, it now safely renders the `new` login template with an appropriate flash error message and a `:unprocessable_content` (HTTP 422) status code, preventing the application from crashing. Also added a request spec to ensure that invalid email formats are correctly handled without throwing an exception.
