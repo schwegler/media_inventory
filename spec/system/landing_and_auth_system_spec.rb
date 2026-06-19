@@ -25,11 +25,13 @@ RSpec.describe 'Landing and Authentication', type: :system do
   it 'allows a user to sign up' do
     visit signup_path
 
-    fill_in 'Name', with: 'New User'
-    fill_in 'Email', with: 'newuser@example.com'
-    fill_in 'Password', with: 'password123'
-    fill_in 'Confirmation', with: 'password123'
-    click_button 'Sign up'
+    within '.auth-tab-content[data-tab-name="email"]' do
+      fill_in 'Name', with: 'New User'
+      fill_in 'Email', with: 'newuser@example.com'
+      fill_in 'Password', with: 'password123'
+      fill_in 'Confirmation', with: 'password123'
+      click_button 'Sign up'
+    end
 
     expect(page).to have_text('Welcome to MediaTracker!')
     expect(page).to have_text('NEW USER')
@@ -119,5 +121,42 @@ RSpec.describe 'Landing and Authentication', type: :system do
     expect(page).to have_text('POPULAR WITH FRIENDS')
     expect(page).to have_text('POPULAR REVIEWS WITH FRIENDS')
     expect(page).to have_text('Hilarious episode')
+  end
+
+  it 'allows a user to sign up via Bluesky App Password and then log in with it' do
+    # 1. Sign up
+    visit signup_path
+    find('button', text: 'Bluesky (App Password)').click
+
+    within '.auth-tab-content[data-tab-name="bsky-app"]' do
+      fill_in 'Name', with: 'Bluesky App User'
+      fill_in 'Bluesky Handle', with: 'bskyuser.bsky.social'
+      fill_in 'App Password', with: 'xxxx-xxxx-xxxx-xxxx'
+      click_button 'Sign up with App Password'
+    end
+
+    expect(page).to have_text('Welcome to MediaTracker!')
+    expect(page).to have_text('BLUESKY APP USER')
+
+    # Log out
+    if Capybara.current_driver == :rack_test
+      find('form.dropdown-logout-form button', visible: :all).click
+    else
+      find('.nav-user-info').click
+      click_button 'Sign Out'
+    end
+
+    # 2. Log in
+    visit login_path
+    find('button', text: 'Bluesky (App Password)').click
+
+    within '.auth-tab-content[data-tab-name="bsky-app"]' do
+      fill_in 'Bluesky Handle', with: 'bskyuser.bsky.social'
+      fill_in 'App Password', with: 'xxxx-xxxx-xxxx-xxxx'
+      click_button 'Log in with App Password'
+    end
+
+    expect(page).to have_text('Logged in successfully via Bluesky App Password.')
+    expect(page).to have_text('BLUESKY APP USER')
   end
 end

@@ -60,7 +60,7 @@ RSpec.describe 'TV Shows and Episodes Management', type: :system do
     expect(page).to have_text('Great introduction episode!')
 
     # Toggle watch back (Unwatch)
-    click_button 'Unwatch'
+    click_button 'X'
 
     # Edit TV Show via inline form
     select '★★★★', from: 'tv_show[rating]'

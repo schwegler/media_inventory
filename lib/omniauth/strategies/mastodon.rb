@@ -6,6 +6,7 @@ module OmniAuth
   module Strategies
     class Mastodon < OmniAuth::Strategies::OAuth2
       option :name, 'mastodon'
+      option :scope, 'read write'
 
       option :client_options, {
         authorize_url: '/oauth/authorize',

@@ -71,9 +71,7 @@ end
                           method: :patch,
                           params: { item.class.name.underscore.to_sym => { consumed: !item.consumed?, consumed_at: (item.consumed? ? nil : Time.current.to_date) } },
                           class: "sleek-btn #{item.consumed? ? 'sleek-btn-danger' : 'sleek-btn-success'}" %>
-          </div>
-          <div class="actions-buttons-row" style="margin-top: 8px;">
-            <%= render 'likes/like_button', item: item %>
+          <%= render 'likes/like_button', item: item %>
           </div>
         </div>
 

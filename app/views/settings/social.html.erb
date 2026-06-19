@@ -1,0 +1,110 @@
+<div class="settings-container">
+  <%= render 'sidebar' %>
+
+  <div class="settings-content">
+    <h1 class="settings-title">Social Settings</h1>
+
+    <%= form_with(model: @user, url: settings_update_social_path, local: true, class: "settings-form") do |f| %>
+
+      <div class="settings-section">
+        <h3 class="section-subtitle">🦋 Bluesky Integration</h3>
+        <p class="text-muted" style="margin-bottom: 1rem; line-height: 1.4;">
+          Connect your Bluesky (bsky.app) account to automatically post updates and reviews.
+          Please generate and use an <strong>App Password</strong> in your Bluesky settings.
+        </p>
+
+        <div class="form-group" style="margin-top: 15px;">
+          <%= f.label :bsky_handle, "Bluesky Handle" %>
+          <%= f.text_field :bsky_handle, class: 'form-control', placeholder: 'e.g. username.bsky.social' %>
+        </div>
+
+        <div class="form-group" style="margin-top: 15px;">
+          <%= f.label :bsky_app_password, "Bluesky App Password" %>
+          <%= f.password_field :bsky_app_password, class: 'form-control', placeholder: 'e.g. xxxx-xxxx-xxxx-xxxx', value: @user.bsky_app_password %>
+        </div>
+
+        <div style="margin-top: 15px; display: flex; gap: 20px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <%= f.check_box :bsky_post_activity %>
+            <%= f.label :bsky_post_activity, "Auto-post new additions", style: "margin-bottom: 0;" %>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <%= f.check_box :bsky_post_reviews %>
+            <%= f.label :bsky_post_reviews, "Auto-post reviews", style: "margin-bottom: 0;" %>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 15px;">
+          <%= f.label :bsky_message_activity_template, "Activity Template" %>
+          <%= f.text_field :bsky_message_activity_template, class: 'form-control', placeholder: 'Just added [title] to my library! #mediatracker' %>
+          <small class="text-muted" style="font-size: 0.75rem;">Placeholders: [title], [type]</small>
+        </div>
+
+        <div class="form-group" style="margin-top: 15px;">
+          <%= f.label :bsky_message_review_template, "Review Template" %>
+          <%= f.text_field :bsky_message_review_template, class: 'form-control', placeholder: 'My review of [title]: [review] - [rating]★ #mediatracker' %>
+          <small class="text-muted" style="font-size: 0.75rem;">Placeholders: [title], [review], [rating]</small>
+        </div>
+      </div>
+
+      <% if @user.mastodon_access_token.present? %>
+        <hr class="settings-divider">
+
+        <div class="settings-section">
+          <h3 class="section-subtitle">🐘 Mastodon Integration</h3>
+          
+          <div style="padding: 1rem; background: rgba(86, 58, 204, 0.1); border-left: 4px solid #563acc; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+            <p style="margin: 0;">✅ Connected to <strong><%= @user.mastodon_server %></strong></p>
+            <%= link_to "Disconnect", settings_disconnect_mastodon_path, data: { turbo_method: :delete }, class: "btn btn-outline", style: "border-color: #ef4444; color: #ef4444; font-size: 0.8rem; padding: 4px 8px; text-decoration: none;" %>
+          </div>
+          
+          <div style="margin-top: 15px; display: flex; gap: 20px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <%= f.check_box :mastodon_post_activity %>
+              <%= f.label :mastodon_post_activity, "Auto-post new additions", style: "margin-bottom: 0;" %>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <%= f.check_box :mastodon_post_reviews %>
+              <%= f.label :mastodon_post_reviews, "Auto-post reviews", style: "margin-bottom: 0;" %>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 15px;">
+            <%= f.label :mastodon_message_activity_template, "Activity Template" %>
+            <%= f.text_field :mastodon_message_activity_template, class: 'form-control', placeholder: 'Just added [title] to my library! #mediatracker' %>
+            <small class="text-muted" style="font-size: 0.75rem;">Placeholders: [title], [type]</small>
+          </div>
+
+          <div class="form-group" style="margin-top: 15px;">
+            <%= f.label :mastodon_message_review_template, "Review Template" %>
+            <%= f.text_field :mastodon_message_review_template, class: 'form-control', placeholder: 'My review of [title]: [review] - [rating]★ #mediatracker' %>
+            <small class="text-muted" style="font-size: 0.75rem;">Placeholders: [title], [review], [rating]</small>
+          </div>
+        </div>
+      <% end %>
+
+      <div class="form-actions" style="margin-top: 20px;">
+        <%= f.submit "Update Social Settings", class: "btn btn-primary" %>
+      </div>
+    <% end %>
+
+    <% unless @user.mastodon_access_token.present? %>
+      <hr class="settings-divider">
+
+      <div class="settings-section">
+        <h3 class="section-subtitle">🐘 Mastodon Integration</h3>
+        
+        <p class="text-muted" style="margin-bottom: 1rem; line-height: 1.4;">
+          Connect your Mastodon account to automatically post updates and reviews.
+        </p>
+        <%= form_tag "/auth/mastodon", method: :post, data: { turbo: false } do %>
+          <div style="margin-bottom: 15px;">
+            <%= label_tag :mastodon_server, "Mastodon Server URL" %>
+            <%= text_field_tag :mastodon_server, nil, class: 'form-control', placeholder: 'e.g. mastodon.social' %>
+          </div>
+          <%= submit_tag "Connect Mastodon", class: "btn btn-primary", style: "background: #563acc; border-color: #7c3aed;" %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -73,13 +73,23 @@ module Trackable
   end
 
   def post_to_bluesky_if_enabled(activity_type)
-    return unless bsky_configured?
-    return unless should_post_to_bsky?(activity_type)
+    return unless respond_to?(:user) && user.present?
 
-    msg = build_social_message(activity_type, :bsky)
-    Thread.new do
-      client = BlueskyClient.new(user)
-      client.post(msg)
+    if user.bsky_access_token.present?
+      return unless should_post_to_bsky?(activity_type)
+
+      msg = build_social_message(activity_type, :bsky)
+      Thread.new do
+        client = BlueskyClient.new(user)
+        client.post(msg)
+      end
+    elsif user.bsky_app_password.present?
+      return unless should_post_to_bsky?(activity_type)
+
+      msg = build_social_message(activity_type, :bsky)
+      Thread.new do
+        BlueskyService.new(user.bsky_handle, user.bsky_app_password).post(msg)
+      end
     end
   end
 

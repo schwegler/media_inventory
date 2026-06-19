@@ -39,7 +39,7 @@
 
       <div class="profile-actions">
         <% if current_user?(@user) %>
-          <%= link_to 'Edit Profile', settings_path, class: 'btn btn-outline' %>
+          <%= link_to 'Edit Profile', settings_path, class: 'btn sleek-btn usr-btn' %>
         <% elsif logged_in? %>
           <%= render 'follow_form', user: @user %>
         <% end %>

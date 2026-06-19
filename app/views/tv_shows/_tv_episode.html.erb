@@ -14,15 +14,16 @@
             <% end %>
           </span>
 
+          <% ep_lib = LibraryItem.find_by(user: current_user, item: ep) if logged_in? %>
           <% if logged_in? && @library_item.present? %>
             <div class="episode-actions-wrapper">
-              <% if ep.watched? %>
+              <% if ep_lib&.consumed? %>
                 <span class="episode-badge-watched">✓ Watched</span>
 
-                <%= button_to "Unwatch",
+                <%= button_to "X",
                               toggle_watched_tv_episode_path(ep),
                               method: :patch,
-                              params: { tv_episode: { watched: false, rating: nil, review: nil, watched_at: nil } },
+                              params: { tv_episode: { consumed: false, rating: nil, review: nil, consumed_at: nil } },
                               class: "episode-btn-unwatch" %>
               <% else %>
                 <span class="episode-badge-not-watched">Not Watched</span>
@@ -37,13 +38,13 @@
           </div>
         <% end %>
 
-        <% if ep.watched? && (ep.review.present? || ep.rating.present?) %>
+        <% if ep_lib&.consumed? && (ep_lib.review.present? || ep_lib.rating.present?) %>
           <div class="episode-rating-review-box">
-            <% if ep.rating.present? %>
-              <span class="episode-stars"><%= ep.rating %> ★</span>
+            <% if ep_lib.rating.present? %>
+              <span class="episode-stars"><%= ep_lib.rating %> ★</span>
             <% end %>
-            <% if ep.review.present? %>
-              <span class="episode-review-text"><%= ep.review %></span>
+            <% if ep_lib.review.present? %>
+              <span class="episode-review-text"><%= ep_lib.review %></span>
             <% end %>
           </div>
         <% end %>
@@ -53,14 +54,14 @@
     <% if logged_in? && @library_item.present? %>
       <div class="episode-form-section">
         <%= form_with model: ep, url: toggle_watched_tv_episode_path(ep), method: :patch do |form| %>
-          <%= form.hidden_field :watched, value: true %>
-          <%= form.hidden_field :watched_at, value: Time.current.to_date %>
+          <%= form.hidden_field :consumed, value: true %>
+          <%= form.hidden_field :consumed_at, value: Time.current.to_date %>
 
           <div class="episode-form-inputs">
-            <%= form.text_field :review, value: ep.review, placeholder: ep.watched? ? "Edit review..." : "Add watch review...", class: "episode-input-review" %>
+            <%= form.text_field :review, value: ep_lib&.review, placeholder: ep_lib&.consumed? ? "Edit review..." : "Add watch review...", class: "episode-input-review" %>
 
-            <%= form.select :rating, [["Rating", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: ep.rating }, { class: "episode-select-rating" } %>
-            <% if ep.watched? %>
+            <%= form.select :rating, [["Rating", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: ep_lib&.rating }, { class: "episode-select-rating" } %>
+            <% if ep_lib&.consumed? %>
               <%= form.submit "Update", class: "episode-btn-rate" %>
             <%else%>
               <%= form.submit "Watch", class: "episode-btn-rate" %>

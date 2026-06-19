@@ -74,7 +74,7 @@
             <div class="review-body-col">
               <div class="review-author-header">
                 <%= user_avatar_tag(activity.user, size: 24) %>
-                <span class="review-author-name"><<%= link_to activity.user.name, activity.user %></span>
+                <span class="review-author-name"><%= link_to activity.user.name, activity.user %></span>
                 <span class="review-target-title">
                   <%= link_to media.title, media %>
                   <% if media.respond_to?(:release_year) && media.release_year.present? %>

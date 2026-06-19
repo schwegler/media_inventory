@@ -14,7 +14,7 @@ module ApplicationHelper
   def user_avatar_tag(user, size: 40) # rubocop:disable Metrics/MethodLength
     return nil if user.nil?
 
-    if user.avatar_url.present?
+    if user.avatar.attached? || user.avatar_url.present?
       avatar_style = [
         "width: #{size}px !important;",
         "height: #{size}px !important;",
@@ -25,8 +25,9 @@ module ApplicationHelper
         'border: 1px solid rgba(255, 255, 255, 0.1) !important;',
         'flex-shrink: 0 !important;'
       ].join(' ')
-      image_tag user.avatar_url, alt: user.name, class: 'user-avatar', width: size, height: size,
-                                 style: avatar_style
+      source = user.avatar.attached? ? user.avatar : user.avatar_url
+      image_tag source, alt: user.name, class: 'user-avatar', width: size, height: size,
+                        style: avatar_style
     else
       initial = (user.name.presence || user.email.presence || '?')[0].upcase
       # Generate consistent color based on user name/id

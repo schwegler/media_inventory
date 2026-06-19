@@ -44,6 +44,7 @@ RSpec.describe 'OmniAuth Logins', type: :system do
 
   it 'logs in with Mastodon' do
     visit login_path
+    click_button 'Mastodon'
     fill_in 'Mastodon Server URL', with: 'mastodon.social'
     click_button 'Log in via Mastodon'
 
@@ -53,6 +54,7 @@ RSpec.describe 'OmniAuth Logins', type: :system do
 
   it 'logs in with Bluesky' do
     visit login_path
+    click_button 'Bluesky', exact: true
     fill_in 'Bluesky Handle', with: 'blueskyuser.bsky.social', match: :first
     click_button 'Log in via Bluesky'
 

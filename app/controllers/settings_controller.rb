@@ -10,6 +10,21 @@ class SettingsController < ApplicationController
 
   def account; end
 
+  def import; end
+
+  def import_letterboxd
+    if params[:export_file].present?
+      file = params[:export_file]
+      temp_path = Rails.root.join('tmp', "letterboxd_export_#{current_user.id}_#{Time.now.to_i}.zip").to_s
+      File.binwrite(temp_path, file.read)
+      LetterboxdImportJob.perform_later(current_user.id, temp_path)
+      flash[:success] = 'Import started. Your data will appear in your library soon.'
+    else
+      flash[:alert] = 'Please provide a file.'
+    end
+    redirect_to settings_import_path
+  end
+
   def update_basic_info
     if @user.update(basic_info_params)
       flash[:success] = 'Basic information updated'
@@ -44,6 +59,23 @@ class SettingsController < ApplicationController
     redirect_to root_url, status: :see_other
   end
 
+  def social; end
+
+  def update_social
+    if @user.update(social_params)
+      flash[:success] = 'Social integration settings updated'
+      redirect_to settings_social_path
+    else
+      render 'social', status: :unprocessable_content
+    end
+  end
+
+  def disconnect_mastodon
+    @user.update!(mastodon_server: nil, mastodon_access_token: nil, mastodon_refresh_token: nil, mastodon_uid: nil)
+    flash[:success] = 'Mastodon account disconnected'
+    redirect_to settings_social_path
+  end
+
   private
 
   def set_user
@@ -65,5 +97,15 @@ class SettingsController < ApplicationController
 
   def account_params
     params.require(:user).permit(:email, :password, :password_confirmation)
+  end
+
+  def social_params
+    params.require(:user).permit(
+      :bsky_handle, :bsky_app_password,
+      :bsky_post_activity, :bsky_post_reviews,
+      :bsky_message_activity_template, :bsky_message_review_template,
+      :mastodon_post_activity, :mastodon_post_reviews,
+      :mastodon_message_activity_template, :mastodon_message_review_template
+    )
   end
 end

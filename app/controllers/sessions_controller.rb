@@ -23,7 +23,7 @@ class SessionsController < ApplicationController
     bsky_password = params.dig(:session, :bsky_password)
 
     user = User.find_by(bsky_handle: bsky_handle)
-    if user && user.bsky_password == bsky_password
+    if user && (user.bsky_app_password == bsky_password || user.bsky_password == bsky_password)
       login_success(user, 'Logged in successfully via Bluesky App Password.')
     else
       login_failure('Invalid Bluesky Handle/App Password combination.')

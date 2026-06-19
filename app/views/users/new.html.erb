@@ -2,51 +2,105 @@
 
 <div class="row">
   <div class="col-md-6 col-md-offset-3">
-    <%= form_with(model: @user, local: true, class: "standard-form") do |f| %>
-      <%= render 'shared/error_messages', object: f.object if lookup_context.exists?('shared/_error_messages') %>
-
-      <div class="form-group">
-        <%= f.label :name %>
-        <%= f.text_field :name, class: 'form-control', required: true %>
+    <div data-controller="tabs" class="auth-tabs-container">
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab active" data-tabs-target="tab" data-tab-name="email" data-action="click->tabs#switch">Email</button>
+        <button type="button" class="auth-tab" data-tabs-target="tab" data-tab-name="bsky-oauth" data-action="click->tabs#switch">Bluesky</button>
+        <button type="button" class="auth-tab" data-tabs-target="tab" data-tab-name="mastodon" data-action="click->tabs#switch">Mastodon</button>
+        <button type="button" class="auth-tab" data-tabs-target="tab" data-tab-name="bsky-app" data-action="click->tabs#switch">Bluesky (App Password)</button>
       </div>
 
-      <div class="form-group" style="margin-top: 15px;">
-        <%= f.label :email %>
-        <%= f.email_field :email, class: 'form-control', required: true %>
-      </div>
+      <div class="auth-tab-content" data-tabs-target="content" data-tab-name="email">
+        <h2 class="auth-section-title">Sign up with Email</h2>
+        <div class="auth-section-body">
+          <%= form_with(model: @user, local: true, class: "standard-form") do |f| %>
+            <%= render 'shared/error_messages', object: f.object if lookup_context.exists?('shared/_error_messages') %>
 
-      <div class="form-group" style="margin-top: 15px;">
-        <%= f.label :password %>
-        <%= f.password_field :password, class: 'form-control', required: true %>
-      </div>
+            <div class="form-group">
+              <%= f.label :name %>
+              <%= f.text_field :name, class: 'form-control', required: true %>
+            </div>
 
-      <div class="form-group" style="margin-top: 15px;">
-        <%= f.label :password_confirmation, "Confirmation" %>
-        <%= f.password_field :password_confirmation, class: 'form-control', required: true %>
-      </div>
-      <div style="margin-top: 15px;">
-        <%= f.submit "Sign up", class: "sleek-btn sleek-btn-primary", style: "width: 100%; justify-content: center;" %>
-      </div>
-    <% end %>
+            <div class="form-group" style="margin-top: 15px;">
+              <%= f.label :email %>
+              <%= f.email_field :email, class: 'form-control', required: true %>
+            </div>
 
-    <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 2rem 0;">
+            <div class="form-group" style="margin-top: 15px;">
+              <%= f.label :password %>
+              <%= f.password_field :password, class: 'form-control', required: true %>
+            </div>
 
-    <h2 style="font-size: 1.25rem; text-align: center; margin-bottom: 1.5rem;">🦋 Sign up with Bluesky</h2>
-    <div style="text-align: center;">
-      <%= button_to "Sign up via Bluesky", "/auth/atproto", method: :post, data: { turbo: false }, class: "btn btn-secondary", style: "margin-top: 20px; width: 100%; background: #0284c7; border: none; color: #fff;" %>
-    </div>
-  </div>
+            <div class="form-group" style="margin-top: 15px;">
+              <%= f.label :password_confirmation, "Confirmation" %>
+              <%= f.password_field :password_confirmation, class: 'form-control', required: true %>
+            </div>
 
-  <div class="auth-section" style="flex: 1; padding: 2rem; background: #2d3748; border-radius: 8px;">
-    <h2 style="font-size: 1.25rem; text-align: center; margin-bottom: 1.5rem;">🐘 Sign up with Mastodon</h2>
-    <div style="text-align: center;">
-      <%= form_tag "/auth/mastodon", method: :post, data: { turbo: false } do %>
-        <div class="form-group" style="margin-bottom: 1.5rem;">
-          <%= label_tag :mastodon_server, "Mastodon Server URL" %>
-          <%= text_field_tag :mastodon_server, nil, class: 'form-control', placeholder: 'e.g. mastodon.social', required: true %>
+            <div class="submit-group" style="margin-top: 20px;">
+              <%= f.submit "Sign up", class: "sleek-btn sleek-btn-primary auth-submit", style: "width: 100%; justify-content: center;" %>
+            </div>
+          <% end %>
         </div>
-        <%= submit_tag "Sign up via Mastodon", class: "btn btn-secondary", style: "width: 100%; background: #563acc; border: none; color: #fff;" %>
-      <% end %>
+      </div>
+
+      <div class="auth-tab-content hidden" data-tabs-target="content" data-tab-name="bsky-oauth">
+        <h2 class="auth-section-title">🦋 Sign up with Bluesky</h2>
+        <div class="auth-section-body">
+          <%= form_tag "/auth/atproto", method: :post, data: { turbo: false } do %>
+            <div class="form-group handle-group">
+              <%= label_tag :bsky_handle, "Bluesky Handle" %>
+              <%= text_field_tag :bsky_handle, nil, class: 'form-control', placeholder: 'e.g. alice.bsky.social', required: true %>
+            </div>
+            <%= submit_tag "Sign up via Bluesky", class: "sleek-btn sleek-btn-secondary bsky-btn", style: "margin-top: 20px; width: 100%;" %>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="auth-tab-content hidden" data-tabs-target="content" data-tab-name="mastodon">
+        <h2 class="auth-section-title">🐘 Sign up with Mastodon</h2>
+        <div class="auth-section-body">
+          <%= form_tag "/auth/mastodon", method: :post, data: { turbo: false } do %>
+            <div class="form-group server-group">
+              <%= label_tag :mastodon_server, "Mastodon Server URL" %>
+              <%= text_field_tag :mastodon_server, nil, class: 'form-control', placeholder: 'e.g. mastodon.social', required: true %>
+            </div>
+            <%= submit_tag "Sign up via Mastodon", class: "sleek-btn sleek-btn-secondary mastodon-btn", style: "margin-top: 20px; width: 100%;" %>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="auth-tab-content hidden" data-tabs-target="content" data-tab-name="bsky-app">
+        <h2 class="auth-section-title">🦋 Bluesky App Password</h2>
+        <div class="auth-section-body">
+          <%= form_with(model: @user, local: true, class: "standard-form") do |f| %>
+            <%= render 'shared/error_messages', object: f.object if lookup_context.exists?('shared/_error_messages') %>
+
+            <div class="form-group">
+              <%= f.label :name %>
+              <%= f.text_field :name, class: 'form-control', required: true %>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
+              <%= f.label :bsky_handle, "Bluesky Handle" %>
+              <%= f.text_field :bsky_handle, class: 'form-control', placeholder: 'e.g. alice.bsky.social', required: true %>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
+              <%= f.label :bsky_app_password, "App Password" %>
+              <%= f.password_field :bsky_app_password, class: 'form-control', placeholder: 'xxxx-xxxx-xxxx-xxxx', required: true %>
+            </div>
+
+            <div class="submit-group" style="margin-top: 20px;">
+              <%= f.submit "Sign up with App Password", class: "sleek-btn sleek-btn-secondary bsky-btn", style: "width: 100%; justify-content: center;" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
     </div>
+
+    <hr class="auth-divider">
+    <p class="auth-signup-prompt" style="text-align: center;">
+      Already have an account? <%= link_to "Log in!", login_path %>
+    </p>
   </div>
 </div>

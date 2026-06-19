@@ -29,11 +29,16 @@ SampleApp::Application.routes.draw do
     get 'basic_info', to: 'settings#basic_info'
     get 'notifications', to: 'settings#notifications'
     get 'account', to: 'settings#account'
+    get 'import', to: 'settings#import'
+    get 'social', to: 'settings#social'
+    post 'import_letterboxd', to: 'settings#import_letterboxd'
   end
 
   patch '/settings/update_basic_info', to: 'settings#update_basic_info'
   patch '/settings/update_notifications', to: 'settings#update_notifications'
   patch '/settings/update_account', to: 'settings#update_account'
+  patch '/settings/update_social', to: 'settings#update_social'
+  delete '/settings/disconnect_mastodon', to: 'settings#disconnect_mastodon'
   delete '/settings/delete_account', to: 'settings#delete_account'
 
   get '/db_status', to: 'landing#db_status'

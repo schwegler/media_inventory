@@ -32,7 +32,7 @@
       </div>
       
       <div class="poster-stats">
-        <span class="stat-item" title="Watched"><span class="stat-icon">👁</span> <%= @tv_episode.watched? ? "Watched" : "Unwatched" %></span>
+        <span class="stat-item" title="Watched"><span class="stat-icon">👁</span> <%= @library_item&.consumed? ? "Watched" : "Unwatched" %></span>
         <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @tv_episode.likes.count %></span>
       </div>
     </div>
@@ -49,23 +49,24 @@
         <% end %>
       </p>
       
-      <% if @tv_episode.watched? && @tv_episode.rating.present? %>
-        <div class="show-rating"><%= render_stars(@tv_episode.rating) %></div>
+      <% if @library_item&.consumed? && @library_item&.rating.present? %>
+        <div class="show-rating"><%= render_stars(@library_item.rating) %></div>
       <% end %>
     </div>
 
     <!-- Episode Actions -->
     <div class="media-actions-container">
-      <% if logged_in? && LibraryItem.exists?(user: current_user, item: tv_show) %>
+      <% show_library_item = LibraryItem.find_by(user: current_user, item: tv_show) if logged_in? %>
+      <% if logged_in? && show_library_item.present? %>
         <div class="actions-section">
           <strong class="actions-section-title">My Progress</strong>
           <div class="actions-buttons-row">
-            <% if @tv_episode.watched? %>
+            <% if @library_item&.consumed? %>
               <span class="btn btn-success" style="background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.2); pointer-events: none;">✓ Watched</span>
               <%= button_to "📁 Mark Unwatched",
                             toggle_watched_tv_episode_path(@tv_episode),
                             method: :patch,
-                            params: { tv_episode: { watched: false, rating: nil, review: nil, watched_at: nil }, back_to_episode: true },
+                            params: { tv_episode: { consumed: false, rating: nil, review: nil, consumed_at: nil }, back_to_episode: true },
                             class: "btn btn-danger" %>
             <% else %>
               <span class="btn btn-secondary" style="background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.08); pointer-events: none;">Not Watched</span>
@@ -75,20 +76,20 @@
 
         <div class="inline-quick-review-box" style="margin-top: 1rem;">
           <%= form_with model: @tv_episode, url: toggle_watched_tv_episode_path(@tv_episode), method: :patch, local: true, class: "quick-review-form" do |f| %>
-            <%= f.hidden_field :watched, value: true %>
-            <%= f.hidden_field :watched_at, value: Time.current.to_date %>
+            <%= f.hidden_field :consumed, value: true %>
+            <%= f.hidden_field :consumed_at, value: Time.current.to_date %>
             <%= hidden_field_tag :back_to_episode, true %>
             
             <h3 class="quick-review-title">✍️ Episode Rating & Review</h3>
             
             <div class="inline-form-row">
               <div class="quick-review-rating-select">
-                <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: @tv_episode.rating }, { class: "form-control quick-review-select" } %>
+                <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: @library_item&.rating }, { class: "form-control quick-review-select" } %>
               </div>
             </div>
 
             <div>
-              <%= f.text_area :review, value: @tv_episode.review, placeholder: "Add watch review for this episode...", rows: 3, class: "form-control quick-review-textarea" %>
+              <%= f.text_area :review, value: @library_item&.review, placeholder: "Add watch review for this episode...", rows: 3, class: "form-control quick-review-textarea" %>
             </div>
 
             <div class="quick-review-submit-row">

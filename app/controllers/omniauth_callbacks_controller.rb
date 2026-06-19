@@ -64,8 +64,9 @@ class OmniAuthCallbacksController < ApplicationController
 
   private
 
+  # rubocop:disable Metrics/AbcSize
   def setup_mastodon(req)
-    server = req.params['mastodon_server'] || request.params['mastodon_server']
+    server = req.params['mastodon_server'] || request.params['mastodon_server'] || session[:mastodon_server]
     if server.blank?
       render plain: "Mastodon server required.
               req.params: #{req.params.inspect},
@@ -73,6 +74,8 @@ class OmniAuthCallbacksController < ApplicationController
              status: 400
       return
     end
+
+    session[:mastodon_server] = server
 
     callback_url = url_for(action: :mastodon, controller: 'omniauth_callbacks', only_path: false)
     callback_url.sub!(%r{/setup$}, '/callback')
@@ -86,8 +89,10 @@ class OmniAuthCallbacksController < ApplicationController
     request.env['omniauth.strategy'].options.client_id = app.client_id
     request.env['omniauth.strategy'].options.client_secret = app.client_secret
     request.env['omniauth.strategy'].options.client_options.site = "https://#{app.server}"
+    request.env['omniauth.strategy'].options.scope = 'read write'
     render plain: 'Setup complete', status: 404
   end
+  # rubocop:enable Metrics/AbcSize
 
   def setup_atproto(req)
     handle = req.params['bsky_handle'] || req.params['handle']
