@@ -10,6 +10,21 @@ class SettingsController < ApplicationController
 
   def account; end
 
+  def import; end
+
+  def import_letterboxd
+    if params[:export_file].present?
+      file = params[:export_file]
+      temp_path = Rails.root.join('tmp', "letterboxd_export_#{current_user.id}_#{Time.now.to_i}.zip").to_s
+      File.binwrite(temp_path, file.read)
+      LetterboxdImportJob.perform_later(current_user.id, temp_path)
+      flash[:success] = 'Import started. Your data will appear in your library soon.'
+    else
+      flash[:alert] = 'Please provide a file.'
+    end
+    redirect_to settings_import_path
+  end
+
   def update_basic_info
     if @user.update(basic_info_params)
       flash[:success] = 'Basic information updated'

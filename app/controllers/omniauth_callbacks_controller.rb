@@ -65,7 +65,7 @@ class OmniAuthCallbacksController < ApplicationController
   private
 
   def setup_mastodon(req)
-    server = req.params['mastodon_server'] || request.params['mastodon_server']
+    server = req.params['mastodon_server'] || request.params['mastodon_server'] || session[:mastodon_server]
     if server.blank?
       render plain: "Mastodon server required.
               req.params: #{req.params.inspect},
@@ -73,6 +73,8 @@ class OmniAuthCallbacksController < ApplicationController
              status: 400
       return
     end
+
+    session[:mastodon_server] = server
 
     callback_url = url_for(action: :mastodon, controller: 'omniauth_callbacks', only_path: false)
     callback_url.sub!(%r{/setup$}, '/callback')

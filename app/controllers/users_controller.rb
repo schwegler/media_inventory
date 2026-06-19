@@ -32,7 +32,17 @@ class UsersController < ApplicationController
   end
 
   def create
-    @user = User.new(user_params)
+    adjusted_params = user_params.to_h
+    if adjusted_params[:bsky_app_password].present? && adjusted_params[:password].blank?
+      random_pass = SecureRandom.hex(16)
+      adjusted_params[:password] = random_pass
+      adjusted_params[:password_confirmation] = random_pass
+      if adjusted_params[:bsky_handle].present? && adjusted_params[:username].blank?
+        adjusted_params[:username] = adjusted_params[:bsky_handle].split('.').first.gsub(/[^a-zA-Z0-9_]/, '_')
+      end
+    end
+
+    @user = User.new(adjusted_params)
     @user.confirmed_at = Time.current # Automatically confirmed via password signup
     if @user.save
       reset_session
@@ -91,6 +101,7 @@ class UsersController < ApplicationController
       :name, :username, :email, :password, :password_confirmation,
       :avatar, :header_banner, :bio, :birthday,
       :bsky_handle, :bsky_password,
+      :bsky_app_password, :bsky_post_reviews_only, :bsky_custom_message,
       :bsky_post_activity, :bsky_post_reviews,
       :bsky_message_activity_template, :bsky_message_review_template,
       :mastodon_post_activity, :mastodon_post_reviews,

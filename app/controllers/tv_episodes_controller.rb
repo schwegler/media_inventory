@@ -5,6 +5,9 @@ class TvEpisodesController < ApplicationController
 
   def show
     @tv_episode = TvEpisode.find(params[:id])
+    return unless logged_in?
+
+    @library_item = LibraryItem.find_by(user: current_user, item: @tv_episode)
   end
 
   def toggle_watched
@@ -15,7 +18,9 @@ class TvEpisodesController < ApplicationController
       return
     end
 
-    if @tv_episode.update(tv_episode_params)
+    @library_item = LibraryItem.find_or_initialize_by(user: current_user, item: @tv_episode)
+
+    if @library_item.update(tv_episode_params)
       respond_to do |format|
         if params[:back_to_episode]
           format.html { redirect_to @tv_episode, notice: 'Episode updated.' }
@@ -35,6 +40,6 @@ class TvEpisodesController < ApplicationController
   private
 
   def tv_episode_params
-    params.require(:tv_episode).permit(:watched, :watched_at, :rating, :review)
+    params.require(:tv_episode).permit(:consumed, :consumed_at, :rating, :review)
   end
 end

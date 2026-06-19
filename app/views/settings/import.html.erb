@@ -1,0 +1,25 @@
+<div class="settings-container">
+  <%= render 'sidebar' %>
+
+  <div class="settings-content">
+    <h1 class="settings-title">Import Data</h1>
+
+    <section class="settings-section">
+      <h3 class="section-subtitle">Import from Letterboxd</h3>
+      <p class="text-muted">
+        Upload your full Letterboxd data export (.zip file). We will import your watched movies, ratings, reviews, and watchlist asynchronously.
+      </p>
+
+      <%= form_with url: settings_import_letterboxd_path, local: true, multipart: true, class: "settings-form mt-3" do |f| %>
+        <div class="form-group">
+          <%= f.label :export_file, "Letterboxd Export Zip File" %>
+          <%= f.file_field :export_file, accept: '.zip', class: 'form-control', required: true %>
+        </div>
+
+        <div class="form-actions mt-3">
+          <%= f.submit "Upload and Import", class: "btn btn-primary" %>
+        </div>
+      <% end %>
+    </section>
+  </div>
+</div>

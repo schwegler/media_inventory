@@ -29,6 +29,8 @@ SampleApp::Application.routes.draw do
     get 'basic_info', to: 'settings#basic_info'
     get 'notifications', to: 'settings#notifications'
     get 'account', to: 'settings#account'
+    get 'import', to: 'settings#import'
+    post 'import_letterboxd', to: 'settings#import_letterboxd'
   end
 
   patch '/settings/update_basic_info', to: 'settings#update_basic_info'

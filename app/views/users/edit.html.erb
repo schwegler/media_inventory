@@ -35,51 +35,32 @@
         <%= f.password_field :password_confirmation, class: 'form-control', autocomplete: 'new-password' %>
       </div>
 
-      <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.5rem; margin-top: 1.5rem; margin-bottom: 1.5rem;">
-        <h3 style="font-size: 1.25rem; color: #fff; margin-bottom: 0.5rem;">🦋 Bluesky Integration</h3>
-        
-        <% if @user.bsky_access_token.present? || @user.bsky_password.present? %>
-          <div style="padding: 1rem; background: rgba(2, 132, 199, 0.1); border-left: 4px solid #0284c7; margin-bottom: 1rem;">
-            <p style="margin: 0;">✅ Connected as <strong><%= @user.bsky_handle %></strong></p>
-          </div>
-          
-          <div style="margin-top: 15px; display: flex; gap: 20px; flex-wrap: wrap;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <%= f.check_box :bsky_post_activity %>
-              <%= f.label :bsky_post_activity, "Auto-post new additions", style: "margin-bottom: 0;" %>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <%= f.check_box :bsky_post_reviews %>
-              <%= f.label :bsky_post_reviews, "Auto-post reviews", style: "margin-bottom: 0;" %>
-            </div>
-          </div>
+      <hr style="margin: 30px 0; border-color: #334155;">
 
-          <div class="form-group" style="margin-top: 15px;">
-            <%= f.label :bsky_message_activity_template, "Activity Template" %>
-            <%= f.text_field :bsky_message_activity_template, class: 'form-control', placeholder: 'Just added [title] to my library! #mediatracker' %>
-            <small style="color: #64748b; font-size: 0.75rem;">Placeholders: [title], [type]</small>
-          </div>
+      <h3>Bluesky Integration (Optional)</h3>
+      <p style="font-size: 0.9em; color: #94a3b8;">Automatically post your activity and reviews to Bluesky.</p>
 
-          <div class="form-group" style="margin-top: 15px;">
-            <%= f.label :bsky_message_review_template, "Review Template" %>
-            <%= f.text_field :bsky_message_review_template, class: 'form-control', placeholder: 'My review of [title]: [review] - [rating]★ #mediatracker' %>
-            <small style="color: #64748b; font-size: 0.75rem;">Placeholders: [title], [review], [rating]</small>
-          </div>
-        <% else %>
-          <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem; line-height: 1.4;">
-            Connect your Bluesky (bsky.app) account to automatically post updates and reviews.
-          </p>
-          <div style="margin-bottom: 15px;">
-            <%= f.label :bsky_handle, "Bluesky Handle (App Password)" %>
-            <%= f.text_field :bsky_handle, class: 'form-control', placeholder: 'e.g. alice.bsky.social' %>
-          </div>
-          <div style="margin-bottom: 15px;">
-            <%= f.label :bsky_password, "Bluesky App Password" %>
-            <%= f.password_field :bsky_password, class: 'form-control', placeholder: 'xxxx-xxxx-xxxx-xxxx' %>
-          </div>
-          <p style="text-align: center; margin: 10px 0; color: #94a3b8;">OR</p>
-          <%= button_to "Connect Bluesky via OAuth", "/auth/atproto", method: :post, data: { turbo: false }, class: "sleek-btn sleek-btn-primary", style: "width: 100%; background: #0284c7; border-color: #0ea5e9;" %>
-        <% end %>
+      <div class="form-group" style="margin-top: 15px;">
+        <%= f.label :bsky_handle, "Bluesky Handle (e.g. user.bsky.social)" %>
+        <%= f.text_field :bsky_handle, class: 'form-control' %>
+      </div>
+
+      <div class="form-group" style="margin-top: 15px;">
+        <%= f.label :bsky_app_password, "Bluesky App Password" %>
+        <%= f.password_field :bsky_app_password, class: 'form-control' %>
+      </div>
+
+      <div class="form-group" style="margin-top: 15px;">
+        <label>
+          <%= f.check_box :bsky_post_reviews_only %>
+          Only post to Bluesky when I write a review
+        </label>
+      </div>
+
+      <div class="form-group" style="margin-top: 15px;">
+        <%= f.label :bsky_custom_message, "Custom Message Format" %>
+        <p style="font-size: 0.85em; color: #94a3b8; margin-top: 0; margin-bottom: 5px;">Use <code>[title]</code> to insert the media title. (e.g. "Just logged [title] on MediaTracker!")</p>
+        <%= f.text_area :bsky_custom_message, class: 'form-control', rows: 3 %>
       </div>
 
       <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.5rem; margin-top: 1.5rem; margin-bottom: 1.5rem;">
