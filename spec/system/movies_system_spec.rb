@@ -33,6 +33,6 @@ RSpec.describe 'Movies Management', type: :system do
     # Test the like button
     expect(page).to have_button('Like')
     click_button 'Like'
-    expect(page).to have_css('.like-count', text: '1')
+    expect(page).to have_css('.likes-count', text: '1')
   end
 end
