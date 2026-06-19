@@ -23,6 +23,10 @@ RSpec.describe InventoryController, type: :controller do
         new(id:)
       end
 
+      def self.find_or_initialize_by(attrs)
+        new(attrs)
+      end
+
       def save
         if title.nil?
           errors.add(:title, "can't be blank")

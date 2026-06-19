@@ -65,7 +65,7 @@ class LandingController < ApplicationController
   end
 
   def fallback_popular_items
-    items = [Movie, Album, VideoGame].flat_map { |k| k.where(is_public: true).limit(2).to_a }
+    items = LibraryItem.includes(:item).where(item_type: ['Movie', 'Album', 'VideoGame'], is_public: true).limit(6).map(&:item)
     preload_records_attachments(items).sample(6)
   end
 

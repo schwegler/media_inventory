@@ -55,7 +55,7 @@ RSpec.describe 'Albums Management', type: :system do
       end
     end
 
-    expect(page).to have_text('Album was successfully deleted.')
+    expect(page).to have_text('Album was successfully removed from your library.')
   end
 
   it 'displays a list of albums' do

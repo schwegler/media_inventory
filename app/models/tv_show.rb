@@ -5,6 +5,7 @@ class TvShow < ApplicationRecord
 
   has_one_attached :cover_image
   has_many :tv_episodes, dependent: :destroy
+  has_many :likes, as: :likeable, dependent: :destroy
   has_many :comments, as: :commentable, dependent: :destroy
 
   validates :title, presence: true

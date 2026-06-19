@@ -11,18 +11,19 @@
     
     <div class="friends-activity-grid">
       <% @new_from_friends.each do |activity| %>
-        <% item = activity.trackable %>
-        <% next if item.nil? %>
+        <% lib_item = activity.trackable %>
+        <% next if lib_item.nil? %>
+        <% media = lib_item.is_a?(LibraryItem) ? lib_item.item : lib_item %>
         <div class="friend-card">
           <div class="friend-card-poster">
-            <% if item.respond_to?(:cover_image) && item.cover_image.attached? %>
-              <%= image_tag item.cover_image, alt: item.title, class: 'poster-img' %>
-            <% elsif item.thumbnail_url.present? %>
-              <img src="<%= item.thumbnail_url %>" alt="<%= item.title %>" class="poster-img">
+            <% if media.respond_to?(:cover_image) && media.cover_image.attached? %>
+              <%= image_tag media.cover_image, alt: media.title, class: 'poster-img' %>
+            <% elsif media.respond_to?(:thumbnail_url) && media.thumbnail_url.present? %>
+              <img src="<%= media.thumbnail_url %>" alt="<%= media.title %>" class="poster-img">
             <% else %>
               <div class="poster-fallback">
                 <span class="fallback-emoji">
-                  <%= case item.class.name
+                  <%= case media.class.name
                       when 'Movie' then '🎬'
                       when 'Album' then '💿'
                       when 'Comic' then '📚'
@@ -35,7 +36,7 @@
             <% end %>
             <div class="friend-card-overlay">
               <div class="overlay-details">
-                <%= link_to "View details", item, class: "overlay-link stretched-link" %>
+                <%= link_to "View details", media, class: "overlay-link stretched-link" %>
               </div>
             </div>
           </div>
@@ -46,13 +47,13 @@
               <span class="friend-name"><%= link_to activity.user.name, activity.user %></span>
             </div>
             <div class="friend-rating-row">
-              <% if item.rating.present? %>
-                <span class="friend-stars"><%= render_stars(item.rating) %></span>
+              <% if lib_item.respond_to?(:rating) && lib_item.rating.present? %>
+                <span class="friend-stars"><%= render_stars(lib_item.rating) %></span>
               <% end %>
-              <% if item.rating.to_f >= 4.0 %>
+              <% if lib_item.respond_to?(:rating) && lib_item.rating.to_f >= 4.0 %>
                 <span class="heart-icon">🧡</span>
               <% end %>
-              <% if activity.activity_type == 'consumed' || item.consumed? %>
+              <% if activity.activity_type == 'consumed' || (lib_item.respond_to?(:consumed?) && lib_item.consumed?) %>
                 <span class="repeat-icon" title="Consumed/Played">↻</span>
               <% end %>
               <span class="friend-date"><%= activity.created_at.strftime("%b %d") %></span>
@@ -72,16 +73,17 @@
 
     <div class="popular-items-grid">
       <% @popular_items.each do |item| %>
+        <% media = item.is_a?(LibraryItem) ? item.item : item %>
         <div class="popular-card">
           <div class="popular-card-poster">
-            <% if item.respond_to?(:cover_image) && item.cover_image.attached? %>
-              <%= image_tag item.cover_image, alt: item.title, class: 'poster-img' %>
-            <% elsif item.thumbnail_url.present? %>
-              <img src="<%= item.thumbnail_url %>" alt="<%= item.title %>" class="poster-img">
+            <% if media.respond_to?(:cover_image) && media.cover_image.attached? %>
+              <%= image_tag media.cover_image, alt: media.title, class: 'poster-img' %>
+            <% elsif media.respond_to?(:thumbnail_url) && media.thumbnail_url.present? %>
+              <img src="<%= media.thumbnail_url %>" alt="<%= media.title %>" class="poster-img">
             <% else %>
               <div class="poster-fallback">
                 <span class="fallback-emoji">
-                  <%= case item.class.name
+                  <%= case media.class.name
                       when 'Movie' then '🎬'
                       when 'Album' then '💿'
                       when 'Comic' then '📚'
@@ -92,7 +94,7 @@
                 </span>
               </div>
             <% end %>
-            <%= link_to "", item, class: "stretched-link" %>
+            <%= link_to "", media, class: "stretched-link" %>
           </div>
         </div>
       <% end %>
@@ -108,19 +110,20 @@
     <div class="popular-reviews-layout">
       <% if @popular_reviews.any? %>
         <% @popular_reviews.each do |activity| %>
-          <% item = activity.trackable %>
-          <% next if item.nil? %>
+          <% lib_item = activity.trackable %>
+          <% next if lib_item.nil? %>
+          <% media = lib_item.is_a?(LibraryItem) ? lib_item.item : lib_item %>
           <div class="popular-review-row">
             <div class="review-poster-col">
               <div class="review-poster">
-                <% if item.respond_to?(:cover_image) && item.cover_image.attached? %>
-                  <%= image_tag item.cover_image, alt: item.title, class: 'poster-img' %>
-                <% elsif item.thumbnail_url.present? %>
-                  <img src="<%= item.thumbnail_url %>" alt="<%= item.title %>" class="poster-img">
+                <% if media.respond_to?(:cover_image) && media.cover_image.attached? %>
+                  <%= image_tag media.cover_image, alt: media.title, class: 'poster-img' %>
+                <% elsif media.respond_to?(:thumbnail_url) && media.thumbnail_url.present? %>
+                  <img src="<%= media.thumbnail_url %>" alt="<%= media.title %>" class="poster-img">
                 <% else %>
                   <div class="poster-fallback">
                     <span class="fallback-emoji">
-                      <%= case item.class.name
+                      <%= case media.class.name
                           when 'Movie' then '🎬'
                           when 'Album' then '💿'
                           when 'Comic' then '📚'
@@ -131,27 +134,27 @@
                     </span>
                   </div>
                 <% end %>
-                <%= link_to "", item, class: "stretched-link" %>
+                <%= link_to "", media, class: "stretched-link" %>
               </div>
             </div>
 
             <div class="review-body-col">
               <div class="review-author-header">
                 <%= user_avatar_tag(activity.user, size: 24) %>
-                <span class="review-author-name"><%= link_to activity.user.name, activity.user %></span>
+                <span class="review-author-name"><<%= link_to activity.user.name, activity.user %></span>
                 <span class="review-target-title">
-                  <%= link_to item.title, item %>
-                  <% if item.respond_to?(:release_year) && item.release_year.present? %>
-                    <span class="review-year"><%= item.release_year %></span>
+                  <%= link_to media.title, media %>
+                  <% if media.respond_to?(:release_year) && media.release_year.present? %>
+                    <span class="review-year"><%= media.release_year %></span>
                   <% end %>
                 </span>
               </div>
 
               <div class="review-rating-row">
-                <% if item.rating.present? %>
-                  <span class="review-stars"><%= render_stars(item.rating) %></span>
+                <% if lib_item.respond_to?(:rating) && lib_item.rating.present? %>
+                  <span class="review-stars"><%= render_stars(lib_item.rating) %></span>
                 <% end %>
-                <% if item.rating.to_f >= 4.0 %>
+                <% if lib_item.respond_to?(:rating) && lib_item.rating.to_f >= 4.0 %>
                   <span class="heart-icon">🧡</span>
                 <% end %>
                 <% mock_comment_count = (activity.id * 3) % 12 + 1 %>
@@ -159,14 +162,14 @@
               </div>
 
               <div class="review-content-text">
-                <p>"<%= truncate(item.review, length: 240) %>"</p>
-                <% if item.review.length > 240 %>
-                  <%= link_to "more", item, class: "more-review-link" %>
+                <p>"<%= truncate(lib_item.respond_to?(:review) ? lib_item.review : '', length: 240) %>"</p>
+                <% if lib_item.respond_to?(:review) && lib_item.review.present? && lib_item.review.length > 240 %>
+                  <%= link_to "more", media, class: "more-review-link" %>
                 <% end %>
               </div>
 
               <div class="review-like-action">
-                <%= render 'likes/like_button', item: item %>
+                <%= render 'likes/like_button', item: media %>
               </div>
             </div>
           </div>
@@ -192,13 +195,14 @@
           <div class="activity-feed">
             <% @activities.each do |activity| %>
               <% trackable = activity.trackable %>
+              <% media = trackable.is_a?(LibraryItem) ? trackable.item : trackable %>
               <div class="activity-card">
                 <div class="activity-thumbnail">
-                  <% if trackable&.thumbnail_url.present? %>
-                    <img src="<%= trackable.thumbnail_url %>" alt="Cover">
+                  <% if media.respond_to?(:thumbnail_url) && media.thumbnail_url.present? %>
+                    <img src="<%= media.thumbnail_url %>" alt="Cover">
                   <% else %>
                     <span class="fallback-icon">
-                      <%= case activity.trackable_type
+                      <%= case media&.class&.name
                           when 'Movie' then '🎬'
                           when 'Album' then '💿'
                           when 'Comic' then '📚'
@@ -217,7 +221,7 @@
                       <span class="activity-text">
                         <%= activity_link_description(activity) %>
                       </span>
-                      <% if trackable&.review.present? && activity.activity_type == 'reviewed' %>
+                      <% if trackable.respond_to?(:review) && trackable.review.present? && activity.activity_type == 'reviewed' %>
                         <div class="activity-review-quote">
                           "<%= truncate(trackable.review, length: 150) %>"
                         </div>

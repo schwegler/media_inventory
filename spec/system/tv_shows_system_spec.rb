@@ -80,7 +80,7 @@ RSpec.describe 'TV Shows and Episodes Management', type: :system do
         click_button 'Delete from Library'
       end
     end
-    expect(page).to have_text('Tv show was successfully deleted.')
+    expect(page).to have_text('Tv show was successfully removed from your library.')
   end
 
   it 'displays a list of TV shows' do

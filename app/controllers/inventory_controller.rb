@@ -97,7 +97,7 @@ class InventoryController < ApplicationController
     library_params[:in_backlog] = library_params.delete(:in_watchlist) if library_params.key?(:in_watchlist)
 
     ActiveRecord::Base.transaction do
-      @resource.update!(global_params) if global_params.any?
+      @resource.update!(global_params) if global_params.to_h.any?
       @library_item.update!(library_params)
     end
 

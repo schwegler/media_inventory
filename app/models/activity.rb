@@ -9,18 +9,20 @@ class Activity < ApplicationRecord
   # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/MethodLength, Metrics/PerceivedComplexity
   def description
     user_name = user&.name || 'Someone'
-    item_title = trackable&.title || 'an item'
+    media_item = trackable.is_a?(LibraryItem) ? trackable.item : trackable
+    item_title = media_item.try(:title) || media_item.try(:name) || 'an item'
+    type_name = media_item&.class&.name
 
     case activity_type
     when 'added'
-      case trackable_type
+      case type_name
       when 'Movie'
         "#{user_name} added movie '#{item_title}' to their collection"
       when 'Album'
-        artist = trackable.respond_to?(:artist) ? trackable.artist : 'unknown artist'
+        artist = media_item.respond_to?(:artist) ? media_item.artist : 'unknown artist'
         "#{user_name} added #{artist}'s '#{item_title}' to their album collection"
       when 'Comic'
-        issue = trackable.respond_to?(:issue_number) ? " ##{trackable.issue_number}" : ''
+        issue = media_item.respond_to?(:issue_number) ? " ##{media_item.issue_number}" : ''
         "#{user_name} added issue#{issue} of '#{item_title}' to their comic collection"
       when 'TvShow'
         "#{user_name} added TV show '#{item_title}' to their collection"
@@ -33,14 +35,14 @@ class Activity < ApplicationRecord
       end
     when 'reviewed'
       rating_str = trackable&.rating.present? ? " (Rating: #{trackable.rating})" : ''
-      case trackable_type
+      case type_name
       when 'Movie'
         "#{user_name} reviewed movie '#{item_title}'#{rating_str}"
       when 'Album'
-        artist = trackable.respond_to?(:artist) ? " by #{trackable.artist}" : ''
+        artist = media_item.respond_to?(:artist) ? " by #{media_item.artist}" : ''
         "#{user_name} reviewed album '#{item_title}'#{artist}#{rating_str}"
       when 'Comic'
-        issue = trackable.respond_to?(:issue_number) ? " issue ##{trackable.issue_number}" : ''
+        issue = media_item.respond_to?(:issue_number) ? " issue ##{media_item.issue_number}" : ''
         "#{user_name} reviewed comic '#{item_title}'#{issue}#{rating_str}"
       when 'TvShow'
         "#{user_name} reviewed TV show '#{item_title}'#{rating_str}"
@@ -52,14 +54,14 @@ class Activity < ApplicationRecord
         "#{user_name} reviewed '#{item_title}'#{rating_str}"
       end
     when 'watchlist'
-      case trackable_type
+      case type_name
       when 'Movie'
         "#{user_name} added movie '#{item_title}' to their watchlist"
       when 'Album'
-        artist = trackable.respond_to?(:artist) ? " by #{trackable.artist}" : ''
+        artist = media_item.respond_to?(:artist) ? " by #{media_item.artist}" : ''
         "#{user_name} added album '#{item_title}'#{artist} to their watchlist"
       when 'Comic'
-        issue = trackable.respond_to?(:issue_number) ? " issue ##{trackable.issue_number}" : ''
+        issue = media_item.respond_to?(:issue_number) ? " issue ##{media_item.issue_number}" : ''
         "#{user_name} added comic '#{item_title}'#{issue} to their watchlist"
       when 'TvShow'
         "#{user_name} added TV show '#{item_title}' to their watchlist"
@@ -69,7 +71,7 @@ class Activity < ApplicationRecord
         "#{user_name} added '#{item_title}' to their watchlist"
       end
     when 'consumed'
-      verb = case trackable_type
+      verb = case type_name
              when 'Movie', 'TvShow', 'TvEpisode' then 'watched'
              when 'VideoGame' then 'played'
              when 'Album' then 'listened to'
@@ -77,14 +79,14 @@ class Activity < ApplicationRecord
              else 'consumed'
              end
       date_str = trackable&.consumed_at.present? ? " on #{trackable.consumed_at.strftime('%B %d, %Y')}" : ''
-      case trackable_type
+      case type_name
       when 'Movie'
         "#{user_name} #{verb} movie '#{item_title}'#{date_str}"
       when 'Album'
-        artist = trackable.respond_to?(:artist) ? " by #{trackable.artist}" : ''
+        artist = media_item.respond_to?(:artist) ? " by #{media_item.artist}" : ''
         "#{user_name} #{verb} album '#{item_title}'#{artist}#{date_str}"
       when 'Comic'
-        issue = trackable.respond_to?(:issue_number) ? " issue ##{trackable.issue_number}" : ''
+        issue = media_item.respond_to?(:issue_number) ? " issue ##{media_item.issue_number}" : ''
         "#{user_name} #{verb} comic '#{item_title}'#{issue}#{date_str}"
       when 'TvShow'
         "#{user_name} #{verb} TV show '#{item_title}'#{date_str}"

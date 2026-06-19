@@ -56,7 +56,7 @@ RSpec.describe 'Video Games Management', type: :system do
       end
     end
 
-    expect(page).to have_text('Video game was successfully deleted.')
+    expect(page).to have_text('Video game was successfully removed from your library.')
   end
 
   it 'displays a list of video games' do

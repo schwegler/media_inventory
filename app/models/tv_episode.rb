@@ -2,6 +2,7 @@
 
 class TvEpisode < ApplicationRecord
   belongs_to :tv_show
+  has_many :likes, as: :likeable, dependent: :destroy
   has_many :comments, as: :commentable, dependent: :destroy
 
   def title

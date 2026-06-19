@@ -56,7 +56,7 @@ RSpec.describe 'Comics Management', type: :system do
       end
     end
 
-    expect(page).to have_text('Comic was successfully deleted.')
+    expect(page).to have_text('Comic was successfully removed from your library.')
   end
 
   it 'displays a list of comics' do
