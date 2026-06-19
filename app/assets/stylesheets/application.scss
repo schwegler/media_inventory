@@ -3661,3 +3661,27 @@ input:checked + .slider:before {
 .alert-notice { background: #10b981; color: #fff; }
 .alert-success { background: #10b981; color: #fff; }
 .alert-danger { background: #ef4444; color: #fff; }
+
+// ==========================================================================
+//  Accessibility & Focus States
+// ==========================================================================
+:focus-visible {
+  outline: 2px solid $accent-orange;
+  outline-offset: 2px;
+}
+
+// Custom focus for thumbnail cards
+.thumbnail-option-card:focus-visible {
+  outline: none;
+  border-color: $accent-orange;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.4);
+  transform: translateY(-2px);
+}
+
+// Ensure buttons have clear focus
+.btn:focus-visible,
+input[type="submit"]:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.4);
+}
