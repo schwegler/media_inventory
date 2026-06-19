@@ -6,10 +6,6 @@ class TvEpisode < ApplicationRecord
   belongs_to :tv_show
   has_many :comments, as: :commentable, dependent: :destroy
 
-  def user
-    tv_show&.user
-  end
-
   def title
     show_title = tv_show&.title
     "#{show_title} S#{season}E#{episode}: #{name}"

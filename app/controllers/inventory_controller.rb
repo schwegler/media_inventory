@@ -14,62 +14,112 @@ class InventoryController < ApplicationController
   end
 
   def create
-    @resource = resource_class.new(resource_params)
-    @resource.user = current_user
+    global_params = resource_params.except(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
+                                           :consumed_at, :is_public)
+    library_params = resource_params.slice(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
+                                           :consumed_at, :is_public)
+
+    # Handle the transition from watchlist to backlog
+    library_params[:in_backlog] = library_params.delete(:in_watchlist) if library_params.key?(:in_watchlist)
+
+    @resource = if global_params[:api_id].present?
+                  resource_class.find_or_initialize_by(api_id: global_params[:api_id])
+                else
+                  resource_class.find_or_initialize_by(title: global_params[:title])
+                end
+
+    @resource.assign_attributes(global_params)
     instance_variable_set("@#{resource_name}", @resource)
 
-    respond_to do |format|
+    ActiveRecord::Base.transaction do
       if @resource.save
-        format.html { redirect_to @resource, notice: "#{resource_class.model_name.human} was successfully created." }
+        @library_item = LibraryItem.find_or_initialize_by(user: current_user, item: @resource)
+        @library_item.assign_attributes(library_params)
+        @library_item.save!
+
+        respond_to do |format|
+          format.html { redirect_to @resource, notice: "#{resource_class.model_name.human} was successfully logged." }
+        end
       else
-        format.html { render :new, status: failure_status }
+        respond_to do |format|
+          format.html { render :new, status: failure_status }
+        end
       end
     end
   end
 
   def show
     @resource = resource_class.find(params[:id])
-    unless can_access?(@resource)
-      redirect_to root_path, alert: 'Not authorized'
-      return
+    if logged_in?
+      @library_item = LibraryItem.find_by(user: current_user, item: @resource)
+      if @library_item
+        @resource.is_collected = @library_item.is_collected
+        @resource.in_watchlist = @library_item.in_backlog
+        @resource.in_backlog = @library_item.in_backlog
+        @resource.rating = @library_item.rating
+        @resource.review = @library_item.review
+        @resource.consumed = @library_item.consumed
+        @resource.consumed_at = @library_item.consumed_at
+        @resource.is_public = @library_item.is_public
+      end
     end
     instance_variable_set("@#{resource_name}", @resource)
   end
 
   def edit
     @resource = resource_class.find(params[:id])
-    unless @resource.user == current_user
+    @library_item = LibraryItem.find_by(user: current_user, item: @resource)
+    unless @library_item
       redirect_to root_path, alert: 'Not authorized'
       return
     end
+
+    @resource.is_collected = @library_item.is_collected
+    @resource.in_watchlist = @library_item.in_backlog
+    @resource.in_backlog = @library_item.in_backlog
+    @resource.rating = @library_item.rating
+    @resource.review = @library_item.review
+    @resource.consumed = @library_item.consumed
+    @resource.consumed_at = @library_item.consumed_at
+    @resource.is_public = @library_item.is_public
+
     instance_variable_set("@#{resource_name}", @resource)
   end
 
   def update
     @resource = resource_class.find(params[:id])
-    if @resource.user == current_user
-      if @resource.update(resource_params)
-        respond_to do |format|
-          format.html { redirect_to @resource, notice: "#{resource_class.model_name.human} was successfully updated." }
-        end
-      else
-        respond_to do |format|
-          format.html { render :edit, status: failure_status }
-        end
-      end
-    else
-      redirect_to root_path, alert: 'Not authorized'
+    @library_item = LibraryItem.find_or_initialize_by(user: current_user, item: @resource)
+
+    global_params = resource_params.except(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
+                                           :consumed_at, :is_public)
+    library_params = resource_params.slice(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
+                                           :consumed_at, :is_public)
+    library_params[:in_backlog] = library_params.delete(:in_watchlist) if library_params.key?(:in_watchlist)
+
+    ActiveRecord::Base.transaction do
+      @resource.update!(global_params) if global_params.any?
+      @library_item.update!(library_params)
+    end
+
+    respond_to do |format|
+      format.html { redirect_to @resource, notice: "#{resource_class.model_name.human} was successfully updated." }
+    end
+  rescue ActiveRecord::RecordInvalid
+    respond_to do |format|
+      format.html { render :edit, status: failure_status }
     end
   end
 
   def destroy
     @resource = resource_class.find(params[:id])
-    if @resource.user == current_user
-      @resource.destroy
+    @library_item = LibraryItem.find_by(user: current_user, item: @resource)
+
+    if @library_item
+      @library_item.destroy
       respond_to do |format|
         format.html do
           redirect_to send("#{resource_name.pluralize}_path"),
-                      notice: "#{resource_class.model_name.human} was successfully deleted.",
+                      notice: "#{resource_class.model_name.human} was successfully removed from your library.",
                       status: :see_other
         end
       end

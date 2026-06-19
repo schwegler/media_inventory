@@ -73,7 +73,7 @@ module ApplicationHelper
 
     {
       avg_rating: avg_rating,
-      watchers: matching_items.select { |i| i.in_watchlist? || i.consumed? }.map(&:user).uniq.compact,
+      watchers: matching_items.select { |i| i.in_backlog? || i.consumed? }.map(&:user).uniq.compact,
       collectors: matching_items.select(&:is_collected?).map(&:user).uniq.compact,
       reviews: matching_items.select { |i| i.review.present? }
     }
@@ -82,8 +82,7 @@ module ApplicationHelper
   private
 
   def fetch_matching_items(item)
-    klass = item.class
-    query = klass.where('LOWER(title) = ?', item.title.to_s.strip.downcase)
+    query = LibraryItem.where(item: item)
     if logged_in?
       query.where('is_public = ? OR user_id = ?', true, current_user.id).includes(:user)
     else

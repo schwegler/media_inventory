@@ -3,20 +3,9 @@
 require 'spec_helper'
 
 RSpec.describe Like, type: :model do
-  let(:user) do
-    User.create!(
-      name: 'Test User',
-      email: 'test@example.com',
-      password: 'password123',
-      password_confirmation: 'password123'
-    )
-  end
-
-  let(:movie) do
-    Movie.create!(
-      title: 'Inception'
-    )
-  end
+  let(:user) { User.create!(name: 'Test', email: 'test@example.com', password: 'password') }
+  let(:movie) { Movie.create!(title: 'Inception') }
+  let!(:library_item) { LibraryItem.create!(user: user, item: movie) }
 
   it 'is valid with user and likeable' do
     like = Like.new(user: user, likeable: movie)

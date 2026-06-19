@@ -19,11 +19,27 @@ class User < ApplicationRecord
   has_one_attached :avatar
   has_one_attached :header_banner
 
-  has_many :albums
-  has_many :comics
-  has_many :movies
-  has_many :tv_shows
-  has_many :video_games
+  has_many :library_items, dependent: :destroy
+
+  def albums
+    library_items.where(item_type: 'Album')
+  end
+
+  def comics
+    library_items.where(item_type: 'Comic')
+  end
+
+  def movies
+    library_items.where(item_type: 'Movie')
+  end
+
+  def tv_shows
+    library_items.where(item_type: 'TvShow')
+  end
+
+  def video_games
+    library_items.where(item_type: 'VideoGame')
+  end
   has_many :activities, dependent: :destroy
   has_many :comments, dependent: :destroy
   has_many :likes, dependent: :destroy

@@ -56,7 +56,7 @@
 
     <!-- Episode Actions -->
     <div class="media-actions-container">
-      <% if logged_in? && tv_show.user == current_user %>
+      <% if logged_in? && LibraryItem.exists?(user: current_user, item: tv_show) %>
         <div class="actions-section">
           <strong class="actions-section-title">My Progress</strong>
           <div class="actions-buttons-row">
