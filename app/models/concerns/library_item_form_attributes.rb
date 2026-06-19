@@ -6,9 +6,11 @@ module LibraryItemFormAttributes
   included do
     attr_accessor :is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed, :consumed_at, :is_public
 
+    # rubocop:disable Naming/PredicatePrefix
     def is_collected?
       !!is_collected
     end
+    # rubocop:enable Naming/PredicatePrefix
 
     def in_watchlist?
       !!in_watchlist

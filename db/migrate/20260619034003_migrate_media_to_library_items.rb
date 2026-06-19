@@ -21,6 +21,7 @@ class MigrateMediaToLibraryItems < ActiveRecord::Migration[8.1]
 
   private
 
+  # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
   def migrate_media(klass)
     records = klass.all
     grouped_records = records.group_by do |r|
@@ -54,6 +55,7 @@ class MigrateMediaToLibraryItems < ActiveRecord::Migration[8.1]
       end
     end
   end
+  # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 
   def remove_columns_from_media(klass)
     table_name = klass.table_name

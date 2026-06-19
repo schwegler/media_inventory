@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/ClassLength
 class InventoryController < ApplicationController
   before_action :logged_in_user, only: %i[new create]
 
@@ -13,6 +14,7 @@ class InventoryController < ApplicationController
     instance_variable_set("@#{resource_name}", @resource)
   end
 
+  # rubocop:disable Metrics/MethodLength
   def create
     global_params = resource_params.except(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
                                            :consumed_at, :is_public)
@@ -45,6 +47,7 @@ class InventoryController < ApplicationController
           format.html { render :new, status: failure_status }
         end
       end
+      # rubocop:enable Metrics/MethodLength
     end
   end
 
@@ -146,3 +149,4 @@ class InventoryController < ApplicationController
     raise NotImplementedError
   end
 end
+# rubocop:enable Metrics/ClassLength
