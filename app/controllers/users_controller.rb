@@ -11,6 +11,20 @@ class UsersController < ApplicationController
 
   def show
     @user = User.find(params[:id])
+    @activities = @user.activities.includes(:user, :trackable).order(created_at: :desc).limit(20)
+    @likes = @user.likes.includes(:likeable).order(created_at: :desc)
+
+    # Force loading of activities and likes to avoid double queries (any? then render)
+    @activities.load
+    @likes.load
+
+    @media_items = [
+      @user.movies.where(is_public: true),
+      @user.albums.where(is_public: true),
+      @user.comics.where(is_public: true),
+      @user.tv_shows.where(is_public: true),
+      @user.video_games.where(is_public: true)
+    ].flatten.sort_by(&:created_at).reverse
   end
 
   def new

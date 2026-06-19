@@ -49,6 +49,26 @@ RSpec.describe UsersController, type: :controller do
       it 'assigns @user and returns success' do
         allow(User).to receive(:find).with(user.id.to_s).and_return(user)
 
+        # Mocking associations for the show action
+        activities = double('activities')
+        allow(user).to receive(:activities).and_return(activities)
+        allow(activities).to receive(:includes).and_return(activities)
+        allow(activities).to receive(:order).and_return(activities)
+        allow(activities).to receive(:limit).and_return(activities)
+        allow(activities).to receive(:load).and_return(activities)
+
+        likes = double('likes')
+        allow(user).to receive(:likes).and_return(likes)
+        allow(likes).to receive(:includes).and_return(likes)
+        allow(likes).to receive(:order).and_return(likes)
+        allow(likes).to receive(:load).and_return(likes)
+
+        %i[movies albums comics tv_shows video_games].each do |media|
+          relation = double(media.to_s)
+          allow(user).to receive(media).and_return(relation)
+          allow(relation).to receive(:where).with(is_public: true).and_return([])
+        end
+
         get :show, params: { id: user.id }
         expect(controller.instance_variable_get(:@user)).to eq(user)
         expect(response).to have_http_status(:success)

@@ -67,8 +67,8 @@
 
       <div class="tab-content" data-tabs-target="content" data-tab-name="posts">
         <div class="activities-feed">
-          <% if @user.activities.any? %>
-            <%= render @user.activities.order(created_at: :desc).limit(20) %>
+          <% if @activities.any? %>
+            <%= render @activities %>
           <% else %>
             <p class="empty-state">No recent activity.</p>
           <% end %>
@@ -77,11 +77,9 @@
 
       <div class="tab-content hidden" data-tabs-target="content" data-tab-name="media">
         <div class="media-grid">
-           <%# Aggregating public media items %>
-           <% media_items = [@user.movies, @user.albums, @user.comics, @user.tv_shows, @user.video_games].flatten.select(&:is_public).sort_by(&:created_at).reverse %>
-           <% if media_items.any? %>
+           <% if @media_items.any? %>
              <div class="grid-layout">
-               <% media_items.each do |item| %>
+               <% @media_items.each do |item| %>
                  <div class="media-card">
                    <% if item.respond_to?(:thumbnail_url) && item.thumbnail_url.present? %>
                      <%= image_tag item.thumbnail_url, class: "media-thumb" %>
@@ -101,8 +99,8 @@
 
       <div class="tab-content hidden" data-tabs-target="content" data-tab-name="likes">
         <div class="likes-feed">
-          <% if @user.likes.any? %>
-            <% @user.likes.order(created_at: :desc).each do |like| %>
+          <% if @likes.any? %>
+            <% @likes.each do |like| %>
               <div class="like-item card">
                 <span>Liked a <%= like.likeable_type.titleize %></span>
                 <% if like.likeable.respond_to?(:title) %>
