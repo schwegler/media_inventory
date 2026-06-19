@@ -1,14 +1,9 @@
 # frozen_string_literal: true
 
 class TvEpisode < ApplicationRecord
-  include Trackable
-
   belongs_to :tv_show
+  has_many :likes, as: :likeable, dependent: :destroy
   has_many :comments, as: :commentable, dependent: :destroy
-
-  def user
-    tv_show&.user
-  end
 
   def title
     show_title = tv_show&.title

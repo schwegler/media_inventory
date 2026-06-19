@@ -16,7 +16,7 @@ RSpec.describe MoviesController, type: :controller do
 
   describe 'GET #show' do
     it 'returns a success response' do
-      movie = Movie.create!(title: 'Test Movie', is_public: true)
+      movie = Movie.create!(title: 'Test Movie')
       get :show, params: { id: movie.id }
       expect(response).to be_successful
     end

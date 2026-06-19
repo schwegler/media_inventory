@@ -29,6 +29,7 @@ RSpec.describe 'Albums Management', type: :system do
     fill_in 'album[artist]', with: 'The Beatles'
     fill_in 'album[release_year]', with: '1969'
     fill_in 'album[genre]', with: 'Rock'
+    check 'In Collection'
     select '★★★★★', from: 'album[rating]'
     fill_in 'album[review]', with: 'A classic masterpiece.'
     click_button 'Create Album'
@@ -54,11 +55,12 @@ RSpec.describe 'Albums Management', type: :system do
       end
     end
 
-    expect(page).to have_text('Album was successfully deleted.')
+    expect(page).to have_text('Album was successfully removed from your library.')
   end
 
   it 'displays a list of albums' do
-    Album.create!(title: 'Dark Side of the Moon', artist: 'Pink Floyd', user: user)
+    album = Album.find_or_create_by!(title: 'Dark Side of the Moon', artist: 'Pink Floyd')
+    LibraryItem.create!(item: album, user: user)
 
     visit albums_path
 

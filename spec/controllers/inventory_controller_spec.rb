@@ -23,6 +23,10 @@ RSpec.describe InventoryController, type: :controller do
         new(id:)
       end
 
+      def self.find_or_initialize_by(attrs)
+        new(attrs)
+      end
+
       def save
         if title.nil?
           errors.add(:title, "can't be blank")
@@ -108,10 +112,13 @@ RSpec.describe InventoryController, type: :controller do
     end
 
     describe 'POST #create' do
-      let(:user) { double('User') }
+      let(:user) { User.new(id: 1) }
+      let(:library_item) { instance_double('LibraryItem', update!: true, save!: true) }
 
       before do
         allow(controller).to receive(:current_user).and_return(user)
+        allow(LibraryItem).to receive(:find_or_initialize_by).and_return(library_item)
+        allow(library_item).to receive(:assign_attributes)
       end
 
       context 'with valid params' do
@@ -121,7 +128,6 @@ RSpec.describe InventoryController, type: :controller do
           resource = controller.instance_variable_get(:@resource)
           expect(resource).to be_a(DummyModel)
           expect(resource.title).to eq('Test Title')
-          expect(resource.user).to eq(user)
 
           # Since it's comics controller, it redirects to the comic
           expect(response).to redirect_to(comic_url(resource))

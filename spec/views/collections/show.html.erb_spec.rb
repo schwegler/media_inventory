@@ -21,8 +21,14 @@ RSpec.describe 'collections/show.html.erb', type: :view do
   end
 
   context 'when user is confirmed' do
-    let(:movie) { Movie.create!(title: 'The Matrix', director: 'Lana Wachowski', rating: 5, user: user) }
-    let(:album) { Album.create!(title: 'Homework', artist: 'Daft Punk', rating: 5, user: user) }
+    let(:movie) do
+      LibraryItem.create!(item: Movie.find_or_create_by!(title: 'The Matrix', director: 'Lana Wachowski'), user: user,
+                          rating: 5, is_collected: true)
+    end
+    let(:album) do
+      LibraryItem.create!(item: Album.find_or_create_by!(title: 'Homework', artist: 'Daft Punk'), user: user, rating: 5,
+                          is_collected: true)
+    end
 
     before do
       user.update!(confirmed_at: Time.current)

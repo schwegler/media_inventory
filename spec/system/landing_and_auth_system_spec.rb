@@ -84,12 +84,16 @@ RSpec.describe 'Landing and Authentication', type: :system do
     )
 
     # Create TV Show and Episode
-    tv_show = TvShow.create!(title: '30 Rock', user: friend)
+    tv_show = TvShow.find_or_create_by!(title: '30 Rock')
     episode = tv_show.tv_episodes.create!(
       name: 'The Aftermath',
       season: 1,
-      episode: 2,
-      watched: true,
+      episode: 2
+    )
+    lib_item = LibraryItem.create!(
+      user: friend,
+      item: episode,
+      consumed: true,
       rating: '4.5',
       review: 'Hilarious episode'
     )
@@ -97,7 +101,7 @@ RSpec.describe 'Landing and Authentication', type: :system do
     # Create activity for the episode
     Activity.create!(
       user: friend,
-      trackable: episode,
+      trackable: lib_item,
       activity_type: 'reviewed'
     )
 

@@ -115,8 +115,7 @@ RSpec.describe 'Movies', type: :request do
         Movie.create!(
           title: 'Inception',
           director: 'Christopher Nolan',
-          release_year: 2010,
-          rating: '5.0'
+          release_year: 2010
         )
       end
 
@@ -126,7 +125,6 @@ RSpec.describe 'Movies', type: :request do
         expect(response.body).to include('Inception')
         expect(response.body).to include('Christopher Nolan')
         expect(response.body).to include('2010')
-        expect(response.body).to include('★★★★★')
       end
     end
 

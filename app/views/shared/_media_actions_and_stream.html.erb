@@ -50,7 +50,7 @@ end
 
   <div class="actions-header">
     <% if logged_in? %>
-      <% if item.user == current_user %>
+      <% if @library_item.present? %>
         <div class="actions-section">
           <strong class="actions-section-title">My Library</strong>
           <div class="actions-buttons-row">
@@ -86,15 +86,15 @@ end
           <strong class="actions-section-title">Add to My Library</strong>
           <div class="actions-buttons-row">
             <%= button_to "📁 Add to My Collection",
-                          media_copy_path,
-                          method: :post,
-                          params: { source_type: item.class.name, source_id: item.id, target_list: 'collection' },
+                          polymorphic_path(item),
+                          method: :patch,
+                          params: { item.class.name.underscore.to_sym => { is_collected: true } },
                           class: "btn btn-primary" %>
 
             <%= button_to watchlist_copy_label,
-                          media_copy_path,
-                          method: :post,
-                          params: { source_type: item.class.name, source_id: item.id, target_list: 'watchlist' },
+                          polymorphic_path(item),
+                          method: :patch,
+                          params: { item.class.name.underscore.to_sym => { in_watchlist: true } },
                           class: "btn btn-secondary" %>
           </div>
         </div>
@@ -106,7 +106,7 @@ end
     <% end %>
   </div>
 
-  <% if logged_in? && item.user == current_user && (item.is_collected? || item.in_watchlist?) %>
+  <% if logged_in? && @library_item.present? && (item.is_collected? || item.in_watchlist?) %>
     <div class="inline-quick-review-box">
       <%= form_with model: item, url: polymorphic_path(item), method: :patch, local: true, class: "quick-review-form" do |f| %>
         <h3 class="quick-review-title">

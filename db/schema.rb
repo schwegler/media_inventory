@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_18_194800) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_19_034003) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -55,22 +55,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_18_194800) do
   create_table "albums", force: :cascade do |t|
     t.string "api_id"
     t.string "artist"
-    t.boolean "consumed", default: false, null: false
-    t.date "consumed_at"
     t.datetime "created_at", null: false
     t.string "external_url"
     t.string "genre"
-    t.boolean "in_watchlist", default: false, null: false
-    t.boolean "is_collected", default: true, null: false
-    t.boolean "is_public", default: false
-    t.string "rating"
     t.integer "release_year"
-    t.text "review"
     t.string "thumbnail_url"
     t.string "title"
     t.datetime "updated_at", null: false
-    t.integer "user_id"
-    t.index ["user_id"], name: "index_albums_on_user_id"
   end
 
   create_table "comic_issues", force: :cascade do |t|
@@ -87,23 +78,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_18_194800) do
   create_table "comics", force: :cascade do |t|
     t.string "api_id"
     t.string "artist"
-    t.boolean "consumed", default: false, null: false
-    t.date "consumed_at"
     t.datetime "created_at", null: false
     t.string "external_url"
-    t.boolean "in_watchlist", default: false, null: false
-    t.boolean "is_collected", default: true, null: false
-    t.boolean "is_public", default: false
     t.integer "issue_number"
     t.string "publisher"
-    t.string "rating"
-    t.text "review"
     t.string "thumbnail_url"
     t.string "title"
     t.datetime "updated_at", null: false
-    t.integer "user_id"
     t.string "writer"
-    t.index ["user_id"], name: "index_comics_on_user_id"
   end
 
   create_table "comments", force: :cascade do |t|
@@ -115,6 +97,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_18_194800) do
     t.integer "user_id", null: false
     t.index ["commentable_type", "commentable_id"], name: "index_comments_on_commentable"
     t.index ["user_id"], name: "index_comments_on_user_id"
+  end
+
+  create_table "library_items", force: :cascade do |t|
+    t.boolean "consumed"
+    t.date "consumed_at"
+    t.datetime "created_at", null: false
+    t.boolean "in_backlog"
+    t.boolean "is_collected"
+    t.boolean "is_public"
+    t.integer "item_id", null: false
+    t.string "item_type", null: false
+    t.string "rating"
+    t.text "review"
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["item_type", "item_id"], name: "index_library_items_on_item"
+    t.index ["user_id"], name: "index_library_items_on_user_id"
   end
 
   create_table "likes", force: :cascade do |t|
@@ -139,22 +138,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_18_194800) do
 
   create_table "movies", force: :cascade do |t|
     t.string "api_id"
-    t.boolean "consumed", default: false, null: false
-    t.date "consumed_at"
     t.datetime "created_at", null: false
     t.string "director"
     t.string "external_url"
-    t.boolean "in_watchlist", default: false, null: false
-    t.boolean "is_collected", default: true, null: false
-    t.boolean "is_public", default: false
-    t.string "rating"
     t.integer "release_year"
-    t.text "review"
     t.string "thumbnail_url"
     t.string "title"
     t.datetime "updated_at", null: false
-    t.integer "user_id"
-    t.index ["user_id"], name: "index_movies_on_user_id"
   end
 
   create_table "relationships", force: :cascade do |t|
@@ -186,21 +176,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_18_194800) do
 
   create_table "tv_shows", force: :cascade do |t|
     t.string "api_id"
-    t.boolean "consumed", default: false, null: false
-    t.date "consumed_at"
     t.datetime "created_at", null: false
     t.string "external_url"
-    t.boolean "in_watchlist", default: false, null: false
-    t.boolean "is_collected", default: true, null: false
-    t.boolean "is_public", default: false
     t.string "network"
-    t.string "rating"
-    t.text "review"
     t.string "thumbnail_url"
     t.string "title"
     t.datetime "updated_at", null: false
-    t.integer "user_id"
-    t.index ["user_id"], name: "index_tv_shows_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -247,36 +228,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_18_194800) do
 
   create_table "video_games", force: :cascade do |t|
     t.string "api_id"
-    t.boolean "consumed", default: false, null: false
-    t.date "consumed_at"
     t.datetime "created_at", null: false
     t.string "developer"
     t.string "external_url"
-    t.boolean "in_watchlist", default: false, null: false
-    t.boolean "is_collected", default: true, null: false
-    t.boolean "is_public", default: false, null: false
     t.string "platform"
     t.string "publisher"
-    t.string "rating"
     t.integer "release_year"
-    t.text "review"
     t.string "thumbnail_url"
     t.string "title", null: false
     t.datetime "updated_at", null: false
-    t.integer "user_id"
-    t.index ["user_id"], name: "index_video_games_on_user_id"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "activities", "users", on_delete: :cascade
-  add_foreign_key "albums", "users", on_delete: :cascade
   add_foreign_key "comic_issues", "comics", on_delete: :cascade
-  add_foreign_key "comics", "users", on_delete: :cascade
   add_foreign_key "comments", "users", on_delete: :cascade
+  add_foreign_key "library_items", "users"
   add_foreign_key "likes", "users", on_delete: :cascade
-  add_foreign_key "movies", "users", on_delete: :cascade
   add_foreign_key "tv_episodes", "tv_shows", on_delete: :cascade
-  add_foreign_key "tv_shows", "users", on_delete: :cascade
-  add_foreign_key "video_games", "users", on_delete: :cascade
 end

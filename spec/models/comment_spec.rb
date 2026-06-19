@@ -3,16 +3,9 @@
 require 'rails_helper'
 
 RSpec.describe Comment, type: :model do
-  let(:user) do
-    User.create!(
-      name: 'Example User',
-      email: 'user@example.com',
-      password: 'password123',
-      password_confirmation: 'password123',
-      confirmed_at: Time.current
-    )
-  end
-  let(:movie) { Movie.create!(title: 'Inception', user: user) }
+  let(:user) { User.create!(name: 'Test User', email: 'test@example.com', password: 'password') }
+  let(:movie) { Movie.create!(title: 'Inception') }
+  let!(:library_item) { LibraryItem.create!(user: user, item: movie) }
 
   it 'is valid with content, user and commentable' do
     comment = Comment.new(content: 'Great movie!', user: user, commentable: movie)

@@ -30,6 +30,7 @@ RSpec.describe 'Comics Management', type: :system do
     fill_in 'comic[publisher]', with: 'DC Comics'
     fill_in 'comic[writer]', with: 'Alan Moore'
     fill_in 'comic[artist]', with: 'Dave Gibbons'
+    check 'In Collection'
     select '★★★★★', from: 'comic[rating]'
     fill_in 'comic[review]', with: 'Who watches the watchmen?'
     click_button 'Create Comic'
@@ -55,11 +56,12 @@ RSpec.describe 'Comics Management', type: :system do
       end
     end
 
-    expect(page).to have_text('Comic was successfully deleted.')
+    expect(page).to have_text('Comic was successfully removed from your library.')
   end
 
   it 'displays a list of comics' do
-    Comic.create!(title: 'Spider-Man', writer: 'Stan Lee', user: user)
+    comic = Comic.find_or_create_by!(title: 'Spider-Man', writer: 'Stan Lee')
+    LibraryItem.create!(item: comic, user: user)
 
     visit comics_path
 

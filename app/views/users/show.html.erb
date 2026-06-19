@@ -19,6 +19,14 @@
       </div>
 
       <div class="profile-stats">
+        <div class="stat-item">
+          <span class="stat-count"><%= @user.library_items.where(is_collected: true).count %></span>
+          <span class="stat-label">Collection</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-count"><%= @user.library_items.where(in_backlog: true).count %></span>
+          <span class="stat-label">Backlog</span>
+        </div>
         <%= link_to following_user_path(@user), class: "stat-item" do %>
           <span class="stat-count"><%= @user.following.count %></span>
           <span class="stat-label">Following</span>
@@ -60,8 +68,9 @@
 
     <main class="profile-content" data-controller="tabs">
       <nav class="profile-tabs">
-        <button class="tab-btn active" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="posts">Posts</button>
-        <button class="tab-btn" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="media">Media</button>
+        <button class="tab-btn active" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="posts">Activity</button>
+        <button class="tab-btn" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="collection">Collection</button>
+        <button class="tab-btn" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="backlog">Backlog</button>
         <button class="tab-btn" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="likes">Likes</button>
       </nav>
 
@@ -75,24 +84,73 @@
         </div>
       </div>
 
-      <div class="tab-content hidden" data-tabs-target="content" data-tab-name="media">
+      <div class="tab-content hidden" data-tabs-target="content" data-tab-name="collection">
+        <div class="media-filter-bar">
+          <form action="<%= user_path(@user) %>" method="get" data-turbo-frame="collection_frame">
+            <input type="hidden" name="tab" value="collection">
+            <select name="type" onchange="this.form.submit()" class="filter-select">
+              <option value="">All Media</option>
+              <option value="Movie" <%= 'selected' if params[:type] == 'Movie' %>>Movies</option>
+              <option value="TvShow" <%= 'selected' if params[:type] == 'TvShow' %>>TV Shows</option>
+              <option value="Album" <%= 'selected' if params[:type] == 'Album' %>>Albums</option>
+              <option value="Comic" <%= 'selected' if params[:type] == 'Comic' %>>Comics</option>
+              <option value="VideoGame" <%= 'selected' if params[:type] == 'VideoGame' %>>Games</option>
+            </select>
+          </form>
+        </div>
+        <%= turbo_frame_tag "collection_frame" do %>
+          <div class="media-grid">
+             <% collection_items = @user.library_items.where(is_collected: true) %>
+             <% collection_items = collection_items.where(item_type: params[:type]) if params[:type].present? %>
+             <% collection_items = collection_items.order(created_at: :desc) %>
+             
+             <% if collection_items.any? %>
+               <div class="grid-layout poster-grid">
+                 <% collection_items.each do |lib_item| %>
+                   <% item = lib_item.item %>
+                   <div class="media-card poster-card">
+                     <% if item.respond_to?(:thumbnail_url) && item.thumbnail_url.present? %>
+                       <%= image_tag item.thumbnail_url, class: "media-thumb poster-img" %>
+                     <% else %>
+                       <div class="poster-placeholder"><%= item.title %></div>
+                     <% end %>
+                     <div class="poster-overlay">
+                       <span class="media-title"><%= item.title %></span>
+                       <% if lib_item.rating.present? %>
+                         <span class="media-rating"><%= lib_item.rating %></span>
+                       <% end %>
+                     </div>
+                   </div>
+                 <% end %>
+               </div>
+             <% else %>
+               <p class="empty-state">No items in collection.</p>
+             <% end %>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="tab-content hidden" data-tabs-target="content" data-tab-name="backlog">
         <div class="media-grid">
-           <% if @media_items.any? %>
-             <div class="grid-layout">
-               <% @media_items.each do |item| %>
-                 <div class="media-card">
+           <% backlog_items = @user.library_items.where(in_backlog: true).order(created_at: :desc) %>
+           <% if backlog_items.any? %>
+             <div class="grid-layout poster-grid">
+               <% backlog_items.each do |lib_item| %>
+                 <% item = lib_item.item %>
+                 <div class="media-card poster-card">
                    <% if item.respond_to?(:thumbnail_url) && item.thumbnail_url.present? %>
-                     <%= image_tag item.thumbnail_url, class: "media-thumb" %>
+                     <%= image_tag item.thumbnail_url, class: "media-thumb poster-img" %>
+                   <% else %>
+                     <div class="poster-placeholder"><%= item.title %></div>
                    <% end %>
-                   <div class="media-details">
+                   <div class="poster-overlay">
                      <span class="media-title"><%= item.title %></span>
-                     <span class="media-type"><%= item.class.name.titleize %></span>
                    </div>
                  </div>
                <% end %>
              </div>
            <% else %>
-             <p class="empty-state">No public media items.</p>
+             <p class="empty-state">Backlog is empty.</p>
            <% end %>
         </div>
       </div>

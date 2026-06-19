@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 class Movie < ApplicationRecord
-  include Trackable
+  include LibraryItemFormAttributes
 
-  belongs_to :user, optional: true
   has_one_attached :cover_image
+  has_many :likes, as: :likeable, dependent: :destroy
   has_many :comments, as: :commentable, dependent: :destroy
   validates :title, presence: true
 end

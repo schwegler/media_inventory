@@ -12,8 +12,9 @@ RSpec.describe 'Profile Tabs', type: :request do
   describe 'GET /users/:id' do
     it 'renders the profile with tabs' do
       get user_path(user)
-      expect(response.body).to include('Posts')
-      expect(response.body).to include('Media')
+      expect(response.body).to include('Activity')
+      expect(response.body).to include('Collection')
+      expect(response.body).to include('Backlog')
       expect(response.body).to include('Likes')
       expect(response.body).to include('data-controller="tabs"')
     end

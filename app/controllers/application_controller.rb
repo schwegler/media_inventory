@@ -45,17 +45,16 @@ class ApplicationController < ActionController::Base
   def can_access?(resource)
     return false if resource.nil?
 
+    # Global media types are always accessible
+    return true if %w[Movie TvShow TvEpisode Album Comic VideoGame WrestlingEvent].include?(resource.class.name)
+
     # 1. Owner access
     return true if resource.respond_to?(:user) && resource.user.present? && resource.user == current_user
 
     # 2. Public access (explicitly marked)
     return true if resource.respond_to?(:is_public) && resource.is_public
 
-    # 3. Special case for TvEpisode public access (inherits from TvShow)
-    return true if resource.is_a?(TvEpisode) && resource.tv_show&.is_public
-
-    # 4. Fallback: if it has no owner, it's public (for seeds/global items)
-    # Sentinel note: Ideally all items should have owners, but we allow this for compatibility.
+    # 3. Fallback: if it has no owner, it's public (for seeds/global items)
     return true if resource.respond_to?(:user) && resource.user.nil?
 
     false

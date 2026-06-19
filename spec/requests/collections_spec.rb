@@ -13,20 +13,50 @@ RSpec.describe 'Collections', type: :request do
         user.update!(confirmed_at: Time.current)
       end
 
-      let!(:public_album) { user.albums.create!(title: 'Public Album', is_public: true) }
-      let!(:private_album) { user.albums.create!(title: 'Private Album', is_public: false) }
+      let!(:public_album) do
+        LibraryItem.create!(user: user, item: Album.find_or_create_by!(title: 'Public Album'), is_public: true,
+                            is_collected: true)
+      end
+      let!(:private_album) do
+        LibraryItem.create!(user: user, item: Album.find_or_create_by!(title: 'Private Album'), is_public: false,
+                            is_collected: true)
+      end
 
-      let!(:public_comic) { user.comics.create!(title: 'Public Comic', is_public: true) }
-      let!(:private_comic) { user.comics.create!(title: 'Private Comic', is_public: false) }
+      let!(:public_comic) do
+        LibraryItem.create!(user: user, item: Comic.find_or_create_by!(title: 'Public Comic'), is_public: true,
+                            is_collected: true)
+      end
+      let!(:private_comic) do
+        LibraryItem.create!(user: user, item: Comic.find_or_create_by!(title: 'Private Comic'), is_public: false,
+                            is_collected: true)
+      end
 
-      let!(:public_movie) { user.movies.create!(title: 'Public Movie', is_public: true) }
-      let!(:private_movie) { user.movies.create!(title: 'Private Movie', is_public: false) }
+      let!(:public_movie) do
+        LibraryItem.create!(user: user, item: Movie.find_or_create_by!(title: 'Public Movie'), is_public: true,
+                            is_collected: true)
+      end
+      let!(:private_movie) do
+        LibraryItem.create!(user: user, item: Movie.find_or_create_by!(title: 'Private Movie'), is_public: false,
+                            is_collected: true)
+      end
 
-      let!(:public_tv_show) { user.tv_shows.create!(title: 'Public TV Show', is_public: true) }
-      let!(:private_tv_show) { user.tv_shows.create!(title: 'Private TV Show', is_public: false) }
+      let!(:public_tv_show) do
+        LibraryItem.create!(user: user, item: TvShow.find_or_create_by!(title: 'Public TV Show'), is_public: true,
+                            is_collected: true)
+      end
+      let!(:private_tv_show) do
+        LibraryItem.create!(user: user, item: TvShow.find_or_create_by!(title: 'Private TV Show'), is_public: false,
+                            is_collected: true)
+      end
 
-      let!(:public_video_game) { user.video_games.create!(title: 'Public Video Game', is_public: true) }
-      let!(:private_video_game) { user.video_games.create!(title: 'Private Video Game', is_public: false) }
+      let!(:public_video_game) do
+        LibraryItem.create!(user: user, item: VideoGame.find_or_create_by!(title: 'Public Video Game'), is_public: true,
+                            is_collected: true)
+      end
+      let!(:private_video_game) do
+        LibraryItem.create!(user: user, item: VideoGame.find_or_create_by!(title: 'Private Video Game'), is_public: false,
+                            is_collected: true)
+      end
 
       it 'returns http success' do
         get "/collections/#{user.id}"
@@ -58,7 +88,10 @@ RSpec.describe 'Collections', type: :request do
         user.update!(confirmed_at: nil)
       end
 
-      let!(:public_album) { user.albums.create!(title: 'Public Album', is_public: true) }
+      let!(:public_album) do
+        LibraryItem.create!(user: user, item: Album.find_or_create_by!(title: 'Public Album'), is_public: true,
+                            is_collected: true)
+      end
 
       it 'returns http success' do
         get "/collections/#{user.id}"

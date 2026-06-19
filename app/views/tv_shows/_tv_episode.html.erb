@@ -14,7 +14,7 @@
             <% end %>
           </span>
 
-          <% if logged_in? && tv_show.user == current_user %>
+          <% if logged_in? && @library_item.present? %>
             <div class="episode-actions-wrapper">
               <% if ep.watched? %>
                 <span class="episode-badge-watched">✓ Watched</span>
@@ -50,7 +50,7 @@
       </div>
     </div>
 
-    <% if logged_in? && tv_show.user == current_user %>
+    <% if logged_in? && @library_item.present? %>
       <div class="episode-form-section">
         <%= form_with model: ep, url: toggle_watched_tv_episode_path(ep), method: :patch do |form| %>
           <%= form.hidden_field :watched, value: true %>

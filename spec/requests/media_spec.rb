@@ -22,8 +22,8 @@ RSpec.describe 'Media Autocomplete', type: :request do
     end
 
     context 'with movies' do
-      let!(:movie1) { Movie.create!(title: 'Star Wars', director: 'George Lucas', release_year: 1977, user: user) }
-      let!(:movie2) { Movie.create!(title: 'Star Trek', director: 'Gene Roddenberry', release_year: 1979, user: user) }
+      let!(:movie1) { Movie.create!(title: 'Star Wars', director: 'George Lucas', release_year: 1977) }
+      let!(:movie2) { Movie.create!(title: 'Star Trek', director: 'Gene Roddenberry', release_year: 1979) }
 
       it 'returns matching movies' do
         get '/media/autocomplete', params: { q: 'star', type: 'movie' }
@@ -64,7 +64,7 @@ RSpec.describe 'Media Autocomplete', type: :request do
 
     context 'with albums' do
       let!(:album) do
-        Album.create!(title: 'Abbey Road', artist: 'The Beatles', release_year: 1969, genre: 'Rock', user: user)
+        Album.create!(title: 'Abbey Road', artist: 'The Beatles', release_year: 1969, genre: 'Rock')
       end
 
       it 'returns matching albums' do
@@ -79,8 +79,7 @@ RSpec.describe 'Media Autocomplete', type: :request do
 
     context 'with comics' do
       let!(:comic) do
-        Comic.create!(title: 'Watchmen', writer: 'Alan Moore', artist: 'Dave Gibbons', publisher: 'DC', issue_number: 1,
-                      user: user)
+        Comic.create!(title: 'Watchmen', writer: 'Alan Moore', artist: 'Dave Gibbons', publisher: 'DC', issue_number: 1)
       end
 
       it 'returns matching comics' do
@@ -95,7 +94,7 @@ RSpec.describe 'Media Autocomplete', type: :request do
     end
 
     context 'with tv shows' do
-      let!(:tv_show) { TvShow.create!(title: 'Breaking Bad', network: 'AMC', user: user) }
+      let!(:tv_show) { TvShow.create!(title: 'Breaking Bad', network: 'AMC') }
 
       it 'returns matching TV shows' do
         get '/media/autocomplete', params: { q: 'break', type: 'tv_show' }
@@ -111,7 +110,7 @@ RSpec.describe 'Media Autocomplete', type: :request do
       let!(:video_game) do
         VideoGame.create!(
           title: 'Portal 2', developer: 'Valve', publisher: 'Valve',
-          platform: 'PC', release_year: 2011, user: user
+          platform: 'PC', release_year: 2011
         )
       end
 

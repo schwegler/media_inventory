@@ -30,6 +30,7 @@ RSpec.describe 'Video Games Management', type: :system do
     fill_in 'video_game[publisher]', with: 'Nintendo'
     fill_in 'video_game[platform]', with: 'Nintendo Switch'
     fill_in 'video_game[release_year]', with: '2017'
+    check 'In Collection'
     select '★★★★★', from: 'video_game[rating]'
     fill_in 'video_game[review]', with: 'An absolute masterpiece.'
     click_button 'Create Video Game'
@@ -55,11 +56,12 @@ RSpec.describe 'Video Games Management', type: :system do
       end
     end
 
-    expect(page).to have_text('Video game was successfully deleted.')
+    expect(page).to have_text('Video game was successfully removed from your library.')
   end
 
   it 'displays a list of video games' do
-    VideoGame.create!(title: 'Portal 2', developer: 'Valve', user: user)
+    game = VideoGame.find_or_create_by!(title: 'Portal 2', developer: 'Valve')
+    LibraryItem.create!(item: game, user: user)
 
     visit video_games_path
 
