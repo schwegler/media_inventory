@@ -31,7 +31,6 @@ class ApiConfigurationDashboard < Administrate::BaseDashboard
   # By default, it's limited to four items to reduce clutter on index pages.
   # Feel free to add, remove, or rearrange items.
   COLLECTION_ATTRIBUTES = %i[
-    id
     source_name
     media_type
     is_active
@@ -79,7 +78,7 @@ class ApiConfigurationDashboard < Administrate::BaseDashboard
   # Overwrite this method to customize how api configurations are displayed
   # across all pages of the admin dashboard.
   #
-  # def display_resource(api_configuration)
-  #   "ApiConfiguration ##{api_configuration.id}"
-  # end
+  def display_resource(api_configuration)
+    api_configuration.source_name
+  end
 end

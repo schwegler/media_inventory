@@ -62,7 +62,7 @@ class RelationshipDashboard < Administrate::BaseDashboard
   # Overwrite this method to customize how relationships are displayed
   # across all pages of the admin dashboard.
   #
-  # def display_resource(relationship)
-  #   "Relationship ##{relationship.id}"
-  # end
+  def display_resource(relationship)
+    "Relationship ##{relationship.id}"
+  end
 end

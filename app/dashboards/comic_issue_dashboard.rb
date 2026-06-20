@@ -26,7 +26,7 @@ class ComicIssueDashboard < Administrate::BaseDashboard
   # By default, it's limited to four items to reduce clutter on index pages.
   # Feel free to add, remove, or rearrange items.
   COLLECTION_ATTRIBUTES = %i[
-    id
+    title
     comic
     publisher
     release_date
@@ -71,7 +71,7 @@ class ComicIssueDashboard < Administrate::BaseDashboard
   # Overwrite this method to customize how comic issues are displayed
   # across all pages of the admin dashboard.
   #
-  # def display_resource(comic_issue)
-  #   "ComicIssue ##{comic_issue.id}"
-  # end
+  def display_resource(comic_issue)
+    comic_issue.title
+  end
 end

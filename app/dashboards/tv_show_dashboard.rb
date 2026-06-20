@@ -13,8 +13,6 @@ class TvShowDashboard < Administrate::BaseDashboard
     id: Field::Number,
     api_id: Field::String,
     comments: Field::HasMany,
-    cover_image_attachment: Field::HasOne,
-    cover_image_blob: Field::HasOne,
     external_url: Field::String,
     likes: Field::HasMany,
     network: Field::String,
@@ -31,10 +29,9 @@ class TvShowDashboard < Administrate::BaseDashboard
   # By default, it's limited to four items to reduce clutter on index pages.
   # Feel free to add, remove, or rearrange items.
   COLLECTION_ATTRIBUTES = %i[
-    id
+    title
     api_id
     comments
-    cover_image_attachment
   ].freeze
 
   # SHOW_PAGE_ATTRIBUTES
@@ -43,8 +40,6 @@ class TvShowDashboard < Administrate::BaseDashboard
     id
     api_id
     comments
-    cover_image_attachment
-    cover_image_blob
     external_url
     likes
     network
@@ -61,8 +56,6 @@ class TvShowDashboard < Administrate::BaseDashboard
   FORM_ATTRIBUTES = %i[
     api_id
     comments
-    cover_image_attachment
-    cover_image_blob
     external_url
     likes
     network
@@ -86,7 +79,7 @@ class TvShowDashboard < Administrate::BaseDashboard
   # Overwrite this method to customize how tv shows are displayed
   # across all pages of the admin dashboard.
   #
-  # def display_resource(tv_show)
-  #   "TvShow ##{tv_show.id}"
-  # end
+  def display_resource(tv_show)
+    tv_show.title
+  end
 end

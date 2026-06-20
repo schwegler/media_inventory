@@ -15,8 +15,6 @@ class UserDashboard < Administrate::BaseDashboard
     active_relationships: Field::HasMany,
     activities: Field::HasMany,
     admin: Field::Boolean,
-    avatar_attachment: Field::HasOne,
-    avatar_blob: Field::HasOne,
     avatar_url: Field::String,
     bio: Field::Text,
     birthday: Field::Date,
@@ -37,8 +35,6 @@ class UserDashboard < Administrate::BaseDashboard
     email: Field::String,
     followers: Field::HasMany,
     following: Field::HasMany,
-    header_banner_attachment: Field::HasOne,
-    header_banner_blob: Field::HasOne,
     library_items: Field::HasMany,
     likes: Field::HasMany,
     mastodon_access_token: Field::String,
@@ -74,7 +70,7 @@ class UserDashboard < Administrate::BaseDashboard
   # By default, it's limited to four items to reduce clutter on index pages.
   # Feel free to add, remove, or rearrange items.
   COLLECTION_ATTRIBUTES = %i[
-    id
+    username
     active_relationships
     activities
     admin
@@ -87,8 +83,6 @@ class UserDashboard < Administrate::BaseDashboard
     active_relationships
     activities
     admin
-    avatar_attachment
-    avatar_blob
     avatar_url
     bio
     birthday
@@ -109,8 +103,6 @@ class UserDashboard < Administrate::BaseDashboard
     email
     followers
     following
-    header_banner_attachment
-    header_banner_blob
     library_items
     likes
     mastodon_access_token
@@ -147,8 +139,6 @@ class UserDashboard < Administrate::BaseDashboard
     active_relationships
     activities
     admin
-    avatar_attachment
-    avatar_blob
     avatar_url
     bio
     birthday
@@ -169,8 +159,6 @@ class UserDashboard < Administrate::BaseDashboard
     email
     followers
     following
-    header_banner_attachment
-    header_banner_blob
     library_items
     likes
     mastodon_access_token
@@ -213,8 +201,8 @@ class UserDashboard < Administrate::BaseDashboard
   # Overwrite this method to customize how users are displayed
   # across all pages of the admin dashboard.
   #
-  # def display_resource(user)
-  #   "User ##{user.id}"
-  # end
+  def display_resource(user)
+    user.username
+  end
 end
 # rubocop:enable Metrics/ClassLength

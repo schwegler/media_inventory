@@ -14,8 +14,6 @@ class AlbumDashboard < Administrate::BaseDashboard
     api_id: Field::String,
     artist: Field::String,
     comments: Field::HasMany,
-    cover_image_attachment: Field::HasOne,
-    cover_image_blob: Field::HasOne,
     external_url: Field::String,
     genre: Field::String,
     likes: Field::HasMany,
@@ -32,7 +30,7 @@ class AlbumDashboard < Administrate::BaseDashboard
   # By default, it's limited to four items to reduce clutter on index pages.
   # Feel free to add, remove, or rearrange items.
   COLLECTION_ATTRIBUTES = %i[
-    id
+    title
     api_id
     artist
     comments
@@ -45,8 +43,6 @@ class AlbumDashboard < Administrate::BaseDashboard
     api_id
     artist
     comments
-    cover_image_attachment
-    cover_image_blob
     external_url
     genre
     likes
@@ -64,8 +60,6 @@ class AlbumDashboard < Administrate::BaseDashboard
     api_id
     artist
     comments
-    cover_image_attachment
-    cover_image_blob
     external_url
     genre
     likes
@@ -89,7 +83,7 @@ class AlbumDashboard < Administrate::BaseDashboard
   # Overwrite this method to customize how albums are displayed
   # across all pages of the admin dashboard.
   #
-  # def display_resource(album)
-  #   "Album ##{album.id}"
-  # end
+  def display_resource(album)
+    album.title
+  end
 end

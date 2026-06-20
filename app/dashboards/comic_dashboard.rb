@@ -15,8 +15,6 @@ class ComicDashboard < Administrate::BaseDashboard
     artist: Field::String,
     comic_issues: Field::HasMany,
     comments: Field::HasMany,
-    cover_image_attachment: Field::HasOne,
-    cover_image_blob: Field::HasOne,
     external_url: Field::String,
     issue_number: Field::Number,
     likes: Field::HasMany,
@@ -34,7 +32,7 @@ class ComicDashboard < Administrate::BaseDashboard
   # By default, it's limited to four items to reduce clutter on index pages.
   # Feel free to add, remove, or rearrange items.
   COLLECTION_ATTRIBUTES = %i[
-    id
+    title
     api_id
     artist
     comic_issues
@@ -48,8 +46,6 @@ class ComicDashboard < Administrate::BaseDashboard
     artist
     comic_issues
     comments
-    cover_image_attachment
-    cover_image_blob
     external_url
     issue_number
     likes
@@ -69,8 +65,6 @@ class ComicDashboard < Administrate::BaseDashboard
     artist
     comic_issues
     comments
-    cover_image_attachment
-    cover_image_blob
     external_url
     issue_number
     likes
@@ -95,7 +89,7 @@ class ComicDashboard < Administrate::BaseDashboard
   # Overwrite this method to customize how comics are displayed
   # across all pages of the admin dashboard.
   #
-  # def display_resource(comic)
-  #   "Comic ##{comic.id}"
-  # end
+  def display_resource(comic)
+    comic.title
+  end
 end
