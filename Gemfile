@@ -60,4 +60,4 @@ gem 'administrate', '~> 1.0'
 
 gem 'webmock', '~> 3.26', group: :test
 
-gem "dockerfile-rails", ">= 1.7", :group => :development
+gem 'dockerfile-rails', '>= 1.7', group: :development
