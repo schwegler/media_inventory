@@ -101,6 +101,7 @@
         <%= turbo_frame_tag "collection_frame" do %>
           <div class="media-grid">
              <% collection_items = @user.library_items.where(is_collected: true) %>
+             <% collection_items = collection_items.where(is_public: true) unless current_user?(@user) %>
              <% collection_items = collection_items.where(item_type: params[:type]) if params[:type].present? %>
              <% collection_items = collection_items.order(created_at: :desc) %>
              
@@ -120,7 +121,9 @@
 
       <div class="tab-content hidden" data-tabs-target="content" data-tab-name="backlog">
         <div class="media-grid">
-           <% backlog_items = @user.library_items.where(in_backlog: true).order(created_at: :desc) %>
+           <% backlog_items = @user.library_items.where(in_backlog: true) %>
+           <% backlog_items = backlog_items.where(is_public: true) unless current_user?(@user) %>
+           <% backlog_items = backlog_items.order(created_at: :desc) %>
            <% if backlog_items.any? %>
              <div class="media-grid-2026">
                <% backlog_items.each do |lib_item| %>
