@@ -38,6 +38,17 @@ RSpec.describe 'Comics Management', type: :system do
     fill_in 'comic[review]', with: 'Who watches the watchmen?'
     click_button 'Create Comic'
 
+    begin
+      expect(page).to have_text('Comic was successfully logged.')
+    rescue StandardError => e
+      validity = begin
+        page.evaluate_script("document.querySelector('form.standard-form').checkValidity()")
+      rescue StandardError
+        'ERROR'
+      end
+      puts "FORM VALIDITY: #{validity}"
+      raise e
+    end
     expect(page).to have_text('Watchmen')
     expect(page).to have_text('by Alan Moore')
     expect(page).to have_text('Who watches the watchmen?')

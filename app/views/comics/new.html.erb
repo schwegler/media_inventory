@@ -10,8 +10,8 @@
       </div>
       <div class="modal-body">
         <div>
-          <%= form_with model: @comic, class: "standard-form", data: { turbo_frame: "_top" } do |f| %>
-            <% if @comic.errors.any? %>
+          <%= form_with model: @comic, class: "standard-form", data: { turbo_frame: "_top" }, onsubmit: "console.log('FORM SUBMITTED');" do |f| %>
+            <% if @comic.errors.any? || @library_item&.errors&.any? %>
               <div id="error_explanation">
                 <h2><%= pluralize(@comic.errors.count, "error") %> prohibited this comic from being saved:</h2>
                 <ul>
@@ -30,7 +30,7 @@
             <div data-thumbnail-fetcher-target="searchStage">
               <div>
                 <%= f.label :title %>
-                <%= f.text_field :title, required: true, data: { thumbnail_fetcher_target: "titleInput", action: "input->thumbnail-fetcher#search" } %>
+                <%= f.text_field :title, data: { thumbnail_fetcher_target: "titleInput", action: "input->thumbnail-fetcher#search" } %>
               </div>
 
               <div class="thumbnail-fetcher-container">
@@ -127,7 +127,7 @@
                     <%= f.label :is_public, "Make Review Public?" %>
                   </div>
 
-                  <%= f.submit "Create Comic", class: "btn btn-primary btn-save-log" %>
+                  <%= f.submit "Create Comic", class: "btn btn-primary btn-save-log", onclick: "console.log('BUTTON CLICKED');" %>
                 </div>
               </div>
             </div>

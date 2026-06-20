@@ -27,7 +27,7 @@ class OmniAuthCallbacksController < ApplicationController
 
     if user.new_record?
       user.name = auth.info.name || auth.info.nickname
-      user.username = auth.info.nickname
+      user.username = User.generate_unique_username(auth.info.nickname)
       user.email = auth.info.email
       # Generate a random password for new OAuth users
       user.password = SecureRandom.hex(16)
@@ -49,7 +49,7 @@ class OmniAuthCallbacksController < ApplicationController
 
     if user.new_record?
       user.name = auth.info.name || user.bsky_handle
-      user.username = user.bsky_handle.gsub(/[^a-zA-Z0-9_]/, '_')
+      user.username = User.generate_unique_username(user.bsky_handle)
       user.password = SecureRandom.hex(16)
     end
     user.save!

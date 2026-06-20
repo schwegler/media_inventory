@@ -16,6 +16,7 @@ class InventoryController < ApplicationController
 
   # rubocop:disable Metrics/MethodLength
   def create
+    Rails.logger.debug "DEBUG CREATE PARAMS: #{params.inspect}"
     global_params = resource_params.except(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
                                            :consumed_at, :is_public)
     library_params = resource_params.slice(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,

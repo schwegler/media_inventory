@@ -20,11 +20,11 @@
 
       <div class="profile-stats">
         <div class="stat-item">
-          <span class="stat-count"><%= @user.library_items.where(is_collected: true).count %></span>
+          <span class="stat-count"><%= @collection_items.count %></span>
           <span class="stat-label">Collection</span>
         </div>
         <div class="stat-item">
-          <span class="stat-count"><%= @user.library_items.where(in_backlog: true).count %></span>
+          <span class="stat-count"><%= @backlog_items.count %></span>
           <span class="stat-label">Backlog</span>
         </div>
         <%= link_to following_user_path(@user), class: "stat-item" do %>
@@ -85,28 +85,26 @@
       </div>
 
       <div class="tab-content hidden" data-tabs-target="content" data-tab-name="collection">
-        <div class="media-filter-bar">
-          <form action="<%= user_path(@user) %>" method="get" data-turbo-frame="collection_frame">
-            <input type="hidden" name="tab" value="collection">
-            <select name="type" onchange="this.form.submit()" class="filter-select">
-              <option value="">All Media</option>
-              <option value="Movie" <%= 'selected' if params[:type] == 'Movie' %>>Movies</option>
-              <option value="TvShow" <%= 'selected' if params[:type] == 'TvShow' %>>TV Shows</option>
-              <option value="Album" <%= 'selected' if params[:type] == 'Album' %>>Albums</option>
-              <option value="Comic" <%= 'selected' if params[:type] == 'Comic' %>>Comics</option>
-              <option value="VideoGame" <%= 'selected' if params[:type] == 'VideoGame' %>>Games</option>
-            </select>
-          </form>
-        </div>
         <%= turbo_frame_tag "collection_frame" do %>
+          <div class="media-filter-bar" style="margin-bottom: 20px;">
+            <form action="<%= user_path(@user) %>" method="get" data-controller="filter" data-turbo-frame="collection_frame" data-turbo-action="advance">
+              <input type="hidden" name="tab" value="collection">
+              <select name="type" data-action="change->filter#submit" class="filter-select">
+                <option value="">All Media</option>
+                <option value="Movie" <%= 'selected' if params[:type] == 'Movie' %>>Movies</option>
+                <option value="TvShow" <%= 'selected' if params[:type] == 'TvShow' %>>TV Shows</option>
+                <option value="Album" <%= 'selected' if params[:type] == 'Album' %>>Albums</option>
+                <option value="Comic" <%= 'selected' if params[:type] == 'Comic' %>>Comics</option>
+                <option value="VideoGame" <%= 'selected' if params[:type] == 'VideoGame' %>>Games</option>
+              </select>
+            </form>
+          </div>
           <div class="media-grid">
              <% if @collection_items.any? %>
-               <div class="media-grid-2026">
                  <% @collection_items.each do |lib_item| %>
                    <% item = lib_item.item %>
                    <%= render partial: 'shared/media_card', locals: { media_item: item } %>
                  <% end %>
-               </div>
              <% else %>
                <p class="empty-state">No items in collection.</p>
              <% end %>
@@ -117,12 +115,10 @@
       <div class="tab-content hidden" data-tabs-target="content" data-tab-name="backlog">
         <div class="media-grid">
            <% if @backlog_items.any? %>
-             <div class="media-grid-2026">
                <% @backlog_items.each do |lib_item| %>
                  <% item = lib_item.item %>
                  <%= render partial: 'shared/media_card', locals: { media_item: item } %>
                <% end %>
-             </div>
            <% else %>
              <p class="empty-state">Backlog is empty.</p>
            <% end %>

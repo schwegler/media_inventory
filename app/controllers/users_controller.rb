@@ -46,7 +46,7 @@ class UsersController < ApplicationController
       adjusted_params[:password] = random_pass
       adjusted_params[:password_confirmation] = random_pass
       if adjusted_params[:bsky_handle].present? && adjusted_params[:username].blank?
-        adjusted_params[:username] = adjusted_params[:bsky_handle].split('.').first.gsub(/[^a-zA-Z0-9_]/, '_')
+        adjusted_params[:username] = User.generate_unique_username(adjusted_params[:bsky_handle])
       end
     end
 

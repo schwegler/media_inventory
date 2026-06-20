@@ -50,12 +50,20 @@ module SystemTestHelpers
 
   # Safely clicks the "Add Manually" button, waiting for the Stimulus controller to be connected first.
   def click_add_manually
-    if Capybara.current_driver != :rack_test
+    if Capybara.current_driver == :rack_test
+      click_button 'Add Manually'
+    else
       expect(page).to have_css('[data-connected="true"]')
       # Force a blur to ensure input events have fired and state is synchronized
       page.execute_script('document.activeElement.blur()')
+
+      # Wait for thumbnail search to fully settle to prevent any DOM shifts or
+      # background requests from clearing the form
+      sleep 1.5
+
+      selector = "button[data-action='click->thumbnail-fetcher#showManualForm']"
+      page.execute_script("document.querySelector(#{selector.inspect}).click()")
     end
-    click_button 'Add Manually'
   end
 end
 
