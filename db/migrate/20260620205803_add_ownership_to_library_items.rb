@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddOwnershipToLibraryItems < ActiveRecord::Migration[8.1]
   def change
     add_column :library_items, :owned_physically, :boolean, default: false, null: false

@@ -150,7 +150,7 @@ end
 
         <div class="ownership-details-row" style="margin-top: 15px; margin-bottom: 15px; display: flex; gap: 20px;">
           <div class="inline-checkbox-group" style="display: flex; flex-direction: column; gap: 5px; flex: 1;">
-            <div style="display: flex; align-items: center; gap: 0.5rem; white-space: nowrap;">
+            <div style="align-items: center; gap: 0.5rem; white-space: nowrap;">
               <%= f.check_box :owned_physically, id: "inline-phys-checkbox-#{item.id}" %>
               <%= f.label :owned_physically, "Own Physically", for: "inline-phys-checkbox-#{item.id}", class: "inline-checkbox-label", style: "margin: 0;" %>
             </div>

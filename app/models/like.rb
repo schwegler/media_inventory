@@ -11,8 +11,8 @@ class Like < ApplicationRecord
   private
 
   def process_notifications
-    if likeable.respond_to?(:user) && likeable.user_id != user_id
-      Notification.create!(recipient: likeable.user, actor: user, notifiable: self, action: 'liked')
-    end
+    return unless likeable.respond_to?(:user) && likeable.user_id != user_id
+
+    Notification.create!(recipient: likeable.user, actor: user, notifiable: self, action: 'liked')
   end
 end

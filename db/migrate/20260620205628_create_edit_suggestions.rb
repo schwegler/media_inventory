@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateEditSuggestions < ActiveRecord::Migration[8.1]
   def change
     create_table :edit_suggestions do |t|

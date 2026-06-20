@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class EditSuggestion < ApplicationRecord
   belongs_to :suggestable, polymorphic: true
   belongs_to :user

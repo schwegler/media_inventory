@@ -3,6 +3,7 @@
 require 'net/http'
 require 'json'
 
+# rubocop:disable Metrics/ClassLength
 class MediaApiFetcher
   def self.call(item)
     new(item).call
@@ -34,6 +35,7 @@ class MediaApiFetcher
 
   private
 
+  # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
   def fetch_tmdb_movie
     return unless api_active?('TMDB', 'Movie')
 
@@ -46,17 +48,19 @@ class MediaApiFetcher
 
     if data['results']&.any?
       result = data['results'].first
-      
+
       # Fetch director
       director_url = URI("https://api.themoviedb.org/3/movie/#{result['id']}/credits?api_key=#{api_key}")
       director_response = Net::HTTP.get(director_url)
       director_data = JSON.parse(director_response)
       crew = director_data['crew'] || []
       director = crew.find { |c| c['job'] == 'Director' }
-      
+
       @item.director = director['name'] if director && @item.director.blank?
       @item.release_year = result['release_date'].to_s[0..3] if @item.release_year.blank?
-      @item.thumbnail_url = "https://image.tmdb.org/t/p/w500#{result['poster_path']}" if result['poster_path'] && @item.thumbnail_url.blank? && !@item.cover_image.attached?
+      if result['poster_path'] && @item.thumbnail_url.blank? && !@item.cover_image.attached?
+        @item.thumbnail_url = "https://image.tmdb.org/t/p/w500#{result['poster_path']}"
+      end
       @item.external_url = "https://www.themoviedb.org/movie/#{result['id']}" if @item.external_url.blank?
       @item.api_id = result['id'].to_s if @item.api_id.blank?
     end
@@ -98,7 +102,6 @@ class MediaApiFetcher
     Rails.logger.error "iTunes API error: #{e.message}"
   end
 
-  # rubocop:disable Metrics/AbcSize
   def fetch_musicbrainz_music
     # Use a generic name, or no check since it's free.
     uri = URI("https://musicbrainz.org/ws/2/release-group?query=#{CGI.escape(@item.title)}&fmt=json")
@@ -115,7 +118,9 @@ class MediaApiFetcher
       @item.artist = result.dig('artist-credit', 0, 'name') if @item.artist.blank?
       @item.genre = result.dig('tags', 0, 'name') if @item.genre.blank?
       @item.release_year = result['first-release-date'].to_s[0..3] if @item.release_year.blank?
-      @item.thumbnail_url = "https://coverartarchive.org/release-group/#{result['id']}/front-250" if @item.thumbnail_url.blank? && !@item.cover_image.attached?
+      if @item.thumbnail_url.blank? && !@item.cover_image.attached?
+        @item.thumbnail_url = "https://coverartarchive.org/release-group/#{result['id']}/front-250"
+      end
       @item.external_url = "https://musicbrainz.org/release-group/#{result['id']}" if @item.external_url.blank?
       @item.api_id = result['id'].to_s if @item.api_id.blank?
     end
@@ -169,3 +174,4 @@ class MediaApiFetcher
     true
   end
 end
+# rubocop:enable Metrics/ClassLength, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity

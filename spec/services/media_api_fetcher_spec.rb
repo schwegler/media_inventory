@@ -23,6 +23,11 @@ RSpec.describe MediaApiFetcher do
         status: 200,
         body: [{ show: { network: { name: 'AMC' }, image: { medium: 'http://example.com/bb.jpg' } } }].to_json
       )
+
+      stub_request(:get, /musicbrainz.org/).to_return(
+        status: 200,
+        body: { 'release-groups' => [] }.to_json
+      )
     end
 
     it 'fetches movie data from iTunes' do
