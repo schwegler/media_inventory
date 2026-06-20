@@ -33,12 +33,20 @@
         <% end %>
       </div>
 
-      <% if @wrestling_event.rating.present? %>
-        <div class="detail-row" style="border-bottom: none; padding: 0;">
-          <strong>Rating:</strong>
-          <span style="font-size: 1.2rem; color: #facc15;"><%= @wrestling_event.rating %> ★</span>
-        </div>
-      <% end %>
+      <% stats = community_stats_for(@wrestling_event) %>
+      <div class="show-rating-container" style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+        <% if @wrestling_event.rating.present? %>
+          <div class="detail-row" style="border-bottom: none; padding: 0;">
+            <strong>Rating:</strong>
+            <span style="font-size: 1.2rem; color: #facc15;"><%= @wrestling_event.rating %> ★</span>
+          </div>
+        <% end %>
+        <% if stats[:avg_rating] %>
+          <div class="show-avg-rating" style="color: #94a3b8; font-size: 0.9em; font-weight: 500;">
+            <%= stats[:avg_rating] %> ★ avg
+          </div>
+        <% end %>
+      </div>
     </div>
   </div>
 
@@ -51,7 +59,7 @@
     </div>
   <% end %>
 
-  <% stats = community_stats_for(@wrestling_event) %>
+
   <div class="community-section">
     <h2>Community Activity</h2>
     

@@ -8,6 +8,10 @@ Movie.delete_all
 Comic.delete_all
 Album.delete_all
 User.delete_all
+ApiConfiguration.delete_all
+
+puts 'Seeding default API configurations...'
+ApiConfiguration.seed_defaults!
 
 puts 'Creating users...'
 admin = User.create!(
