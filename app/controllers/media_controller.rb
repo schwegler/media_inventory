@@ -105,7 +105,7 @@ class MediaController < ApplicationController
 
     return [] unless data['results']
 
-    data['results'].slice(0, 5).map do |item|
+    results = data['results'].slice(0, 5).map do |item|
       director = fetch_tmdb_director(item['id'], api_key)
       {
         title: item['title'],
@@ -116,7 +116,8 @@ class MediaController < ApplicationController
         external_url: "https://www.themoviedb.org/movie/#{item['id']}",
         is_local: false
       }
-    end.select { |r| r[:thumbnail_url] }
+    end
+    results.select { |r| r[:thumbnail_url] }
   rescue StandardError => e
     Rails.logger.error "TMDB Movie search failed: #{e.message}"
     []
@@ -147,7 +148,7 @@ class MediaController < ApplicationController
 
     return [] unless data['results']
 
-    data['results'].map do |item|
+    results = data['results'].map do |item|
       {
         title: item['trackName'],
         director: item['artistName'],
@@ -157,7 +158,8 @@ class MediaController < ApplicationController
         external_url: item['trackViewUrl'],
         is_local: false
       }
-    end.select { |r| r[:thumbnail_url] }
+    end
+    results.select { |r| r[:thumbnail_url] }
   rescue StandardError => e
     Rails.logger.error "iTunes Movie search failed: #{e.message}"
     []
@@ -196,7 +198,7 @@ class MediaController < ApplicationController
 
     return [] unless data['results']
 
-    data['results'].map do |item|
+    results = data['results'].map do |item|
       {
         title: item['collectionName'],
         artist: item['artistName'],
@@ -207,7 +209,8 @@ class MediaController < ApplicationController
         external_url: item['collectionViewUrl'],
         is_local: false
       }
-    end.select { |r| r[:thumbnail_url] }
+    end
+    results.select { |r| r[:thumbnail_url] }
   rescue StandardError => e
     Rails.logger.error "iTunes Album search failed: #{e.message}"
     []
@@ -317,7 +320,7 @@ class MediaController < ApplicationController
 
     return [] unless data['results']
 
-    data['results'].slice(0, 5).map do |item|
+    results = data['results'].slice(0, 5).map do |item|
       {
         title: item['name'],
         network: '',
@@ -327,7 +330,8 @@ class MediaController < ApplicationController
         external_url: "https://www.themoviedb.org/tv/#{item['id']}",
         is_local: false
       }
-    end.select { |r| r[:thumbnail_url] }
+    end
+    results.select { |r| r[:thumbnail_url] }
   rescue StandardError => e
     Rails.logger.error "TMDB TV search failed: #{e.message}"
     []
@@ -342,25 +346,31 @@ class MediaController < ApplicationController
     response = Net::HTTP.get(url)
     data = JSON.parse(response)
 
-    data.slice(0, 5).map do |item|
-      show = item['show']
-      {
-        title: show['name'],
-        network: if show['network']
-                   show['network']['name']
-                 else
-                   (show['webChannel'] ? show['webChannel']['name'] : nil)
-                 end,
-        release_year: show['premiered']&.split('-')&.first,
-        thumbnail_url: show['image'] ? (show['image']['original'] || show['image']['medium']) : nil,
-        api_id: show['id'].to_s,
-        external_url: show['officialSite'] || show['url'],
-        is_local: false
-      }
-    end.select { |r| r[:thumbnail_url] }
+    results = data.slice(0, 5).map do |item|
+      map_tvmaze_show(item['show'])
+    end
+    results.select { |r| r[:thumbnail_url] }
   rescue StandardError => e
     Rails.logger.error "TVMaze search failed: #{e.message}"
     []
+  end
+
+  def map_tvmaze_show(show)
+    network_name = if show['network']
+                     show['network']['name']
+                   elsif show['webChannel']
+                     show['webChannel']['name']
+                   end
+
+    {
+      title: show['name'],
+      network: network_name,
+      release_year: show['premiered']&.split('-')&.first,
+      thumbnail_url: show['image'] ? (show['image']['original'] || show['image']['medium']) : nil,
+      api_id: show['id'].to_s,
+      external_url: show['officialSite'] || show['url'],
+      is_local: false
+    }
   end
 
   def autocomplete_video_games(query)
