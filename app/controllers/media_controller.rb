@@ -71,10 +71,10 @@ class MediaController < ApplicationController
 
   def autocomplete_movies(query)
     local_results = fetch_local_movies(query)
-    web_results = fetch_tmdb_movies(query)
-    web_results = fetch_itunes_movies(query) if web_results.empty?
+    web_results_tmdb = fetch_tmdb_movies(query)
+    web_results_itunes = fetch_itunes_movies(query)
 
-    filter_unique_results(local_results + web_results)
+    filter_unique_results(local_results + web_results_tmdb + web_results_itunes)
   end
 
   def fetch_local_movies(query)
@@ -167,9 +167,10 @@ class MediaController < ApplicationController
 
   def autocomplete_albums(query)
     local_results = fetch_local_albums(query)
-    web_results = fetch_itunes_albums(query)
+    web_results_itunes = fetch_itunes_albums(query)
+    web_results_musicbrainz = fetch_musicbrainz_albums(query)
 
-    filter_unique_results(local_results + web_results)
+    filter_unique_results(local_results + web_results_itunes + web_results_musicbrainz)
   end
 
   def fetch_local_albums(query)
@@ -213,6 +214,41 @@ class MediaController < ApplicationController
     results.select { |r| r[:thumbnail_url] }
   rescue StandardError => e
     Rails.logger.error "iTunes Album search failed: #{e.message}"
+    []
+  end
+
+  def fetch_musicbrainz_albums(query)
+    return [] if Rails.env.test?
+
+    require 'net/http'
+    require 'json'
+    url = URI("https://musicbrainz.org/ws/2/release-group?query=#{CGI.escape(query)}&fmt=json")
+    req = Net::HTTP::Get.new(url)
+    req['User-Agent'] = 'MediaInventoryApp/1.0'
+
+    res = Net::HTTP.start(url.hostname, url.port, use_ssl: url.scheme == 'https') do |http|
+      http.request(req)
+    end
+    data = JSON.parse(res.body)
+
+    return [] unless data['release-groups']
+
+    results = data['release-groups'].slice(0, 5).map do |item|
+      artist_name = item.dig('artist-credit', 0, 'name') || ''
+      {
+        title: item['title'],
+        artist: artist_name,
+        genre: item.dig('tags', 0, 'name') || '',
+        release_year: item['first-release-date']&.split('-')&.first,
+        thumbnail_url: "https://coverartarchive.org/release-group/#{item['id']}/front-250",
+        api_id: item['id'].to_s,
+        external_url: "https://musicbrainz.org/release-group/#{item['id']}",
+        is_local: false
+      }
+    end
+    results
+  rescue StandardError => e
+    Rails.logger.error "MusicBrainz Album search failed: #{e.message}"
     []
   end
 
@@ -437,11 +473,7 @@ class MediaController < ApplicationController
   def filter_unique_results(all_results)
     seen = {}
     all_results.select do |item|
-      key = if item[:api_id].present?
-              item[:api_id].to_s
-            else
-              "#{item[:title].to_s.downcase.strip}_#{item[:release_year]}"
-            end
+      key = "#{item[:title].to_s.downcase.strip}_#{item[:release_year]}"
 
       if seen[key]
         false

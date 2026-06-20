@@ -1139,25 +1139,13 @@ turbo-frame {
     }
   }
 
-  .option-tooltip {
-    display: none;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(1, 4, 9, 0.9);
-    color: var(--text-main);
-    font-size: 0.55rem;
-    text-align: center;
-    padding: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    z-index: 10;
-  }
-
-  &:hover .option-tooltip {
+  .option-label {
     display: block;
+    color: var(--text-main);
+    font-size: 0.65rem;
+    text-align: center;
+    padding: 6px 4px;
+    text-overflow: ellipsis;
   }
 
   .thumbnail-option-actions {
@@ -4692,7 +4680,7 @@ input[type="submit"]:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
-  margin-bottom: 2rem;
+  margin-bottom: 4rem;
 
   .mobile-log-btn {
     display: block;

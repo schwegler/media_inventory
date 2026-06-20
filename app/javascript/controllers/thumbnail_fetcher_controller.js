@@ -189,8 +189,8 @@ export default class extends Controller {
           <div class="thumbnail-option-img-wrap">
             <img src="${option.thumbnail_url}" alt="${option.title}" onerror="this.onerror=null; this.src='${fallbackUrl}';">
             <span class="option-badge ${badgeClass}">${badgeText}</span>
-            <div class="option-tooltip">${tooltipText}</div>
           </div>
+          <div class="option-label">${tooltipText}</div>
         `
 
         imgBtn.addEventListener("click", (e) => {

@@ -15,11 +15,13 @@ class MediaApiFetcher
   def call
     case @item
     when Movie
+      fetch_tmdb_movie
       fetch_itunes_movie
     when TvShow
       fetch_tvmaze_show
       fetch_itunes_tv
     when Album
+      fetch_musicbrainz_music
       fetch_itunes_music
     when VideoGame
       # Existing logic for Video Games can be reused or skipped if it's already fetching on create
@@ -31,6 +33,36 @@ class MediaApiFetcher
   end
 
   private
+
+  def fetch_tmdb_movie
+    return unless api_active?('TMDB', 'Movie')
+
+    api_key = ApiConfiguration.find_by(source_name: 'TMDB', is_active: true)&.access_token
+    return unless api_key
+
+    uri = URI("https://api.themoviedb.org/3/search/movie?api_key=#{api_key}&query=#{CGI.escape(@item.title)}")
+    response = Net::HTTP.get(uri)
+    data = JSON.parse(response)
+
+    if data['results']&.any?
+      result = data['results'].first
+      
+      # Fetch director
+      director_url = URI("https://api.themoviedb.org/3/movie/#{result['id']}/credits?api_key=#{api_key}")
+      director_response = Net::HTTP.get(director_url)
+      director_data = JSON.parse(director_response)
+      crew = director_data['crew'] || []
+      director = crew.find { |c| c['job'] == 'Director' }
+      
+      @item.director = director['name'] if director && @item.director.blank?
+      @item.release_year = result['release_date'].to_s[0..3] if @item.release_year.blank?
+      @item.thumbnail_url = "https://image.tmdb.org/t/p/w500#{result['poster_path']}" if result['poster_path'] && @item.thumbnail_url.blank? && !@item.cover_image.attached?
+      @item.external_url = "https://www.themoviedb.org/movie/#{result['id']}" if @item.external_url.blank?
+      @item.api_id = result['id'].to_s if @item.api_id.blank?
+    end
+  rescue StandardError => e
+    Rails.logger.error "TMDB API error: #{e.message}"
+  end
 
   def fetch_itunes_movie
     return unless api_active?('itunes', 'Movie')
@@ -67,6 +99,30 @@ class MediaApiFetcher
   end
 
   # rubocop:disable Metrics/AbcSize
+  def fetch_musicbrainz_music
+    # Use a generic name, or no check since it's free.
+    uri = URI("https://musicbrainz.org/ws/2/release-group?query=#{CGI.escape(@item.title)}&fmt=json")
+    req = Net::HTTP::Get.new(uri)
+    req['User-Agent'] = 'MediaInventoryApp/1.0'
+
+    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == 'https') do |http|
+      http.request(req)
+    end
+    data = JSON.parse(response.body)
+
+    if data['release-groups']&.any?
+      result = data['release-groups'].first
+      @item.artist = result.dig('artist-credit', 0, 'name') if @item.artist.blank?
+      @item.genre = result.dig('tags', 0, 'name') if @item.genre.blank?
+      @item.release_year = result['first-release-date'].to_s[0..3] if @item.release_year.blank?
+      @item.thumbnail_url = "https://coverartarchive.org/release-group/#{result['id']}/front-250" if @item.thumbnail_url.blank? && !@item.cover_image.attached?
+      @item.external_url = "https://musicbrainz.org/release-group/#{result['id']}" if @item.external_url.blank?
+      @item.api_id = result['id'].to_s if @item.api_id.blank?
+    end
+  rescue StandardError => e
+    Rails.logger.error "MusicBrainz API error: #{e.message}"
+  end
+
   def fetch_itunes_music
     return unless api_active?('itunes', 'Album')
 
