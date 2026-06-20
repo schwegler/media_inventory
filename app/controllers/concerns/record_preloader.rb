@@ -17,7 +17,7 @@ module RecordPreloader
     return records if records.blank?
 
     # 1. Handle LibraryItems: preload their polymorphic 'item' association
-    library_items = records.select { |r| r.is_a?(LibraryItem) }
+    library_items = records.grep(LibraryItem)
     if library_items.any?
       ActiveRecord::Associations::Preloader.new(
         records: library_items,

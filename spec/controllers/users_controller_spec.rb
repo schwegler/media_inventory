@@ -50,24 +50,25 @@ RSpec.describe UsersController, type: :controller do
         allow(User).to receive(:find).with(user.id.to_s).and_return(user)
 
         # Mocking associations for the show action
-        activities = double('activities')
+        activities = double('activities', blank?: false, map: [])
         allow(user).to receive(:activities).and_return(activities)
         allow(activities).to receive(:includes).and_return(activities)
         allow(activities).to receive(:order).and_return(activities)
         allow(activities).to receive(:limit).and_return(activities)
         allow(activities).to receive(:load).and_return(activities)
 
-        likes = double('likes')
+        likes = double('likes', blank?: false, map: [])
         allow(user).to receive(:likes).and_return(likes)
         allow(likes).to receive(:includes).and_return(likes)
         allow(likes).to receive(:order).and_return(likes)
         allow(likes).to receive(:load).and_return(likes)
 
-        %i[movies albums comics tv_shows video_games].each do |media|
-          relation = double(media.to_s)
-          allow(user).to receive(media).and_return(relation)
-          allow(relation).to receive(:where).with(is_public: true).and_return([])
-        end
+        library_items = double('library_items', blank?: false, grep: [], load: [], to_a: [], map: [])
+        allow(library_items).to receive(:+).and_return([])
+        allow(user).to receive(:library_items).and_return(library_items)
+        allow(library_items).to receive(:where).and_return(library_items)
+        allow(library_items).to receive(:includes).and_return(library_items)
+        allow(library_items).to receive(:order).and_return(library_items)
 
         get :show, params: { id: user.id }
         expect(controller.instance_variable_get(:@user)).to eq(user)
