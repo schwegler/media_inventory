@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateDummyAdminAccount < ActiveRecord::Migration[8.1]
   def up
     admin = User.find_or_initialize_by(email: 'admin@example.com')

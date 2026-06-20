@@ -4030,11 +4030,6 @@ input:checked+.slider:before {
   flex-grow: 1;
 }
 
-.activity-text {
-  font-size: 14px;
-  color: #ccc;
-}
-
 .activity-text a {
   color: var(--text-main);
   text-decoration: none;
@@ -4254,7 +4249,7 @@ input[type="submit"]:focus-visible {
   flex: 1;
   background: transparent;
   border: none;
-  color: var(--txt-btn-contrast);
+  color: var(--text-muted);
   padding: 1rem 0.5rem;
   font-size: 0.9rem;
   font-weight: 500;
@@ -4336,7 +4331,7 @@ input[type="submit"]:focus-visible {
 }
 
 .progress-completed {
-  color: #fff;
+  color: $text-muted;
   font-weight: 600;
 }
 

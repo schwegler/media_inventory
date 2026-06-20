@@ -1,0 +1,10 @@
+<svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M14 2L26 14L14 26L2 14L14 2Z" fill="url(#trove-gradient)" opacity="0.9"/>
+  <path d="M14 6L22 14L14 22L6 14L14 6Z" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="0.5"/>
+  <defs>
+    <linearGradient id="trove-gradient" x1="2" y1="2" x2="26" y2="26">
+      <stop offset="0%" stop-color="#ff6b35"/>
+      <stop offset="100%" stop-color="#f7c948"/>
+    </linearGradient>
+  </defs>
+</svg>
