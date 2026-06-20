@@ -301,10 +301,11 @@ a {
 .page-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: start;
   margin-bottom: 2rem;
   border-bottom: 1px solid $card-border;
   padding-bottom: 1.5rem;
+  flex-wrap: wrap;
 
   h1 {
     text-align: left;
@@ -4336,6 +4337,239 @@ input[type="submit"]:focus-visible {
 }
 
 // ==========================================================================
+//  Search Feature
+// ==========================================================================
+.nav-search-item {
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+  position: relative;
+  width: 25px;
+  /* Fixed width to prevent layout shift */
+  height: 25px;
+}
+
+.global-search-form {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border-radius: 20px;
+  padding: 4px;
+  position: absolute;
+  right: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:focus-within,
+  &.active {
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.05);
+  }
+}
+
+.global-search-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: color 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    color: #ff6b35;
+    /* Trove brand color */
+    transform: scale(1.1);
+  }
+}
+
+.global-search-input {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.95rem;
+  padding: 0;
+  width: 0;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: 0;
+
+  &:focus {
+    outline: none;
+  }
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 300;
+  }
+}
+
+/* Expand on focus */
+.global-search-form:focus-within .global-search-input,
+.global-search-input:not(:placeholder-shown) {
+  width: 140px;
+  opacity: 1;
+  padding: 4px 8px;
+}
+
+.mobile-nav-search {
+  margin-bottom: 1rem;
+
+  .global-search-form {
+    padding: 8px 16px;
+  }
+
+  .global-search-input {
+    width: 100%;
+    font-size: 1rem;
+
+    &:focus {
+      width: 100%;
+    }
+  }
+}
+
+.collection-search-container {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.local-search-form {
+  display: flex;
+  align-items: center;
+  background: $card-bg;
+  border: 1px solid $card-border;
+  border-radius: 24px;
+  padding: 8px 16px;
+  width: 100%;
+  max-width: 500px;
+  transition: all 0.3s ease;
+
+  &:focus-within {
+    border-color: $accent-cyan;
+    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
+  }
+}
+
+.local-search-input {
+  background: transparent;
+  border: none;
+  color: $text-main;
+  font-size: 1rem;
+  padding: 8px;
+  flex: 1;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.local-search-btn {
+  background: transparent;
+  border: none;
+  color: $text-muted;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    color: $accent-cyan;
+  }
+}
+
+.search-results-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: $card-bg;
+  border: 1px solid $card-border;
+  border-radius: 24px;
+  padding: 8px 20px;
+  width: 100%;
+  max-width: 500px;
+  transition: all 0.3s ease;
+  margin: 0 2rem;
+
+  &:focus-within {
+    border-color: $accent-cyan;
+    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
+  }
+}
+
+.search-input {
+  background: transparent;
+  border: none;
+  color: $text-main;
+  font-size: 1.1rem;
+  padding: 8px;
+  flex: 1;
+  margin-top: 0;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.search-submit {
+  background: transparent;
+  border: none;
+  color: $text-muted;
+  cursor: pointer;
+  padding: 8px;
+
+  &:hover {
+    color: $accent-cyan;
+  }
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.filter-tab {
+  background: $card-bg;
+  border: 1px solid $card-border;
+  color: $text-muted;
+  padding: 6px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: $text-main;
+  }
+
+  &.active {
+    background: $accent-cyan;
+    color: $bg-dark;
+    border-color: $accent-cyan;
+    font-weight: 600;
+  }
+}
+
+.search-results-container {
+  margin-top: 2rem;
+}
+
+// ==========================================================================
 //  Mobile & Responsive Enhancements
 // ==========================================================================
 
@@ -4560,5 +4794,44 @@ input[type="submit"]:focus-visible {
   // Standard Forms
   form.standard-form {
     padding: 1.2rem;
+  }
+}
+
+.app-footer {
+  .footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+
+    @media (min-width: 768px) {
+      flex-direction: row;
+      justify-content: space-between;
+    }
+  }
+
+  .footer-attribution {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: 300px;
+
+    @media (min-width: 768px) {
+      align-items: flex-end;
+      text-align: right;
+    }
+
+    .tmdb-logo {
+      height: 16px;
+      width: auto;
+    }
+
+    .attribution-text {
+      font-size: 0.75rem;
+      color: $text-dim;
+      margin: 0;
+      line-height: 1.4;
+    }
   }
 }

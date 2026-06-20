@@ -51,6 +51,7 @@ SampleApp::Application.routes.draw do
     root to: 'activities#index'
   end
   root 'landing#index'
+  get '/search', to: 'search#index', as: 'search'
   get '/collections/:user_id', to: 'collections#show', as: 'collection'
   get    '/login',   to: 'sessions#new'
   post   '/login',   to: 'sessions#create'

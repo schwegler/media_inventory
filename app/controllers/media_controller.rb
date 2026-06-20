@@ -70,6 +70,14 @@ class MediaController < ApplicationController
   end
 
   def autocomplete_movies(query)
+    local_results = fetch_local_movies(query)
+    web_results = fetch_tmdb_movies(query)
+    web_results = fetch_itunes_movies(query) if web_results.empty?
+
+    filter_unique_results(local_results + web_results)
+  end
+
+  def fetch_local_movies(query)
     Movie.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |m|
       {
         title: m.title,
@@ -83,7 +91,87 @@ class MediaController < ApplicationController
     end
   end
 
+  def fetch_tmdb_movies(query)
+    return [] if Rails.env.test?
+
+    api_key = ApiConfiguration.find_by(source_name: 'TMDB', is_active: true)&.access_token
+    return [] unless api_key
+
+    require 'net/http'
+    require 'json'
+    url = URI("https://api.themoviedb.org/3/search/movie?api_key=#{api_key}&query=#{CGI.escape(query)}")
+    response = Net::HTTP.get(url)
+    data = JSON.parse(response)
+    
+    return [] unless data['results']
+
+    data['results'].slice(0, 5).map do |item|
+      director = fetch_tmdb_director(item['id'], api_key)
+      {
+        title: item['title'],
+        director: director,
+        release_year: item['release_date']&.split('-')&.first,
+        thumbnail_url: item['poster_path'] ? "https://image.tmdb.org/t/p/w500#{item['poster_path']}" : nil,
+        api_id: item['id'].to_s,
+        external_url: "https://www.themoviedb.org/movie/#{item['id']}",
+        is_local: false
+      }
+    end.select { |r| r[:thumbnail_url] }
+  rescue StandardError => e
+    Rails.logger.error "TMDB Movie search failed: #{e.message}"
+    []
+  end
+
+  def fetch_tmdb_director(movie_id, api_key)
+    require 'net/http'
+    require 'json'
+    url = URI("https://api.themoviedb.org/3/movie/#{movie_id}/credits?api_key=#{api_key}")
+    response = Net::HTTP.get(url)
+    data = JSON.parse(response)
+    crew = data['crew'] || []
+    director = crew.find { |c| c['job'] == 'Director' }
+    director ? director['name'] : ''
+  rescue StandardError => e
+    Rails.logger.error "TMDB Credits fetch failed for #{movie_id}: #{e.message}"
+    ''
+  end
+
+
+  def fetch_itunes_movies(query)
+    return [] if Rails.env.test?
+
+    require 'net/http'
+    require 'json'
+    url = URI("https://itunes.apple.com/search?term=#{CGI.escape(query)}&entity=movie&limit=5&country=US")
+    response = Net::HTTP.get(url)
+    data = JSON.parse(response)
+
+    return [] unless data['results']
+
+    data['results'].map do |item|
+      {
+        title: item['trackName'],
+        director: item['artistName'],
+        release_year: item['releaseDate']&.split('-')&.first,
+        thumbnail_url: item['artworkUrl100'] ? item['artworkUrl100'].sub('100x100bb', '400x400bb') : nil,
+        api_id: item['trackId'].to_s,
+        external_url: item['trackViewUrl'],
+        is_local: false
+      }
+    end.select { |r| r[:thumbnail_url] }
+  rescue StandardError => e
+    Rails.logger.error "iTunes Movie search failed: #{e.message}"
+    []
+  end
+
   def autocomplete_albums(query)
+    local_results = fetch_local_albums(query)
+    web_results = fetch_itunes_albums(query)
+
+    filter_unique_results(local_results + web_results)
+  end
+
+  def fetch_local_albums(query)
     Album.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |a|
       {
         title: a.title,
@@ -96,6 +184,34 @@ class MediaController < ApplicationController
         is_local: true
       }
     end
+  end
+
+  def fetch_itunes_albums(query)
+    return [] if Rails.env.test?
+
+    require 'net/http'
+    require 'json'
+    url = URI("https://itunes.apple.com/search?term=#{CGI.escape(query)}&media=music&entity=album&limit=5&country=US")
+    response = Net::HTTP.get(url)
+    data = JSON.parse(response)
+
+    return [] unless data['results']
+
+    data['results'].map do |item|
+      {
+        title: item['collectionName'],
+        artist: item['artistName'],
+        genre: item['primaryGenreName'],
+        release_year: item['releaseDate']&.split('-')&.first,
+        thumbnail_url: item['artworkUrl100'] ? item['artworkUrl100'].sub('100x100bb', '500x500bb') : nil,
+        api_id: item['collectionId'].to_s,
+        external_url: item['collectionViewUrl'],
+        is_local: false
+      }
+    end.select { |r| r[:thumbnail_url] }
+  rescue StandardError => e
+    Rails.logger.error "iTunes Album search failed: #{e.message}"
+    []
   end
 
   def autocomplete_comics(query)
@@ -168,6 +284,14 @@ class MediaController < ApplicationController
   end
 
   def autocomplete_tv_shows(query)
+    local_results = fetch_local_tv_shows(query)
+    web_results = fetch_tmdb_tv_shows(query)
+    web_results = fetch_tvmaze_tv_shows(query) if web_results.empty?
+
+    filter_unique_results(local_results + web_results)
+  end
+
+  def fetch_local_tv_shows(query)
     TvShow.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |t|
       {
         title: t.title,
@@ -178,6 +302,62 @@ class MediaController < ApplicationController
         is_local: true
       }
     end
+  end
+
+  def fetch_tmdb_tv_shows(query)
+    return [] if Rails.env.test?
+
+    api_key = ApiConfiguration.find_by(source_name: 'TMDB', is_active: true)&.access_token
+    return [] unless api_key
+
+    require 'net/http'
+    require 'json'
+    url = URI("https://api.themoviedb.org/3/search/tv?api_key=#{api_key}&query=#{CGI.escape(query)}")
+    response = Net::HTTP.get(url)
+    data = JSON.parse(response)
+
+    return [] unless data['results']
+
+    data['results'].slice(0, 5).map do |item|
+      {
+        title: item['name'],
+        network: '',
+        release_year: item['first_air_date']&.split('-')&.first,
+        thumbnail_url: item['poster_path'] ? "https://image.tmdb.org/t/p/w500#{item['poster_path']}" : nil,
+        api_id: item['id'].to_s,
+        external_url: "https://www.themoviedb.org/tv/#{item['id']}",
+        is_local: false
+      }
+    end.select { |r| r[:thumbnail_url] }
+  rescue StandardError => e
+    Rails.logger.error "TMDB TV search failed: #{e.message}"
+    []
+  end
+
+  def fetch_tvmaze_tv_shows(query)
+    return [] if Rails.env.test?
+
+    require 'net/http'
+    require 'json'
+    url = URI("https://api.tvmaze.com/search/shows?q=#{CGI.escape(query)}")
+    response = Net::HTTP.get(url)
+    data = JSON.parse(response)
+
+    data.slice(0, 5).map do |item|
+      show = item['show']
+      {
+        title: show['name'],
+        network: show['network'] ? show['network']['name'] : (show['webChannel'] ? show['webChannel']['name'] : nil),
+        release_year: show['premiered']&.split('-')&.first,
+        thumbnail_url: show['image'] ? (show['image']['original'] || show['image']['medium']) : nil,
+        api_id: show['id'].to_s,
+        external_url: show['officialSite'] || show['url'],
+        is_local: false
+      }
+    end.select { |r| r[:thumbnail_url] }
+  rescue StandardError => e
+    Rails.logger.error "TVMaze search failed: #{e.message}"
+    []
   end
 
   def autocomplete_video_games(query)
