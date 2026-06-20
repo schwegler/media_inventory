@@ -26,6 +26,9 @@ RSpec.describe 'Comics Management', type: :system do
     expect(page).to have_css('[data-connected="true"]') unless Capybara.current_driver == :rack_test
     fill_in 'Title', with: 'Watchmen'
     click_add_manually
+
+    expect(page).to have_field('comic[issue_number]', visible: true)
+
     fill_in 'comic[issue_number]', with: '1'
     fill_in 'comic[publisher]', with: 'DC Comics'
     fill_in 'comic[writer]', with: 'Alan Moore'

@@ -26,6 +26,9 @@ RSpec.describe 'TV Shows and Episodes Management', type: :system do
     expect(page).to have_css('[data-connected="true"]') unless Capybara.current_driver == :rack_test
     fill_in 'Title', with: 'Breaking Bad'
     click_add_manually
+
+    expect(page).to have_field('tv_show[network]', visible: true)
+
     fill_in 'tv_show[network]', with: 'AMC'
     check 'In Collection'
     select '★★★★★', from: 'tv_show[rating]'

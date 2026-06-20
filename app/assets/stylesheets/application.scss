@@ -26,6 +26,7 @@
     --star-color: #d97706;
     --danger-color: #dc2626;
     --danger-hover-color: #b91c1c;
+    --txt-btn-contrast: #fff;
 
     --rgb-inverse: 0, 0, 0;
     --border-subtle: rgba(0, 0, 0, 0.1);
@@ -58,6 +59,7 @@
     --star-color: #fbbf24;
     --danger-color: #ef4444;
     --danger-hover-color: #f87171;
+    --txt-btn-contrast: #fff;
 
     --rgb-inverse: 255, 255, 255;
     --border-subtle: rgba(255, 255, 255, 0.05);
@@ -91,6 +93,7 @@
   --star-color: #d97706;
   --danger-color: #dc2626;
   --danger-hover-color: #b91c1c;
+  --txt-btn-contrast: #fff;
 
   --rgb-inverse: 0, 0, 0;
   --border-subtle: rgba(0, 0, 0, 0.1);
@@ -613,7 +616,7 @@ input[type="submit"] {
   font-family: $font-family-body;
   font-weight: 600;
   font-size: 0.92rem;
-  color: var(--bg-darker);
+  color: var(--txt-btn-contrast);
   text-align: center;
   cursor: pointer;
   background: linear-gradient(135deg, $accent-orange 0%, $primary-hover 100%);
@@ -723,15 +726,34 @@ table {
 // ==========================================================================
 //  Alerts
 // ==========================================================================
+#flash-messages {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  width: 90%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+  /* Allows clicking through the container */
+}
+
 .alert {
   padding: 1rem 1.5rem;
   border-radius: $radius-md;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0;
   font-size: 0.9rem;
-  background: rgba(22, 27, 34, 0.6);
+  background: rgba(22, 27, 34, 0.9);
   border: 1px solid $card-border;
   backdrop-filter: blur(8px);
   animation: alertSlideIn 0.3s ease-out;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+  /* Re-enable pointer events for the alert itself */
+  text-align: center;
 }
 
 .alert-danger {
@@ -2133,7 +2155,6 @@ header nav ul.nav-links {
 
     p {
       color: var(--text-main);
-      margin: 0;
     }
   }
 }
@@ -2963,6 +2984,7 @@ header nav ul.nav-links {
 
     .quick-review-submit-btn {
       font-size: 0.9rem;
+      color: var(--txt-btn-contrast);
       padding: 10px 20px;
       border-radius: 8px;
     }
@@ -3601,7 +3623,7 @@ form {
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
-  color: $bg-darker;
+  color: var(--txt-btn-contrast);
 
   &:hover {
     background: $accent-cyan-hover;
@@ -3618,7 +3640,7 @@ form {
 .btn-primary,
 .sleek-btn-primary {
   background: $accent-cyan;
-  color: var(--text-main);
+  color: var(--txt-btn-contrast);
   border-color: $accent-cyan-hover;
 
   &:hover {
@@ -4267,4 +4289,62 @@ input[type="submit"]:focus-visible {
   &.hidden {
     display: none;
   }
+}
+
+/* Progress Donut */
+.progress-donut-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.progress-donut {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.progress-donut::before {
+  content: "";
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background-color: #0f172a;
+  border-radius: 50%;
+}
+
+.progress-donut-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.progress-percentage {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.progress-label {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.progress-stats {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #94a3b8;
+}
+
+.progress-completed {
+  color: #fff;
+  font-weight: 600;
 }

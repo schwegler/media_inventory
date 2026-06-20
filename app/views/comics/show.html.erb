@@ -35,20 +35,25 @@
         <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @comic.likes.count %></span>
       </div>
     </div>
-
+    <div style="margin-top: 1rem;">
+      <% completed_count = logged_in? ? LibraryItem.where(user: current_user, item: @comic.comic_issues, consumed: true).count : 0 %>
+      <%= render 'shared/progress_donut', total: @comic.comic_issues.count, completed: completed_count %>
+    </div>
   </div>
 
   <!-- Right Column: Title, Metadata, Reviews -->
   <div class="show-right">
-    <div class="show-header-details">
-      <h1 class="show-title"><%= @comic.title %> <%= "##{@comic.issue_number}" if @comic.issue_number.present? %></h1>
-      <p class="show-meta-subtitle">
-        by <span class="meta-highlight"><%= @comic.writer || 'Unknown Writer' %></span> &bull; <%= @comic.publisher || 'Independent' %>
-      </p>
-      
-      <% if @comic.rating.present? %>
-        <div class="show-rating"><%= render_stars(@comic.rating) %></div>
-      <% end %>
+    <div class="show-header-details" style="display: flex; justify-content: space-between; align-items: flex-start;">
+      <div>
+        <h1 class="show-title"><%= @comic.title %> <%= "##{@comic.issue_number}" if @comic.issue_number.present? %></h1>
+        <p class="show-meta-subtitle">
+          by <span class="meta-highlight"><%= @comic.writer || 'Unknown Writer' %></span> &bull; <%= @comic.publisher || 'Independent' %>
+        </p>
+        
+        <% if @comic.rating.present? %>
+          <div class="show-rating"><%= render_stars(@comic.rating) %></div>
+        <% end %>
+      </div>
     </div>
 
     <%= render 'shared/media_actions_and_stream', item: @comic %>
@@ -61,6 +66,19 @@
     <% end %>
 
     <div class="show-community">
+      <% if @comic.comic_issues.any? %>
+        <div class="show-episodes-section" style="margin-top: 2.5rem; margin-bottom: 2.5rem;">
+          <h2 style="font-size: 1.25rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; padding-bottom: 8px; margin-bottom: 12px;">
+            Issues in this Series
+          </h2>
+
+          <div class="season-episodes-list" style="display: flex; flex-direction: column; gap: 12px;">
+            <% @comic.comic_issues.order(:issue_number).each do |issue| %>
+              <%= render 'comics/comic_issue', issue: issue, comic: @comic %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
       <h2>Community</h2>
 
       <div class="show-stats-bar">
