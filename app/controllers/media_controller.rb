@@ -99,6 +99,13 @@ class MediaController < ApplicationController
   end
 
   def autocomplete_comics(query)
+    local_results = fetch_local_comics(query)
+    web_results = fetch_comicvine_comics(query)
+
+    filter_unique_results(local_results + web_results)
+  end
+
+  def fetch_local_comics(query)
     Comic.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |c|
       {
         title: c.title,
@@ -110,6 +117,54 @@ class MediaController < ApplicationController
         api_id: c.api_id,
         external_url: c.external_url,
         is_local: true
+      }
+    end
+  end
+
+  def fetch_comicvine_comics(query)
+    return [] if Rails.env.test?
+
+    api_key = ApiConfiguration.find_by(source_name: 'ComicVine', is_active: true)&.access_token
+    return [] unless api_key
+
+    require 'net/http'
+    require 'json'
+    url = build_comicvine_url(query, api_key)
+    req = Net::HTTP::Get.new(url)
+    req['User-Agent'] = 'MediaInventoryApp/1.0'
+
+    res = Net::HTTP.start(url.hostname, url.port, use_ssl: url.scheme == 'https') do |http|
+      http.request(req)
+    end
+
+    parse_comicvine_results(JSON.parse(res.body))
+  rescue StandardError => e
+    Rails.logger.error "ComicVine search failed: #{e.message}"
+    []
+  end
+
+  private
+
+  def build_comicvine_url(query, api_key)
+    url = URI('https://comicvine.gamespot.com/api/search/')
+    url.query = URI.encode_www_form(
+      api_key: api_key, format: 'json', query: query, resources: 'volume', limit: 5
+    )
+    url
+  end
+
+  def parse_comicvine_results(data)
+    return [] unless data && data['results']
+
+    data['results'].map do |item|
+      {
+        title: item['name'],
+        publisher: item.dig('publisher', 'name'),
+        release_year: item['start_year'],
+        thumbnail_url: item.dig('image', 'original_url') || item.dig('image', 'medium_url'),
+        api_id: item['id']&.to_s,
+        external_url: item['site_detail_url'],
+        is_local: false
       }
     end
   end
@@ -191,7 +246,12 @@ class MediaController < ApplicationController
   def filter_unique_results(all_results)
     seen = {}
     all_results.select do |item|
-      key = item[:title].to_s.downcase.strip
+      key = if item[:api_id].present?
+              item[:api_id].to_s
+            else
+              "#{item[:title].to_s.downcase.strip}_#{item[:release_year]}"
+            end
+
       if seen[key]
         false
       else

@@ -1,0 +1,74 @@
+<%# Local variables: issue, comic %>
+<%= turbo_frame_tag "comic_issue_#{issue.id}" do %>
+  <div class="episode-item">
+    <div class="episode-content-row">
+      <% if issue.thumbnail_url.present? %>
+        <img src="<%= issue.thumbnail_url %>" alt="<%= issue.title %>" class="episode-thumbnail">
+      <% end %>
+      <div class="episode-info">
+        <div class="episode-header">
+          <span>
+            <%= link_to issue.display_title, comic_issue_path(issue), class: "episode-link", data: { turbo_frame: "_top" } %>
+            <% if issue.release_date.present? %>
+              <span class="episode-air-date">(Released: <%= issue.release_date %>)</span>
+            <% end %>
+          </span>
+
+          <% issue_lib = LibraryItem.find_by(user: current_user, item: issue) if logged_in? %>
+          <% if logged_in? && @library_item.present? %>
+            <div class="episode-actions-wrapper">
+              <% if issue_lib&.consumed? %>
+                <span class="episode-badge-watched">✓ Read</span>
+
+                <%= button_to "X",
+                              toggle_read_comic_issue_path(issue),
+                              method: :patch,
+                              params: { comic_issue: { consumed: false, rating: nil, review: nil, consumed_at: nil } },
+                              class: "episode-btn-unwatch" %>
+              <% else %>
+                <span class="episode-badge-not-watched">Not Read</span>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+
+        <% if issue.summary.present? %>
+          <div class="episode-summary">
+            <%= truncate(strip_tags(issue.summary), length: 250, separator: ' ') %>
+          </div>
+        <% end %>
+
+        <% if issue_lib&.consumed? && (issue_lib.review.present? || issue_lib.rating.present?) %>
+          <div class="episode-rating-review-box">
+            <% if issue_lib.rating.present? %>
+              <span class="episode-stars"><%= issue_lib.rating %> ★</span>
+            <% end %>
+            <% if issue_lib.review.present? %>
+              <span class="episode-review-text"><%= issue_lib.review %></span>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <% if logged_in? && @library_item.present? %>
+      <div class="episode-form-section">
+        <%= form_with model: issue, url: toggle_read_comic_issue_path(issue), method: :patch do |form| %>
+          <%= form.hidden_field :consumed, value: true %>
+          <%= form.hidden_field :consumed_at, value: Time.current.to_date %>
+
+          <div class="episode-form-inputs">
+            <%= form.text_field :review, value: issue_lib&.review, placeholder: issue_lib&.consumed? ? "Edit review..." : "Add read review...", class: "episode-input-review" %>
+
+            <%= form.select :rating, [["Rating", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: issue_lib&.rating }, { class: "episode-select-rating" } %>
+            <% if issue_lib&.consumed? %>
+              <%= form.submit "Update", class: "episode-btn-rate" %>
+            <%else%>
+              <%= form.submit "Read", class: "episode-btn-rate" %>
+            <%end%>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

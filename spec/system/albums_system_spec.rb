@@ -26,6 +26,9 @@ RSpec.describe 'Albums Management', type: :system do
     expect(page).to have_css('[data-connected="true"]') unless Capybara.current_driver == :rack_test
     fill_in 'Title', with: 'Abbey Road'
     click_add_manually
+
+    expect(page).to have_field('album[artist]', visible: true)
+
     fill_in 'album[artist]', with: 'The Beatles'
     fill_in 'album[release_year]', with: '1969'
     fill_in 'album[genre]', with: 'Rock'

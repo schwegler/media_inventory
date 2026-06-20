@@ -35,20 +35,25 @@
         <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @tv_show.likes.count %></span>
       </div>
     </div>
-
+    <div style="margin-bottom: 2rem;">
+      <% completed_count = logged_in? ? LibraryItem.where(user: current_user, item: @tv_show.tv_episodes, consumed: true).count : 0 %>
+      <%= render 'shared/progress_donut', total: @tv_show.tv_episodes.count, completed: completed_count %>
+    </div>
   </div>
 
   <!-- Right Column: Title, Metadata, Reviews -->
   <div class="show-right">
-    <div class="show-header-details">
-      <h1 class="show-title"><%= @tv_show.title %></h1>
-      <p class="show-meta-subtitle">
-        on <span class="meta-highlight"><%= @tv_show.network || 'Unknown Network' %></span>
-      </p>
-      
-      <% if @tv_show.rating.present? %>
-        <div class="show-rating"><%= render_stars(@tv_show.rating) %></div>
-      <% end %>
+    <div class="show-header-details" style="display: flex; justify-content: space-between; align-items: flex-start;">
+      <div>
+        <h1 class="show-title"><%= @tv_show.title %></h1>
+        <p class="show-meta-subtitle">
+          on <span class="meta-highlight"><%= @tv_show.network || 'Unknown Network' %></span>
+        </p>
+        
+        <% if @tv_show.rating.present? %>
+          <div class="show-rating"><%= render_stars(@tv_show.rating) %></div>
+        <% end %>
+      </div>
     </div>
 
     <%= render 'shared/media_actions_and_stream', item: @tv_show %>

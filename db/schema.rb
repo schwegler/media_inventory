@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_19_214654) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_19_234432) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -78,8 +78,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_19_214654) do
   create_table "comic_issues", force: :cascade do |t|
     t.integer "comic_id", null: false
     t.datetime "created_at", null: false
+    t.integer "issue_number"
     t.string "publisher"
+    t.string "rating"
+    t.boolean "read", default: false, null: false
+    t.date "read_at"
     t.string "release_date"
+    t.text "review"
+    t.text "summary"
     t.string "thumbnail_url"
     t.string "title"
     t.datetime "updated_at", null: false

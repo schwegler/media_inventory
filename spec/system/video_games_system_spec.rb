@@ -26,6 +26,9 @@ RSpec.describe 'Video Games Management', type: :system do
     expect(page).to have_css('[data-connected="true"]') unless Capybara.current_driver == :rack_test
     fill_in 'Title', with: 'The Legend of Zelda'
     click_add_manually
+
+    expect(page).to have_field('video_game[developer]', visible: true)
+
     fill_in 'video_game[developer]', with: 'Nintendo'
     fill_in 'video_game[publisher]', with: 'Nintendo'
     fill_in 'video_game[platform]', with: 'Nintendo Switch'

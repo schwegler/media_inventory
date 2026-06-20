@@ -1,0 +1,17 @@
+<%
+  total ||= 0
+  completed ||= 0
+  percentage = total > 0 ? ((completed.to_f / total) * 100).round : 0
+%>
+
+<div class="progress-donut-container">
+  <div class="progress-donut" data-controller="donut" data-donut-percentage-value="<%= percentage %>">
+    <div class="progress-donut-inner">
+      <span class="progress-percentage"><%= percentage %>%</span>
+      <span class="progress-label">Complete</span>
+    </div>
+  </div>
+  <div class="progress-stats">
+    <span class="progress-completed"><%= completed %></span> / <span class="progress-total"><%= total %></span>
+  </div>
+</div>

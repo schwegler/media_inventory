@@ -403,71 +403,8 @@ export default class extends Controller {
         return this.deduplicateResults(results)
 
       } else if (mediaType === "comic") {
-        let results = []
-        // Wikipedia search first (highly accurate for comic box covers and summaries)
-        try {
-          const wikiResults = await this.queryWikipedia(query, "comic")
-          if (wikiResults) results = results.concat(wikiResults)
-        } catch (e) {
-          console.error("Wikipedia comic search failed:", e)
-        }
-
-        // Google Books (secondary)
-        try {
-          const gbUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query + " comic")}&maxResults=5&printType=books`
-          const gbResponse = await fetch(gbUrl)
-          if (gbResponse.ok) {
-            const gbData = await gbResponse.json()
-            const gbResults = (gbData.items || []).map(item => {
-              const info = item.volumeInfo || {}
-              const rawThumb = info.imageLinks?.thumbnail || null
-              const thumbnail = rawThumb ? rawThumb.replace("http:", "https:").replace("zoom=1", "zoom=2") : null
-              return {
-                title: info.title,
-                writer: info.authors?.join(", ") || null,
-                publisher: info.publisher || null,
-                release_year: info.publishedDate ? new Date(info.publishedDate).getFullYear() : null,
-                thumbnail_url: thumbnail,
-                api_id: item.id,
-                external_url: info.infoLink || null,
-                is_local: false
-              }
-            }).filter(r => r.thumbnail_url)
-            results = results.concat(gbResults)
-          }
-        } catch (gbErr) {
-          console.error("Google Books search failed:", gbErr)
-        }
-
-        // Open Library (tertiary)
-        try {
-          const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=3`
-          const response = await fetch(url)
-          if (response.ok) {
-            const data = await response.json()
-            const olResults = (data.docs || []).map(doc => {
-              const author = doc.author_name ? doc.author_name.join(", ") : null
-              const releaseYear = doc.first_publish_year || null
-              const apiId = doc.key ? doc.key.replace("/works/", "") : null
-              const coverUrl = doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : null
-              return {
-                title: doc.title,
-                writer: author,
-                publisher: doc.publisher ? doc.publisher.join(", ") : null,
-                release_year: releaseYear,
-                thumbnail_url: coverUrl,
-                api_id: apiId,
-                external_url: doc.key ? `https://openlibrary.org${doc.key}` : null,
-                is_local: false
-              }
-            }).filter(r => r.thumbnail_url)
-            results = results.concat(olResults)
-          }
-        } catch (e) {
-          console.error("Open Library search failed:", e)
-        }
-
-        return this.deduplicateResults(results)
+        // Comic search is handled server-side to securely query ComicVine API
+        return []
 
       } else if (mediaType === "video_game") {
         // Video games search is handled server-side to resolve Steam API and Wikipedia queries
@@ -490,7 +427,11 @@ export default class extends Controller {
     if (isManualClick) {
       // 2. Auto-populate text fields only on direct selection
       if (this.hasTitleInputTarget) {
-        this.titleInputTarget.value = option.title
+        let finalTitle = option.title
+        if (option.release_year && !finalTitle.includes(`(${option.release_year})`)) {
+          finalTitle = `${finalTitle} (${option.release_year})`
+        }
+        this.titleInputTarget.value = finalTitle
       }
 
       // 3. Auto-populate targets dynamically

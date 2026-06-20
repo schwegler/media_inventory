@@ -1,0 +1,129 @@
+<%
+  comic = @comic_issue.comic
+  backdrop_url = nil
+  if comic.cover_image.attached?
+    backdrop_url = url_for(comic.cover_image)
+  elsif comic.thumbnail_url.present?
+    backdrop_url = @comic_issue.thumbnail_url.presence || comic.thumbnail_url
+  end
+%>
+
+<div class="show-hero">
+  <% if backdrop_url %>
+    <img class="show-hero-backdrop" src="<%= backdrop_url %>" alt="" />
+  <% end %>
+  <div class="show-hero-gradient"></div>
+</div>
+
+<div class="show-container container">
+  <!-- Left Column: Poster -->
+  <div class="show-left">
+    <div class="show-poster-card">
+      <div class="show-poster" style="aspect-ratio: 2 / 3;">
+        <% if @comic_issue.thumbnail_url.present? %>
+          <img src="<%= @comic_issue.thumbnail_url %>" alt="<%= @comic_issue.display_title %> Cover" style="width: 100%; height: 100%; object-fit: cover;">
+        <% elsif comic.cover_image.attached? %>
+          <%= image_tag comic.cover_image, alt: "#{comic.title} Cover" %>
+        <% elsif comic.thumbnail_url.present? %>
+          <img src="<%= comic.thumbnail_url %>" alt="<%= comic.title %> Cover">
+        <% else %>
+          <div class="poster-fallback"><span class="fallback-emoji">📖</span></div>
+        <% end %>
+      </div>
+      
+      <div class="poster-stats">
+        <span class="stat-item" title="Read"><span class="stat-icon">👁</span> <%= @library_item&.consumed? ? "Read" : "Unread" %></span>
+        <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @comic_issue.likes.count %></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Title, Metadata, Rating/Review, Comments -->
+  <div class="show-right">
+    <div class="show-header-details">
+      <h1 class="show-title"><%= @comic_issue.display_title %></h1>
+      <p class="show-meta-subtitle">
+        Issue <%= @comic_issue.issue_number %> of <%= link_to comic.title, comic, class: 'meta-highlight' %>
+        <% if @comic_issue.release_date.present? %>
+          &bull; Released <%= @comic_issue.release_date %>
+        <% end %>
+      </p>
+      
+      <% if @library_item&.consumed? && @library_item&.rating.present? %>
+        <div class="show-rating"><%= render_stars(@library_item.rating) %></div>
+      <% end %>
+    </div>
+
+    <!-- Issue Actions -->
+    <div class="media-actions-container">
+      <% comic_library_item = LibraryItem.find_by(user: current_user, item: comic) if logged_in? %>
+      <% if logged_in? && comic_library_item.present? %>
+        <div class="actions-section">
+          <strong class="actions-section-title">My Progress</strong>
+          <div class="actions-buttons-row">
+            <% if @library_item&.consumed? %>
+              <span class="btn btn-success" style="background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.2); pointer-events: none;">✓ Read</span>
+              <%= button_to "📁 Mark Unread",
+                            toggle_read_comic_issue_path(@comic_issue),
+                            method: :patch,
+                            params: { comic_issue: { consumed: false, rating: nil, review: nil, consumed_at: nil }, back_to_issue: true },
+                            class: "btn btn-danger" %>
+            <% else %>
+              <span class="btn btn-secondary" style="background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.08); pointer-events: none;">Not Read</span>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="inline-quick-review-box" style="margin-top: 1rem;">
+          <%= form_with model: @comic_issue, url: toggle_read_comic_issue_path(@comic_issue), method: :patch, local: true, class: "quick-review-form" do |f| %>
+            <%= f.hidden_field :consumed, value: true %>
+            <%= f.hidden_field :consumed_at, value: Time.current.to_date %>
+            <%= hidden_field_tag :back_to_issue, true %>
+            
+            <h3 class="quick-review-title">✍️ Issue Rating & Review</h3>
+            
+            <div class="inline-form-row">
+              <div class="quick-review-rating-select">
+                <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: @library_item&.rating }, { class: "form-control quick-review-select" } %>
+              </div>
+            </div>
+
+            <div>
+              <%= f.text_area :review, value: @library_item&.review, placeholder: "Add read review for this issue...", rows: 3, class: "form-control quick-review-textarea" %>
+            </div>
+
+            <div class="quick-review-submit-row">
+              <%= f.submit "Save Issue Status", class: "btn btn-primary quick-review-submit-btn" %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="actions-login-message">
+          <%= link_to "Log in", login_path, class: "login-link" %> to log your progress for this issue.
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Issue Summary -->
+    <% if @comic_issue.summary.present? %>
+      <div class="show-review" style="margin-top: 2rem;">
+        <h3>Issue Summary</h3>
+        <blockquote class="issue-summary" style="font-style: normal; border-left-color: rgba(255, 255, 255, 0.1);"><%= sanitize(@comic_issue.summary) %></blockquote>
+      </div>
+    <% end %>
+
+    <!-- Comments & Likes -->
+    <div class="show-community" style="margin-top: 2rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 8px; margin-bottom: 16px;">
+        <h2 style="margin: 0; border: none; padding: 0;">Community Activity</h2>
+        <%= render 'likes/like_button', item: @comic_issue %>
+      </div>
+
+      <%= render 'shared/comments_box', matching_item: @comic_issue %>
+    </div>
+
+    <div class="show-actions" style="margin-top: 2.5rem;">
+      <%= link_to "← Back to #{comic.title}", comic_path(comic), class: 'btn btn-secondary' %>
+    </div>
+  </div>
+</div>
