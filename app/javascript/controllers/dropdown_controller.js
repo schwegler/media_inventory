@@ -5,7 +5,9 @@ export default class extends Controller {
 
   connect() {
     this.clickOutsideHandler = this.clickOutside.bind(this)
+    this.keydownHandler = this.keydown.bind(this)
     document.addEventListener("click", this.clickOutsideHandler)
+    document.addEventListener("keydown", this.keydownHandler)
 
     // Ensure dropdown is hidden on connection
     if (this.hasMenuTarget) {
@@ -16,6 +18,7 @@ export default class extends Controller {
 
   disconnect() {
     document.removeEventListener("click", this.clickOutsideHandler)
+    document.removeEventListener("keydown", this.keydownHandler)
   }
 
   toggle(event) {
@@ -46,6 +49,18 @@ export default class extends Controller {
   clickOutside(event) {
     if (this.hasMenuTarget && !this.element.contains(event.target)) {
       this.hide()
+    }
+  }
+
+  keydown(event) {
+    if (event.key === "Escape" && this.hasMenuTarget) {
+      const isVisible = this.menuTarget.style.display === "block"
+      if (isVisible) {
+        this.hide()
+        if (this.hasButtonTarget) {
+          this.buttonTarget.focus()
+        }
+      }
     }
   }
 }
