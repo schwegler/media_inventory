@@ -15,6 +15,7 @@ module Admin
       render 'admin/application/merge'
     end
 
+    # rubocop:disable Metrics/AbcSize
     def do_merge
       @source_item = requested_resource
       @target_item = requested_resource.class.find(params[:target_id])
@@ -45,40 +46,38 @@ module Admin
         @source_item.destroy!
       end
 
-      redirect_to [:admin, @target_item], notice: "\#{requested_resource.class.model_name.human} was successfully merged."
       redirect_to [:admin, @target_item], notice: "#{requested_resource.class.model_name.human} was successfully merged."
     end
+    # rubocop:enable Metrics/AbcSize
 
     def search_api
       @item = requested_resource
       @query = params[:query] || @item.title
-      
+
       @results = if @query.present?
                    MediaSearchService.call(@query, @item.class.name.underscore)
                  else
                    []
                  end
-                 
+
       render 'admin/application/search_api'
     end
 
     def update_from_api
       @item = requested_resource
-      
+
       api_data = params.require(:api_data).permit(
-        :title, :director, :artist, :writer, :publisher, :developer, 
-        :platform, :release_year, :genre, :network, :api_id, 
+        :title, :director, :artist, :writer, :publisher, :developer,
+        :platform, :release_year, :genre, :network, :api_id,
         :external_url, :thumbnail_url
       )
-      
+
       api_data.to_h.each do |key, value|
         next if value.blank?
-        
-        if @item.respond_to?("#{key}=") && @item.send(key).blank?
-          @item.send("#{key}=", value)
-        end
+
+        @item.send("#{key}=", value) if @item.respond_to?("#{key}=") && @item.send(key).blank?
       end
-      
+
       if @item.save
         redirect_to [:admin, @item], notice: 'Item successfully updated from API data.'
       else
