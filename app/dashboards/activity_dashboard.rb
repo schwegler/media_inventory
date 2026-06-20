@@ -25,7 +25,6 @@ class ActivityDashboard < Administrate::BaseDashboard
   # By default, it's limited to four items to reduce clutter on index pages.
   # Feel free to add, remove, or rearrange items.
   COLLECTION_ATTRIBUTES = %i[
-    id
     activity_type
     details
     trackable
@@ -68,7 +67,7 @@ class ActivityDashboard < Administrate::BaseDashboard
   # Overwrite this method to customize how activities are displayed
   # across all pages of the admin dashboard.
   #
-  # def display_resource(activity)
-  #   "Activity ##{activity.id}"
-  # end
+  def display_resource(activity)
+    activity.activity_type
+  end
 end

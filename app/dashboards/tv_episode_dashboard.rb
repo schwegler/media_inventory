@@ -34,7 +34,7 @@ class TvEpisodeDashboard < Administrate::BaseDashboard
   # By default, it's limited to four items to reduce clutter on index pages.
   # Feel free to add, remove, or rearrange items.
   COLLECTION_ATTRIBUTES = %i[
-    id
+    name
     air_date
     comments
     episode
@@ -95,7 +95,7 @@ class TvEpisodeDashboard < Administrate::BaseDashboard
   # Overwrite this method to customize how tv episodes are displayed
   # across all pages of the admin dashboard.
   #
-  # def display_resource(tv_episode)
-  #   "TvEpisode ##{tv_episode.id}"
-  # end
+  def display_resource(tv_episode)
+    tv_episode.name
+  end
 end

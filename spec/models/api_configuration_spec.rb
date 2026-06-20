@@ -3,5 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe ApiConfiguration, type: :model do
-  pending "add some examples to (or delete) #{__FILE__}"
+  it 'is valid with valid attributes' do
+    config = ApiConfiguration.new(api_name: 'TMDB', base_url: 'https://api.themoviedb.org/3')
+    expect(config).to be_valid
+  end
 end

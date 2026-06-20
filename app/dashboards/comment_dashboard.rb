@@ -65,7 +65,7 @@ class CommentDashboard < Administrate::BaseDashboard
   # Overwrite this method to customize how comments are displayed
   # across all pages of the admin dashboard.
   #
-  # def display_resource(comment)
-  #   "Comment ##{comment.id}"
-  # end
+  def display_resource(comment)
+    comment.content.truncate(20)
+  end
 end

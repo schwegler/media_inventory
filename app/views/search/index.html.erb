@@ -1,0 +1,132 @@
+<div class="page-header">
+  <h1>Search Results</h1>
+  
+  <div class="search-filters">
+    <form action="<%= search_path %>" method="get" class="search-results-form" data-turbo-action="advance">
+      <div class="search-input-wrapper">
+        <input type="text" name="q" value="<%= @query %>" class="search-input" placeholder="Search Trove..." autocomplete="off">
+        <button type="submit" class="search-submit">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="filter-tabs">
+        <button type="submit" name="type" value="" class="filter-tab <%= @filter_type.blank? ? 'active' : '' %>">All</button>
+        <button type="submit" name="type" value="movies" class="filter-tab <%= @filter_type == 'movies' ? 'active' : '' %>">Movies</button>
+        <button type="submit" name="type" value="albums" class="filter-tab <%= @filter_type == 'albums' ? 'active' : '' %>">Albums</button>
+        <button type="submit" name="type" value="comics" class="filter-tab <%= @filter_type == 'comics' ? 'active' : '' %>">Comics</button>
+        <button type="submit" name="type" value="tv_shows" class="filter-tab <%= @filter_type == 'tv_shows' ? 'active' : '' %>">TV Shows</button>
+        <button type="submit" name="type" value="video_games" class="filter-tab <%= @filter_type == 'video_games' ? 'active' : '' %>">Games</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<% if @query.present? %>
+  <div class="search-results-container">
+    <% has_results = false %>
+
+    <% if @results[:movies].present? %>
+      <% has_results = true %>
+      <div class="collection-section">
+        <h2>Movies</h2>
+        <ul class="media-grid">
+          <% @results[:movies].each do |movie| %>
+            <li class="media-card">
+              <div class="card-icon">🎬</div>
+              <div class="card-content">
+                <h3><%= link_to movie.title, movie %></h3>
+                <span class="card-meta">Director: <%= movie.director %></span>
+              </div>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <% if @results[:albums].present? %>
+      <% has_results = true %>
+      <div class="collection-section">
+        <h2>Albums</h2>
+        <ul class="media-grid">
+          <% @results[:albums].each do |album| %>
+            <li class="media-card">
+              <div class="card-icon">💿</div>
+              <div class="card-content">
+                <h3><%= link_to album.title, album %></h3>
+                <span class="card-meta">Artist: <%= album.artist %></span>
+              </div>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <% if @results[:comics].present? %>
+      <% has_results = true %>
+      <div class="collection-section">
+        <h2>Comics</h2>
+        <ul class="media-grid">
+          <% @results[:comics].each do |comic| %>
+            <li class="media-card">
+              <div class="card-icon">📚</div>
+              <div class="card-content">
+                <h3><%= link_to comic.title, comic %></h3>
+                <span class="card-meta">Writer: <%= comic.writer %></span>
+              </div>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <% if @results[:tv_shows].present? %>
+      <% has_results = true %>
+      <div class="collection-section">
+        <h2>TV Shows</h2>
+        <ul class="media-grid">
+          <% @results[:tv_shows].each do |tv_show| %>
+            <li class="media-card">
+              <div class="card-icon">📺</div>
+              <div class="card-content">
+                <h3><%= link_to tv_show.title, tv_show %></h3>
+                <span class="card-meta">Network: <%= tv_show.network %></span>
+              </div>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <% if @results[:video_games].present? %>
+      <% has_results = true %>
+      <div class="collection-section">
+        <h2>Video Games</h2>
+        <ul class="media-grid">
+          <% @results[:video_games].each do |game| %>
+            <li class="media-card">
+              <div class="card-icon">🎮</div>
+              <div class="card-content">
+                <h3><%= link_to game.title, game %></h3>
+                <span class="card-meta">Developer: <%= game.developer %></span>
+              </div>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <% unless has_results %>
+      <div class="empty-state">
+        <p>No results found for "<%= @query %>" in <%= @filter_type.present? ? @filter_type.titleize : 'any category' %>.</p>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <div class="empty-state">
+    <p>Enter a search term above to find media in Trove.</p>
+  </div>
+<% end %>
