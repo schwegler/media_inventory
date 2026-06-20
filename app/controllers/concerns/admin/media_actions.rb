@@ -46,14 +46,44 @@ module Admin
       end
 
       redirect_to [:admin, @target_item], notice: "\#{requested_resource.class.model_name.human} was successfully merged."
+      redirect_to [:admin, @target_item], notice: "#{requested_resource.class.model_name.human} was successfully merged."
     end
 
-    def fetch_api_data
-      # We will call a service class here
-      MediaApiFetcher.call(requested_resource)
-      redirect_to [:admin, requested_resource], notice: 'API data fetched successfully.'
-    rescue StandardError
-      redirect_to [:admin, requested_resource], alert: "Failed to fetch API data: \#{e.message}"
+    def search_api
+      @item = requested_resource
+      @query = params[:query] || @item.title
+      
+      @results = if @query.present?
+                   MediaSearchService.call(@query, @item.class.name.underscore)
+                 else
+                   []
+                 end
+                 
+      render 'admin/application/search_api'
+    end
+
+    def update_from_api
+      @item = requested_resource
+      
+      api_data = params.require(:api_data).permit(
+        :title, :director, :artist, :writer, :publisher, :developer, 
+        :platform, :release_year, :genre, :network, :api_id, 
+        :external_url, :thumbnail_url
+      )
+      
+      api_data.to_h.each do |key, value|
+        next if value.blank?
+        
+        if @item.respond_to?("#{key}=") && @item.send(key).blank?
+          @item.send("#{key}=", value)
+        end
+      end
+      
+      if @item.save
+        redirect_to [:admin, @item], notice: 'Item successfully updated from API data.'
+      else
+        redirect_to [:admin, @item], alert: 'Failed to update item from API data.'
+      end
     end
   end
 end

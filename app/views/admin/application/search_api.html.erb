@@ -1,0 +1,61 @@
+<% content_for(:title) { "Search API for #{@item.title}" } %>
+
+<header class="main-content__header">
+  <h1 class="main-content__page-title">
+    Search API for <%= @item.title %>
+  </h1>
+
+  <div>
+    <%= link_to "Back to #{@item.class.model_name.human}", [:admin, @item], class: "button" %>
+  </div>
+</header>
+
+<section class="main-content__body">
+  <div class="search-api-container" style="margin-bottom: 2rem;">
+    <%= form_with url: [:search_api, :admin, @item], method: :get, local: true do |f| %>
+      <div style="display: flex; gap: 10px;">
+        <%= f.text_field :query, value: @query, class: "input", placeholder: "Search for #{@item.class.model_name.human}..." %>
+        <%= f.submit "Search", class: "button" %>
+      </div>
+    <% end %>
+  </div>
+
+  <% if @results.any? %>
+    <h2>Search Results</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; margin-top: 20px;">
+      <% @results.each do |result| %>
+        <div style="border: 1px solid #ddd; padding: 10px; border-radius: 5px; display: flex; flex-direction: column;">
+          <% if result[:thumbnail_url].present? %>
+            <img src="<%= result[:thumbnail_url] %>" style="max-width: 100%; height: auto; margin-bottom: 10px; border-radius: 4px;">
+          <% end %>
+          <div style="flex-grow: 1;">
+            <strong><%= result[:title] %></strong>
+            <% if result[:release_year].present? %>
+              (<%= result[:release_year] %>)
+            <% end %>
+            <div style="font-size: 0.9em; color: #555; margin-top: 5px;">
+              <% %i[director artist writer publisher network developer platform genre].each do |attr| %>
+                <% if result[attr].present? %>
+                  <div><%= attr.to_s.humanize %>: <%= result[attr] %></div>
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+          
+          <div style="margin-top: 15px;">
+            <%= form_with url: [:update_from_api, :admin, @item], method: :post, local: true do |f| %>
+              <% result.each do |key, value| %>
+                <%= f.hidden_field "api_data[#{key}]", value: value %>
+              <% end %>
+              <%= f.submit "Use this data", class: "button button--primary", style: "width: 100%;" %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% elsif @query.present? %>
+    <p>No results found for "<%= @query %>".</p>
+  <% else %>
+    <p>Enter a search query to find metadata for this item.</p>
+  <% end %>
+</section>

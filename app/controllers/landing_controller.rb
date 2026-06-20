@@ -15,10 +15,10 @@ class LandingController < ApplicationController
   private
 
   def fetch_friend_activities
-    activities = dashboard_activity_scope.where.not(user_id: current_user.id).limit(6)
+    activities = dashboard_activity_scope.where.not(user_id: current_user.id).limit(9)
     return activities if activities.size >= 3
 
-    dashboard_activity_scope.limit(6)
+    dashboard_activity_scope.limit(9)
   end
 
   def dashboard_activity_scope
@@ -36,7 +36,7 @@ class LandingController < ApplicationController
 
   def fetch_popular_items
     counts = Activity.group(:trackable_type, :trackable_id)
-                     .order('count_all DESC').limit(6).count
+                     .order('count_all DESC').limit(9).count
 
     return fallback_popular_items if counts.empty?
 

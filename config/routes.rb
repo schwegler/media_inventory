@@ -14,14 +14,16 @@ SampleApp::Application.routes.draw do
       member do
         get :merge
         post :do_merge
-        post :fetch_api_data
+        get :search_api
+        post :update_from_api
       end
     end
     resources :comics do
       member do
         get :merge
         post :do_merge
-        post :fetch_api_data
+        get :search_api
+        post :update_from_api
       end
     end
     resources :comic_issues
@@ -39,7 +41,8 @@ SampleApp::Application.routes.draw do
       member do
         get :merge
         post :do_merge
-        post :fetch_api_data
+        get :search_api
+        post :update_from_api
       end
     end
     resources :relationships
@@ -48,7 +51,8 @@ SampleApp::Application.routes.draw do
       member do
         get :merge
         post :do_merge
-        post :fetch_api_data
+        get :search_api
+        post :update_from_api
       end
     end
     resources :users
@@ -56,7 +60,8 @@ SampleApp::Application.routes.draw do
       member do
         get :merge
         post :do_merge
-        post :fetch_api_data
+        get :search_api
+        post :update_from_api
       end
     end
 

@@ -27,7 +27,7 @@ as well as a link to its edit page.
 
   <div>
     <% if %w[Movie TvShow Album Comic VideoGame].include?(page.resource.class.name) %>
-      <%= button_to "Fetch API Data", [:fetch_api_data, namespace, page.resource], class: "button", method: :post %>
+      <%= link_to "Search API Data", [:search_api, namespace, page.resource], class: "button" %>
       <%= link_to "Merge Item", [:merge, namespace, page.resource], class: "button" %>
     <% end %>
 

@@ -71,10 +71,9 @@ class MediaController < ApplicationController
 
   def autocomplete_movies(query)
     local_results = fetch_local_movies(query)
-    web_results_tmdb = fetch_tmdb_movies(query)
-    web_results_itunes = fetch_itunes_movies(query)
+    web_results = MediaSearchService.call(query, 'movie')
 
-    filter_unique_results(local_results + web_results_tmdb + web_results_itunes)
+    filter_unique_results(local_results + web_results)
   end
 
   def fetch_local_movies(query)
@@ -91,86 +90,11 @@ class MediaController < ApplicationController
     end
   end
 
-  def fetch_tmdb_movies(query)
-    return [] if Rails.env.test?
-
-    api_key = ApiConfiguration.find_by(source_name: 'TMDB', is_active: true)&.access_token
-    return [] unless api_key
-
-    require 'net/http'
-    require 'json'
-    url = URI("https://api.themoviedb.org/3/search/movie?api_key=#{api_key}&query=#{CGI.escape(query)}")
-    response = Net::HTTP.get(url)
-    data = JSON.parse(response)
-
-    return [] unless data['results']
-
-    results = data['results'].slice(0, 5).map do |item|
-      director = fetch_tmdb_director(item['id'], api_key)
-      {
-        title: item['title'],
-        director: director,
-        release_year: item['release_date']&.split('-')&.first,
-        thumbnail_url: item['poster_path'] ? "https://image.tmdb.org/t/p/w500#{item['poster_path']}" : nil,
-        api_id: item['id'].to_s,
-        external_url: "https://www.themoviedb.org/movie/#{item['id']}",
-        is_local: false
-      }
-    end
-    results.select { |r| r[:thumbnail_url] }
-  rescue StandardError => e
-    Rails.logger.error "TMDB Movie search failed: #{e.message}"
-    []
-  end
-
-  def fetch_tmdb_director(movie_id, api_key)
-    require 'net/http'
-    require 'json'
-    url = URI("https://api.themoviedb.org/3/movie/#{movie_id}/credits?api_key=#{api_key}")
-    response = Net::HTTP.get(url)
-    data = JSON.parse(response)
-    crew = data['crew'] || []
-    director = crew.find { |c| c['job'] == 'Director' }
-    director ? director['name'] : ''
-  rescue StandardError => e
-    Rails.logger.error "TMDB Credits fetch failed for #{movie_id}: #{e.message}"
-    ''
-  end
-
-  def fetch_itunes_movies(query)
-    return [] if Rails.env.test?
-
-    require 'net/http'
-    require 'json'
-    url = URI("https://itunes.apple.com/search?term=#{CGI.escape(query)}&entity=movie&limit=5&country=US")
-    response = Net::HTTP.get(url)
-    data = JSON.parse(response)
-
-    return [] unless data['results']
-
-    results = data['results'].map do |item|
-      {
-        title: item['trackName'],
-        director: item['artistName'],
-        release_year: item['releaseDate']&.split('-')&.first,
-        thumbnail_url: item['artworkUrl100']&.sub('100x100bb', '400x400bb'),
-        api_id: item['trackId'].to_s,
-        external_url: item['trackViewUrl'],
-        is_local: false
-      }
-    end
-    results.select { |r| r[:thumbnail_url] }
-  rescue StandardError => e
-    Rails.logger.error "iTunes Movie search failed: #{e.message}"
-    []
-  end
-
   def autocomplete_albums(query)
     local_results = fetch_local_albums(query)
-    web_results_itunes = fetch_itunes_albums(query)
-    web_results_musicbrainz = fetch_musicbrainz_albums(query)
+    web_results = MediaSearchService.call(query, 'album')
 
-    filter_unique_results(local_results + web_results_itunes + web_results_musicbrainz)
+    filter_unique_results(local_results + web_results)
   end
 
   def fetch_local_albums(query)
@@ -188,6 +112,7 @@ class MediaController < ApplicationController
     end
   end
 
+<<<<<<< Updated upstream
   def fetch_itunes_albums(query)
     return [] if Rails.env.test?
 
@@ -253,9 +178,11 @@ class MediaController < ApplicationController
   end
   # rubocop:enable Metrics/MethodLength
 
+=======
+>>>>>>> Stashed changes
   def autocomplete_comics(query)
     local_results = fetch_local_comics(query)
-    web_results = fetch_comicvine_comics(query)
+    web_results = MediaSearchService.call(query, 'comic')
 
     filter_unique_results(local_results + web_results)
   end
@@ -276,56 +203,9 @@ class MediaController < ApplicationController
     end
   end
 
-  def fetch_comicvine_comics(query)
-    return [] if Rails.env.test?
-
-    api_key = ApiConfiguration.find_by(source_name: 'ComicVine', is_active: true)&.access_token
-    return [] unless api_key
-
-    require 'net/http'
-    require 'json'
-    url = build_comicvine_url(query, api_key)
-    req = Net::HTTP::Get.new(url)
-    req['User-Agent'] = 'MediaInventoryApp/1.0'
-
-    res = Net::HTTP.start(url.hostname, url.port, use_ssl: url.scheme == 'https') do |http|
-      http.request(req)
-    end
-
-    parse_comicvine_results(JSON.parse(res.body))
-  rescue StandardError => e
-    Rails.logger.error "ComicVine search failed: #{e.message}"
-    []
-  end
-
-  def build_comicvine_url(query, api_key)
-    url = URI('https://comicvine.gamespot.com/api/search/')
-    url.query = URI.encode_www_form(
-      api_key: api_key, format: 'json', query: query, resources: 'volume', limit: 5
-    )
-    url
-  end
-
-  def parse_comicvine_results(data)
-    return [] unless data && data['results']
-
-    data['results'].map do |item|
-      {
-        title: item['name'],
-        publisher: item.dig('publisher', 'name'),
-        release_year: item['start_year'],
-        thumbnail_url: item.dig('image', 'original_url') || item.dig('image', 'medium_url'),
-        api_id: item['id']&.to_s,
-        external_url: item['site_detail_url'],
-        is_local: false
-      }
-    end
-  end
-
   def autocomplete_tv_shows(query)
     local_results = fetch_local_tv_shows(query)
-    web_results = fetch_tmdb_tv_shows(query)
-    web_results = fetch_tvmaze_tv_shows(query) if web_results.empty?
+    web_results = MediaSearchService.call(query, 'tv_show')
 
     filter_unique_results(local_results + web_results)
   end
@@ -343,79 +223,11 @@ class MediaController < ApplicationController
     end
   end
 
-  def fetch_tmdb_tv_shows(query)
-    return [] if Rails.env.test?
-
-    api_key = ApiConfiguration.find_by(source_name: 'TMDB', is_active: true)&.access_token
-    return [] unless api_key
-
-    require 'net/http'
-    require 'json'
-    url = URI("https://api.themoviedb.org/3/search/tv?api_key=#{api_key}&query=#{CGI.escape(query)}")
-    response = Net::HTTP.get(url)
-    data = JSON.parse(response)
-
-    return [] unless data['results']
-
-    results = data['results'].slice(0, 5).map do |item|
-      {
-        title: item['name'],
-        network: '',
-        release_year: item['first_air_date']&.split('-')&.first,
-        thumbnail_url: item['poster_path'] ? "https://image.tmdb.org/t/p/w500#{item['poster_path']}" : nil,
-        api_id: item['id'].to_s,
-        external_url: "https://www.themoviedb.org/tv/#{item['id']}",
-        is_local: false
-      }
-    end
-    results.select { |r| r[:thumbnail_url] }
-  rescue StandardError => e
-    Rails.logger.error "TMDB TV search failed: #{e.message}"
-    []
-  end
-
-  def fetch_tvmaze_tv_shows(query)
-    return [] if Rails.env.test?
-
-    require 'net/http'
-    require 'json'
-    url = URI("https://api.tvmaze.com/search/shows?q=#{CGI.escape(query)}")
-    response = Net::HTTP.get(url)
-    data = JSON.parse(response)
-
-    results = data.slice(0, 5).map do |item|
-      map_tvmaze_show(item['show'])
-    end
-    results.select { |r| r[:thumbnail_url] }
-  rescue StandardError => e
-    Rails.logger.error "TVMaze search failed: #{e.message}"
-    []
-  end
-
-  def map_tvmaze_show(show)
-    network_name = if show['network']
-                     show['network']['name']
-                   elsif show['webChannel']
-                     show['webChannel']['name']
-                   end
-
-    {
-      title: show['name'],
-      network: network_name,
-      release_year: show['premiered']&.split('-')&.first,
-      thumbnail_url: show['image'] ? (show['image']['original'] || show['image']['medium']) : nil,
-      api_id: show['id'].to_s,
-      external_url: show['officialSite'] || show['url'],
-      is_local: false
-    }
-  end
-
   def autocomplete_video_games(query)
     local_results = fetch_local_video_games(query)
-    web_results = fetch_steam_video_games(query)
-    wiki_results = Rails.env.test? ? [] : query_wikipedia_video_games(query)
+    web_results = MediaSearchService.call(query, 'video_game')
 
-    filter_unique_results(local_results + web_results + wiki_results)
+    filter_unique_results(local_results + web_results)
   end
 
   def fetch_local_video_games(query)
@@ -434,43 +246,6 @@ class MediaController < ApplicationController
     end
   end
 
-  def fetch_steam_video_games(query) # rubocop:disable Metrics/MethodLength
-    return [] if Rails.env.test?
-
-    begin
-      require 'net/http'
-      require 'json'
-      uri = URI("https://store.steampowered.com/api/storesearch/?term=#{CGI.escape(query)}&l=english&cc=US")
-      response = Net::HTTP.get(uri)
-      data = JSON.parse(response)
-      return [] unless data && data['items']
-
-      data['items'].slice(0, 5).map do |item|
-        app_id = item['id']
-        platforms = []
-        if item['platforms']
-          platforms << 'PC' if item['platforms']['windows']
-          platforms << 'Mac' if item['platforms']['mac']
-          platforms << 'Linux' if item['platforms']['linux']
-        end
-        {
-          title: item['name'],
-          developer: '',
-          publisher: '',
-          platform: platforms.join(', '),
-          release_year: nil,
-          thumbnail_url: "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/#{app_id}/library_600x900.jpg",
-          api_id: app_id.to_s,
-          external_url: "https://store.steampowered.com/app/#{app_id}",
-          is_local: false
-        }
-      end
-    rescue StandardError => e
-      Rails.logger.error "Steam Store Search error: #{e.message}"
-      []
-    end
-  end
-
   def filter_unique_results(all_results)
     seen = {}
     all_results.select do |item|
@@ -482,51 +257,6 @@ class MediaController < ApplicationController
         seen[key] = true
       end
     end
-  end
-
-  def query_wikipedia_video_games(query)
-    require 'net/http'
-    require 'json'
-    search_url = 'https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=' \
-                 "#{CGI.escape("#{query} video game")}&format=json&origin=*"
-    uri = URI(search_url)
-    response = Net::HTTP.get(uri)
-    data = JSON.parse(response)
-    search_results = data.dig('query', 'search') || []
-
-    search_results.first(3).map { |result| parse_wikipedia_game(result) }.compact
-  rescue StandardError => e
-    Rails.logger.error "Wikipedia video game search failed: #{e.message}"
-    []
-  end
-
-  def parse_wikipedia_game(result)
-    page_title = result['title']
-    summary_url = "https://en.wikipedia.org/api/rest_v1/page/summary/#{CGI.escape(page_title.gsub(' ', '_'))}"
-    sum_response = Net::HTTP.get(URI(summary_url))
-    sum_data = begin
-      JSON.parse(sum_response)
-    rescue StandardError
-      {}
-    end
-
-    return nil unless sum_data['originalimage'] && sum_data['originalimage']['source']
-
-    desc = sum_data['description'] || ''
-    year_match = desc.match(/\b(19\d\d|20\d\d)\b/)
-    release_year = year_match ? year_match[1].to_i : nil
-
-    {
-      title: sum_data['title'],
-      developer: 'Nintendo / Various',
-      publisher: '',
-      platform: 'Console / Various',
-      release_year: release_year,
-      thumbnail_url: sum_data['originalimage']['source'],
-      api_id: "wiki_#{sum_data['pageid'] || page_title}",
-      external_url: sum_data.dig('content_urls', 'desktop', 'page'),
-      is_local: false
-    }
   end
 end
 # rubocop:enable Metrics/ClassLength
