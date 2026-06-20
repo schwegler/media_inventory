@@ -15,19 +15,14 @@ export default class extends Controller {
       this.menuTarget.classList.add("active")
       if (this.hasIconTarget) this.iconTarget.classList.add("hidden")
       if (this.hasCloseIconTarget) this.closeIconTarget.classList.remove("hidden")
-      document.body.style.overflow = "hidden" // Prevent scrolling when menu is open
-      document.documentElement.style.overflow = "hidden"
     } else {
       this.menuTarget.classList.remove("active")
       if (this.hasIconTarget) this.iconTarget.classList.remove("hidden")
       if (this.hasCloseIconTarget) this.closeIconTarget.classList.add("hidden")
-      document.body.style.overflow = ""
-      document.documentElement.style.overflow = ""
     }
   }
 
   disconnect() {
-    document.body.style.overflow = ""
-    document.documentElement.style.overflow = ""
+    // No longer need to reset overflow here as we are not setting it
   }
 }

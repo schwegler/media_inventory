@@ -3242,6 +3242,10 @@ header nav ul.nav-links {
   gap: 12px;
   width: 100%;
   align-items: start;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+  }
 }
 
 .episode-info {
@@ -3372,6 +3376,11 @@ form {
   align-items: center;
   width: 100%;
   flex-wrap: nowrap;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 .episode-input-review {
