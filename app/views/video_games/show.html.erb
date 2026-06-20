@@ -46,9 +46,16 @@
         Developed by <span class="meta-highlight"><%= @video_game.developer || 'Unknown Developer' %></span> &bull; <%= @video_game.platform %> &bull; <%= @video_game.release_year %>
       </p>
       
-      <% if @video_game.rating.present? %>
-        <div class="show-rating"><%= render_stars(@video_game.rating) %></div>
-      <% end %>
+      <div class="show-rating-container" style="display: flex; align-items: center; gap: 10px;">
+        <% if @video_game.rating.present? %>
+          <div class="show-rating"><%= render_stars(@video_game.rating) %></div>
+        <% end %>
+        <% if stats[:avg_rating] %>
+          <div class="show-avg-rating" style="color: #94a3b8; font-size: 0.9em; font-weight: 500;">
+            <%= stats[:avg_rating] %> ★ avg
+          </div>
+        <% end %>
+      </div>
     </div>
 
     <%= render 'shared/media_actions_and_stream', item: @video_game %>

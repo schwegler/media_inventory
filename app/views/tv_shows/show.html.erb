@@ -50,9 +50,16 @@
           on <span class="meta-highlight"><%= @tv_show.network || 'Unknown Network' %></span>
         </p>
         
-        <% if @tv_show.rating.present? %>
-          <div class="show-rating"><%= render_stars(@tv_show.rating) %></div>
-        <% end %>
+        <div class="show-rating-container" style="display: flex; align-items: center; gap: 10px;">
+          <% if @tv_show.rating.present? %>
+            <div class="show-rating"><%= render_stars(@tv_show.rating) %></div>
+          <% end %>
+          <% if stats[:avg_rating] %>
+            <div class="show-avg-rating" style="color: #94a3b8; font-size: 0.9em; font-weight: 500;">
+              <%= stats[:avg_rating] %> ★ avg
+            </div>
+          <% end %>
+        </div>
       </div>
     </div>
 

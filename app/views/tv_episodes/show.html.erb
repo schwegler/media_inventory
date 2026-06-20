@@ -49,9 +49,17 @@
         <% end %>
       </p>
       
-      <% if @library_item&.consumed? && @library_item&.rating.present? %>
-        <div class="show-rating"><%= render_stars(@library_item.rating) %></div>
-      <% end %>
+      <% stats = community_stats_for(@tv_episode) %>
+      <div class="show-rating-container" style="display: flex; align-items: center; gap: 10px;">
+        <% if @library_item&.consumed? && @library_item&.rating.present? %>
+          <div class="show-rating"><%= render_stars(@library_item.rating) %></div>
+        <% end %>
+        <% if stats[:avg_rating] %>
+          <div class="show-avg-rating" style="color: #94a3b8; font-size: 0.9em; font-weight: 500;">
+            <%= stats[:avg_rating] %> ★ avg
+          </div>
+        <% end %>
+      </div>
     </div>
 
     <!-- Episode Actions -->

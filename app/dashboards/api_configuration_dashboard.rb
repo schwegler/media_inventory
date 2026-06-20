@@ -14,9 +14,13 @@ class ApiConfigurationDashboard < Administrate::BaseDashboard
     access_token: Field::String,
     base_url: Field::String,
     is_active: Field::Boolean,
-    media_type: Field::String,
+    media_type: Field::Select.with_options(
+      collection: %w[Movie TvShow VideoGame Comic Album]
+    ),
     options: Field::Text,
-    source_name: Field::String,
+    source_name: Field::Select.with_options(
+      collection: %w[TMDB RAWG ComicVine itunes tvmaze]
+    ),
     created_at: Field::DateTime,
     updated_at: Field::DateTime
   }.freeze
@@ -28,9 +32,10 @@ class ApiConfigurationDashboard < Administrate::BaseDashboard
   # Feel free to add, remove, or rearrange items.
   COLLECTION_ATTRIBUTES = %i[
     id
-    access_token
-    base_url
+    source_name
+    media_type
     is_active
+    access_token
   ].freeze
 
   # SHOW_PAGE_ATTRIBUTES
@@ -51,12 +56,12 @@ class ApiConfigurationDashboard < Administrate::BaseDashboard
   # an array of attributes that will be displayed
   # on the model's form (`new` and `edit`) pages.
   FORM_ATTRIBUTES = %i[
+    source_name
+    media_type
     access_token
     base_url
     is_active
-    media_type
     options
-    source_name
   ].freeze
 
   # COLLECTION_FILTERS
