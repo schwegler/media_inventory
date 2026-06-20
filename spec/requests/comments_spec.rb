@@ -4,7 +4,7 @@ require 'rails_helper'
 
 RSpec.describe 'Comments', type: :request do
   let!(:user) do
-    User.create!(name: 'Test', email: "test_\#{SecureRandom.hex(4)}@test.com", password: 'password',
+    User.create!(name: 'Test', email: "test#{SecureRandom.hex(4)}@test.com", password: 'password',
                  password_confirmation: 'password')
   end
   let!(:album) { Album.create!(title: 'Test Album') }
