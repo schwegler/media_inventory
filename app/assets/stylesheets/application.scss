@@ -1404,8 +1404,12 @@ turbo-frame {
   gap: 10px;
   margin-bottom: 1.25rem;
 
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+
   .toggle-field {
-    background: rgba(13, 17, 23, 0.4);
+    background: $bg-darker;
     border: 1px solid rgba(var(--rgb-inverse), 0.06);
     padding: 10px;
     border-radius: $radius-sm;
@@ -2976,6 +2980,7 @@ header nav ul.nav-links {
       color: var(--txt-btn-contrast);
       padding: 10px 20px;
       border-radius: 8px;
+      text-wrap: auto;
     }
   }
 
@@ -3000,23 +3005,21 @@ header nav ul.nav-links {
     }
 
     .btn-stream-source {
-      background: #1e1b4b;
-      color: #c7d2fe;
-      border: 1px solid #312e81;
+      background: $accent-green;
+      border: 1px solid rgba(var(--rgb-inverse), 0.1);
 
       &:hover {
-        background: #1e1b4b;
+        background: $accent-green-hover;
         color: var(--text-main);
       }
     }
 
     .btn-stream-search {
-      background: #0f172a;
-      color: var(--text-muted);
+      background: $accent-cyan;
       border: 1px solid rgba(var(--rgb-inverse), 0.1);
 
       &:hover {
-        background: #0f172a;
+        background: $accent-cyan-hover;
         color: var(--text-main);
       }
     }
@@ -3033,7 +3036,7 @@ header nav ul.nav-links {
 .modal-back-btn {
   background: rgba(var(--rgb-inverse), 0.08);
   border: 1px solid rgba(var(--rgb-inverse), 0.1);
-  color: #e2e8f0;
+  color: $text-main;
   cursor: pointer;
   font-size: 0.8rem;
   font-weight: 600;

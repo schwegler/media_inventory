@@ -25,4 +25,9 @@ export default class extends Controller {
       document.documentElement.style.overflow = ""
     }
   }
+
+  disconnect() {
+    document.body.style.overflow = ""
+    document.documentElement.style.overflow = ""
+  }
 }
