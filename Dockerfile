@@ -28,7 +28,7 @@ RUN bundle install && \
 
 COPY . .
 
-RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
+RUN SECRET_KEY_BASE=dummy_secret_for_build ./bin/rails assets:precompile
 
 # Final stage
 FROM base
