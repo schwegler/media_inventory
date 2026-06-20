@@ -121,6 +121,8 @@ GEM
     date (3.5.1)
     didkit (0.3.3)
     diff-lcs (1.6.2)
+    dockerfile-rails (1.7.10)
+      rails (>= 3.0.0)
     drb (2.2.3)
     erb (6.0.4)
     erubi (1.13.1)
@@ -401,6 +403,7 @@ DEPENDENCIES
   bundler-audit
   capybara
   dartsass-rails
+  dockerfile-rails (>= 1.7)
   foreman
   importmap-rails
   kaminari (~> 1.2)
