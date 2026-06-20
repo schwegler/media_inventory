@@ -2223,7 +2223,7 @@ header nav ul.nav-links {
 }
 
 .show-review-card {
-  background: rgba(22, 27, 34, 0.35);
+  background: var(--bg-darker);
   border: 1px solid rgba(var(--rgb-inverse), 0.05);
   border-radius: 12px;
   padding: 1rem 1.25rem;
