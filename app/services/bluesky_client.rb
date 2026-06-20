@@ -44,6 +44,19 @@ class BlueskyClient
     nil
   end
 
+  def resolve_handle(handle)
+    uri = URI("#{BASE_URL}/com.atproto.identity.resolveHandle")
+    uri.query = URI.encode_www_form(handle: handle)
+
+    req = Net::HTTP::Get.new(uri)
+    response = execute_request(req, uri)
+
+    JSON.parse(response.body)['did'] if response.code == '200'
+  rescue StandardError => e
+    Rails.logger.error "Bluesky resolveHandle error: #{e.message}"
+    nil
+  end
+
   private
 
   def build_post_request(uri, text)

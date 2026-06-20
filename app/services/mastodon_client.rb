@@ -36,4 +36,22 @@ class MastodonClient
     Rails.logger.error "Mastodon posting error: #{e.message}"
     false
   end
+
+  def verify_credentials
+    return nil unless @user && @user[:domain].present? && @user[:access_token].present?
+
+    uri = URI("https://#{@user[:domain]}/api/v1/accounts/verify_credentials")
+    req = Net::HTTP::Get.new(uri, {
+                               'Authorization' => "Bearer #{@user[:access_token]}"
+                             })
+
+    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+      http.request(req)
+    end
+
+    JSON.parse(response.body) if response.code == '200'
+  rescue StandardError => e
+    Rails.logger.error "Mastodon verify credentials error: #{e.message}"
+    nil
+  end
 end
