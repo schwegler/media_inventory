@@ -49,8 +49,6 @@ class Comic < ApplicationRecord
     nil
   end
 
-  private
-
   def fetch_comicvine_page(api_key, offset)
     require 'net/http'
     require 'json'

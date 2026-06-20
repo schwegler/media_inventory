@@ -28,8 +28,6 @@ class VideoGame < ApplicationRecord
     Rails.logger.error "Failed to sync Video Game details: #{e.message}"
   end
 
-  private
-
   def fetch_rawg_data(api_key)
     require 'net/http'
     require 'json'

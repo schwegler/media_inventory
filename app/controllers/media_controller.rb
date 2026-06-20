@@ -143,8 +143,6 @@ class MediaController < ApplicationController
     []
   end
 
-  private
-
   def build_comicvine_url(query, api_key)
     url = URI('https://comicvine.gamespot.com/api/search/')
     url.query = URI.encode_www_form(
