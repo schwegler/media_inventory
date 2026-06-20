@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+  <%= stylesheet_link_tag "application", "data-turbo-track": Rails.env.production? ? "reload" : "" %>
   <%= javascript_importmap_tags %>
   <%= csrf_meta_tags %>
   <%= csp_meta_tag %>
@@ -19,7 +19,7 @@
 <body <% if hotwire_native_app? %>data-native="true"<% end %>>
 
   <% unless hotwire_native_app? %>
-  <header class="app-header">
+  <header class="app-header" data-controller="mobile-menu">
     <nav class="app-nav">
       <div class="nav-brand">
         <%= link_to root_path, class: 'brand-link' do %>
@@ -37,7 +37,7 @@
         <% end %>
       </div>
       
-      <ul class="nav-links">
+      <ul class="nav-links desktop-nav">
         <li><%= link_to "MOVIES", movies_path %></li>
         <li><%= link_to "ALBUMS", albums_path %></li>
         <li><%= link_to "COMICS", comics_path %></li>
@@ -48,7 +48,7 @@
         <% end %>
       </ul>
 
-      <div class="nav-user-section">
+      <div class="nav-user-section desktop-nav">
         <% if logged_in? %>
           <div class="nav-dropdown" data-controller="dropdown">
             <button class="nav-user-info sleek-btn usr-btn dropdown-toggle" type="button" data-action="click->dropdown#toggle" data-dropdown-target="button" aria-haspopup="true" aria-expanded="false">
@@ -85,7 +85,59 @@
           <%= link_to "LOG IN", login_path, class: 'sleek-btn sleek-btn-secondary' %>
         <% end %>
       </div>
+
+      <button class="mobile-menu-btn" type="button" data-action="click->mobile-menu#toggle" aria-label="Toggle navigation">
+        <svg class="menu-icon" data-mobile-menu-target="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+        <svg class="close-icon hidden" data-mobile-menu-target="closeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
     </nav>
+
+    <div class="mobile-nav-panel" data-mobile-menu-target="menu">
+      <ul class="mobile-nav-links">
+        <li><%= link_to "MOVIES", movies_path %></li>
+        <li><%= link_to "ALBUMS", albums_path %></li>
+        <li><%= link_to "COMICS", comics_path %></li>
+        <li><%= link_to "TV SHOWS", tv_shows_path %></li>
+        <li><%= link_to "GAMES", video_games_path %></li>
+        <% if logged_in? %>
+          <li><%= link_to "MEMBERS", users_path %></li>
+        <% end %>
+      </ul>
+      <div class="mobile-nav-user-section">
+        <% if logged_in? %>
+          <div class="mobile-user-profile">
+            <%= user_avatar_tag(current_user, size: 48) %>
+            <div class="mobile-user-info">
+              <span class="nav-username"><%= current_user.name.upcase %></span>
+              <div class="mobile-user-links">
+                <%= link_to "Profile", current_user, class: "mobile-link" %>
+                <%= link_to "Settings", settings_path, class: "mobile-link" %>
+                <%= button_to "Sign Out", logout_path, method: :delete, class: "mobile-link mobile-logout-btn", form_class: "dropdown-logout-form" %>
+              </div>
+            </div>
+          </div>
+          <div class="mobile-log-actions">
+            <h4 class="mobile-log-header">LOG NEW ITEM</h4>
+            <%= link_to "🎬 Log Movie", new_movie_path, class: "mobile-log-btn", data: { turbo_frame: "modal" } %>
+            <%= link_to "💿 Log Album", new_album_path, class: "mobile-log-btn", data: { turbo_frame: "modal" } %>
+            <%= link_to "📚 Log Comic", new_comic_path, class: "mobile-log-btn", data: { turbo_frame: "modal" } %>
+            <%= link_to "📺 Log TV Show", new_tv_show_path, class: "mobile-log-btn", data: { turbo_frame: "modal" } %>
+            <%= link_to "🎮 Log Video Game", new_video_game_path, class: "mobile-log-btn", data: { turbo_frame: "modal" } %>
+          </div>
+        <% else %>
+          <div class="mobile-auth-actions">
+            <%= link_to "LOG IN", login_path, class: 'btn btn-primary' %>
+          </div>
+        <% end %>
+      </div>
+    </div>
   </header>
   <% end %>
 

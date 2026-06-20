@@ -82,6 +82,20 @@ class User < ApplicationRecord
 
   before_create :generate_activitypub_keys
 
+  def self.generate_unique_username(base)
+    base = base.to_s.split('.').first.to_s.gsub(/[^a-zA-Z0-9_]/, '_').downcase
+    base = 'user' if base.blank?
+    base = base[0...25]
+
+    username = base
+    counter = 1
+    while exists?(username: username)
+      username = "#{base}#{counter}"
+      counter += 1
+    end
+    username
+  end
+
   private
 
   def generate_activitypub_keys

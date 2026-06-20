@@ -180,7 +180,7 @@ body {
 
 .container {
   width: 100%;
-  max-width: 1100px;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 0 20px;
   box-sizing: border-box;
@@ -1240,7 +1240,7 @@ turbo-frame {
 
   &:hover {
     border-color: rgba(var(--rgb-inverse), 0.1);
-    background: rgba(22, 27, 34, 0.75);
+    background: rgba(var(--rgb-inverse), 0.04);
   }
 }
 
@@ -1250,7 +1250,7 @@ turbo-frame {
   border-radius: $radius-sm;
   overflow: hidden;
   flex-shrink: 0;
-  background: rgba(13, 17, 23, 0.8);
+  background: rgba(var(--rgb-inverse), 0.06);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1758,7 +1758,7 @@ turbo-frame {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    max-width: 1100px;
+    max-width: 1600px;
     margin: 0 auto;
     padding: 0 20px;
     box-sizing: border-box;
@@ -4008,15 +4008,6 @@ input:checked+.slider:before {
   gap: 12px;
 }
 
-.activity-card {
-  display: flex;
-  gap: 16px;
-  background: #1a1a1a;
-  border: 1px solid rgba(var(--rgb-inverse), 0.05);
-  border-radius: 12px;
-  padding: 16px;
-}
-
 .activity-thumbnail {
   width: 48px;
   height: 48px;
@@ -4144,7 +4135,7 @@ input:checked+.slider:before {
 
 /* --- Details Card & Shared --- */
 .details-card {
-  background: #1a1a1a;
+  background: $bg-darker;
   border-radius: 16px;
   padding: 24px;
   border: 1px solid rgba(var(--rgb-inverse), 0.05);
@@ -4246,7 +4237,7 @@ input[type="submit"]:focus-visible {
 //  Auth Tabs
 // ==========================================================================
 .auth-tabs-container {
-  background: rgba(30, 41, 59, 0.3);
+  background: $card-bg;
   border: 1px solid rgba(var(--rgb-inverse), 0.05);
   border-radius: 12px;
   overflow: hidden;
@@ -4256,14 +4247,14 @@ input[type="submit"]:focus-visible {
 .auth-tabs {
   display: flex;
   border-bottom: 1px solid rgba(var(--rgb-inverse), 0.05);
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(var(--rgb-inverse), 0.02);
 }
 
 .auth-tab {
   flex: 1;
   background: transparent;
   border: none;
-  color: var(--text-muted);
+  color: var(--txt-btn-contrast);
   padding: 1rem 0.5rem;
   font-size: 0.9rem;
   font-weight: 500;
@@ -4272,7 +4263,7 @@ input[type="submit"]:focus-visible {
   border-bottom: 2px solid transparent;
 
   &:hover {
-    color: #e2e8f0;
+    color: var(--text-main);
     background: rgba(var(--rgb-inverse), 0.02);
   }
 
@@ -4347,4 +4338,232 @@ input[type="submit"]:focus-visible {
 .progress-completed {
   color: #fff;
   font-weight: 600;
+}
+
+// ==========================================================================
+//  Mobile & Responsive Enhancements
+// ==========================================================================
+
+.mobile-menu-btn {
+  display: none; // hidden on desktop
+  background: transparent;
+  border: none;
+  color: $text-main;
+  padding: 8px;
+  cursor: pointer;
+  z-index: 1050; // above the panel
+}
+
+.menu-icon,
+.close-icon {
+  width: 28px;
+  height: 28px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.mobile-nav-panel {
+  display: none; // hidden by default, shown via active class below
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: $card-bg-solid;
+  border-bottom: 1px solid $card-border;
+  padding: 1.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  flex-direction: column;
+  gap: 1.5rem;
+  z-index: 1040;
+}
+
+.mobile-nav-panel.active {
+  display: flex !important;
+  animation: slideDown 0.3s ease-out forwards;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobile-nav-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  li a {
+    color: $text-main;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.2rem;
+    display: block;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(var(--rgb-inverse), 0.1);
+  }
+}
+
+.mobile-user-profile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+
+  .mobile-user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .nav-username {
+      font-size: 1.1rem;
+    }
+  }
+}
+
+.mobile-user-links {
+  display: flex;
+  gap: 12px;
+
+  .mobile-link {
+    font-size: 0.85rem;
+    color: $text-muted;
+    text-decoration: underline;
+  }
+
+  .mobile-logout-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-family: inherit;
+  }
+}
+
+.mobile-log-header {
+  font-size: 0.9rem;
+  color: $text-muted;
+  margin-bottom: 0.8rem;
+}
+
+.mobile-log-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+
+  .mobile-log-btn {
+    display: block;
+    background-color: $bg-dark;
+    padding: 12px;
+    border-radius: $radius-md;
+    text-decoration: none;
+    color: $text-main;
+    font-weight: 600;
+    border: 1px solid rgba(var(--rgb-inverse), 0.1);
+  }
+}
+
+.mobile-auth-actions {
+  margin-top: 1rem;
+}
+
+// Media Queries for Mobile
+@media (max-width: 768px) {
+
+  // Hide Desktop Nav
+  .desktop-nav {
+    display: none !important;
+  }
+
+  // Show Mobile Toggle Button
+  .mobile-menu-btn {
+    display: block;
+  }
+
+  // Profile header adjustments
+  .profile-info-bar {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+    padding: 0 16px 16px;
+  }
+
+  .avatar-container {
+    margin-top: -60px;
+    margin-bottom: 8px;
+  }
+
+  .profile-stats {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .profile-tabs {
+    gap: 16px;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 8px;
+  }
+
+  // Adjust Container Padding
+  .container {
+    padding: 0 16px;
+  }
+
+  // Adjust Media Grid
+  .media-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  .media-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px;
+
+    .card-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 1.2rem;
+    }
+
+    .card-content h3 {
+      white-space: normal;
+      font-size: 0.95rem;
+    }
+  }
+
+  // Adjust details card
+  .details-card {
+    padding: 1.2rem;
+    border-radius: $radius-lg;
+
+    h2 {
+      font-size: 1.4rem;
+    }
+
+    .detail-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      padding: 8px 0;
+    }
+  }
+
+  // Standard Forms
+  form.standard-form {
+    padding: 1.2rem;
+  }
 }
