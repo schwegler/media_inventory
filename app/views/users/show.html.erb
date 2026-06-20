@@ -20,11 +20,11 @@
 
       <div class="profile-stats">
         <div class="stat-item">
-          <span class="stat-count"><%= @user.library_items.where(is_collected: true).count %></span>
+          <span class="stat-count"><%= @collection_items.count %></span>
           <span class="stat-label">Collection</span>
         </div>
         <div class="stat-item">
-          <span class="stat-count"><%= @user.library_items.where(in_backlog: true).count %></span>
+          <span class="stat-count"><%= @backlog_items.count %></span>
           <span class="stat-label">Backlog</span>
         </div>
         <%= link_to following_user_path(@user), class: "stat-item" do %>
@@ -100,12 +100,8 @@
             </form>
           </div>
           <div class="media-grid">
-             <% collection_items = @user.library_items.where(is_collected: true) %>
-             <% collection_items = collection_items.where(item_type: params[:type]) if params[:type].present? %>
-             <% collection_items = collection_items.order(created_at: :desc) %>
-             
-             <% if collection_items.any? %>
-                 <% collection_items.each do |lib_item| %>
+             <% if @collection_items.any? %>
+                 <% @collection_items.each do |lib_item| %>
                    <% item = lib_item.item %>
                    <%= render partial: 'shared/media_card', locals: { media_item: item } %>
                  <% end %>
@@ -118,9 +114,8 @@
 
       <div class="tab-content hidden" data-tabs-target="content" data-tab-name="backlog">
         <div class="media-grid">
-           <% backlog_items = @user.library_items.where(in_backlog: true).order(created_at: :desc) %>
-           <% if backlog_items.any? %>
-               <% backlog_items.each do |lib_item| %>
+           <% if @backlog_items.any? %>
+               <% @backlog_items.each do |lib_item| %>
                  <% item = lib_item.item %>
                  <%= render partial: 'shared/media_card', locals: { media_item: item } %>
                <% end %>
