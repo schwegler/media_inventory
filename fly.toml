@@ -29,3 +29,10 @@ console_command = '/rails/bin/rails console'
 [[statics]]
   guest_path = '/rails/public'
   url_prefix = '/'
+
+[env]
+  DATABASE_URL = "sqlite3:///data/production.sqlite3"
+
+[mounts]
+  source = "data"
+  destination = "/data"
