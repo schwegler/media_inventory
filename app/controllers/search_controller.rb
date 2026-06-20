@@ -7,27 +7,27 @@ class SearchController < ApplicationController
 
     if @query.present?
       @results = {}
-      
+
       search_term = "%#{@query}%"
-      
+
       if @filter_type.blank? || @filter_type == 'movies'
-        @results[:movies] = Movie.where("title LIKE ?", search_term).limit(20)
+        @results[:movies] = Movie.where('title LIKE ?', search_term).limit(20)
       end
-      
+
       if @filter_type.blank? || @filter_type == 'albums'
-        @results[:albums] = Album.where("title LIKE ?", search_term).limit(20)
+        @results[:albums] = Album.where('title LIKE ?', search_term).limit(20)
       end
-      
+
       if @filter_type.blank? || @filter_type == 'comics'
-        @results[:comics] = Comic.where("title LIKE ?", search_term).limit(20)
+        @results[:comics] = Comic.where('title LIKE ?', search_term).limit(20)
       end
-      
+
       if @filter_type.blank? || @filter_type == 'tv_shows'
-        @results[:tv_shows] = TvShow.where("title LIKE ?", search_term).limit(20)
+        @results[:tv_shows] = TvShow.where('title LIKE ?', search_term).limit(20)
       end
-      
+
       if @filter_type.blank? || @filter_type == 'video_games'
-        @results[:video_games] = VideoGame.where("title LIKE ?", search_term).limit(20)
+        @results[:video_games] = VideoGame.where('title LIKE ?', search_term).limit(20)
       end
     else
       @results = {}

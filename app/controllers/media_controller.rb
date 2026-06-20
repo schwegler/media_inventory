@@ -102,7 +102,7 @@ class MediaController < ApplicationController
     url = URI("https://api.themoviedb.org/3/search/movie?api_key=#{api_key}&query=#{CGI.escape(query)}")
     response = Net::HTTP.get(url)
     data = JSON.parse(response)
-    
+
     return [] unless data['results']
 
     data['results'].slice(0, 5).map do |item|
@@ -136,7 +136,6 @@ class MediaController < ApplicationController
     ''
   end
 
-
   def fetch_itunes_movies(query)
     return [] if Rails.env.test?
 
@@ -153,7 +152,7 @@ class MediaController < ApplicationController
         title: item['trackName'],
         director: item['artistName'],
         release_year: item['releaseDate']&.split('-')&.first,
-        thumbnail_url: item['artworkUrl100'] ? item['artworkUrl100'].sub('100x100bb', '400x400bb') : nil,
+        thumbnail_url: item['artworkUrl100']&.sub('100x100bb', '400x400bb'),
         api_id: item['trackId'].to_s,
         external_url: item['trackViewUrl'],
         is_local: false
@@ -203,7 +202,7 @@ class MediaController < ApplicationController
         artist: item['artistName'],
         genre: item['primaryGenreName'],
         release_year: item['releaseDate']&.split('-')&.first,
-        thumbnail_url: item['artworkUrl100'] ? item['artworkUrl100'].sub('100x100bb', '500x500bb') : nil,
+        thumbnail_url: item['artworkUrl100']&.sub('100x100bb', '500x500bb'),
         api_id: item['collectionId'].to_s,
         external_url: item['collectionViewUrl'],
         is_local: false
@@ -347,7 +346,11 @@ class MediaController < ApplicationController
       show = item['show']
       {
         title: show['name'],
-        network: show['network'] ? show['network']['name'] : (show['webChannel'] ? show['webChannel']['name'] : nil),
+        network: if show['network']
+                   show['network']['name']
+                 else
+                   (show['webChannel'] ? show['webChannel']['name'] : nil)
+                 end,
         release_year: show['premiered']&.split('-')&.first,
         thumbnail_url: show['image'] ? (show['image']['original'] || show['image']['medium']) : nil,
         api_id: show['id'].to_s,
