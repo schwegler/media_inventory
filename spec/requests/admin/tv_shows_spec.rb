@@ -3,7 +3,10 @@
 require 'rails_helper'
 
 RSpec.describe 'Admin::TvShows', type: :request do
-  let(:admin) { User.create!(name: 'Admin User', email: "admin_#{SecureRandom.hex(4)}@example.com", password: 'password', password_confirmation: 'password', admin: true) }
+  let(:admin) do
+    User.create!(name: 'Admin User', email: "admin_#{SecureRandom.hex(4)}@example.com", password: 'password',
+                 password_confirmation: 'password', admin: true)
+  end
 
   before do
     post login_path, params: { session: { email: admin.email, password: 'password' } }

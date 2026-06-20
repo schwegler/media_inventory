@@ -3,8 +3,13 @@
 require 'rails_helper'
 
 RSpec.describe 'Admin::Authorization', type: :request do
-  let(:user) { User.create!(name: 'Normal User', email: 'normal@example.com', password: 'password', password_confirmation: 'password') }
-  let(:admin) { User.create!(name: 'Admin User', email: 'admin@example.com', password: 'password', password_confirmation: 'password', admin: true) }
+  let(:user) do
+    User.create!(name: 'Normal User', email: 'normal@example.com', password: 'password', password_confirmation: 'password')
+  end
+  let(:admin) do
+    User.create!(name: 'Admin User', email: 'admin@example.com', password: 'password', password_confirmation: 'password',
+                 admin: true)
+  end
 
   describe 'accessing admin paths' do
     context 'when not logged in' do
