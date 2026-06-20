@@ -29,15 +29,14 @@ RSpec.describe 'Comics Management', type: :system do
 
     expect(page).to have_field('comic[issue_number]', visible: true)
 
-    page.execute_script("document.querySelector('#comic_issue_number').value = '1'")
-    page.execute_script("document.querySelector('#comic_publisher').value = 'DC Comics'")
-    page.execute_script("document.querySelector('#comic_writer').value = 'Alan Moore'")
-    page.execute_script("document.querySelector('#comic_artist').value = 'Dave Gibbons'")
+    fill_in 'comic[issue_number]', with: '1'
+    fill_in 'comic[publisher]', with: 'DC Comics'
+    fill_in 'comic[writer]', with: 'Alan Moore'
+    fill_in 'comic[artist]', with: 'Dave Gibbons'
     check 'In Collection'
     select '★★★★★', from: 'comic[rating]'
-    page.execute_script("document.querySelector('#comic_review').value = 'Who watches the watchmen?'")
-    page.execute_script("document.querySelector('form.standard-form').submit()")
-    sleep 2
+    fill_in 'comic[review]', with: 'Who watches the watchmen?'
+    click_button 'Create Comic'
 
     begin
       expect(page).to have_text('Comic was successfully logged.')

@@ -63,7 +63,7 @@ RSpec.describe 'Landing and Authentication', type: :system do
 
     # Log out
     if Capybara.current_driver == :rack_test
-      find('form.dropdown-logout-form button', visible: :all).click
+      first('form.dropdown-logout-form button', visible: :all).click
     else
       find('.nav-user-info').click
       click_button 'Sign Out'
@@ -140,7 +140,7 @@ RSpec.describe 'Landing and Authentication', type: :system do
 
     # Log out
     if Capybara.current_driver == :rack_test
-      find('form.dropdown-logout-form button', visible: :all).click
+      first('form.dropdown-logout-form button', visible: :all).click
     else
       find('.nav-user-info').click
       click_button 'Sign Out'
