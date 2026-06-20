@@ -17,7 +17,7 @@
 
     <div>
       <%= f.label :title %>
-      <%= f.text_field :title, required: true, data: { thumbnail_fetcher_target: "titleInput", action: "input->thumbnail-fetcher#search" } %>
+      <%= f.text_field :title, data: { thumbnail_fetcher_target: "titleInput", action: "input->thumbnail-fetcher#search" } %>
     </div>
 
     <div class="thumbnail-fetcher-container">

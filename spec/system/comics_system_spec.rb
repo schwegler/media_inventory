@@ -37,7 +37,15 @@ RSpec.describe 'Comics Management', type: :system do
     select '★★★★★', from: 'comic[rating]'
     fill_in 'comic[review]', with: 'Who watches the watchmen?'
     click_button 'Create Comic'
+    sleep 2
+    page.save_screenshot('tmp/capybara/after_sleep.png')
 
+    begin
+      expect(page).to have_text('Comic was successfully logged.')
+    rescue StandardError => e
+      puts "BROWSER LOGS: #{page.driver.browser.logs.get(:browser).map(&:message)}"
+      raise e
+    end
     expect(page).to have_text('Watchmen')
     expect(page).to have_text('by Alan Moore')
     expect(page).to have_text('Who watches the watchmen?')
