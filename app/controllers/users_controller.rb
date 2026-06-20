@@ -12,20 +12,24 @@ class UsersController < ApplicationController
 
   def show
     @user = User.find(params[:id])
-    @activities = @user.activities.includes(:user, :trackable).order(created_at: :desc).limit(20)
+    @activities = preload_activities_attachments(
+      @user.activities.includes(:user, :trackable).order(created_at: :desc).limit(20)
+    )
     @likes = @user.likes.includes(:likeable).order(created_at: :desc)
+    preload_records_attachments(@likes.map(&:likeable).compact)
 
-    # Force loading of activities and likes to avoid double queries (any? then render)
+    @collection_items = @user.library_items.where(is_collected: true).includes(:item).order(created_at: :desc)
+    @collection_items = @collection_items.where(item_type: params[:type]) if params[:type].present?
+    preload_records_attachments(@collection_items)
+
+    @backlog_items = @user.library_items.where(in_backlog: true).includes(:item).order(created_at: :desc)
+    preload_records_attachments(@backlog_items)
+
+    # Force loading to avoid double queries (any? then render)
     @activities.load
     @likes.load
-
-    @media_items = [
-      @user.movies.where(is_public: true),
-      @user.albums.where(is_public: true),
-      @user.comics.where(is_public: true),
-      @user.tv_shows.where(is_public: true),
-      @user.video_games.where(is_public: true)
-    ].flatten.sort_by(&:created_at).reverse
+    @collection_items.load
+    @backlog_items.load
   end
 
   def new

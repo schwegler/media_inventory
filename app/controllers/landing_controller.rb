@@ -78,23 +78,6 @@ class LandingController < ApplicationController
             .select { |a| a.trackable&.review.present? }.first(3)
   end
 
-  def preload_activities_attachments(activities)
-    preload_records_attachments(activities.map(&:trackable).compact)
-    activities
-  end
-
-  def preload_records_attachments(records)
-    records.group_by(&:class).each do |klass, grouped_records|
-      next unless klass.reflect_on_association(:cover_image_attachment)
-
-      ActiveRecord::Associations::Preloader.new(
-        records: grouped_records,
-        associations: { cover_image_attachment: :blob }
-      ).call
-    end
-    records
-  end
-
   def db_status
     status = {
       database_connected: ActiveRecord::Base.connection.active?,
