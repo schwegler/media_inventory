@@ -16,11 +16,13 @@ export default class extends Controller {
       if (this.hasIconTarget) this.iconTarget.classList.add("hidden")
       if (this.hasCloseIconTarget) this.closeIconTarget.classList.remove("hidden")
       document.body.style.overflow = "hidden" // Prevent scrolling when menu is open
+      document.documentElement.style.overflow = "hidden"
     } else {
       this.menuTarget.classList.remove("active")
       if (this.hasIconTarget) this.iconTarget.classList.remove("hidden")
       if (this.hasCloseIconTarget) this.closeIconTarget.classList.add("hidden")
       document.body.style.overflow = ""
+      document.documentElement.style.overflow = ""
     }
   }
 }
