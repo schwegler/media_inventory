@@ -62,6 +62,19 @@
 
       <div class="nav-user-section desktop-nav">
         <% if logged_in? %>
+          <div class="nav-notifications" style="margin-right: 15px; display: flex; align-items: center;">
+            <%= link_to notifications_path, class: "notification-bell", style: "position: relative; color: white; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.1);" do %>
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              <% unread_count = current_user.notifications.unread.count %>
+              <% if unread_count > 0 %>
+                <span style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; font-size: 10px; font-weight: bold; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; border-radius: 50%;"><%= unread_count > 9 ? '9+' : unread_count %></span>
+              <% end %>
+            <% end %>
+          </div>
+
           <div class="nav-dropdown" data-controller="dropdown">
             <button class="nav-user-info sleek-btn usr-btn dropdown-toggle" type="button" data-action="click->dropdown#toggle" data-dropdown-target="button" aria-haspopup="true" aria-expanded="false">
               <%= user_avatar_tag(current_user, size: 24) %>
@@ -135,13 +148,20 @@
       </ul>
       <div class="mobile-nav-user-section">
         <% if logged_in? %>
-          <div class="mobile-user-profile">
+          <div class="mobile-user-profile" style="position: relative; margin-bottom: 15px;">
             <%= user_avatar_tag(current_user, size: 48) %>
             <div class="mobile-user-info">
               <span class="nav-username"><%= current_user.name.upcase %></span>
               <div class="mobile-user-links">
                 <%= link_to "Profile", current_user, class: "mobile-link" %>
                 <%= link_to "Settings", settings_path, class: "mobile-link" %>
+                <%= link_to notifications_path, class: "mobile-link" do %>
+                  Notifications
+                  <% unread_count = current_user.notifications.unread.count %>
+                  <% if unread_count > 0 %>
+                    <span style="background: #ef4444; color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 10px; margin-left: 4px;"><%= unread_count %></span>
+                  <% end %>
+                <% end %>
                 <%= button_to "Sign Out", logout_path, method: :delete, class: "mobile-link mobile-logout-btn", form_class: "dropdown-logout-form" %>
               </div>
             </div>

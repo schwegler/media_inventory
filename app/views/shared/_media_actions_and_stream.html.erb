@@ -13,6 +13,8 @@ when 'Album'
   review_placeholder = "Add listening review..."
   submit_review_label = "Save Review & Listening Status"
   apple_label = " View on Apple Music"
+  physical_formats = ["CD", "Vinyl", "Cassette"]
+  digital_formats = ["Apple Music", "Spotify", "Bandcamp", "Other"]
 when 'Comic'
   watchlist_add_label = "⏳ Add to Reading List"
   watchlist_remove_label = "⏳ Remove from Reading List"
@@ -23,6 +25,8 @@ when 'Comic'
   review_placeholder = "Add reading review..."
   submit_review_label = "Save Review & Reading Status"
   apple_label = " View on Apple Books"
+  physical_formats = ["Single Issue", "Trade Paperback", "Hardcover", "Omnibus"]
+  digital_formats = ["ComiXology", "Kindle", "Apple Books", "Other"]
 when 'VideoGame'
   watchlist_add_label = "⏳ Add to Backlog"
   watchlist_remove_label = "⏳ Remove from Backlog"
@@ -33,6 +37,8 @@ when 'VideoGame'
   review_placeholder = "Add playing review..."
   submit_review_label = "Save Review & Playing Status"
   apple_label = "🎮 View on Apple Arcade"
+  physical_formats = ["PS5", "PS4", "Xbox Series X", "Switch", "PC", "Other"]
+  digital_formats = ["Steam", "PSN", "Xbox Live", "eShop", "Epic Games", "GOG", "Other"]
 else # Movie, TvShow, etc.
   watchlist_add_label = "⏳ Add to Watchlist"
   watchlist_remove_label = "⏳ Remove from Watchlist"
@@ -43,6 +49,8 @@ else # Movie, TvShow, etc.
   review_placeholder = "Add watch review..."
   submit_review_label = "Save Review & Watching Status"
   apple_label = " View on Apple TV"
+  physical_formats = ["DVD", "Blu-ray", "4K UHD", "VHS", "Other"]
+  digital_formats = ["Apple TV", "Amazon Video", "Vudu", "Other"]
 end
 %>
 
@@ -103,6 +111,14 @@ end
         <%= link_to "Log in", login_path, class: "login-link" %> to add this media to your library.
       </div>
     <% end %>
+
+    <% if logged_in? %>
+      <div class="actions-section" style="margin-top: 1rem;">
+        <div class="actions-buttons-row">
+          <%= link_to "✏️ Suggest Edit", new_polymorphic_path([item, :edit_suggestion]), class: "sleek-btn sleek-btn-secondary" %>
+        </div>
+      </div>
+    <% end %>
   </div>
 
   <% if logged_in? && @library_item.present? && (item.is_collected? || item.in_watchlist?) %>
@@ -130,6 +146,24 @@ end
 
         <div>
           <%= f.text_area :review, placeholder: review_placeholder, rows: 3, class: "form-control quick-review-textarea" %>
+        </div>
+
+        <div class="ownership-details-row" style="margin-top: 15px; margin-bottom: 15px; display: flex; gap: 20px;">
+          <div class="inline-checkbox-group" style="display: flex; flex-direction: column; gap: 5px; flex: 1;">
+            <div style="align-items: center; gap: 0.5rem; white-space: nowrap;">
+              <%= f.check_box :owned_physically, id: "inline-phys-checkbox-#{item.id}" %>
+              <%= f.label :owned_physically, "Own Physically", for: "inline-phys-checkbox-#{item.id}", class: "inline-checkbox-label", style: "margin: 0;" %>
+            </div>
+            <%= f.select :owned_physically_format, physical_formats, { include_blank: 'Select Format...' }, { class: "form-control quick-review-select format-select", style: "width: 100%;" } %>
+          </div>
+
+          <div class="inline-checkbox-group" style="display: flex; flex-direction: column; gap: 5px; flex: 1;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; white-space: nowrap;">
+              <%= f.check_box :owned_digitally, id: "inline-digi-checkbox-#{item.id}" %>
+              <%= f.label :owned_digitally, "Own Digitally", for: "inline-digi-checkbox-#{item.id}", class: "inline-checkbox-label", style: "margin: 0;" %>
+            </div>
+            <%= f.select :owned_digitally_format, digital_formats, { include_blank: 'Select Format...' }, { class: "form-control quick-review-select format-select", style: "width: 100%;" } %>
+          </div>
         </div>
 
         <div class="quick-review-submit-row">

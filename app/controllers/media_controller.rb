@@ -217,6 +217,7 @@ class MediaController < ApplicationController
     []
   end
 
+  # rubocop:disable Metrics/MethodLength
   def fetch_musicbrainz_albums(query)
     return [] if Rails.env.test?
 
@@ -233,7 +234,7 @@ class MediaController < ApplicationController
 
     return [] unless data['release-groups']
 
-    results = data['release-groups'].slice(0, 5).map do |item|
+    data['release-groups'].slice(0, 5).map do |item|
       artist_name = item.dig('artist-credit', 0, 'name') || ''
       {
         title: item['title'],
@@ -246,11 +247,11 @@ class MediaController < ApplicationController
         is_local: false
       }
     end
-    results
   rescue StandardError => e
     Rails.logger.error "MusicBrainz Album search failed: #{e.message}"
     []
   end
+  # rubocop:enable Metrics/MethodLength
 
   def autocomplete_comics(query)
     local_results = fetch_local_comics(query)

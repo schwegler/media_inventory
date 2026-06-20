@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_20_021735) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_20_210027) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -110,10 +110,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_20_021735) do
     t.string "commentable_type", null: false
     t.text "content", null: false
     t.datetime "created_at", null: false
+    t.integer "parent_id"
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
     t.index ["commentable_type", "commentable_id"], name: "index_comments_on_commentable"
+    t.index ["parent_id"], name: "index_comments_on_parent_id"
     t.index ["user_id"], name: "index_comments_on_user_id"
+  end
+
+  create_table "edit_suggestions", force: :cascade do |t|
+    t.text "admin_notes"
+    t.datetime "created_at", null: false
+    t.json "proposed_changes"
+    t.string "status"
+    t.integer "suggestable_id", null: false
+    t.string "suggestable_type", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["suggestable_type", "suggestable_id"], name: "index_edit_suggestions_on_suggestable"
+    t.index ["user_id"], name: "index_edit_suggestions_on_user_id"
   end
 
   create_table "library_items", force: :cascade do |t|
@@ -125,6 +140,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_20_021735) do
     t.boolean "is_public"
     t.integer "item_id", null: false
     t.string "item_type", null: false
+    t.boolean "owned_digitally", default: false, null: false
+    t.string "owned_digitally_format"
+    t.boolean "owned_physically", default: false, null: false
+    t.string "owned_physically_format"
     t.string "rating"
     t.text "review"
     t.datetime "updated_at", null: false
@@ -162,6 +181,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_20_021735) do
     t.string "thumbnail_url"
     t.string "title"
     t.datetime "updated_at", null: false
+  end
+
+  create_table "notifications", force: :cascade do |t|
+    t.string "action"
+    t.integer "actor_id", null: false
+    t.datetime "created_at", null: false
+    t.integer "notifiable_id", null: false
+    t.string "notifiable_type", null: false
+    t.datetime "read_at"
+    t.integer "recipient_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["actor_id"], name: "index_notifications_on_actor_id"
+    t.index ["notifiable_type", "notifiable_id"], name: "index_notifications_on_notifiable"
+    t.index ["recipient_id"], name: "index_notifications_on_recipient_id"
+  end
+
+  create_table "posts", force: :cascade do |t|
+    t.text "content"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["user_id"], name: "index_posts_on_user_id"
   end
 
   create_table "relationships", force: :cascade do |t|
@@ -266,7 +307,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_20_021735) do
   add_foreign_key "activities", "users", on_delete: :cascade
   add_foreign_key "comic_issues", "comics", on_delete: :cascade
   add_foreign_key "comments", "users", on_delete: :cascade
+  add_foreign_key "edit_suggestions", "users"
   add_foreign_key "library_items", "users"
   add_foreign_key "likes", "users", on_delete: :cascade
+  add_foreign_key "posts", "users"
   add_foreign_key "tv_episodes", "tv_shows", on_delete: :cascade
 end

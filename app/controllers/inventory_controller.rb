@@ -18,9 +18,11 @@ class InventoryController < ApplicationController
   def create
     Rails.logger.debug "DEBUG CREATE PARAMS: #{params.inspect}"
     global_params = resource_params.except(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
-                                           :consumed_at, :is_public)
+                                           :consumed_at, :is_public, :owned_physically, :owned_physically_format,
+                                           :owned_digitally, :owned_digitally_format)
     library_params = resource_params.slice(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
-                                           :consumed_at, :is_public)
+                                           :consumed_at, :is_public, :owned_physically, :owned_physically_format,
+                                           :owned_digitally, :owned_digitally_format)
 
     # Handle the transition from watchlist to backlog
     library_params[:in_backlog] = library_params.delete(:in_watchlist) if library_params.key?(:in_watchlist)
@@ -65,6 +67,10 @@ class InventoryController < ApplicationController
         @resource.consumed = @library_item.consumed
         @resource.consumed_at = @library_item.consumed_at
         @resource.is_public = @library_item.is_public
+        @resource.owned_physically = @library_item.owned_physically
+        @resource.owned_physically_format = @library_item.owned_physically_format
+        @resource.owned_digitally = @library_item.owned_digitally
+        @resource.owned_digitally_format = @library_item.owned_digitally_format
       end
     end
     instance_variable_set("@#{resource_name}", @resource)
@@ -86,6 +92,10 @@ class InventoryController < ApplicationController
     @resource.consumed = @library_item.consumed
     @resource.consumed_at = @library_item.consumed_at
     @resource.is_public = @library_item.is_public
+    @resource.owned_physically = @library_item.owned_physically
+    @resource.owned_physically_format = @library_item.owned_physically_format
+    @resource.owned_digitally = @library_item.owned_digitally
+    @resource.owned_digitally_format = @library_item.owned_digitally_format
 
     instance_variable_set("@#{resource_name}", @resource)
   end
@@ -95,9 +105,11 @@ class InventoryController < ApplicationController
     @library_item = LibraryItem.find_or_initialize_by(user: current_user, item: @resource)
 
     global_params = resource_params.except(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
-                                           :consumed_at, :is_public)
+                                           :consumed_at, :is_public, :owned_physically, :owned_physically_format,
+                                           :owned_digitally, :owned_digitally_format)
     library_params = resource_params.slice(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
-                                           :consumed_at, :is_public)
+                                           :consumed_at, :is_public, :owned_physically, :owned_physically_format,
+                                           :owned_digitally, :owned_digitally_format)
     library_params[:in_backlog] = library_params.delete(:in_watchlist) if library_params.key?(:in_watchlist)
 
     ActiveRecord::Base.transaction do

@@ -173,6 +173,11 @@
       <% end %>
     </div>
 
+    
+    <div class="show-community" style="margin-top: 2rem;">
+      <h3>General Comments</h3>
+      <%= render "shared/comments_box", matching_item: @tv_show %>
+    </div>
     <div class="show-actions">
       <%= link_to '← Back to TV Shows', tv_shows_path, class: 'btn btn-secondary' %>
     </div>

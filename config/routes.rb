@@ -1,6 +1,12 @@
 # frozen_string_literal: true
 
 SampleApp::Application.routes.draw do
+  resources :posts, only: %i[create destroy]
+  resources :notifications, only: %i[index] do
+    collection do
+      post :mark_as_read
+    end
+  end
   namespace :admin do
     resources :api_configurations
     resources :activities
@@ -20,6 +26,12 @@ SampleApp::Application.routes.draw do
     end
     resources :comic_issues
     resources :comments
+    resources :edit_suggestions do
+      member do
+        post :approve
+        post :reject
+      end
+    end
     resources :library_items
     resources :likes
     resources :mastodon_oauth_applications
@@ -67,12 +79,22 @@ SampleApp::Application.routes.draw do
 
   resources :relationships, only: %i[create destroy]
 
-  resources :comics
-  resources :tv_shows
+  resources :comics do
+    resources :edit_suggestions, only: %i[new create]
+  end
+  resources :tv_shows do
+    resources :edit_suggestions, only: %i[new create]
+  end
   resources :tv_episodes, only: %i[show]
-  resources :video_games
-  resources :movies
-  resources :albums
+  resources :video_games do
+    resources :edit_suggestions, only: %i[new create]
+  end
+  resources :movies do
+    resources :edit_suggestions, only: %i[new create]
+  end
+  resources :albums do
+    resources :edit_suggestions, only: %i[new create]
+  end
 
   get '/settings', to: 'settings#basic_info', as: 'settings'
   scope :settings, as: 'settings' do

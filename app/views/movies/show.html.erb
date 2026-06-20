@@ -130,6 +130,11 @@
       <% end %>
     </div>
 
+    
+    <div class="show-community" style="margin-top: 2rem;">
+      <h3>General Comments</h3>
+      <%= render "shared/comments_box", matching_item: @movie %>
+    </div>
     <div class="show-actions">
       <%= link_to '← Back to Movies', movies_path, class: 'btn btn-secondary' %>
     </div>

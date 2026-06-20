@@ -1,0 +1,50 @@
+<div class="container" style="max-width: 600px; margin-top: 2rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <h1 style="margin: 0; font-size: 1.5rem;">Notifications</h1>
+    <% if current_user.notifications.unread.any? %>
+      <%= button_to "Mark all as read", mark_as_read_notifications_path, class: "btn btn-secondary btn-sm" %>
+    <% end %>
+  </div>
+
+  <div class="notifications-list" style="display: flex; flex-direction: column; gap: 10px;">
+    <% if @notifications.any? %>
+      <% @notifications.each do |notification| %>
+        <div class="notification-card <%= 'unread' if notification.read_at.nil? %>" style="padding: 1rem; background: <%= notification.read_at.nil? ? 'rgba(129, 140, 248, 0.1)' : 'rgba(255,255,255,0.02)' %>; border: 1px solid <%= notification.read_at.nil? ? 'rgba(129, 140, 248, 0.3)' : 'rgba(255,255,255,0.05)' %>; border-radius: 8px; display: flex; gap: 12px; align-items: flex-start;">
+          <%= user_avatar_tag(notification.actor, size: 40) %>
+          <div class="notification-content" style="flex: 1;">
+            <p style="margin: 0; font-size: 0.95rem;">
+              <strong><%= notification.actor.name.presence || notification.actor.display_handle %></strong>
+              <% case notification.action %>
+              <% when 'liked' %>
+                liked your <%= notification.notifiable.likeable_type.downcase %>.
+              <% when 'commented' %>
+                commented on your <%= notification.notifiable.commentable_type.downcase %>.
+              <% when 'replied' %>
+                replied to your comment.
+              <% when 'mentioned' %>
+                mentioned you in a comment.
+              <% when 'approved_edit' %>
+                approved your edit suggestion for <%= notification.notifiable.suggestable.title rescue notification.notifiable.suggestable.name rescue 'a media item' %>.
+              <% when 'rejected_edit' %>
+                rejected your edit suggestion for <%= notification.notifiable.suggestable.title rescue notification.notifiable.suggestable.name rescue 'a media item' %>.
+              <% else %>
+                <%= notification.action %>
+              <% end %>
+            </p>
+            <span style="font-size: 0.8rem; color: #94a3b8;"><%= time_ago_in_words(notification.created_at) %> ago</span>
+            
+            <% if notification.notifiable.is_a?(Comment) %>
+              <div style="margin-top: 8px; padding: 8px; background: rgba(0,0,0,0.2); border-left: 3px solid #818cf8; font-size: 0.85rem; color: #cbd5e1;">
+                <%= truncate(notification.notifiable.content, length: 100) %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="empty-state">
+        <p>You have no notifications yet.</p>
+      </div>
+    <% end %>
+  </div>
+</div>
