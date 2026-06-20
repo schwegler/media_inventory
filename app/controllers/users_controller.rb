@@ -12,20 +12,27 @@ class UsersController < ApplicationController
 
   def show
     @user = User.find(params[:id])
-    @activities = @user.activities.includes(:user, :trackable).order(created_at: :desc).limit(20)
-    @likes = @user.likes.includes(:likeable).order(created_at: :desc)
+    @activities = @user.activities.order(created_at: :desc)
+    @likes = @user.likes.order(created_at: :desc)
 
-    # Force loading of activities and likes to avoid double queries (any? then render)
-    @activities.load
-    @likes.load
+    # Filter activities and likes based on privacy unless the current user is the owner
+    unless current_user?(@user)
+      @activities = @activities.joins(
+        'INNER JOIN library_items ON library_items.item_id = activities.trackable_id AND ' \
+        'library_items.item_type = activities.trackable_type AND library_items.user_id = activities.user_id'
+      ).where(library_items: { is_public: true })
 
-    @media_items = [
-      @user.movies.where(is_public: true),
-      @user.albums.where(is_public: true),
-      @user.comics.where(is_public: true),
-      @user.tv_shows.where(is_public: true),
-      @user.video_games.where(is_public: true)
-    ].flatten.sort_by(&:created_at).reverse
+      @likes = @likes.joins(
+        'INNER JOIN library_items ON library_items.item_id = likes.likeable_id AND ' \
+        'library_items.item_type = likes.likeable_type AND library_items.user_id = likes.user_id'
+      ).where(library_items: { is_public: true })
+    end
+
+    @activities = @activities.includes(:user, :trackable).limit(20)
+    @likes = @likes.includes(:likeable)
+
+    @collection_items = fetch_library_items(is_collected: true)
+    @backlog_items = fetch_library_items(in_backlog: true)
   end
 
   def new
@@ -112,6 +119,13 @@ class UsersController < ApplicationController
       :notify_push_posts, :notify_push_comments,
       :notify_push_likes, :notify_push_follows
     )
+  end
+
+  def fetch_library_items(filter)
+    items = @user.library_items.where(filter)
+    items = items.where(is_public: true) unless current_user?(@user)
+    items = items.where(item_type: params[:type]) if params[:type].present? && filter[:is_collected]
+    items.order(created_at: :desc)
   end
 
   # Confirms the correct user.
