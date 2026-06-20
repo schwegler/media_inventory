@@ -1,0 +1,33 @@
+<%# Local variables: comment, matching_item, depth: 0 %>
+<div class="comment-item" style="font-size: 0.8rem; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.03); display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
+  <div style="display: flex; justify-content: space-between;">
+    <span style="font-weight: 600; color: #818cf8;"><%= comment.user.name.presence || comment.user.display_handle %></span>
+    <span style="color: #94a3b8; font-size: 0.7rem;"><%= time_ago_in_words(comment.created_at) %> ago</span>
+  </div>
+  <div style="color: #cbd5e1; word-break: break-word;"><%= format_content_with_mentions(comment.content) %></div>
+  
+  <% if logged_in? %>
+    <div style="display: flex; gap: 10px; margin-top: 4px;">
+      <button class="btn-reply" type="button" style="background: none; border: none; color: #94a3b8; font-size: 0.7rem; cursor: pointer; padding: 0;" onclick="document.getElementById('reply-form-<%= comment.id %>').style.display = 'block';">Reply</button>
+    </div>
+    
+    <div id="reply-form-<%= comment.id %>" style="display: none; margin-top: 8px;">
+      <%= form_with model: Comment.new, url: comments_path, local: false, class: 'comment-form', style: 'display: flex; gap: 8px;' do |cf| %>
+        <%= cf.hidden_field :commentable_type, value: matching_item.class.name %>
+        <%= cf.hidden_field :commentable_id, value: matching_item.id %>
+        <%= cf.hidden_field :parent_id, value: comment.id %>
+        <%= cf.text_field :content, placeholder: "Reply to #{comment.user.name.presence || comment.user.display_handle}...", required: true, style: 'flex: 1; padding: 4px 8px; font-size: 0.75rem; border-radius: 4px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); color: #fff;' %>
+        <%= cf.submit 'Reply', class: 'btn btn-primary btn-sm', style: 'font-size: 0.7rem; padding: 4px 8px;' %>
+        <button type="button" class="btn btn-secondary btn-sm" style="font-size: 0.7rem; padding: 4px 8px;" onclick="document.getElementById('reply-form-<%= comment.id %>').style.display = 'none';">Cancel</button>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if comment.replies.any? %>
+    <div class="comment-replies" style="margin-left: 15px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 10px; margin-top: 8px; display: flex; flex-direction: column; gap: 4px;">
+      <% comment.replies.includes(:user).each do |reply| %>
+        <%= render 'shared/comment', comment: reply, matching_item: matching_item, depth: depth + 1 %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

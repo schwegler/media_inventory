@@ -131,6 +131,11 @@
       <% end %>
     </div>
 
+    
+    <div class="show-community" style="margin-top: 2rem;">
+      <h3>General Comments</h3>
+      <%= render "shared/comments_box", matching_item: @album %>
+    </div>
     <div class="show-actions">
       <%= link_to '← Back to Albums', albums_path, class: 'btn btn-secondary' %>
     </div>

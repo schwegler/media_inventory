@@ -3943,6 +3943,14 @@ input:checked+.slider:before {
   transform: translateX(20px);
 }
 
+.notification-bell {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px !important;
+  height: 32px !important;
+}
+
 .notification-row {
   display: flex;
   justify-content: space-between;

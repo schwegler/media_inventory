@@ -1,0 +1,37 @@
+<div class="container" style="max-width: 600px; margin: 2rem auto; background: var(--surface-color); padding: 2rem; border-radius: 8px;">
+  <h2>Suggest Edit for <%= @suggestable.try(:title) || @suggestable.try(:name) || 'Item' %></h2>
+  
+  <%= form_with model: @edit_suggestion, url: polymorphic_path([@suggestable, :edit_suggestions]), local: true do |f| %>
+    <% if @edit_suggestion.errors.any? %>
+      <div class="alert alert-danger" style="background: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+        <ul style="margin: 0; padding-left: 1rem;">
+          <% @edit_suggestion.errors.full_messages.each do |msg| %>
+            <li><%= msg %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <% 
+       skip_columns = %w[id created_at updated_at api_id thumbnail_url external_url]
+       @suggestable.class.columns.each do |col| 
+         next if skip_columns.include?(col.name)
+         next if col.name.end_with?('_id')
+         current_val = @suggestable.send(col.name)
+    %>
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <%= label_tag "edit_suggestion[proposed_changes][#{col.name}]", col.name.humanize, style: "display: block; margin-bottom: 0.5rem; font-weight: bold;" %>
+        <% if col.type == :text %>
+          <%= text_area_tag "edit_suggestion[proposed_changes][#{col.name}]", current_val, class: "form-control", style: "width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-color); color: var(--text-color);" %>
+        <% else %>
+          <%= text_field_tag "edit_suggestion[proposed_changes][#{col.name}]", current_val, class: "form-control", style: "width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-color); color: var(--text-color);" %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <div class="form-actions" style="margin-top: 2rem;">
+      <%= f.submit "Submit Suggestion", class: "btn btn-primary" %>
+      <%= link_to "Cancel", polymorphic_path(@suggestable), class: "btn btn-secondary", style: "margin-left: 1rem;" %>
+    </div>
+  <% end %>
+</div>

@@ -4,7 +4,8 @@ module LibraryItemFormAttributes
   extend ActiveSupport::Concern
 
   included do
-    attr_accessor :is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed, :consumed_at, :is_public
+    attr_accessor :is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed, :consumed_at, :is_public,
+                  :owned_physically, :owned_physically_format, :owned_digitally, :owned_digitally_format
 
     # rubocop:disable Naming/PredicatePrefix
     def is_collected?

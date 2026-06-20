@@ -6,6 +6,7 @@ class Movie < ApplicationRecord
   has_one_attached :cover_image
   has_many :likes, as: :likeable, dependent: :destroy
   has_many :comments, as: :commentable, dependent: :destroy
+  has_many :edit_suggestions, as: :suggestable, dependent: :destroy
   validates :title, presence: true
 
   after_commit :sync_details_from_api, on: %i[create update]

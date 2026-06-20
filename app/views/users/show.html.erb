@@ -75,9 +75,43 @@
       </nav>
 
       <div class="tab-content" data-tabs-target="content" data-tab-name="posts">
+        <% if current_user?(@user) %>
+          <div class="post-creation-box card" style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 8px;">
+            <%= form_with model: Post.new, url: posts_path, local: true do |f| %>
+              <%= f.text_area :content, placeholder: "What's on your mind?", required: true, style: "width: 100%; min-height: 80px; padding: 10px; border-radius: 6px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; resize: vertical; margin-bottom: 10px;" %>
+              <div style="display: flex; justify-content: flex-end;">
+                <%= f.submit "Post", class: "btn btn-primary" %>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+
         <div class="activities-feed">
-          <% if @activities.any? %>
-            <%= render @activities %>
+          <% items = (@activities + @user.posts).sort_by(&:created_at).reverse %>
+          <% if items.any? %>
+            <% items.each do |item| %>
+              <% if item.is_a?(Post) %>
+                <div class="post-card card" style="margin-bottom: 15px; padding: 15px; border-radius: 8px;">
+                  <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <%= user_avatar_tag(item.user, size: 32) %>
+                    <div>
+                      <strong><%= item.user.name %></strong>
+                      <div style="font-size: 0.8rem; color: #94a3b8;"><%= time_ago_in_words(item.created_at) %> ago</div>
+                    </div>
+                  </div>
+                  <div class="post-content" style="margin-bottom: 15px;">
+                    <%= format_content_with_mentions(item.content) %>
+                  </div>
+                  
+                  <div class="post-actions" style="margin-bottom: 10px;">
+                    <%= render 'likes/like_button', item: item %>
+                  </div>
+                  <%= render 'shared/comments_box', matching_item: item %>
+                </div>
+              <% else %>
+                <%= render item %>
+              <% end %>
+            <% end %>
           <% else %>
             <p class="empty-state">No recent activity.</p>
           <% end %>

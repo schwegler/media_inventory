@@ -6,6 +6,7 @@ class VideoGame < ApplicationRecord
   has_one_attached :cover_image
   has_many :likes, as: :likeable, dependent: :destroy
   has_many :comments, as: :commentable, dependent: :destroy
+  has_many :edit_suggestions, as: :suggestable, dependent: :destroy
 
   validates :title, presence: true
 
