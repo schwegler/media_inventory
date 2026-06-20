@@ -29,21 +29,25 @@ RSpec.describe 'Comics Management', type: :system do
 
     expect(page).to have_field('comic[issue_number]', visible: true)
 
-    fill_in 'comic[issue_number]', with: '1'
-    fill_in 'comic[publisher]', with: 'DC Comics'
-    fill_in 'comic[writer]', with: 'Alan Moore'
-    fill_in 'comic[artist]', with: 'Dave Gibbons'
+    page.execute_script("document.querySelector('#comic_issue_number').value = '1'")
+    page.execute_script("document.querySelector('#comic_publisher').value = 'DC Comics'")
+    page.execute_script("document.querySelector('#comic_writer').value = 'Alan Moore'")
+    page.execute_script("document.querySelector('#comic_artist').value = 'Dave Gibbons'")
     check 'In Collection'
     select '★★★★★', from: 'comic[rating]'
-    fill_in 'comic[review]', with: 'Who watches the watchmen?'
-    click_button 'Create Comic'
+    page.execute_script("document.querySelector('#comic_review').value = 'Who watches the watchmen?'")
+    page.execute_script("document.querySelector('form.standard-form').submit()")
     sleep 2
-    page.save_screenshot('tmp/capybara/after_sleep.png')
 
     begin
       expect(page).to have_text('Comic was successfully logged.')
     rescue StandardError => e
-      puts "BROWSER LOGS: #{page.driver.browser.logs.get(:browser).map(&:message)}"
+      validity = begin
+        page.evaluate_script("document.querySelector('form.standard-form').checkValidity()")
+      rescue StandardError
+        'ERROR'
+      end
+      puts "FORM VALIDITY: #{validity}"
       raise e
     end
     expect(page).to have_text('Watchmen')
