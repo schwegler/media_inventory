@@ -4599,6 +4599,8 @@ input[type="submit"]:focus-visible {
   top: 100%;
   left: 0;
   right: 0;
+  max-height: calc(100vh - 60px);
+  overflow-y: auto;
   background-color: $card-bg-solid;
   border-bottom: 1px solid $card-border;
   padding: 1.5rem;
