@@ -100,7 +100,7 @@
             <div data-season-tabs-target="content" 
                  data-season="<%= season %>" 
                  class="season-episodes-list <%= 'hidden' unless index == 0 %>" 
-                 style="display: <%= index == 0 ? 'flex' : 'none' %>; flex-direction: column; gap: 12px;">
+                 style="display: flex; flex-direction: column; gap: 12px;">
               <% episodes_by_season[season].each do |ep| %>
                 <%= render 'tv_shows/tv_episode', ep: ep, tv_show: @tv_show %>
               <% end %>
