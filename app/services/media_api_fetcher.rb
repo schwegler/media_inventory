@@ -25,8 +25,8 @@ class MediaApiFetcher
       fetch_musicbrainz_music
       fetch_itunes_music
     when VideoGame
-      # Existing logic for Video Games can be reused or skipped if it's already fetching on create
-      # We could just query Wikipedia again here
+      fetch_rawg_video_game
+      fetch_steam_video_game
     when Comic
       # No obvious open free API without keys for Comics, so we might just no-op or leave a placeholder
     end
@@ -145,6 +145,49 @@ class MediaApiFetcher
     end
   rescue StandardError => e
     Rails.logger.error "iTunes API error: #{e.message}"
+  end
+
+  def fetch_rawg_video_game
+    return unless api_active?('RAWG', 'VideoGame')
+
+    api_key = ApiConfiguration.find_by(source_name: 'RAWG', is_active: true)&.access_token
+    return unless api_key
+
+    url = URI("https://api.rawg.io/api/games?search=#{CGI.escape(@item.title)}&key=#{api_key}")
+    response = Net::HTTP.get(url)
+    data = JSON.parse(response)
+
+    if data['results']&.any?
+      result = data['results'].first
+      @item.release_year = result['released'].to_s[0..3] if @item.release_year.blank?
+      @item.thumbnail_url = result['background_image'] if @item.thumbnail_url.blank? && !@item.cover_image.attached?
+      @item.api_id = "rawg_#{result['id']}" if @item.api_id.blank?
+      @item.external_url = "https://rawg.io/games/#{result['slug']}" if @item.external_url.blank?
+      # Platform could be added if VideoGame model stores it
+    end
+  rescue StandardError => e
+    Rails.logger.error "RAWG API error: #{e.message}"
+  end
+
+  def fetch_steam_video_game
+    return unless api_active?('Steam', 'VideoGame')
+
+    uri = URI("https://store.steampowered.com/api/storesearch/?term=#{CGI.escape(@item.title)}&l=english&cc=US")
+    response = Net::HTTP.get(uri)
+    data = JSON.parse(response)
+
+    if data['items']&.any?
+      result = data['items'].first
+      app_id = result['id']
+
+      @item.api_id = "steam_#{app_id}" if @item.api_id.blank?
+      @item.external_url = "https://store.steampowered.com/app/#{app_id}" if @item.external_url.blank?
+      if @item.thumbnail_url.blank? && !@item.cover_image.attached?
+        @item.thumbnail_url = "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/#{app_id}/library_600x900.jpg"
+      end
+    end
+  rescue StandardError => e
+    Rails.logger.error "Steam API error: #{e.message}"
   end
   # rubocop:enable Metrics/AbcSize
 

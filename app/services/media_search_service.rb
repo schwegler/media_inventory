@@ -54,7 +54,8 @@ class MediaSearchService
   end
 
   def search_video_games
-    web_results = fetch_steam_video_games(@query)
+    web_results = fetch_rawg_video_games(@query)
+    web_results = fetch_steam_video_games(@query) if web_results.empty?
     wiki_results = Rails.env.test? ? [] : query_wikipedia_video_games(@query)
     filter_unique_results(web_results + wiki_results)
   end
@@ -363,7 +364,7 @@ class MediaSearchService
             platform: platforms.join(', '),
             release_year: release_year,
             thumbnail_url: "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/#{app_id}/library_600x900.jpg",
-            api_id: app_id.to_s,
+            api_id: "steam_#{app_id}",
             external_url: "https://store.steampowered.com/app/#{app_id}",
             is_local: false
           }
@@ -373,6 +374,37 @@ class MediaSearchService
       Rails.logger.error "Steam Store Search error: #{e.message}"
       []
     end
+  end
+
+  def fetch_rawg_video_games(query)
+    return [] if Rails.env.test?
+
+    api_key = ApiConfiguration.find_by(source_name: 'RAWG', is_active: true)&.access_token
+    return [] unless api_key
+
+    url = URI("https://api.rawg.io/api/games?search=#{CGI.escape(query)}&key=#{api_key}")
+    response = Net::HTTP.get(url)
+    data = JSON.parse(response)
+
+    return [] unless data['results']
+
+    results = data['results'].slice(0, 5).map do |item|
+      {
+        title: item['name'],
+        developer: '',
+        publisher: '',
+        platform: item['platforms']&.map { |p| p.dig('platform', 'name') }&.join(', '),
+        release_year: item['released']&.split('-')&.first,
+        thumbnail_url: item['background_image'],
+        api_id: "rawg_#{item['id']}",
+        external_url: "https://rawg.io/games/#{item['slug']}",
+        is_local: false
+      }
+    end
+    results.select { |r| r[:thumbnail_url] }
+  rescue StandardError => e
+    Rails.logger.error "RAWG search failed: #{e.message}"
+    []
   end
   # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/MethodLength, Metrics/PerceivedComplexity
 
