@@ -101,13 +101,14 @@ class OmniAuthCallbacksController < ApplicationController
       request.env['omniauth.strategy'].options.handle = handle
       request.env['rack.request.form_hash'] ||= {}
       request.env['rack.request.form_hash']['handle'] = handle
+    end
 
-      # Call the gem's default setup block to resolve DID and PDS authorization server
-      begin
-        OmniAuth::Strategies::Atproto.setup.call(request.env)
-      rescue StandardError => e
-        return render plain: "Bluesky setup failed: #{e.message}", status: 400
-      end
+    # Call the gem's default setup block to resolve DID and PDS authorization server
+    # This must be called during both request and callback phases so it can restore session info
+    begin
+      OmniAuth::Strategies::Atproto.setup.call(request.env)
+    rescue StandardError => e
+      return render plain: "Bluesky setup failed: #{e.message}", status: 400
     end
 
     client_id = ENV.fetch('BSKY_CLIENT_ID',
