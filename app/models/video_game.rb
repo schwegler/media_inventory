@@ -42,9 +42,12 @@ class VideoGame < ApplicationRecord
     response = Net::HTTP.get(url)
     data = JSON.parse(response).dig(api_id.to_s, 'data') || {}
 
+    date_str = data.dig('release_date', 'date')
+    parsed_year = date_str ? date_str.split(',').last&.strip : nil
+
     update_columns(
       title: data['name'] || title,
-      release_year: data.dig('release_date', 'date')&.split(',')&.last&.strip || release_year,
+      release_year: parsed_year || release_year,
       developer: data['developers']&.first || developer,
       publisher: data['publishers']&.first || publisher,
       thumbnail_url: "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/#{api_id}/library_600x900.jpg"

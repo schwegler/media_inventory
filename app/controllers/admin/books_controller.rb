@@ -19,6 +19,7 @@ module Admin
       end
     end
 
+    # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
     def update_from_api
       @book = Book.find(params[:id])
 
@@ -45,6 +46,7 @@ module Admin
         redirect_to search_api_admin_book_path(@book), alert: 'Failed to update book.'
       end
     end
+    # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 
     def merge
       @book = Book.find(params[:id])

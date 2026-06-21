@@ -850,8 +850,11 @@ table {
     }
 
     .prev,
-    .next {
+    .next,
+    .last,
+    .first {
       font-weight: 700;
+      flex: none;
     }
 
     .disabled {
@@ -4369,25 +4372,28 @@ input[type="submit"]:focus-visible {
   padding: 4px;
   position: absolute;
   right: 0;
+  pointer-events: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:focus-within,
   &.active {
     background: rgba(255, 255, 255, 0.08);
     box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.05);
+    pointer-events: auto;
   }
 }
 
 .global-search-btn {
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--accent-gold);
   cursor: pointer;
   padding: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
+  pointer-events: auto;
   transition: color 0.2s ease, transform 0.2s ease;
 
   &:hover {
@@ -4432,6 +4438,8 @@ input[type="submit"]:focus-visible {
 
   .global-search-form {
     padding: 8px 16px;
+    position: relative;
+    pointer-events: auto;
   }
 
   .global-search-input {
@@ -4849,4 +4857,154 @@ input[type="submit"]:focus-visible {
       line-height: 1.4;
     }
   }
+}
+
+.btn-unstyled {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  box-shadow: none !important;
+}
+
+.tweet-actions {
+  display: flex !important;
+  gap: 1rem !important;
+  align-items: center !important;
+  margin-top: -8px;
+  margin-bottom: 8px;
+}
+
+.tweet-action-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  font-size: 0.9rem !important;
+}
+
+.tweet-header {
+  display: flex !important;
+  gap: 15px !important;
+  margin-bottom: 15px !important;
+}
+
+.tweet-author-col {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+}
+
+.tweet-meta-row {
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 5px !important;
+  margin-bottom: 4px !important;
+}
+
+.tweet-avatar-link {
+  flex-shrink: 0 !important;
+}
+
+.tweet-author-name {
+  text-decoration: none !important;
+  color: inherit !important;
+  font-weight: bold !important;
+  font-size: 1.1rem !important;
+}
+
+.tweet-time {
+  font-size: 0.85rem !important;
+  color: #94a3b8 !important;
+}
+
+.tweet-body {
+  margin-bottom: 20px !important;
+  font-size: 1.15rem !important;
+  line-height: 1.5 !important;
+  word-break: break-word !important;
+  color: inherit !important;
+}
+
+.main-post-actions {
+  margin-bottom: 15px !important;
+  padding-top: 15px !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #94a3b8 !important;
+}
+
+.comment-item {
+  font-size: 0.9rem !important;
+  padding: 10px 0 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  display: flex !important;
+  gap: 10px !important;
+  margin-top: 4px !important;
+}
+
+.comment-form {
+  display: flex !important;
+  gap: 8px !important;
+  align-items: center !important;
+}
+
+.comment-input {
+  flex: 1 !important;
+  padding: 4px 8px !important;
+  font-size: 0.75rem !important;
+  border-radius: 4px !important;
+  background: rgba(0, 0, 0, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #fff !important;
+}
+
+.comment-reply-btn {
+  font-size: 0.75rem !important;
+  padding: 4px 12px !important;
+  height: 28px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+.cancel-reply-link {
+  font-size: 0.8rem !important;
+  color: #94a3b8 !important;
+  cursor: pointer !important;
+  transition: color 0.2s !important;
+}
+
+.cancel-reply-link:hover {
+  color: #e2e8f0 !important;
+}
+
+.comment-replies-list {
+  margin-left: 15px !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
+  padding-left: 10px !important;
+  margin-top: 8px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.tweet-action-btn {
+  display: flex !important;
+  gap: 6px !important;
+  align-items: center !important;
+  transition: color 0.2s !important;
+  color: inherit;
+}
+
+.tweet-action-btn:hover {
+  color: #818cf8 !important;
+}
+
+.inline-form {
+  display: inline-flex !important;
+  margin: 0 !important;
+  align-items: center !important;
 }

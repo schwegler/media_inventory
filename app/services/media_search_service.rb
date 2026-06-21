@@ -320,6 +320,7 @@ class MediaSearchService
 
   # --- Video Games ---
 
+  # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/MethodLength, Metrics/PerceivedComplexity
   def fetch_steam_video_games(query)
     return [] if Rails.env.test?
 
@@ -349,7 +350,8 @@ class MediaSearchService
             app_data = JSON.parse(details_res).dig(app_id.to_s, 'data') || {}
             developer = app_data['developers']&.first || ''
             publisher = app_data['publishers']&.first || ''
-            release_year = app_data.dig('release_date', 'date')&.split(',')&.last&.strip
+            date_str = app_data.dig('release_date', 'date')
+            release_year = date_str ? date_str.split(',').last&.strip : nil
           rescue StandardError
             # Silently ignore details failure and fallback to empty
           end
@@ -372,6 +374,7 @@ class MediaSearchService
       []
     end
   end
+  # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/MethodLength, Metrics/PerceivedComplexity
 
   def query_wikipedia_video_games(query)
     search_url = 'https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=' \

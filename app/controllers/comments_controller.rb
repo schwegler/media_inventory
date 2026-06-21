@@ -7,7 +7,7 @@ class CommentsController < ApplicationController
     commentable_type = params.dig(:comment, :commentable_type)
     commentable_id = params.dig(:comment, :commentable_id)
 
-    allowed_types = %w[Movie TvShow TvEpisode Album Comic VideoGame]
+    allowed_types = %w[Movie TvShow TvEpisode Album Comic ComicIssue VideoGame Book Post LibraryItem]
     unless allowed_types.include?(commentable_type)
       redirect_to root_path, alert: 'Invalid commentable type.'
       return

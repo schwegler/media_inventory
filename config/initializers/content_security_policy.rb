@@ -13,7 +13,7 @@ Rails.application.configure do
     policy.img_src     :self, :https, :data
     policy.object_src  :none
     policy.script_src  :self
-    policy.style_src   :self, :https
+    policy.style_src   :self, :https, :unsafe_inline
     # Specify URI for violation reports
     # policy.report_uri "/csp-violation-report-endpoint"
 
@@ -28,7 +28,7 @@ Rails.application.configure do
   config.content_security_policy_nonce_generator = lambda { |request|
     request.session.id.to_s.presence || SecureRandom.base64(16)
   }
-  config.content_security_policy_nonce_directives = %w[script-src style-src]
+  config.content_security_policy_nonce_directives = %w[script-src]
 
   # Report violations without enforcing the policy.
   # config.content_security_policy_report_only = true

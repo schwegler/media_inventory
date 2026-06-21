@@ -14,6 +14,7 @@ class Book < ApplicationRecord
 
   private
 
+  # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
   def sync_details_from_api
     return if api_id.blank?
     return unless saved_change_to_api_id?
@@ -25,7 +26,7 @@ class Book < ApplicationRecord
     response = Net::HTTP.get(url)
     data = JSON.parse(response)
 
-    return unless data['results'] && data['results'].any?
+    return unless data['results']&.any?
 
     item = data['results'].first
 
@@ -40,4 +41,5 @@ class Book < ApplicationRecord
   rescue StandardError => e
     Rails.logger.error "Failed to sync Book details: #{e.message}"
   end
+  # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 end

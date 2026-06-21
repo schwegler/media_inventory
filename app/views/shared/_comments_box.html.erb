@@ -10,7 +10,7 @@
     <%= form_with model: Comment.new, url: comments_path, local: false, class: 'comment-form', style: 'margin-top: 10px; display: flex; gap: 8px;' do |cf| %>
       <%= cf.hidden_field :commentable_type, value: matching_item.class.name %>
       <%= cf.hidden_field :commentable_id, value: matching_item.id %>
-      <%= cf.text_field :content, placeholder: 'Write a comment...', required: true, style: 'flex: 1; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); color: #fff;' %>
+      <%= cf.text_field :content, placeholder: 'Write a comment...', required: true, style: 'flex: 1;' %>
       <div class="quick-review-submit-row"><%= cf.submit 'Comment', class: 'btn btn-primary quick-review-submit-btn' %></div>
     <% end %>
   <% end %>
