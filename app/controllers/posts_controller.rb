@@ -5,6 +5,7 @@ class PostsController < ApplicationController
 
   def show
     @post = Post.find(params[:id])
+    return redirect_to root_path, alert: 'Not authorized' unless can_access?(@post)
   end
 
   def create
