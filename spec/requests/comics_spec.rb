@@ -27,7 +27,7 @@ RSpec.describe 'Comics', type: :request do
       it 'paginates the results' do
         get comics_path
         expect(response).to have_http_status(200)
-        expect(response.body).to include('Comic 0')
+        expect(response.body).to include('Comic 29')
         expect(response.body).to include('class="pagination"')
       end
     end

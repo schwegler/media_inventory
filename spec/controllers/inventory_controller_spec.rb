@@ -15,6 +15,10 @@ RSpec.describe InventoryController, type: :controller do
         @is_public = true
       end
 
+      def self.order(_args)
+        self
+      end
+
       def self.page(_page)
         [:page_data]
       end

@@ -22,17 +22,17 @@ RSpec.describe 'Movies', type: :request do
       it 'returns the first page of movies' do
         get movies_path
         expect(response).to have_http_status(:ok)
-        expect(response.body).to include('Movie 0')
-        expect(response.body).to include('Movie 24')
-        expect(response.body).not_to include('Movie 25')
+        expect(response.body).to include('Movie 29')
+        expect(response.body).to include('Movie 5')
+        expect(response.body).not_to include('Movie 4')
       end
 
       it 'returns the second page of movies' do
         get movies_path(page: 2)
         expect(response).to have_http_status(:ok)
-        expect(response.body).not_to include('Movie 0')
-        expect(response.body).to include('Movie 25')
-        expect(response.body).to include('Movie 29')
+        expect(response.body).not_to include('Movie 29')
+        expect(response.body).to include('Movie 4')
+        expect(response.body).to include('Movie 0')
       end
     end
   end

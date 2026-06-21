@@ -3,9 +3,6 @@
 class VideoGamesController < InventoryController
   before_action :logged_in_user, only: %i[new create]
 
-  def index
-    @video_games = VideoGame.page(params[:page])
-  end
 
   private
 

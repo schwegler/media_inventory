@@ -22,17 +22,17 @@ RSpec.describe 'VideoGames', type: :request do
       it 'returns the first page of games' do
         get video_games_path
         expect(response).to have_http_status(:ok)
-        expect(response.body).to include('Game 0')
-        expect(response.body).to include('Game 24')
-        expect(response.body).not_to include('Game 25')
+        expect(response.body).to include('Game 29')
+        expect(response.body).to include('Game 5')
+        expect(response.body).not_to include('Game 4')
       end
 
       it 'returns the second page of games' do
         get video_games_path(page: 2)
         expect(response).to have_http_status(:ok)
-        expect(response.body).not_to include('Game 0')
-        expect(response.body).to include('Game 25')
-        expect(response.body).to include('Game 29')
+        expect(response.body).not_to include('Game 29')
+        expect(response.body).to include('Game 4')
+        expect(response.body).to include('Game 0')
       end
     end
   end
