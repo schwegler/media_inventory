@@ -11,9 +11,21 @@ class BlueskyClient
 
   def pds_url
     @pds_url ||= begin
-      require 'didkit'
-      resolver = DIDKit::Resolver.new
-      resolver.resolve_did(@user.bsky_did).pds_endpoint
+      doc = if @user.bsky_did.start_with?('did:plc:')
+              uri = URI("https://plc.directory/#{@user.bsky_did}")
+              JSON.parse(Net::HTTP.get(uri))
+            elsif @user.bsky_did.start_with?('did:web:')
+              host = @user.bsky_did.sub('did:web:', '')
+              uri = URI("https://#{host}/.well-known/did.json")
+              JSON.parse(Net::HTTP.get(uri))
+            end
+
+      if doc
+        service = doc['service']&.find { |s| s['id'] == '#atproto_pds' }
+        service&.dig('serviceEndpoint') || 'https://bsky.social'
+      else
+        'https://bsky.social'
+      end
     rescue StandardError => e
       Rails.logger.error "Failed to resolve PDS for #{@user.bsky_did}: #{e.message}"
       'https://bsky.social'
