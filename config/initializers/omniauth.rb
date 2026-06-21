@@ -1,12 +1,17 @@
 # frozen_string_literal: true
 
 require_relative '../../lib/omniauth/strategies/mastodon'
+require 'omniauth-atproto/key_manager'
 
 Rails.application.config.middleware.use OmniAuth::Builder do
   # Bluesky / AT Proto OAuth
   # The atproto strategy requires a client_id. According to AT Protocol OAuth specs,
   # the client_id is a URL pointing to the client-metadata.json.
-  provider :atproto, ENV.fetch('BSKY_CLIENT_ID', nil), setup: true, scope: 'atproto transition:generic'
+  provider :atproto, ENV.fetch('BSKY_CLIENT_ID', nil),
+           setup: true,
+           scope: 'atproto transition:generic',
+           private_key: OmniAuth::Atproto::KeyManager.current_private_key,
+           client_jwk: OmniAuth::Atproto::KeyManager.current_jwk
 
   # Mastodon OAuth (Dynamic)
   provider :mastodon, setup: true

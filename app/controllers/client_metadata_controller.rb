@@ -9,9 +9,10 @@ class ClientMetadataController < ApplicationController
       scope: 'atproto transition:generic',
       grant_types: %w[authorization_code refresh_token],
       response_types: ['code'],
-      token_endpoint_auth_method: 'none',
+      token_endpoint_auth_method: 'private_key_jwt',
       application_type: 'web',
-      dpop_bound_access_tokens: true
+      dpop_bound_access_tokens: true,
+      jwks: { keys: [OmniAuth::Atproto::KeyManager.current_jwk] }
     }
   end
 end
