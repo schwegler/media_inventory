@@ -23,6 +23,7 @@ class MediaSearchService
     when 'comic' then search_comics
     when 'tv_show' then search_tv_shows
     when 'video_game' then search_video_games
+    when 'book' then search_books
     else []
     end
   end
@@ -56,6 +57,11 @@ class MediaSearchService
     web_results = fetch_steam_video_games(@query)
     wiki_results = Rails.env.test? ? [] : query_wikipedia_video_games(@query)
     filter_unique_results(web_results + wiki_results)
+  end
+
+  def search_books
+    web_results = fetch_itunes_books(@query)
+    filter_unique_results(web_results)
   end
 
   def filter_unique_results(all_results)
@@ -314,7 +320,7 @@ class MediaSearchService
 
   # --- Video Games ---
 
-  def fetch_steam_video_games(query) # rubocop:disable Metrics/MethodLength
+  def fetch_steam_video_games(query)
     return [] if Rails.env.test?
 
     begin
@@ -324,25 +330,43 @@ class MediaSearchService
       return [] unless data && data['items']
 
       data['items'].slice(0, 5).map do |item|
-        app_id = item['id']
-        platforms = []
-        if item['platforms']
-          platforms << 'PC' if item['platforms']['windows']
-          platforms << 'Mac' if item['platforms']['mac']
-          platforms << 'Linux' if item['platforms']['linux']
+        Thread.new do
+          app_id = item['id']
+          platforms = []
+          if item['platforms']
+            platforms << 'PC' if item['platforms']['windows']
+            platforms << 'Mac' if item['platforms']['mac']
+            platforms << 'Linux' if item['platforms']['linux']
+          end
+
+          # Fetch additional details for developer and publisher
+          developer = ''
+          publisher = ''
+          release_year = nil
+          begin
+            details_uri = URI("https://store.steampowered.com/api/appdetails?appids=#{app_id}")
+            details_res = Net::HTTP.get(details_uri)
+            app_data = JSON.parse(details_res).dig(app_id.to_s, 'data') || {}
+            developer = app_data['developers']&.first || ''
+            publisher = app_data['publishers']&.first || ''
+            release_year = app_data.dig('release_date', 'date')&.split(',')&.last&.strip
+          rescue StandardError
+            # Silently ignore details failure and fallback to empty
+          end
+
+          {
+            title: item['name'],
+            developer: developer,
+            publisher: publisher,
+            platform: platforms.join(', '),
+            release_year: release_year,
+            thumbnail_url: "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/#{app_id}/library_600x900.jpg",
+            api_id: app_id.to_s,
+            external_url: "https://store.steampowered.com/app/#{app_id}",
+            is_local: false
+          }
         end
-        {
-          title: item['name'],
-          developer: '',
-          publisher: '',
-          platform: platforms.join(', '),
-          release_year: nil,
-          thumbnail_url: "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/#{app_id}/library_600x900.jpg",
-          api_id: app_id.to_s,
-          external_url: "https://store.steampowered.com/app/#{app_id}",
-          is_local: false
-        }
-      end
+      end.map(&:value)
     rescue StandardError => e
       Rails.logger.error "Steam Store Search error: #{e.message}"
       []
@@ -390,6 +414,35 @@ class MediaSearchService
       external_url: sum_data.dig('content_urls', 'desktop', 'page'),
       is_local: false
     }
+  end
+
+  # --- Books ---
+
+  def fetch_itunes_books(query)
+    return [] if Rails.env.test?
+
+    url = URI("https://itunes.apple.com/search?term=#{CGI.escape(query)}&media=ebook&limit=5&country=US")
+    response = Net::HTTP.get(url)
+    data = JSON.parse(response)
+
+    return [] unless data['results']
+
+    results = data['results'].map do |item|
+      {
+        title: item['trackName'],
+        author: item['artistName'],
+        publisher: item['sellerName'],
+        release_year: item['releaseDate']&.split('-')&.first,
+        thumbnail_url: item['artworkUrl100']&.sub('100x100bb', '400x400bb'),
+        api_id: item['trackId'].to_s,
+        external_url: item['trackViewUrl'],
+        is_local: false
+      }
+    end
+    results.select { |r| r[:thumbnail_url] }
+  rescue StandardError => e
+    Rails.logger.error "iTunes Books search failed: #{e.message}"
+    []
   end
 end
 # rubocop:enable Metrics/ClassLength

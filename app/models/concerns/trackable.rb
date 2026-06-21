@@ -134,17 +134,17 @@ module Trackable
 
   def bsky_template(is_review)
     if is_review
-      user.bsky_message_review_template.presence || 'Reviewed [title]: [review] ([rating] stars)'
+      user.bsky_message_review_template.presence || 'My review of [title]: [review] - [rating]★ [link] #mediatracker'
     else
-      user.bsky_message_activity_template.presence || 'Added [title] to my [type] list!'
+      user.bsky_message_activity_template.presence || 'Just added [title] to my library! [link] #mediatracker'
     end
   end
 
   def mastodon_template(is_review)
     if is_review
-      user.mastodon_message_review_template.presence || 'Reviewed [title]: [review] ([rating] stars)'
+      user.mastodon_message_review_template.presence || 'My review of [title]: [review] - [rating]★ [link] #mediatracker'
     else
-      user.mastodon_message_activity_template.presence || 'Added [title] to my [type] list!'
+      user.mastodon_message_activity_template.presence || 'Just added [title] to my library! [link] #mediatracker'
     end
   end
 
@@ -154,7 +154,17 @@ module Trackable
     msg.gsub!('[rating]', rating.to_s.presence || 'Unrated') if respond_to?(:rating) && msg.include?('[rating]')
     msg.gsub!('[review]', review.to_s.presence || '') if respond_to?(:review) && msg.include?('[review]')
     msg.gsub!('[type]', activity_type.to_s) if msg.include?('[type]')
-    msg.strip
+    if msg.include?('[link]')
+      host = ENV.fetch('HOST', 'http://localhost:3000')
+      target = respond_to?(:item) ? item : self
+      begin
+        link = Rails.application.routes.url_helpers.polymorphic_url(target, host: host)
+        msg.gsub!('[link]', link)
+      rescue StandardError
+        msg.gsub!('[link]', '').strip!
+      end
+    end
+    msg.gsub('  ', ' ').strip
   end
 
   def review_previously_was_blank?

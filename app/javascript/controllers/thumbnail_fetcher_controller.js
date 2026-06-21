@@ -19,7 +19,7 @@ export default class extends Controller {
     "titleInput", "secondaryInput", "previewImg", "placeholder", "statusText", "optionsGrid", "thumbnailUrl",
     "director", "artist", "writer", "publisher", "releaseYear", "genre", "network", "venue", "promotion", "date",
     "season", "episode", "issueNumber", "apiId", "externalUrl", "manualFormSection", "developer", "platform",
-    "searchStage", "detailsStage", "backBtn", "modalTitle", "selectedTitleDisplay"
+    "searchStage", "detailsStage", "backBtn", "modalTitle", "selectedTitleDisplay", "author"
   ]
   static values = { mediaType: String }
 
@@ -86,7 +86,8 @@ export default class extends Controller {
         album: "Log Album",
         comic: "Log Comic",
         tv_show: "Log TV Show",
-        video_game: "Log Video Game"
+        video_game: "Log Video Game",
+        book: "Log Book"
       }
       this.modalTitleTarget.textContent = mediaNames[this.mediaTypeValue] || "Log Media"
     }
@@ -178,6 +179,7 @@ export default class extends Controller {
         else if (mediaType === "comic") subtitle = option.writer || ""
         else if (mediaType === "tv_show") subtitle = option.network || ""
         else if (mediaType === "video_game") subtitle = option.developer || ""
+        else if (mediaType === "book") subtitle = option.author || ""
         
         const yearInfo = option.release_year ? ` (${option.release_year})` : ""
         const tooltipText = `${option.title}${yearInfo} ${subtitle ? `- ${subtitle}` : ""}`
@@ -237,6 +239,7 @@ export default class extends Controller {
       else if (mediaType === "comic") searchQuery += " comic book"
       else if (mediaType === "video_game") searchQuery += " video game"
       else if (mediaType === "album") searchQuery += " album"
+      else if (mediaType === "book") searchQuery += " book"
 
       const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchQuery)}&format=json&origin=*`
       const res = await fetch(searchUrl)
@@ -406,6 +409,39 @@ export default class extends Controller {
         // Comic search is handled server-side to securely query ComicVine API
         return []
 
+      } else if (mediaType === "book") {
+        let results = []
+        try {
+          const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=ebook&limit=5&country=US`
+          const response = await fetch(url)
+          if (response.ok) {
+            const data = await response.json()
+            results = (data.results || []).map(r => ({
+              title: r.trackName,
+              author: r.artistName,
+              publisher: r.sellerName,
+              release_year: r.releaseDate ? new Date(r.releaseDate).getFullYear() : null,
+              thumbnail_url: r.artworkUrl100 ? r.artworkUrl100.replace("100x100bb", "400x400bb") : null,
+              api_id: r.trackId ? r.trackId.toString() : null,
+              external_url: r.trackViewUrl || null,
+              is_local: false
+            })).filter(r => r.thumbnail_url)
+          }
+        } catch (e) {
+          console.error("iTunes ebook search failed:", e)
+        }
+
+        if (results.length < 3) {
+          try {
+            const wikiResults = await this.queryWikipedia(query, "book")
+            if (wikiResults) results = results.concat(wikiResults)
+          } catch (e) {
+            console.error("Wikipedia book fallback failed:", e)
+          }
+        }
+
+        return this.deduplicateResults(results)
+
       } else if (mediaType === "video_game") {
         // Video games search is handled server-side to resolve Steam API and Wikipedia queries
         return []
@@ -438,6 +474,7 @@ export default class extends Controller {
       if (this.hasDirectorTarget) this.directorTarget.value = option.director || ""
       if (this.hasArtistTarget) this.artistTarget.value = option.artist || ""
       if (this.hasWriterTarget) this.writerTarget.value = option.writer || ""
+      if (this.hasAuthorTarget) this.authorTarget.value = option.author || ""
       if (this.hasPublisherTarget) this.publisherTarget.value = option.publisher || ""
       if (this.releaseYearTargets.length > 0) this.releaseYearTarget.value = option.release_year || ""
       if (this.hasGenreTarget) this.genreTarget.value = option.genre || ""

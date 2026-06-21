@@ -1,0 +1,18 @@
+<div class="page-header">
+  <h1>Books</h1>
+  <% if logged_in? %>
+    <%= link_to 'New Book', new_book_path, class: 'sleek-btn sleek-btn-primary' %>
+  <% end %>
+</div>
+
+<turbo-frame id="items_list">
+  <div class="media-grid-2026">
+    <% @books.each do |book| %>
+      <%= render partial: 'shared/media_card', locals: { media_item: book } %>
+    <% end %>
+  </div>
+
+  <div class="pagination-wrapper">
+    <%= paginate @books %>
+  </div>
+</turbo-frame>

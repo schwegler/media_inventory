@@ -44,6 +44,7 @@ class MediaController < ApplicationController
               when 'comic' then autocomplete_comics(q)
               when 'tv_show' then autocomplete_tv_shows(q)
               when 'video_game' then autocomplete_video_games(q)
+              when 'book' then autocomplete_books(q)
               else []
               end
 
@@ -173,6 +174,28 @@ class MediaController < ApplicationController
         thumbnail_url: vg.cover_image.attached? ? url_for(vg.cover_image) : vg.thumbnail_url,
         api_id: vg.api_id,
         external_url: vg.external_url,
+        is_local: true
+      }
+    end
+  end
+
+  def autocomplete_books(query)
+    local_results = fetch_local_books(query)
+    web_results = MediaSearchService.call(query, 'book')
+
+    filter_unique_results(local_results + web_results)
+  end
+
+  def fetch_local_books(query)
+    Book.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |b|
+      {
+        title: b.title,
+        author: b.author,
+        publisher: b.publisher,
+        release_year: b.release_year,
+        thumbnail_url: b.cover_image.attached? ? url_for(b.cover_image) : b.thumbnail_url,
+        api_id: b.api_id,
+        external_url: b.external_url,
         is_local: true
       }
     end

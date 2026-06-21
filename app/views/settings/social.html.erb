@@ -36,14 +36,14 @@
 
         <div class="form-group" style="margin-top: 15px;">
           <%= f.label :bsky_message_activity_template, "Activity Template" %>
-          <%= f.text_field :bsky_message_activity_template, class: 'form-control', placeholder: 'Just added [title] to my library! #mediatracker' %>
-          <small class="text-muted" style="font-size: 0.75rem;">Placeholders: [title], [type]</small>
+          <%= f.text_field :bsky_message_activity_template, class: 'form-control', placeholder: 'Just added [title] to my library! [link] #mediatracker' %>
+          <small class="text-muted" style="font-size: 0.75rem;">Placeholders: [title], [type], [link]</small>
         </div>
 
         <div class="form-group" style="margin-top: 15px;">
           <%= f.label :bsky_message_review_template, "Review Template" %>
-          <%= f.text_field :bsky_message_review_template, class: 'form-control', placeholder: 'My review of [title]: [review] - [rating]★ #mediatracker' %>
-          <small class="text-muted" style="font-size: 0.75rem;">Placeholders: [title], [review], [rating]</small>
+          <%= f.text_field :bsky_message_review_template, class: 'form-control', placeholder: 'My review of [title]: [review] - [rating]★ [link] #mediatracker' %>
+          <small class="text-muted" style="font-size: 0.75rem;">Placeholders: [title], [review], [rating], [link]</small>
         </div>
       </div>
 
@@ -71,14 +71,14 @@
 
           <div class="form-group" style="margin-top: 15px;">
             <%= f.label :mastodon_message_activity_template, "Activity Template" %>
-            <%= f.text_field :mastodon_message_activity_template, class: 'form-control', placeholder: 'Just added [title] to my library! #mediatracker' %>
-            <small class="text-muted" style="font-size: 0.75rem;">Placeholders: [title], [type]</small>
+            <%= f.text_field :mastodon_message_activity_template, class: 'form-control', placeholder: 'Just added [title] to my library! [link] #mediatracker' %>
+            <small class="text-muted" style="font-size: 0.75rem;">Placeholders: [title], [type], [link]</small>
           </div>
 
           <div class="form-group" style="margin-top: 15px;">
             <%= f.label :mastodon_message_review_template, "Review Template" %>
-            <%= f.text_field :mastodon_message_review_template, class: 'form-control', placeholder: 'My review of [title]: [review] - [rating]★ #mediatracker' %>
-            <small class="text-muted" style="font-size: 0.75rem;">Placeholders: [title], [review], [rating]</small>
+            <%= f.text_field :mastodon_message_review_template, class: 'form-control', placeholder: 'My review of [title]: [review] - [rating]★ [link] #mediatracker' %>
+            <small class="text-muted" style="font-size: 0.75rem;">Placeholders: [title], [review], [rating], [link]</small>
           </div>
         </div>
       <% end %>

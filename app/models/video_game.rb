@@ -18,6 +18,12 @@ class VideoGame < ApplicationRecord
     return if api_id.blank?
     return unless saved_change_to_api_id?
 
+    # Handle Steam IDs directly
+    if api_id.match?(/^\d+$/)
+      sync_steam_details
+      return
+    end
+
     api_key = ApiConfiguration.find_by(source_name: 'RAWG', is_active: true)&.access_token
     unless api_key
       Rails.logger.warn 'RAWG API key not configured.'
@@ -27,6 +33,22 @@ class VideoGame < ApplicationRecord
     update_from_rawg_data(fetch_rawg_data(api_key))
   rescue StandardError => e
     Rails.logger.error "Failed to sync Video Game details: #{e.message}"
+  end
+
+  def sync_steam_details
+    require 'net/http'
+    require 'json'
+    url = URI("https://store.steampowered.com/api/appdetails?appids=#{api_id}")
+    response = Net::HTTP.get(url)
+    data = JSON.parse(response).dig(api_id.to_s, 'data') || {}
+
+    update_columns(
+      title: data['name'] || title,
+      release_year: data.dig('release_date', 'date')&.split(',')&.last&.strip || release_year,
+      developer: data['developers']&.first || developer,
+      publisher: data['publishers']&.first || publisher,
+      thumbnail_url: "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/#{api_id}/library_600x900.jpg"
+    )
   end
 
   def fetch_rawg_data(api_key)
