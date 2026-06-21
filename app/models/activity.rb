@@ -4,6 +4,8 @@ class Activity < ApplicationRecord
   belongs_to :user
   belongs_to :trackable, polymorphic: true
 
+  has_many :likes, as: :likeable, dependent: :destroy
+
   validates :activity_type, presence: true, inclusion: { in: %w[added reviewed watchlist consumed] }
 
   # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/MethodLength, Metrics/PerceivedComplexity
