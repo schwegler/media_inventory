@@ -113,6 +113,7 @@ class OmniAuthCallbacksController < ApplicationController
     client_id = ENV.fetch('BSKY_CLIENT_ID',
                           url_for(controller: 'client_metadata', action: :show, format: :json, only_path: false))
     request.env['omniauth.strategy'].options.client_id = client_id
+    request.env['omniauth.strategy'].options.scope = 'atproto transition:generic'
     render plain: 'Setup complete', status: 404
   end
 
