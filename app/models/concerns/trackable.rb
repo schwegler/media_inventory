@@ -82,7 +82,7 @@ module Trackable
     Thread.new do
       client = BlueskyClient.new(user)
       client.post(msg)
-    rescue Exception => e
+    rescue StandardError => e
       Rails.logger.error "CRITICAL BSKY THREAD ERROR: #{e.class} - #{e.message}\n#{e.backtrace.first(10).join("\n")}"
     end
   end
