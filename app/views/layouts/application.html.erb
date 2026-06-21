@@ -44,6 +44,7 @@
         <li><%= link_to "COMICS", comics_path %></li>
         <li><%= link_to "TV SHOWS", tv_shows_path %></li>
         <li><%= link_to "GAMES", video_games_path %></li>
+        <li><%= link_to "BOOKS", books_path %></li>
         <% if logged_in? %>
           <li><%= link_to "MEMBERS", users_path %></li>
         <% end %>
@@ -104,6 +105,7 @@
               <%= link_to "📚 Log Comic", new_comic_path, class: "dropdown-item", role: "menuitem", data: { turbo_frame: "modal" } %>
               <%= link_to "📺 Log TV Show", new_tv_show_path, class: "dropdown-item", role: "menuitem", data: { turbo_frame: "modal" } %>
               <%= link_to "🎮 Log Video Game", new_video_game_path, class: "dropdown-item", role: "menuitem", data: { turbo_frame: "modal" } %>
+              <%= link_to "📘 Log Book", new_book_path, class: "dropdown-item", role: "menuitem", data: { turbo_frame: "modal" } %>
             </div>
           </div>
         <% else %>
@@ -142,6 +144,7 @@
         <li><%= link_to "COMICS", comics_path %></li>
         <li><%= link_to "TV SHOWS", tv_shows_path %></li>
         <li><%= link_to "GAMES", video_games_path %></li>
+        <li><%= link_to "BOOKS", books_path %></li>
         <% if logged_in? %>
           <li><%= link_to "MEMBERS", users_path %></li>
         <% end %>
@@ -173,6 +176,7 @@
             <%= link_to "📚 Log Comic", new_comic_path, class: "mobile-log-btn", data: { turbo_frame: "modal" } %>
             <%= link_to "📺 Log TV Show", new_tv_show_path, class: "mobile-log-btn", data: { turbo_frame: "modal" } %>
             <%= link_to "🎮 Log Video Game", new_video_game_path, class: "mobile-log-btn", data: { turbo_frame: "modal" } %>
+            <%= link_to "📘 Log Book", new_book_path, class: "mobile-log-btn", data: { turbo_frame: "modal" } %>
           </div>
         <% else %>
           <div class="mobile-auth-actions">

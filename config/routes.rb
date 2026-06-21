@@ -18,6 +18,14 @@ SampleApp::Application.routes.draw do
         post :update_from_api
       end
     end
+    resources :books do
+      member do
+        get :merge
+        post :do_merge
+        get :search_api
+        post :update_from_api
+      end
+    end
     resources :comics do
       member do
         get :merge
@@ -98,6 +106,9 @@ SampleApp::Application.routes.draw do
     resources :edit_suggestions, only: %i[new create]
   end
   resources :albums do
+    resources :edit_suggestions, only: %i[new create]
+  end
+  resources :books do
     resources :edit_suggestions, only: %i[new create]
   end
 

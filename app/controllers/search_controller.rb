@@ -14,7 +14,8 @@ class SearchController < ApplicationController
       'albums' => [:albums, Album],
       'comics' => [:comics, Comic],
       'tv_shows' => [:tv_shows, TvShow],
-      'video_games' => [:video_games, VideoGame]
+      'video_games' => [:video_games, VideoGame],
+      'books' => [:books, Book]
     }
 
     mappings.each do |key, (res_key, klass)|

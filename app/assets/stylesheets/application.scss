@@ -1203,11 +1203,11 @@ turbo-frame {
 // ==========================================================================
 .dashboard-layout {
   display: grid;
-  grid-template-columns: 1fr 300px;
+  grid-template-columns: minmax(0, 1fr) 300px;
   gap: 3rem;
 
   @media (max-width: 768px) {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -1265,11 +1265,6 @@ turbo-frame {
   min-width: 0;
 }
 
-.activity-text {
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-}
-
 .activity-header {
   margin-bottom: 6px;
 }
@@ -1278,6 +1273,8 @@ turbo-frame {
   font-size: 0.88rem;
   color: var(--text-main);
   line-height: 1.5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 
   a {
     color: $accent-orange;
