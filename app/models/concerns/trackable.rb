@@ -155,7 +155,7 @@ module Trackable
     msg.gsub!('[review]', review.to_s.presence || '') if respond_to?(:review) && msg.include?('[review]')
     msg.gsub!('[type]', activity_type.to_s) if msg.include?('[type]')
     if msg.include?('[link]')
-      host = ENV.fetch('HOST', 'http://localhost:3000')
+      host = ENV.fetch('HOST', 'https://trove.schweg.xyz')
       target = respond_to?(:item) ? item : self
       begin
         link = Rails.application.routes.url_helpers.polymorphic_url(target, host: host)

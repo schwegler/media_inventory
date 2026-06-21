@@ -76,6 +76,12 @@ class SettingsController < ApplicationController
     redirect_to settings_social_path
   end
 
+  def disconnect_bluesky
+    @user.update!(bsky_did: nil, bsky_access_token: nil, bsky_refresh_token: nil)
+    flash[:success] = 'Bluesky account disconnected'
+    redirect_to settings_social_path
+  end
+
   private
 
   def set_user

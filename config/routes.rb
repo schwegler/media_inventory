@@ -127,6 +127,7 @@ SampleApp::Application.routes.draw do
   patch '/settings/update_account', to: 'settings#update_account'
   patch '/settings/update_social', to: 'settings#update_social'
   delete '/settings/disconnect_mastodon', to: 'settings#disconnect_mastodon'
+  delete '/settings/disconnect_bluesky', to: 'settings#disconnect_bluesky'
   delete '/settings/delete_account', to: 'settings#delete_account'
 
   get '/db_status', to: 'landing#db_status'
