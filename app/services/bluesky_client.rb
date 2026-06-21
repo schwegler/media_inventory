@@ -32,13 +32,59 @@ class BlueskyClient
     end
   end
 
-  def post(text)
+  def post(text, title: 'Media Tracker')
     return false unless @user && @user.bsky_access_token.present?
 
     client = AtProto::Client.new(
       private_key: OmniAuth::Atproto::KeyManager.current_private_key,
       access_token: @user.bsky_access_token
     )
+
+    facets = []
+    embed = nil
+
+    # Extract URLs for facets and embed card
+    urls = URI.extract(text, %w[http https])
+    urls.each do |url|
+      # Strip trailing punctuation if accidentally matched
+      url = url.sub(/[.,;:!?]\z/, '')
+      
+      start_idx = text.index(url)
+      next unless start_idx
+      
+      byte_start = text[0...start_idx].bytesize
+      byte_end = byte_start + url.bytesize
+
+      facets << {
+        index: { byteStart: byte_start, byteEnd: byte_end },
+        features: [{ '$type' => 'app.bsky.richtext.facet#link', 'uri' => url }]
+      }
+
+      if embed.nil?
+        embed = {
+          '$type' => 'app.bsky.embed.external',
+          'external' => {
+            'uri' => url,
+            'title' => title,
+            'description' => 'View this item on Trove'
+          }
+        }
+      end
+    end
+
+    # Extract hashtags
+    text.to_enum(:scan, /(?<=^|\s)#([\p{L}\w]+)/).each do
+      match = Regexp.last_match
+      start_idx = match.begin(0)
+      
+      byte_start = text[0...start_idx].bytesize
+      byte_end = byte_start + match[0].bytesize
+
+      facets << {
+        index: { byteStart: byte_start, byteEnd: byte_end },
+        features: [{ '$type' => 'app.bsky.richtext.facet#tag', 'tag' => match[1] }]
+      }
+    end
 
     body = {
       repo: @user.bsky_did,
@@ -49,6 +95,9 @@ class BlueskyClient
         createdAt: Time.now.utc.iso8601
       }
     }
+    
+    body[:record][:facets] = facets if facets.any?
+    body[:record][:embed] = embed if embed
 
     client.request(:post, "#{pds_url}/xrpc/com.atproto.repo.createRecord", body: body)
     true

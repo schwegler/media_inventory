@@ -81,7 +81,7 @@ module Trackable
     msg = build_social_message(activity_type, :bsky)
     Thread.new do
       client = BlueskyClient.new(user)
-      client.post(msg)
+      client.post(msg, title: respond_to?(:title) ? title.to_s : 'Media Tracker')
     rescue StandardError => e
       Rails.logger.error "CRITICAL BSKY THREAD ERROR: #{e.class} - #{e.message}\n#{e.backtrace.first(10).join("\n")}"
     end
