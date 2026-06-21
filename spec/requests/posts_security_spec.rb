@@ -3,8 +3,12 @@
 require 'rails_helper'
 
 RSpec.describe 'Posts Security', type: :request do
-  let(:owner) { User.create!(name: 'Owner', email: 'owner@example.com', password: 'password', username: 'owner') }
-  let(:attacker) { User.create!(name: 'Attacker', email: 'attacker@example.com', password: 'password', username: 'attacker') }
+  let(:owner) do
+    User.create!(name: 'Owner', email: 'owner@example.com', password: 'password', username: 'owner')
+  end
+  let(:attacker) do
+    User.create!(name: 'Attacker', email: 'attacker@example.com', password: 'password', username: 'attacker')
+  end
   let(:post_record) { owner.posts.create!(content: 'My private thoughts') }
 
   before do

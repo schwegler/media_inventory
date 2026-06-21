@@ -5,7 +5,8 @@ class PostsController < ApplicationController
 
   def show
     @post = Post.find(params[:id])
-    return redirect_to root_path, alert: 'Not authorized' unless can_access?(@post)
+    # Ensure user has permission to view this post
+    redirect_to root_path, alert: 'Not authorized' and return unless can_access?(@post)
   end
 
   def create
@@ -18,6 +19,7 @@ class PostsController < ApplicationController
   end
 
   def destroy
+    # Use find_by to avoid raising ActiveRecord::RecordNotFound
     @post = current_user.posts.find_by(id: params[:id])
     if @post&.destroy
       redirect_back fallback_location: user_path(current_user), notice: 'Post deleted.'
