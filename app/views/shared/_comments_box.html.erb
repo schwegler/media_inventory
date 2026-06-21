@@ -1,5 +1,5 @@
 <%# Local variables: matching_item %>
-<div class="review-comments-box" id="comments_for_<%= matching_item.class.name %>_<%= matching_item.id %>" style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px dashed rgba(255,255,255,0.05);">
+<div class="review-comments-box" id="comments_for_<%= matching_item.class.name %>_<%= matching_item.id %>" style="border-top: 1px dashed rgba(255,255,255,0.05);">
   <div class="comments-list" id="comments_list_for_<%= matching_item.class.name %>_<%= matching_item.id %>" style="display: flex; flex-direction: column; gap: 8px;">
     <% matching_item.comments.where(parent_id: nil).includes(:user).each do |comment| %>
       <%= render 'shared/comment', comment: comment, matching_item: matching_item, depth: 0 %>
