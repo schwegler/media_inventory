@@ -38,6 +38,7 @@ class OmniAuthCallbacksController < ApplicationController
     redirect_to root_path, notice: 'Successfully connected to Mastodon!'
   end
 
+  # rubocop:disable Metrics/AbcSize
   def atproto
     auth = request.env['omniauth.auth']
 
@@ -61,6 +62,7 @@ class OmniAuthCallbacksController < ApplicationController
     session[:user_id] = user.id unless current_user
     redirect_to root_path, notice: 'Successfully connected to Bluesky!'
   end
+  # rubocop:enable Metrics/AbcSize
 
   def failure
     redirect_to root_path, alert: "Authentication failed: #{params[:message]}"
