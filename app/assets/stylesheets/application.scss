@@ -1262,6 +1262,12 @@ turbo-frame {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  min-width: 0;
+}
+
+.activity-text {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .activity-header {
