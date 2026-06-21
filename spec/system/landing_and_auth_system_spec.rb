@@ -122,5 +122,4 @@ RSpec.describe 'Landing and Authentication', type: :system do
     expect(page).to have_text('POPULAR REVIEWS WITH FRIENDS')
     expect(page).to have_text('Hilarious episode')
   end
-
 end

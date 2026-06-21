@@ -14,8 +14,6 @@ class SessionsController < ApplicationController
 
   private
 
-
-
   def authenticate_via_email
     email = (params.dig(:session, :email) || params[:email])&.downcase
     password = params.dig(:session, :password) || params[:password]
