@@ -107,7 +107,6 @@ class SettingsController < ApplicationController
 
   def social_params
     params.require(:user).permit(
-      :bsky_handle, :bsky_app_password,
       :bsky_post_activity, :bsky_post_reviews,
       :bsky_message_activity_template, :bsky_message_review_template,
       :mastodon_post_activity, :mastodon_post_reviews,

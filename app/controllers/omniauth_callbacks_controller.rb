@@ -111,8 +111,7 @@ class OmniAuthCallbacksController < ApplicationController
       return render plain: "Bluesky setup failed: #{e.message}", status: 400
     end
 
-    client_id = ENV.fetch('BSKY_CLIENT_ID',
-                          url_for(controller: 'client_metadata', action: :show, format: :json, only_path: false))
+    client_id = ENV.fetch('BSKY_CLIENT_ID', client_metadata_url(only_path: false))
     request.env['omniauth.strategy'].options.client_id = client_id
     request.env['omniauth.strategy'].options.scope = 'atproto transition:generic'
     render plain: 'Setup complete', status: 404

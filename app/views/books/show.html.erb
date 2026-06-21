@@ -6,6 +6,9 @@
     backdrop_url = @book.thumbnail_url
   end
 %>
+<% content_for(:title, @book.title) %>
+<% content_for(:meta_description, "Book by #{@book.author || 'Unknown'} • #{@book.release_year}") %>
+<% content_for(:meta_image, backdrop_url) if backdrop_url.present? %>
 
 <div class="show-hero">
   <% if backdrop_url %>

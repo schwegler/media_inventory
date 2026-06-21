@@ -14,18 +14,8 @@
             <%= link_to "Disconnect", settings_disconnect_bluesky_path, data: { turbo_method: :delete }, class: "btn btn-outline", style: "border-color: #ef4444; color: #ef4444; font-size: 0.8rem; padding: 4px 8px; text-decoration: none;" %>
           </div>
         <% else %>
-          <p class="text-muted" style="margin-bottom: 1rem; line-height: 1.4;">
-            Alternatively, you can provide an <strong>App Password</strong> if you prefer not to use OAuth:
-          </p>
-
-          <div class="form-group" style="margin-top: 15px;">
-            <%= f.label :bsky_handle, "Bluesky Handle" %>
-            <%= f.text_field :bsky_handle, class: 'form-control', placeholder: 'e.g. username.bsky.social' %>
-          </div>
-
-          <div class="form-group" style="margin-top: 15px;">
-            <%= f.label :bsky_app_password, "Bluesky App Password" %>
-            <%= f.password_field :bsky_app_password, class: 'form-control', placeholder: 'e.g. xxxx-xxxx-xxxx-xxxx', value: @user.bsky_app_password %>
+          <div style="padding: 1rem; background: rgba(148, 163, 184, 0.1); border-left: 4px solid #94a3b8; margin-bottom: 1rem;">
+            <p style="margin: 0; color: #94a3b8;">Not connected. Use the Connect button below.</p>
           </div>
         <% end %>
 

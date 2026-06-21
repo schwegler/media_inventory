@@ -5,6 +5,21 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="turbo-refresh-method" content="morph">
   <meta name="turbo-refresh-scroll" content="preserve">
+
+  <!-- Open Graph -->
+  <meta property="og:site_name" content="Trove">
+  <meta property="og:title" content="<%= full_title(yield(:title)) %>">
+  <meta property="og:description" content="<%= yield(:meta_description).presence || "Track and share your movies, albums, comics, and more on Trove." %>">
+  <meta property="og:image" content="<%= yield(:meta_image).presence || request.base_url + "/favicon.svg" %>">
+  <meta property="og:url" content="<%= request.original_url %>">
+  <meta property="og:type" content="<%= yield(:og_type).presence || "website" %>">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="<%= full_title(yield(:title)) %>">
+  <meta name="twitter:description" content="<%= yield(:meta_description).presence || "Track and share your movies, albums, comics, and more on Trove." %>">
+  <meta name="twitter:image" content="<%= yield(:meta_image).presence || request.base_url + "/favicon.svg" %>">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">

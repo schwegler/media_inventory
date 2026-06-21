@@ -83,13 +83,6 @@ module Trackable
         client = BlueskyClient.new(user)
         client.post(msg)
       end
-    elsif user.bsky_app_password.present?
-      return unless should_post_to_bsky?(activity_type)
-
-      msg = build_social_message(activity_type, :bsky)
-      Thread.new do
-        BlueskyService.new(user.bsky_handle, user.bsky_app_password).post(msg)
-      end
     end
   end
 

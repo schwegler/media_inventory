@@ -19,13 +19,11 @@ class UserDashboard < Administrate::BaseDashboard
     bio: Field::Text,
     birthday: Field::Date,
     bsky_access_token: Field::String,
-    bsky_app_password: Field::String,
     bsky_custom_message: Field::Text,
     bsky_did: Field::String,
     bsky_handle: Field::String,
     bsky_message_activity_template: Field::String,
     bsky_message_review_template: Field::String,
-    bsky_password: Field::String,
     bsky_post_activity: Field::Boolean,
     bsky_post_reviews: Field::Boolean,
     bsky_post_reviews_only: Field::Boolean,
@@ -87,13 +85,11 @@ class UserDashboard < Administrate::BaseDashboard
     bio
     birthday
     bsky_access_token
-    bsky_app_password
     bsky_custom_message
     bsky_did
     bsky_handle
     bsky_message_activity_template
     bsky_message_review_template
-    bsky_password
     bsky_post_activity
     bsky_post_reviews
     bsky_post_reviews_only
@@ -143,13 +139,11 @@ class UserDashboard < Administrate::BaseDashboard
     bio
     birthday
     bsky_access_token
-    bsky_app_password
     bsky_custom_message
     bsky_did
     bsky_handle
     bsky_message_activity_template
     bsky_message_review_template
-    bsky_password
     bsky_post_activity
     bsky_post_reviews
     bsky_post_reviews_only

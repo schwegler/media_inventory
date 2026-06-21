@@ -1,3 +1,11 @@
+<% content_for(:title, "#{@post.user.name.presence || @post.user.display_handle}'s Post") %>
+<% content_for(:meta_description, truncate(@post.content, length: 160)) %>
+<% if @post.user.avatar&.attached? %>
+  <% content_for(:meta_image, url_for(@post.user.avatar)) %>
+<% elsif @post.user.avatar_url.present? %>
+  <% content_for(:meta_image, @post.user.avatar_url) %>
+<% end %>
+
 <div class="container" style="max-width: 600px; margin: 0 auto; padding-top: 20px;">
   <div class="post-card card" style="margin-bottom: 15px; padding: 20px; border-radius: 8px;">
     <div class="tweet-header">
