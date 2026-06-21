@@ -22,9 +22,9 @@
       <div class="form-group" style="margin-bottom: 1rem;">
         <%= label_tag "edit_suggestion[proposed_changes][#{col.name}]", col.name.humanize, style: "display: block; margin-bottom: 0.5rem; font-weight: bold;" %>
         <% if col.type == :text %>
-          <%= text_area_tag "edit_suggestion[proposed_changes][#{col.name}]", current_val, class: "form-control", style: "width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-color); color: var(--text-color);" %>
+          <%= text_area_tag "edit_suggestion[proposed_changes][#{col.name}]", current_val, class: "form-control", style: "width: 100%; padding: 0.5rem;" %>
         <% else %>
-          <%= text_field_tag "edit_suggestion[proposed_changes][#{col.name}]", current_val, class: "form-control", style: "width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-color); color: var(--text-color);" %>
+          <%= text_field_tag "edit_suggestion[proposed_changes][#{col.name}]", current_val, class: "form-control", style: "width: 100%; padding: 0.5rem;" %>
         <% end %>
       </div>
     <% end %>
