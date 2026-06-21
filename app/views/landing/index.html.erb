@@ -163,12 +163,17 @@
                   </div>
                   
                   <div class="activity-footer">
-                    <span class="activity-badge badge-<%= activity.activity_type %>">
-                      <%= activity.activity_type %>
-                    </span>
-                    <span class="activity-time">
-                      <%= time_ago_in_words(activity.created_at) %> ago
-                    </span>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                      <span class="activity-badge badge-<%= activity.activity_type %>">
+                        <%= activity.activity_type %>
+                      </span>
+                      <span class="activity-time">
+                        <%= time_ago_in_words(activity.created_at) %> ago
+                      </span>
+                    </div>
+                    <div class="activity-actions">
+                      <%= render partial: 'likes/like_button', locals: { item: activity, tweet_style: true } %>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -45,8 +45,9 @@ class ApplicationController < ActionController::Base
   def can_access?(resource)
     return false if resource.nil?
 
-    # Global media types are always accessible
-    return true if %w[Movie TvShow TvEpisode Album Comic VideoGame WrestlingEvent].include?(resource.class.name)
+    # Global and social media types are always accessible
+    accessible_types = %w[Movie TvShow TvEpisode Album Comic ComicIssue Book VideoGame WrestlingEvent Activity Comment]
+    return true if accessible_types.include?(resource.class.name)
 
     # 1. Owner access
     return true if resource.respond_to?(:user) && resource.user.present? && resource.user == current_user

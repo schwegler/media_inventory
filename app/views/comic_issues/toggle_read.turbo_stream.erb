@@ -1,0 +1,3 @@
+<%= turbo_stream.replace "comic_issue_#{@comic_issue.id}" do %>
+  <%= render 'comics/comic_issue', issue: @comic_issue, comic: @comic_issue.comic %>
+<% end %>

@@ -29,7 +29,7 @@ class LikesController < ApplicationController
     likeable_type = params[:likeable_type].to_s.strip
     likeable_id = params[:likeable_id].to_s.strip
 
-    allowed_types = %w[Movie TvShow TvEpisode Album Comic ComicIssue VideoGame Book Post LibraryItem Comment]
+    allowed_types = %w[Movie TvShow TvEpisode Album Comic ComicIssue VideoGame Book Post LibraryItem Comment Activity]
     unless allowed_types.include?(likeable_type)
       render json: { error: 'Invalid likeable type' }, status: :bad_request
       return nil
