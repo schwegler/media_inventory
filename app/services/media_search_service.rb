@@ -48,8 +48,8 @@ class MediaSearchService
   end
 
   def search_tv_shows
-    web_results = fetch_tmdb_tv_shows(@query)
-    web_results = fetch_tvmaze_tv_shows(@query) if web_results.empty?
+    web_results = fetch_tvmaze_tv_shows(@query)
+    web_results = fetch_tmdb_tv_shows(@query) if web_results.empty?
     filter_unique_results(web_results)
   end
 
@@ -273,7 +273,7 @@ class MediaSearchService
         network: '',
         release_year: item['first_air_date']&.split('-')&.first,
         thumbnail_url: item['poster_path'] ? "https://image.tmdb.org/t/p/w500#{item['poster_path']}" : nil,
-        api_id: item['id'].to_s,
+        api_id: "tmdb_#{item['id']}",
         external_url: "https://www.themoviedb.org/tv/#{item['id']}",
         is_local: false
       }

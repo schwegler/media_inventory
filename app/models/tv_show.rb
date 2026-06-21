@@ -17,7 +17,7 @@ class TvShow < ApplicationRecord
   private
 
   def sync_episodes_from_api
-    return if api_id.blank?
+    return if api_id.blank? || api_id.to_s.start_with?('tmdb_')
     return unless saved_change_to_api_id? || tv_episodes.empty?
 
     episodes_data = fetch_episodes_from_api
