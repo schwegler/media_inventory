@@ -155,6 +155,7 @@
              <% if @collection_items.any? %>
                  <% @collection_items.each do |lib_item| %>
                    <% item = lib_item.item %>
+                   <% next unless item %>
                    <%= render partial: 'shared/media_card', locals: { media_item: item } %>
                  <% end %>
              <% else %>
@@ -169,6 +170,7 @@
            <% if @backlog_items.any? %>
                <% @backlog_items.each do |lib_item| %>
                  <% item = lib_item.item %>
+                 <% next unless item %>
                  <%= render partial: 'shared/media_card', locals: { media_item: item } %>
                <% end %>
            <% else %>

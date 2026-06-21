@@ -8,6 +8,7 @@ class Comic < ApplicationRecord
   has_many :likes, as: :likeable, dependent: :destroy
   has_many :comments, as: :commentable, dependent: :destroy
   has_many :edit_suggestions, as: :suggestable, dependent: :destroy
+  has_many :library_items, as: :item, dependent: :destroy
 
   validates :title, presence: true
 
