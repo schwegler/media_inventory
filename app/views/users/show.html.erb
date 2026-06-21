@@ -78,7 +78,7 @@
         <% if current_user?(@user) %>
           <div class="post-creation-box card" style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 8px;">
             <%= form_with model: Post.new, url: posts_path, local: true do |f| %>
-              <%= f.text_area :content, placeholder: "What's on your mind?", required: true, style: "width: 100%; min-height: 80px; padding: 10px; border-radius: 6px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; resize: vertical; margin-bottom: 10px;" %>
+              <%= f.text_area :content, placeholder: "What's on your mind?", required: true, class: "post-input" %>
               <div style="display: flex; justify-content: flex-end;">
                 <%= f.submit "Post", class: "btn btn-primary" %>
               </div>

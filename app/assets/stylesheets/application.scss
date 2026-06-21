@@ -1289,6 +1289,18 @@ turbo-frame {
   }
 }
 
+.post-input {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  border-radius: $radius-sm;
+  background: $bg-darker;
+  border: 1px solid $card-border;
+  color: $text-main;
+  resize: vertical;
+  margin-bottom: 10px;
+}
+
 .activity-review-quote {
   font-style: italic;
   color: $text-muted;
