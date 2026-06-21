@@ -14,9 +14,9 @@ class LandingController < ApplicationController
 
   def test_bsky
     u = User.where.not(bsky_access_token: nil).first || User.first
-    
+
     if u.nil?
-      render plain: "No users found"
+      render plain: 'No users found'
       return
     end
 
@@ -27,9 +27,9 @@ class LandingController < ApplicationController
 
     client = BlueskyClient.new(u)
     begin
-      client.post("Testing the new persistent key from production...")
-      render plain: "Post called successfully."
-    rescue => e
+      client.post('Testing the new persistent key from production...')
+      render plain: 'Post called successfully.'
+    rescue StandardError => e
       render plain: "Error posting: #{e.class} - #{e.message}\n#{e.backtrace.first(10).join("\n")}"
     end
   end

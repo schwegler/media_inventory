@@ -80,12 +80,10 @@ module Trackable
 
     msg = build_social_message(activity_type, :bsky)
     Thread.new do
-      begin
-        client = BlueskyClient.new(user)
-        client.post(msg)
-      rescue Exception => e
-        Rails.logger.error "CRITICAL BSKY THREAD ERROR: #{e.class} - #{e.message}\n#{e.backtrace.first(10).join("\n")}"
-      end
+      client = BlueskyClient.new(user)
+      client.post(msg)
+    rescue Exception => e
+      Rails.logger.error "CRITICAL BSKY THREAD ERROR: #{e.class} - #{e.message}\n#{e.backtrace.first(10).join("\n")}"
     end
   end
 
