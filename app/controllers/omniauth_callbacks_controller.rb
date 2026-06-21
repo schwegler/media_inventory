@@ -40,10 +40,10 @@ class OmniAuthCallbacksController < ApplicationController
 
   def atproto
     auth = request.env['omniauth.auth']
-    
+
     did = auth.uid || auth.info.did
     handle = auth.info.nickname || auth.info.handle || did
-    
+
     user = current_user || User.find_by(bsky_did: did) || User.new
 
     user.bsky_did = did

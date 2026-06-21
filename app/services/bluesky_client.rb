@@ -48,10 +48,10 @@ class BlueskyClient
     urls.each do |url|
       # Strip trailing punctuation if accidentally matched
       url = url.sub(/[.,;:!?]\z/, '')
-      
+
       start_idx = text.index(url)
       next unless start_idx
-      
+
       byte_start = text[0...start_idx].bytesize
       byte_end = byte_start + url.bytesize
 
@@ -60,23 +60,23 @@ class BlueskyClient
         features: [{ '$type' => 'app.bsky.richtext.facet#link', 'uri' => url }]
       }
 
-      if embed.nil?
-        embed = {
-          '$type' => 'app.bsky.embed.external',
-          'external' => {
-            'uri' => url,
-            'title' => title,
-            'description' => 'View this item on Trove'
-          }
+      next unless embed.nil?
+
+      embed = {
+        '$type' => 'app.bsky.embed.external',
+        'external' => {
+          'uri' => url,
+          'title' => title,
+          'description' => 'View this item on Trove'
         }
-      end
+      }
     end
 
     # Extract hashtags
     text.to_enum(:scan, /(?<=^|\s)#([\p{L}\w]+)/).each do
       match = Regexp.last_match
       start_idx = match.begin(0)
-      
+
       byte_start = text[0...start_idx].bytesize
       byte_end = byte_start + match[0].bytesize
 
@@ -95,7 +95,7 @@ class BlueskyClient
         createdAt: Time.now.utc.iso8601
       }
     }
-    
+
     body[:record][:facets] = facets if facets.any?
     body[:record][:embed] = embed if embed
 
