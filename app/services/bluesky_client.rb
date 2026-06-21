@@ -55,7 +55,7 @@ class BlueskyClient
   rescue StandardError => e
     Rails.logger.error "Bluesky posting error: #{e.message}"
     Rails.logger.error e.backtrace.join("\n") if e.respond_to?(:backtrace)
-    false
+    raise e
   end
 
   def profile

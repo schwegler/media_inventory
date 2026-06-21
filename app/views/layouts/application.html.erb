@@ -31,6 +31,16 @@
   <% if hotwire_native_app? %>
     <meta name="turbo-visit-control" content="reload">
   <% end %>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PPD2TWSZBW"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-PPD2TWSZBW');
+  </script>
 </head>
 <body <% if hotwire_native_app? %>data-native="true"<% end %>>
 
