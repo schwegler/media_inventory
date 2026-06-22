@@ -43,6 +43,7 @@
   </script>
 </head>
 <body <% if hotwire_native_app? %>data-native="true"<% end %>>
+  <a href="#main-content" class="skip-link">Skip to content</a>
 
   <% unless hotwire_native_app? %>
   <header class="app-header" data-controller="mobile-menu">
@@ -213,7 +214,7 @@
   </header>
   <% end %>
 
-<main class="container">
+<main id="main-content" class="container">
   <div id="flash-messages">
     <% flash.each do |message_type, message| %>
       <div class="alert alert-<%= message_type %>" data-controller="flash" data-flash-dismiss-after-value="5000">
