@@ -43,7 +43,7 @@
   </script>
 </head>
 <body <% if hotwire_native_app? %>data-native="true"<% end %>>
-  <%= link_to "Skip to content", "#main-content", class: "skip-link" %>
+  <a href="#main-content" class="skip-link">Skip to content</a>
 
   <% unless hotwire_native_app? %>
   <header class="app-header" data-controller="mobile-menu">
