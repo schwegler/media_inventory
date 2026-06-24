@@ -4956,6 +4956,24 @@ input[type="submit"]:focus-visible {
   box-shadow: none !important;
 }
 
+.profile-handle-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.copy-handle-btn {
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #f8fafc;
+  }
+}
+
 .tweet-actions {
   display: flex !important;
   gap: 1rem !important;
