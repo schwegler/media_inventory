@@ -55,11 +55,15 @@ RSpec.describe UsersController, type: :controller do
         allow(activities).to receive(:order).and_return(activities)
         allow(activities).to receive(:includes).and_return(activities)
         allow(activities).to receive(:limit).and_return(activities)
+        allow(activities).to receive(:to_a).and_return([])
 
         likes = double('likes')
         allow(user).to receive(:likes).and_return(likes)
         allow(likes).to receive(:order).and_return(likes)
         allow(likes).to receive(:includes).and_return(likes)
+        allow(likes).to receive(:to_a).and_return([])
+
+        allow(user).to receive(:posts).and_return([])
 
         library_items = double('library_items')
         allow(user).to receive(:library_items).and_return(library_items)

@@ -30,11 +30,13 @@ class UsersController < ApplicationController
       ).where(library_items: { is_public: true })
     end
 
-    @activities = @activities.limit(20).to_a
+    @activities = @activities.limit(20)
     @likes = @likes.to_a
 
     # Preload social feed (activities and posts)
-    preload_social_feed(@activities + @user.posts)
+    @combined_feed = preload_social_feed(@activities.to_a + @user.posts.to_a)
+    @combined_feed.sort_by!(&:created_at).reverse!
+
     # Preload likes
     preload_social_feed(@likes)
 

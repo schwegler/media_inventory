@@ -9,35 +9,37 @@ module RecordPreloader
     return records if records.blank?
 
     # Group by class to avoid AssociationNotFoundError
-    records.group_by(&:class).each do |klass, grouped_records|
-      associations = []
-      associations << :user if klass.reflect_on_association(:user)
-      associations << :likes if klass.reflect_on_association(:likes)
-      associations << :comments if klass.reflect_on_association(:comments)
-      associations << :likeable if klass.reflect_on_association(:likeable)
-
-      if associations.any?
-        ActiveRecord::Associations::Preloader.new(
-          records: grouped_records,
-          associations: associations
-        ).call
-      end
-
-      # For Likes, we might want to preload attachments for the likeable if it's a media item
-      if klass == Like
-        likeables = grouped_records.map(&:likeable).compact
-        preload_records_attachments(likeables)
-      end
-
-      # For Activities, we also need to preload trackable and its attachments
-      if klass == Activity
-        preload_activities_attachments(grouped_records)
-      elsif klass == Post
-        # Posts might have attachments in the future, but for now they just have user/likes/comments
-      end
+    records.compact.group_by(&:class).each do |klass, grouped_records|
+      preload_standard_associations(klass, grouped_records)
+      preload_class_specific_associations(klass, grouped_records)
     end
 
     records
+  end
+
+  def preload_standard_associations(klass, records)
+    associations = []
+    associations << :user if klass.reflect_on_association(:user)
+    associations << :likes if klass.reflect_on_association(:likes)
+    associations << :comments if klass.reflect_on_association(:comments)
+    associations << :likeable if klass.reflect_on_association(:likeable)
+
+    return if associations.empty?
+
+    ActiveRecord::Associations::Preloader.new(
+      records: records,
+      associations: associations
+    ).call
+  end
+
+  def preload_class_specific_associations(klass, records)
+    case klass.name
+    when 'Like'
+      likeables = records.map(&:likeable).compact
+      preload_records_attachments(likeables)
+    when 'Activity'
+      preload_activities_attachments(records)
+    end
   end
 
   def preload_activities_attachments(activities)
@@ -52,8 +54,7 @@ module RecordPreloader
     trackables = activities.map(&:trackable).compact
 
     # 2. Handle LibraryItem proxy pattern for trackables
-    lib_items = trackables.select { |t| t.is_a?(LibraryItem) }
-    items = trackables.reject { |t| t.is_a?(LibraryItem) }
+    lib_items, items = trackables.partition { |t| t.is_a?(LibraryItem) }
 
     if lib_items.any?
       ActiveRecord::Associations::Preloader.new(

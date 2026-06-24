@@ -9,7 +9,8 @@ class LandingController < ApplicationController
       @popular_items = fetch_popular_items
       @popular_reviews = preload_social_feed(fetch_popular_reviews.to_a)
     else
-      @activities = preload_social_feed(public_activity_feed.to_a)
+      @activities = public_activity_feed
+      preload_social_feed(@activities.to_a)
       @active_trackers = User.where.not(confirmed_at: nil).limit(5)
     end
   end
@@ -71,7 +72,7 @@ class LandingController < ApplicationController
   end
 
   def fetch_popular_reviews
-    Activity.includes(:trackable)
+    Activity.includes(:user, :trackable)
             .where(activity_type: 'reviewed')
             .order(created_at: :desc)
             .limit(20)
