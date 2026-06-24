@@ -24,7 +24,20 @@
 
       <div class="profile-main-meta">
         <h1 class="profile-display-name"><%= @user.name %></h1>
-        <p class="profile-handle"><%= @user.display_handle %></p>
+        <% if @user.display_handle.present? %>
+          <div class="profile-handle-container" data-controller="clipboard" data-clipboard-text-value="<%= @user.display_handle %>">
+            <p class="profile-handle" style="margin: 0;"><%= @user.display_handle %></p>
+            <button type="button" class="btn-unstyled copy-handle-btn" data-action="click->clipboard#copy" aria-label="Copy handle">
+              <svg data-clipboard-target="copyIcon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <svg data-clipboard-target="checkIcon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </button>
+          </div>
+        <% end %>
       </div>
 
       <div class="profile-stats">
