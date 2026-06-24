@@ -1,13 +1,15 @@
 # frozen_string_literal: true
 
 class LandingController < ApplicationController
+  include RecordPreloader
+
   def index
     if logged_in?
-      @new_from_friends = preload_activities_attachments(fetch_friend_activities)
+      @new_from_friends = preload_social_feed(fetch_friend_activities.to_a)
       @popular_items = fetch_popular_items
-      @popular_reviews = preload_activities_attachments(fetch_popular_reviews)
+      @popular_reviews = preload_social_feed(fetch_popular_reviews.to_a)
     else
-      @activities = preload_activities_attachments(public_activity_feed)
+      @activities = preload_social_feed(public_activity_feed.to_a)
       @active_trackers = User.where.not(confirmed_at: nil).limit(5)
     end
   end
@@ -22,14 +24,12 @@ class LandingController < ApplicationController
   end
 
   def dashboard_activity_scope
-    Activity.includes(:user, :trackable)
-            .where(activity_type: %w[added consumed reviewed])
+    Activity.where(activity_type: %w[added consumed reviewed])
             .order(created_at: :desc)
   end
 
   def public_activity_feed
-    Activity.includes(:user, :trackable)
-            .order(created_at: :desc)
+    Activity.order(created_at: :desc)
             .page(params[:page])
             .per(15)
   end
@@ -71,28 +71,11 @@ class LandingController < ApplicationController
   end
 
   def fetch_popular_reviews
-    Activity.includes(:user, :trackable)
+    Activity.includes(:trackable)
             .where(activity_type: 'reviewed')
             .order(created_at: :desc)
             .limit(20)
             .select { |a| a.trackable&.review.present? }.first(3)
-  end
-
-  def preload_activities_attachments(activities)
-    preload_records_attachments(activities.map(&:trackable).compact)
-    activities
-  end
-
-  def preload_records_attachments(records)
-    records.group_by(&:class).each do |klass, grouped_records|
-      next unless klass.reflect_on_association(:cover_image_attachment)
-
-      ActiveRecord::Associations::Preloader.new(
-        records: grouped_records,
-        associations: { cover_image_attachment: :blob }
-      ).call
-    end
-    records
   end
 
   def db_status

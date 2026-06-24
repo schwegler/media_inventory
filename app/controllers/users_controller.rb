@@ -2,6 +2,8 @@
 
 # rubocop:disable Metrics/ClassLength
 class UsersController < ApplicationController
+  include RecordPreloader
+
   before_action :logged_in_user, only: %i[index show edit update destroy following followers]
   before_action :correct_user,   only: %i[edit update]
   before_action :admin_user,     only: :destroy
@@ -28,11 +30,16 @@ class UsersController < ApplicationController
       ).where(library_items: { is_public: true })
     end
 
-    @activities = @activities.includes(:user, :trackable).limit(20)
-    @likes = @likes.includes(:likeable)
+    @activities = @activities.limit(20).to_a
+    @likes = @likes.to_a
 
-    @collection_items = fetch_library_items(is_collected: true)
-    @backlog_items = fetch_library_items(in_backlog: true)
+    # Preload social feed (activities and posts)
+    preload_social_feed(@activities + @user.posts)
+    # Preload likes
+    preload_social_feed(@likes)
+
+    @collection_items = preload_library_items(fetch_library_items(is_collected: true))
+    @backlog_items = preload_library_items(fetch_library_items(in_backlog: true))
   end
 
   def new
