@@ -2,10 +2,14 @@
 
 # rubocop:disable Metrics/ClassLength
 class InventoryController < ApplicationController
+  include RecordPreloader
+
   before_action :logged_in_user, only: %i[new create]
 
   def index
     @resources = resource_class.order(created_at: :desc).page(params[:page])
+    # Eager load Active Storage attachments to eliminate N+1 queries when rendering media cards
+    preload_records_attachments(@resources)
     instance_variable_set("@#{resource_name.pluralize}", @resources)
   end
 

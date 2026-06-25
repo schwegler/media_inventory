@@ -23,6 +23,7 @@ RSpec.describe UsersController, type: :controller do
 
       it 'assigns @users and returns success' do
         users = [user]
+        allow(User).to receive(:with_attached_avatar).and_return(User)
         allow(User).to receive(:page).and_return(users)
 
         get :index

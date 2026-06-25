@@ -6,7 +6,9 @@ RSpec.describe MoviesController, type: :controller do
   describe 'GET #index' do
     it 'returns a success response' do
       movies = double('movies')
+      allow(Movie).to receive(:order).and_return(Movie)
       allow(Movie).to receive(:page).with('1').and_return(movies)
+      allow(movies).to receive(:group_by).and_return({})
 
       get :index, params: { page: '1' }
 

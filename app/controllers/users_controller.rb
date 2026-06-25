@@ -9,7 +9,8 @@ class UsersController < ApplicationController
   before_action :admin_user,     only: :destroy
 
   def index
-    @users = User.page(params[:page])
+    # Eager load avatar attachments to eliminate N+1 queries when rendering the user list
+    @users = User.with_attached_avatar.page(params[:page])
   end
 
   def show
