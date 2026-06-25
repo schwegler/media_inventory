@@ -2,6 +2,7 @@
 
 class Comic < ApplicationRecord
   include LibraryItemFormAttributes
+  include VisibleTo
 
   has_one_attached :cover_image
   has_many :comic_issues, dependent: :destroy
