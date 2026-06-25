@@ -7,3 +7,8 @@
 **Vulnerability:** In `SessionsController`, the Bluesky login used `user.bsky_password == bsky_password`. In Ruby, `nil == nil` is true. If a user hadn't set an app password and the attacker provided a null/missing parameter, they could log in.
 **Learning:** Never rely on direct equality for password comparison without ensuring both sides are present. Even with `has_secure_password`, custom authentication flows must explicitly validate input presence.
 **Prevention:** Always check `.present?` on password parameters before attempting any comparison or authentication logic.
+
+## 2026-06-25 - [Privacy Leak in Media Search and Autocomplete]
+**Vulnerability:** Global search and autocomplete endpoints were leaking private media items. If a user added an item to their private collection, other users could still discover it by title.
+**Learning:** Security and privacy filters must be applied at the database query level for all search functionality. Relying on per-page authorization checks (like `can_access?`) is insufficient for list-based discovery.
+**Prevention:** Use a centralized visibility scope (e.g., `.visible_to(user)`) for all media-related queries to ensure private data remains hidden from discovery.

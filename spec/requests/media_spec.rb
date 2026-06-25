@@ -25,6 +25,11 @@ RSpec.describe 'Media Autocomplete', type: :request do
       let!(:movie1) { Movie.create!(title: 'Star Wars', director: 'George Lucas', release_year: 1977) }
       let!(:movie2) { Movie.create!(title: 'Star Trek', director: 'Gene Roddenberry', release_year: 1979) }
 
+      before do
+        LibraryItem.create!(user: user, item: movie1, is_public: true)
+        LibraryItem.create!(user: user, item: movie2, is_public: true)
+      end
+
       it 'returns matching movies' do
         get '/media/autocomplete', params: { q: 'star', type: 'movie' }
         expect(response).to have_http_status(:ok)
@@ -67,6 +72,10 @@ RSpec.describe 'Media Autocomplete', type: :request do
         Album.create!(title: 'Abbey Road', artist: 'The Beatles', release_year: 1969, genre: 'Rock')
       end
 
+      before do
+        LibraryItem.create!(user: user, item: album, is_public: true)
+      end
+
       it 'returns matching albums' do
         get '/media/autocomplete', params: { q: 'abbey', type: 'album' }
         expect(response).to have_http_status(:ok)
@@ -82,6 +91,10 @@ RSpec.describe 'Media Autocomplete', type: :request do
         Comic.create!(title: 'Watchmen', writer: 'Alan Moore', artist: 'Dave Gibbons', publisher: 'DC', issue_number: 1)
       end
 
+      before do
+        LibraryItem.create!(user: user, item: comic, is_public: true)
+      end
+
       it 'returns matching comics' do
         get '/media/autocomplete', params: { q: 'watch', type: 'comic' }
         expect(response).to have_http_status(:ok)
@@ -95,6 +108,10 @@ RSpec.describe 'Media Autocomplete', type: :request do
 
     context 'with tv shows' do
       let!(:tv_show) { TvShow.create!(title: 'Breaking Bad', network: 'AMC') }
+
+      before do
+        LibraryItem.create!(user: user, item: tv_show, is_public: true)
+      end
 
       it 'returns matching TV shows' do
         get '/media/autocomplete', params: { q: 'break', type: 'tv_show' }
@@ -112,6 +129,10 @@ RSpec.describe 'Media Autocomplete', type: :request do
           title: 'Portal 2', developer: 'Valve', publisher: 'Valve',
           platform: 'PC', release_year: 2011
         )
+      end
+
+      before do
+        LibraryItem.create!(user: user, item: video_game, is_public: true)
       end
 
       it 'returns matching video games' do
