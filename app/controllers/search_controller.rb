@@ -19,7 +19,9 @@ class SearchController < ApplicationController
     }
 
     mappings.each do |key, (res_key, klass)|
-      @results[res_key] = klass.where('title LIKE ?', search_term).limit(20) if @filter_type.blank? || @filter_type == key
+      next unless @filter_type.blank? || @filter_type == key
+
+      @results[res_key] = klass.visible_to(current_user).where('title LIKE ?', search_term).limit(20)
     end
   end
 end
