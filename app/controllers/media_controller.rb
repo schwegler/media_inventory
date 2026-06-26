@@ -78,7 +78,7 @@ class MediaController < ApplicationController
   end
 
   def fetch_local_movies(query)
-    Movie.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |m|
+    Movie.visible_to(current_user).where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |m|
       {
         title: m.title,
         director: m.director,
@@ -99,7 +99,7 @@ class MediaController < ApplicationController
   end
 
   def fetch_local_albums(query)
-    Album.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |a|
+    Album.visible_to(current_user).where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |a|
       {
         title: a.title,
         artist: a.artist,
@@ -121,7 +121,7 @@ class MediaController < ApplicationController
   end
 
   def fetch_local_comics(query)
-    Comic.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |c|
+    Comic.visible_to(current_user).where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |c|
       {
         title: c.title,
         writer: c.writer,
@@ -144,7 +144,7 @@ class MediaController < ApplicationController
   end
 
   def fetch_local_tv_shows(query)
-    TvShow.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |t|
+    TvShow.visible_to(current_user).where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |t|
       {
         title: t.title,
         network: t.network,
@@ -164,7 +164,7 @@ class MediaController < ApplicationController
   end
 
   def fetch_local_video_games(query)
-    VideoGame.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(3).map do |vg|
+    VideoGame.visible_to(current_user).where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(3).map do |vg|
       {
         title: vg.title,
         developer: vg.developer,
@@ -187,7 +187,7 @@ class MediaController < ApplicationController
   end
 
   def fetch_local_books(query)
-    Book.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |b|
+    Book.visible_to(current_user).where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |b|
       {
         title: b.title,
         author: b.author,

@@ -2,6 +2,7 @@
 
 class VideoGame < ApplicationRecord
   include LibraryItemFormAttributes
+  include VisibleTo
 
   has_one_attached :cover_image
   has_many :likes, as: :likeable, dependent: :destroy

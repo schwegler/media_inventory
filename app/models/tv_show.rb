@@ -2,6 +2,7 @@
 
 class TvShow < ApplicationRecord
   include LibraryItemFormAttributes
+  include VisibleTo
 
   has_one_attached :cover_image
   has_many :tv_episodes, dependent: :destroy
