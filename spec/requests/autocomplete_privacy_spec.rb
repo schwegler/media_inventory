@@ -3,8 +3,12 @@
 require 'rails_helper'
 
 RSpec.describe 'Autocomplete Privacy', type: :request do
-  let(:user_a) { User.create!(name: 'User A', email: 'user_a@example.com', password: 'password', confirmed_at: Time.current) }
-  let(:user_b) { User.create!(name: 'User B', email: 'user_b@example.com', password: 'password', confirmed_at: Time.current) }
+  let(:user_a) do
+    User.create!(name: 'User A', email: 'user_a@example.com', password: 'password', confirmed_at: Time.current)
+  end
+  let(:user_b) do
+    User.create!(name: 'User B', email: 'user_b@example.com', password: 'password', confirmed_at: Time.current)
+  end
   let!(:private_movie) { Movie.create!(title: 'Secret Movie Autocomplete') }
   let!(:public_movie) { Movie.create!(title: 'Public Movie Autocomplete') }
 

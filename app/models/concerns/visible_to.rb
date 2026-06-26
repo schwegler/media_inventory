@@ -9,7 +9,7 @@ module VisibleTo
     # 1. It is explicitly marked as public in any user's library.
     # 2. It belongs to the current user's library (even if private).
     # 3. It has no library items (it's a global/system item).
-    scope :visible_to, ->(user) {
+    scope :visible_to, lambda { |user|
       return all if user&.admin?
 
       left_outer_joins(:library_items)
