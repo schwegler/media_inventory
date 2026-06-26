@@ -11,7 +11,7 @@ class LandingController < ApplicationController
     else
       @activities = public_activity_feed
       preload_social_feed(@activities.to_a)
-      @active_trackers = User.where.not(confirmed_at: nil).limit(5)
+      @active_trackers = User.with_attached_avatar.where.not(confirmed_at: nil).limit(5)
     end
   end
 
