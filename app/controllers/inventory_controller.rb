@@ -8,9 +8,8 @@ class InventoryController < ApplicationController
     @resources = resource_class.order(created_at: :desc).page(params[:page])
 
     # Bolt ⚡: Eliminate N+1 queries for media covers in grid views
-    if resource_class.reflect_on_association(:cover_image_attachment)
-      @resources = @resources.with_attached_cover_image
-    end
+    @resources = @resources.with_attached_cover_image if resource_class.respond_to?(:reflect_on_association) &&
+                                                         resource_class.reflect_on_association(:cover_image_attachment)
 
     instance_variable_set("@#{resource_name.pluralize}", @resources)
   end
