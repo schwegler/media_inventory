@@ -5,3 +5,7 @@
 ## 2026-06-19 - Risks of Nested Eager Loading on Polymorphic Associations
 **Learning:** Eager loading nested associations on a polymorphic relation (e.g., `includes(trackable: { tv_show: :user })`) will raise an `ActiveRecord::AssociationNotFoundError` if *any* of the returned records belong to a model that does not define that nested association (e.g., a `Movie` or `Album` which doesn't have a `tv_show`).
 **Action:** Stick to first-level eager loading for polymorphic associations (`includes(:trackable)`) or use the grouping/bulk-fetch pattern if nested associations are required for specific types. Also, use `.load` in the controller if the view uses `.any?` or `.exists?` to prevent redundant COUNT queries before the SELECT.
+
+## 2026-06-27 - Generic Controller N+1 Optimization
+**Learning:** Generic or base controllers (like `InventoryController`) that handle multiple resource types can hide N+1 queries in index views when rendering shared partials that check for attachments.
+**Action:** Use `reflect_on_association` to dynamically apply Active Storage eager-loading scopes (like `with_attached_cover_image`) in base controller actions. This ensures that only relevant models trigger the preload, avoiding errors while maximizing performance across all inheriting controllers.
