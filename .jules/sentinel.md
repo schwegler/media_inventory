@@ -7,3 +7,8 @@
 **Vulnerability:** In `SessionsController`, the Bluesky login used `user.bsky_password == bsky_password`. In Ruby, `nil == nil` is true. If a user hadn't set an app password and the attacker provided a null/missing parameter, they could log in.
 **Learning:** Never rely on direct equality for password comparison without ensuring both sides are present. Even with `has_secure_password`, custom authentication flows must explicitly validate input presence.
 **Prevention:** Always check `.present?` on password parameters before attempting any comparison or authentication logic.
+
+## 2026-06-27 - [XSS in Activity Feed via Malicious Rating]
+**Vulnerability:** User-provided ratings were interpolated directly into HTML-safe strings in `ActivitiesHelper#activity_link_description`. If a user provided a rating containing a script tag, it would execute in the browser of anyone viewing the activity feed.
+**Learning:** Even if a field is expected to be numeric, if the database type is a string and there is no strict validation, it must be treated as unsafe user input. `html_safe` combined with string interpolation is a common source of XSS.
+**Prevention:** Always use `html_escape` (or the `h` alias) when interpolating variables into strings that will be marked as `html_safe`. Better yet, use Rails tag helpers which handle escaping automatically.
