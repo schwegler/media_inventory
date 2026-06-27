@@ -16,6 +16,7 @@ class User < ApplicationRecord
                        uniqueness: { case_sensitive: false },
                        allow_nil: true
   validates :theme, inclusion: { in: %w[light dark os] }
+  validates :password, length: { minimum: 8 }, allow_nil: true
 
   has_one_attached :avatar
   has_one_attached :header_banner
