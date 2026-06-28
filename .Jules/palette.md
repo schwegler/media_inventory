@@ -13,3 +13,7 @@
 ## 2025-05-16 - [Skip to Content Link for Keyboard Accessibility]
 **Learning:** For keyboard and screen-reader users, navigating through repetitive header links on every page load is tedious. A "Skip to Content" link is a critical foundational UX improvement for accessibility.
 **Action:** Always include a `.skip-link` as the first element in the `<body>` that targets the `<main>` content area with an ID like `#main-content`, ensuring it is visually hidden until it receives focus.
+
+## 2026-06-28 - [Accessible Stretched Links]
+**Learning:** The use of the `.stretched-link` pattern often results in empty anchor tags that provide no context to screen reader users, making the entire card's purpose ambiguous.
+**Action:** Always include a descriptive `aria-label` on elements using the `.stretched-link` class (e.g., `aria-label="View #{item.title}"`) to ensure the interactive area is meaningful for accessibility tools.
