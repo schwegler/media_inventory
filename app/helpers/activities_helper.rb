@@ -53,7 +53,7 @@ module ActivitiesHelper
 
   def reviewed_description(user_link, trackable, trackable_link)
     item = trackable.is_a?(LibraryItem) ? trackable.item : trackable
-    rating_str = trackable.rating.present? ? " (Rating: #{trackable.rating} ★)" : ''
+    rating_str = trackable.rating.present? ? " (Rating: #{html_escape(trackable.rating)} ★)" : ''
     case item.class.name
     when 'Movie'
       "#{user_link} reviewed movie '#{trackable_link}'#{rating_str}"
