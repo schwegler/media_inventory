@@ -44,27 +44,39 @@ class ApplicationController < ActionController::Base
 
   def can_access?(resource)
     return false if resource.nil?
+    return true if global_resource?(resource)
+    return can_access?(parent_resource(resource)) if activity_or_comment?(resource)
 
-    # Global media types are always accessible
-    accessible_types = %w[Movie TvShow TvEpisode Album Comic ComicIssue Book VideoGame WrestlingEvent]
-    return true if accessible_types.include?(resource.class.name)
-
-    # Activities and Comments inherit accessibility from their trackable/commentable
-    if resource.is_a?(Activity)
-      return can_access?(resource.trackable)
-    elsif resource.is_a?(Comment)
-      return can_access?(resource.commentable)
-    end
-
-    # 1. Owner access
-    return true if resource.respond_to?(:user) && resource.user.present? && resource.user == current_user
-
-    # 2. Public access (explicitly marked)
-    return true if resource.respond_to?(:is_public) && resource.is_public
-
-    # 3. Fallback: if it has no owner, it's public (for seeds/global items)
-    return true if resource.respond_to?(:user) && resource.user.nil?
+    # Ownership and Public Access checks
+    return true if owner?(resource)
+    return true if public_access?(resource)
+    return true if anonymous_resource?(resource)
 
     false
+  end
+
+  def global_resource?(resource)
+    %w[Movie TvShow TvEpisode Album Comic ComicIssue Book VideoGame WrestlingEvent]
+      .include?(resource.class.name)
+  end
+
+  def activity_or_comment?(resource)
+    resource.is_a?(Activity) || resource.is_a?(Comment)
+  end
+
+  def parent_resource(resource)
+    resource.is_a?(Activity) ? resource.trackable : resource.commentable
+  end
+
+  def owner?(resource)
+    resource.respond_to?(:user) && resource.user.present? && resource.user == current_user
+  end
+
+  def public_access?(resource)
+    resource.respond_to?(:is_public) && resource.is_public
+  end
+
+  def anonymous_resource?(resource)
+    resource.respond_to?(:user) && resource.user.nil?
   end
 end

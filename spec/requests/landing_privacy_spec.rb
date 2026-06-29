@@ -3,8 +3,14 @@
 require 'rails_helper'
 
 RSpec.describe 'Landing Page Privacy', type: :request do
-  let(:owner) { User.create!(name: 'Owner', email: 'owner@example.com', password: 'password', username: 'owner', confirmed_at: Time.current) }
-  let(:visitor) { User.create!(name: 'Visitor', email: 'visitor@example.com', password: 'password', username: 'visitor', confirmed_at: Time.current) }
+  let(:owner) do
+    User.create!(name: 'Owner', email: 'owner@example.com', password: 'password',
+                 username: 'owner', confirmed_at: Time.current)
+  end
+  let(:visitor) do
+    User.create!(name: 'Visitor', email: 'visitor@example.com', password: 'password',
+                 username: 'visitor', confirmed_at: Time.current)
+  end
   let(:movie) { Movie.create!(title: 'Private Movie') }
   let!(:library_item) { LibraryItem.create!(user: owner, item: movie, is_collected: true, is_public: false) }
 
