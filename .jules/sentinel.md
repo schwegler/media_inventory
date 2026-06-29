@@ -7,3 +7,8 @@
 **Vulnerability:** In `SessionsController`, the Bluesky login used `user.bsky_password == bsky_password`. In Ruby, `nil == nil` is true. If a user hadn't set an app password and the attacker provided a null/missing parameter, they could log in.
 **Learning:** Never rely on direct equality for password comparison without ensuring both sides are present. Even with `has_secure_password`, custom authentication flows must explicitly validate input presence.
 **Prevention:** Always check `.present?` on password parameters before attempting any comparison or authentication logic.
+
+## 2025-05-14 - [Information Disclosure on Public Activity Feeds]
+**Vulnerability:** Private user activities (e.g., adding a private movie to a collection) were visible on the public landing page feeds.
+**Learning:** Security checks in views or profile pages are insufficient if global feeds query the same underlying models without privacy-aware scopes.
+**Prevention:** Always use privacy-filtering joins or scopes when querying activities for public or shared feeds. Centralize resource accessibility logic (like `can_access?`) and ensure it's applied recursively for dependent resources like Activities and Comments.

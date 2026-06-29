@@ -45,9 +45,16 @@ class ApplicationController < ActionController::Base
   def can_access?(resource)
     return false if resource.nil?
 
-    # Global and social media types are always accessible
-    accessible_types = %w[Movie TvShow TvEpisode Album Comic ComicIssue Book VideoGame WrestlingEvent Activity Comment]
+    # Global media types are always accessible
+    accessible_types = %w[Movie TvShow TvEpisode Album Comic ComicIssue Book VideoGame WrestlingEvent]
     return true if accessible_types.include?(resource.class.name)
+
+    # Activities and Comments inherit accessibility from their trackable/commentable
+    if resource.is_a?(Activity)
+      return can_access?(resource.trackable)
+    elsif resource.is_a?(Comment)
+      return can_access?(resource.commentable)
+    end
 
     # 1. Owner access
     return true if resource.respond_to?(:user) && resource.user.present? && resource.user == current_user
