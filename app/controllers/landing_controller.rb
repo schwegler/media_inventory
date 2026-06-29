@@ -26,17 +26,23 @@ class LandingController < ApplicationController
 
   def dashboard_activity_scope
     Activity.where(activity_type: %w[added consumed reviewed])
+            .joins(activity_library_items_join)
+            .where('library_items.is_public = ? OR library_items.user_id = ?', true, current_user.id)
             .order(created_at: :desc)
   end
 
   def public_activity_feed
-    Activity.order(created_at: :desc)
+    Activity.joins(activity_library_items_join)
+            .where(library_items: { is_public: true })
+            .order(created_at: :desc)
             .page(params[:page])
             .per(15)
   end
 
   def fetch_popular_items
-    counts = Activity.group(:trackable_type, :trackable_id)
+    counts = Activity.joins(activity_library_items_join)
+                     .where(library_items: { is_public: true })
+                     .group(:trackable_type, :trackable_id)
                      .order('count_all DESC').limit(9).count
 
     return fallback_popular_items if counts.empty?
@@ -72,11 +78,16 @@ class LandingController < ApplicationController
   end
 
   def fetch_popular_reviews
-    Activity.includes(:user, :trackable)
-            .where(activity_type: 'reviewed')
+    Activity.preload(:user, :trackable)
+            .joins(activity_library_items_join)
+            .where(activity_type: 'reviewed', library_items: { is_public: true })
             .order(created_at: :desc)
             .limit(20)
             .select { |a| a.trackable&.review.present? }.first(3)
+  end
+
+  def activity_library_items_join
+    "INNER JOIN library_items ON library_items.id = activities.trackable_id AND activities.trackable_type = 'LibraryItem'"
   end
 
   def db_status
