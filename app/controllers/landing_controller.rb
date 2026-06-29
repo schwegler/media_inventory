@@ -78,7 +78,7 @@ class LandingController < ApplicationController
   end
 
   def fetch_popular_reviews
-    Activity.includes(:user, :trackable)
+    Activity.preload(:user, :trackable)
             .joins("INNER JOIN library_items ON library_items.id = activities.trackable_id AND activities.trackable_type = 'LibraryItem'")
             .where(activity_type: 'reviewed')
             .where(library_items: { is_public: true })
