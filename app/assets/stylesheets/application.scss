@@ -3752,6 +3752,11 @@ form {
   color: red;
 }
 
+.stars-display {
+  white-space: nowrap;
+  cursor: help;
+}
+
 .btn-danger,
 .sleek-btn-danger {
   background: transparent;
