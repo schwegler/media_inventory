@@ -14,7 +14,6 @@ class InventoryController < ApplicationController
     instance_variable_set("@#{resource_name}", @resource)
   end
 
-  # rubocop:disable Metrics/MethodLength
   def create
     global_params = resource_params.except(*library_param_keys)
     library_params = resource_params.slice(*library_param_keys)
@@ -33,7 +32,6 @@ class InventoryController < ApplicationController
       end
     end
   end
-  # rubocop:enable Metrics/MethodLength
 
   def show
     @resource = resource_class.find(params[:id])
