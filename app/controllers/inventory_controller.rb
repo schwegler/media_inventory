@@ -33,7 +33,9 @@ class InventoryController < ApplicationController
                   resource_class.find_or_initialize_by(title: global_params[:title])
                 end
 
-    @resource.assign_attributes(global_params)
+    if !@resource.persisted? || current_user&.admin?
+      @resource.assign_attributes(global_params)
+    end
     instance_variable_set("@#{resource_name}", @resource)
 
     ActiveRecord::Base.transaction do
@@ -113,7 +115,8 @@ class InventoryController < ApplicationController
     library_params[:in_backlog] = library_params.delete(:in_watchlist) if library_params.key?(:in_watchlist)
 
     ActiveRecord::Base.transaction do
-      @resource.update!(global_params) if global_params.to_h.any?
+      # Only admins can update global metadata for existing items
+      @resource.update!(global_params) if global_params.to_h.any? && current_user&.admin?
       @library_item.update!(library_params)
     end
 
