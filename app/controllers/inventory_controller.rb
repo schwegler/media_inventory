@@ -16,45 +16,24 @@ class InventoryController < ApplicationController
 
   # rubocop:disable Metrics/MethodLength
   def create
-    Rails.logger.debug "DEBUG CREATE PARAMS: #{params.inspect}"
-    global_params = resource_params.except(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
-                                           :consumed_at, :is_public, :owned_physically, :owned_physically_format,
-                                           :owned_digitally, :owned_digitally_format)
-    library_params = resource_params.slice(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
-                                           :consumed_at, :is_public, :owned_physically, :owned_physically_format,
-                                           :owned_digitally, :owned_digitally_format)
-
-    # Handle the transition from watchlist to backlog
+    global_params = resource_params.except(*library_param_keys)
+    library_params = resource_params.slice(*library_param_keys)
     library_params[:in_backlog] = library_params.delete(:in_watchlist) if library_params.key?(:in_watchlist)
 
-    @resource = if global_params[:api_id].present?
-                  resource_class.find_or_initialize_by(api_id: global_params[:api_id])
-                else
-                  resource_class.find_or_initialize_by(title: global_params[:title])
-                end
-
-    if !@resource.persisted? || current_user&.admin?
-      @resource.assign_attributes(global_params)
-    end
+    @resource = find_or_init_resource(global_params)
+    @resource.assign_attributes(global_params) if !@resource.persisted? || current_user&.admin?
     instance_variable_set("@#{resource_name}", @resource)
 
     ActiveRecord::Base.transaction do
       if @resource.save
-        @library_item = LibraryItem.find_or_initialize_by(user: current_user, item: @resource)
-        @library_item.assign_attributes(library_params)
-        @library_item.save!
-
-        respond_to do |format|
-          format.html { redirect_to @resource, notice: "#{resource_class.model_name.human} was successfully logged." }
-        end
+        save_library_item(@resource, library_params)
+        redirect_to @resource, notice: "#{resource_class.model_name.human} was successfully logged."
       else
-        respond_to do |format|
-          format.html { render :new, status: failure_status }
-        end
+        render :new, status: failure_status
       end
-      # rubocop:enable Metrics/MethodLength
     end
   end
+  # rubocop:enable Metrics/MethodLength
 
   def show
     @resource = resource_class.find(params[:id])
@@ -106,27 +85,18 @@ class InventoryController < ApplicationController
     @resource = resource_class.find(params[:id])
     @library_item = LibraryItem.find_or_initialize_by(user: current_user, item: @resource)
 
-    global_params = resource_params.except(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
-                                           :consumed_at, :is_public, :owned_physically, :owned_physically_format,
-                                           :owned_digitally, :owned_digitally_format)
-    library_params = resource_params.slice(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
-                                           :consumed_at, :is_public, :owned_physically, :owned_physically_format,
-                                           :owned_digitally, :owned_digitally_format)
+    global_params = resource_params.except(*library_param_keys)
+    library_params = resource_params.slice(*library_param_keys)
     library_params[:in_backlog] = library_params.delete(:in_watchlist) if library_params.key?(:in_watchlist)
 
     ActiveRecord::Base.transaction do
-      # Only admins can update global metadata for existing items
       @resource.update!(global_params) if global_params.to_h.any? && current_user&.admin?
       @library_item.update!(library_params)
     end
 
-    respond_to do |format|
-      format.html { redirect_to @resource, notice: "#{resource_class.model_name.human} was successfully updated." }
-    end
+    redirect_to @resource, notice: "#{resource_class.model_name.human} was successfully updated."
   rescue ActiveRecord::RecordInvalid
-    respond_to do |format|
-      format.html { render :edit, status: failure_status }
-    end
+    render :edit, status: failure_status
   end
 
   def destroy
@@ -148,6 +118,26 @@ class InventoryController < ApplicationController
   end
 
   private
+
+  def library_param_keys
+    %i[is_collected in_watchlist in_backlog rating review consumed
+       consumed_at is_public owned_physically owned_physically_format
+       owned_digitally owned_digitally_format]
+  end
+
+  def find_or_init_resource(global_params)
+    if global_params[:api_id].present?
+      resource_class.find_or_initialize_by(api_id: global_params[:api_id])
+    else
+      resource_class.find_or_initialize_by(title: global_params[:title])
+    end
+  end
+
+  def save_library_item(resource, library_params)
+    @library_item = LibraryItem.find_or_initialize_by(user: current_user, item: resource)
+    @library_item.assign_attributes(library_params)
+    @library_item.save!
+  end
 
   def resource_class
     controller_name.classify.constantize
