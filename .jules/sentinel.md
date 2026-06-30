@@ -7,3 +7,8 @@
 **Vulnerability:** In `SessionsController`, the Bluesky login used `user.bsky_password == bsky_password`. In Ruby, `nil == nil` is true. If a user hadn't set an app password and the attacker provided a null/missing parameter, they could log in.
 **Learning:** Never rely on direct equality for password comparison without ensuring both sides are present. Even with `has_secure_password`, custom authentication flows must explicitly validate input presence.
 **Prevention:** Always check `.present?` on password parameters before attempting any comparison or authentication logic.
+
+## 2026-06-22 - [Improper Authorization on Shared Media Metadata]
+**Vulnerability:** The `InventoryController` allowed any user to modify global metadata (e.g., title, director) for existing media items when adding them to their library or updating personal ratings. This was due to `assign_attributes` and `update!` being called on the shared resource without checking the user's privilege level.
+**Learning:** Shared resources in a multi-tenant or multi-user environment require dual-layer authorization: one for the relationship (the `LibraryItem`) and another for the shared resource itself (the `Movie`/`Album`).
+**Prevention:** Explicitly restrict updates to shared global metadata to administrators using `current_user&.admin?` and verify that the resource is not already persisted before allowing attribute assignment by regular users.
