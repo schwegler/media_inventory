@@ -19,7 +19,8 @@ module RecordPreloader
 
   def preload_standard_associations(klass, records)
     associations = []
-    associations << :user if klass.reflect_on_association(:user)
+    # Preload user with avatar to avoid N+1 queries in social feeds
+    associations << { user: { avatar_attachment: :blob } } if klass.reflect_on_association(:user)
     associations << :likes if klass.reflect_on_association(:likes)
     associations << :comments if klass.reflect_on_association(:comments)
     associations << :likeable if klass.reflect_on_association(:likeable)
