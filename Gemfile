@@ -55,7 +55,7 @@ gem 'omniauth', '~> 2.1'
 gem 'omniauth-atproto', '~> 0.1.4'
 gem 'omniauth-oauth2', '~> 1.9'
 gem 'omniauth-rails_csrf_protection', '~> 2.0'
-gem 'rubyzip', '~> 2.3.0'
+gem 'rubyzip', '~> 3.4.1'
 
 gem 'administrate', '~> 1.0'
 

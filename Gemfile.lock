@@ -355,7 +355,7 @@ GEM
       parser (>= 3.3.7.2)
       prism (~> 1.7)
     ruby-progressbar (1.13.0)
-    rubyzip (2.3.2)
+    rubyzip (3.4.1)
     sass-embedded (1.100.0-arm64-darwin)
       google-protobuf (~> 4.31)
     sass-embedded (1.100.0-x86_64-linux-gnu)
@@ -440,7 +440,7 @@ DEPENDENCIES
   rdoc (>= 6.5.1.1)
   rspec-rails (~> 8.0)
   rubocop
-  rubyzip (~> 2.3.0)
+  rubyzip (~> 3.4.1)
   selenium-webdriver
   simplecov
   sqlite3 (~> 2.9)
