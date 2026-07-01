@@ -20,21 +20,28 @@ class UsersController < ApplicationController
     # Filter activities and likes based on privacy unless the current user is the owner
     unless current_user?(@user)
       @activities = @activities.joins(
-        'INNER JOIN library_items ON library_items.item_id = activities.trackable_id AND ' \
-        'library_items.item_type = activities.trackable_type AND library_items.user_id = activities.user_id'
-      ).where(library_items: { is_public: true })
+        'LEFT OUTER JOIN library_items ON library_items.id = activities.trackable_id AND ' \
+        "activities.trackable_type = 'LibraryItem'"
+      ).where('library_items.id IS NULL OR library_items.is_public = ?', true)
 
       @likes = @likes.joins(
-        'INNER JOIN library_items ON library_items.item_id = likes.likeable_id AND ' \
-        'library_items.item_type = likes.likeable_type AND library_items.user_id = likes.user_id'
-      ).where(library_items: { is_public: true })
+        'LEFT OUTER JOIN library_items ON library_items.id = likes.likeable_id AND ' \
+        "likes.likeable_type = 'LibraryItem'"
+      ).where('library_items.id IS NULL OR library_items.is_public = ?', true)
     end
 
     @activities = @activities.limit(20)
     @likes = @likes.to_a
 
+    # Filter posts based on privacy unless the current user is the owner
+    @posts = if current_user?(@user)
+               @user.posts
+             else
+               Post.none
+             end
+
     # Preload social feed (activities and posts)
-    @combined_feed = preload_social_feed(@activities.to_a + @user.posts.to_a)
+    @combined_feed = preload_social_feed(@activities.to_a + @posts.to_a)
     @combined_feed.sort_by!(&:created_at).reverse!
 
     # Preload likes

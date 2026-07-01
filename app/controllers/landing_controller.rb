@@ -26,11 +26,15 @@ class LandingController < ApplicationController
 
   def dashboard_activity_scope
     Activity.where(activity_type: %w[added consumed reviewed])
+            .joins(activity_privacy_join)
+            .where(activity_privacy_condition)
             .order(created_at: :desc)
   end
 
   def public_activity_feed
-    Activity.order(created_at: :desc)
+    Activity.joins(activity_privacy_join)
+            .where('library_items.id IS NULL OR library_items.is_public = ?', true)
+            .order(created_at: :desc)
             .page(params[:page])
             .per(15)
   end
@@ -72,11 +76,23 @@ class LandingController < ApplicationController
   end
 
   def fetch_popular_reviews
-    Activity.includes(:user, :trackable)
-            .where(activity_type: 'reviewed')
+    Activity.preload(:user, :trackable)
+            .joins(activity_privacy_join)
+            .where(activity_type: 'reviewed', library_items: { is_public: true })
             .order(created_at: :desc)
             .limit(20)
             .select { |a| a.trackable&.review.present? }.first(3)
+  end
+
+  def activity_privacy_join
+    'LEFT OUTER JOIN library_items ON library_items.id = activities.trackable_id AND ' \
+      "activities.trackable_type = 'LibraryItem'"
+  end
+
+  def activity_privacy_condition
+    # Activities NOT linked to a LibraryItem are public.
+    # If linked, they must be public OR owned by the current user.
+    ['library_items.id IS NULL OR library_items.is_public = ? OR activities.user_id = ?', true, current_user&.id]
   end
 
   def db_status
