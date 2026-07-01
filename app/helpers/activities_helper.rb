@@ -53,13 +53,13 @@ module ActivitiesHelper
     end
   end
 
-  def reviewed_description(user_link, trackable, trackable_link) # rubocop:disable Metrics/AbcSize
+  def reviewed_description(user_link, trackable, trackable_link)
     item = trackable.is_a?(LibraryItem) ? trackable.item : trackable
     case item.class.name
     when 'Movie'
       safe_join([user_link, " reviewed movie '", trackable_link, "'", rating_safe(trackable)])
     when 'Album'
-      artist_part = item.artist.present? ? [" by ", item.artist] : []
+      artist_part = item.artist.present? ? [' by ', item.artist] : []
       safe_join([user_link, " reviewed album '", trackable_link, "'", *artist_part, rating_safe(trackable)])
     when 'Comic'
       issue = item.issue_number.present? ? " issue ##{item.issue_number}" : ''
