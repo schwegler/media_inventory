@@ -261,7 +261,7 @@ GEM
       actionpack (>= 7.0.0)
       activesupport (>= 7.0.0)
       rack
-    psych (5.4.0)
+    psych (5.1.1.1)
       date
       stringio
     public_suffix (7.0.5)

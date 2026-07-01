@@ -90,4 +90,22 @@ module ApplicationHelper
       query.where(is_public: true).includes(:user)
     end
   end
+
+  # Overrides Rails default image_tag to automatically add the alt-text controller
+  # when an alt attribute is provided.
+  def image_tag(source, options = {})
+    if options[:alt].present? && options[:alt].to_s.downcase != 'cover'
+      options[:data] ||= {}
+
+      # Extract existing controller string (or empty)
+      existing_controllers = options[:data][:controller].to_s.split
+
+      # Add alt-text if it's not already there
+      unless existing_controllers.include?('alt-text')
+        existing_controllers << 'alt-text'
+        options[:data][:controller] = existing_controllers.join(' ')
+      end
+    end
+    super
+  end
 end
