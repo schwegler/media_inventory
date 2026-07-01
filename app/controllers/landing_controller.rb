@@ -76,7 +76,7 @@ class LandingController < ApplicationController
   end
 
   def fetch_popular_reviews
-    Activity.includes(:user, :trackable)
+    Activity.preload(:user, :trackable)
             .joins(activity_privacy_join)
             .where(activity_type: 'reviewed', library_items: { is_public: true })
             .order(created_at: :desc)
