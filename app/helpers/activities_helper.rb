@@ -2,6 +2,8 @@
 
 # rubocop:disable Metrics/ModuleLength
 module ActivitiesHelper
+  include ApplicationHelper
+
   def activity_link_description(activity)
     user_link = link_to(activity.user.name, activity.user, class: 'activity-user-link')
     trackable = activity.trackable
@@ -53,25 +55,30 @@ module ActivitiesHelper
 
   def reviewed_description(user_link, trackable, trackable_link)
     item = trackable.is_a?(LibraryItem) ? trackable.item : trackable
-    rating_str = trackable.rating.present? ? " (Rating: #{trackable.rating} ★)" : ''
     case item.class.name
     when 'Movie'
-      "#{user_link} reviewed movie '#{trackable_link}'#{rating_str}"
+      safe_join([user_link, " reviewed movie '", trackable_link, "'", rating_safe(trackable)])
     when 'Album'
-      artist = item.artist.present? ? " by #{html_escape(item.artist)}" : ''
-      "#{user_link} reviewed album '#{trackable_link}'#{artist}#{rating_str}"
+      artist_part = item.artist.present? ? [' by ', item.artist] : []
+      safe_join([user_link, " reviewed album '", trackable_link, "'", *artist_part, rating_safe(trackable)])
     when 'Comic'
       issue = item.issue_number.present? ? " issue ##{item.issue_number}" : ''
-      "#{user_link} reviewed comic '#{trackable_link}'#{issue}#{rating_str}"
+      safe_join([user_link, " reviewed comic '", trackable_link, "'", issue, rating_safe(trackable)])
     when 'TvShow'
-      "#{user_link} reviewed TV show '#{trackable_link}'#{rating_str}"
+      safe_join([user_link, " reviewed TV show '", trackable_link, "'", rating_safe(trackable)])
     when 'TvEpisode'
-      "#{user_link} reviewed episode '#{trackable_link}'#{rating_str}"
+      safe_join([user_link, " reviewed episode '", trackable_link, "'", rating_safe(trackable)])
     when 'VideoGame'
-      "#{user_link} reviewed video game '#{trackable_link}'#{rating_str}"
+      safe_join([user_link, " reviewed video game '", trackable_link, "'", rating_safe(trackable)])
     else
-      "#{user_link} reviewed '#{trackable_link}'#{rating_str}"
+      safe_join([user_link, " reviewed '", trackable_link, "'", rating_safe(trackable)])
     end
+  end
+
+  def rating_safe(trackable)
+    return '' unless trackable.rating.present?
+
+    safe_join([' (Rating: ', render_stars(trackable.rating), ')'])
   end
 
   def watchlist_description(user_link, trackable, trackable_link)

@@ -4275,6 +4275,12 @@ input:checked+.slider:before {
 // ==========================================================================
 //  Accessibility & Focus States
 // ==========================================================================
+.stars-display {
+  white-space: nowrap;
+  cursor: help;
+  color: $star-color;
+}
+
 .visually-hidden {
   position: absolute !important;
   width: 1px !important;
