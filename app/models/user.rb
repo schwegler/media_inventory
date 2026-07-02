@@ -11,6 +11,7 @@ class User < ApplicationRecord
                     format: { with: URI::MailTo::EMAIL_REGEXP },
                     uniqueness: { case_sensitive: false },
                     allow_nil: true
+  validates :password, length: { minimum: 8 }, allow_nil: true
   validates :username, length: { maximum: 30 },
                        format: { with: /\A[a-zA-Z0-9_]+\z/ },
                        uniqueness: { case_sensitive: false },

@@ -18,9 +18,9 @@ class SessionsController < ApplicationController
     email = (params.dig(:session, :email) || params[:email])&.downcase
     password = params.dig(:session, :password) || params[:password]
 
-    user = User.find_by(email: email) if email.present?
+    user = User.authenticate_by(email: email, password: password)
 
-    if user&.authenticate(password)
+    if user
       login_success(user, 'Logged in successfully.')
     else
       login_failure('Invalid email/password combination.')
