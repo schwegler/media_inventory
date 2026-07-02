@@ -5,7 +5,11 @@ class InventoryController < ApplicationController
   before_action :logged_in_user, only: %i[new create]
 
   def index
-    @resources = resource_class.order(created_at: :desc).page(params[:page])
+    @resources = resource_class.order(created_at: :desc)
+    # ⚡ Bolt: Eager load cover images to prevent N+1 queries in media grids
+    @resources = @resources.with_attached_cover_image if resource_class.respond_to?(:with_attached_cover_image)
+    @resources = @resources.page(params[:page])
+
     instance_variable_set("@#{resource_name.pluralize}", @resources)
   end
 
