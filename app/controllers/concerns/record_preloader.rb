@@ -19,9 +19,11 @@ module RecordPreloader
 
   def preload_standard_associations(klass, records)
     associations = []
-    associations << :user if klass.reflect_on_association(:user)
+    # ⚡ Bolt: Nested preload user avatars to prevent N+1 queries in feeds
+    associations << { user: { avatar_attachment: :blob } } if klass.reflect_on_association(:user)
     associations << :likes if klass.reflect_on_association(:likes)
-    associations << :comments if klass.reflect_on_association(:comments)
+    # ⚡ Bolt: Nested preload avatars for users associated with comments
+    associations << { comments: { user: { avatar_attachment: :blob } } } if klass.reflect_on_association(:comments)
     associations << :likeable if klass.reflect_on_association(:likeable)
 
     return if associations.empty?
