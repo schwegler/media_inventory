@@ -48,6 +48,10 @@ RSpec.describe InventoryController, type: :controller do
         id.present?
       end
 
+      def new_record?
+        !persisted?
+      end
+
       def model_name
         ActiveModel::Name.new(self, nil, 'Comic')
       end
