@@ -21,18 +21,10 @@ module RecordPreloader
   end
 
   def preload_standard_associations(klass, records)
-    associations = []
-    associations << :user if klass.reflect_on_association(:user)
-    associations << :likes if klass.reflect_on_association(:likes)
-    associations << :comments if klass.reflect_on_association(:comments)
-    associations << :likeable if klass.reflect_on_association(:likeable)
-
+    associations = %i[user likes comments likeable].select { |a| klass.reflect_on_association(a) }
     return if associations.empty?
 
-    ActiveRecord::Associations::Preloader.new(
-      records: records,
-      associations: associations
-    ).call
+    ActiveRecord::Associations::Preloader.new(records: records, associations: associations).call
   end
 
   def preload_class_specific_associations(klass, records)
@@ -48,27 +40,17 @@ module RecordPreloader
   def preload_activities_attachments(activities)
     return activities if activities.blank?
 
-    # 1. Preload trackable and likes (for counts)
-    # ⚡ Bolt: Preload likes to avoid N+1 queries in feeds
-    ActiveRecord::Associations::Preloader.new(
-      records: activities,
-      associations: %i[trackable likes]
-    ).call
-
+    # ⚡ Bolt: Preload trackable and likes to avoid N+1 queries
+    ActiveRecord::Associations::Preloader.new(records: activities, associations: %i[trackable likes]).call
     trackables = activities.map(&:trackable).compact
 
-    # 2. Handle LibraryItem proxy pattern for trackables
+    # Handle LibraryItem proxy pattern
     lib_items, items = trackables.partition { |t| t.is_a?(LibraryItem) }
-
     if lib_items.any?
-      ActiveRecord::Associations::Preloader.new(
-        records: lib_items,
-        associations: :item
-      ).call
+      ActiveRecord::Associations::Preloader.new(records: lib_items, associations: :item).call
       items += lib_items.map(&:item).compact
     end
 
-    # 3. Preload attachments for the underlying items
     preload_records_attachments(items)
     activities
   end
@@ -111,42 +93,26 @@ module RecordPreloader
   end
 
   def preload_current_user_likes(records)
-    # ⚡ Bolt: Handle both Array and Hash (for @popular_items)
-    records_to_process = records.is_a?(Hash) ? records.values : records
-    return if records_to_process.blank?
+    records = records.values if records.is_a?(Hash)
+    return if records.blank?
 
     @preloaded_liked_ids_by_type ||= {}
-
-    # Extract all possible likeable items from the records
-    likeables = Array(records_to_process).compact.flat_map do |record|
-      items = [record]
-      items << record.trackable if record.respond_to?(:trackable) && record.trackable
-      if record.respond_to?(:item) && record.item
-        items << record.item
-      elsif record.respond_to?(:trackable) && record.trackable.respond_to?(:item) && record.trackable.item
-        items << record.trackable.item
-      end
-      items
-    end.compact.uniq
-
-    # Filter out what we already preloaded
-    to_fetch = likeables.reject do |item|
-      @preloaded_liked_ids_by_type[item.class.name]&.include?(item.id)
-    end
-
+    to_fetch = collect_likeables(records).reject { |i| already_preloaded?(i) }
     return if to_fetch.empty?
 
-    # Fetch likes for current user in bulk
-    # ⚡ Bolt: Use idiomatic polymorphic where to avoid manual SQL construction
-    new_likes = Like.where(user: current_user, likeable: to_fetch)
-
-    new_likes.each do |like|
+    Like.where(user: current_user, likeable: to_fetch).each do |like|
       (@preloaded_liked_ids_by_type[like.likeable_type] ||= Set.new) << like.likeable_id
     end
+    to_fetch.each { |item| @preloaded_liked_ids_by_type[item.class.name] ||= Set.new }
+  end
 
-    # Ensure we mark items we checked but didn't have likes for
-    to_fetch.each do |item|
-      @preloaded_liked_ids_by_type[item.class.name] ||= Set.new
-    end
+  def collect_likeables(records)
+    Array(records).compact.flat_map do |r|
+      [r, r.try(:trackable), r.try(:item), r.try(:trackable).try(:item)].compact
+    end.uniq
+  end
+
+  def already_preloaded?(item)
+    @preloaded_liked_ids_by_type[item.class.name]&.include?(item.id)
   end
 end
