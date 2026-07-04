@@ -7,6 +7,8 @@ class LandingController < ApplicationController
     if logged_in?
       @new_from_friends = preload_social_feed(fetch_friend_activities.to_a)
       @popular_items = fetch_popular_items
+      # ⚡ Bolt: Preload current user likes for popular items to avoid N+1 queries
+      preload_current_user_likes(@popular_items)
       @popular_reviews = preload_social_feed(fetch_popular_reviews.to_a)
     else
       @activities = public_activity_feed
@@ -59,6 +61,8 @@ class LandingController < ApplicationController
       klass = type.constantize
       scope = klass.where(id: ids)
       scope = scope.includes(cover_image_attachment: :blob) if klass.reflect_on_association(:cover_image_attachment)
+      # ⚡ Bolt: Preload likes for popular items to avoid N+1 queries
+      scope = scope.includes(:likes) if klass.reflect_on_association(:likes)
       hash[type] = scope.index_by(&:id)
     rescue NameError
       hash[type] = {}

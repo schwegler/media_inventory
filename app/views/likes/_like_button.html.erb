@@ -1,6 +1,16 @@
 <%# Local variables: item %>
-<% liked = logged_in? && current_user.liked?(item) %>
-<% likes_count = item.likes.count %>
+<%# ⚡ Bolt: Check the preloaded cache first to avoid N+1 queries %>
+<% liked = if logged_in?
+             if defined?(@preloaded_liked_ids_by_type) && @preloaded_liked_ids_by_type&.key?(item.class.name)
+               @preloaded_liked_ids_by_type[item.class.name].include?(item.id)
+             else
+               current_user.liked?(item)
+             end
+           else
+             false
+           end %>
+<%# ⚡ Bolt: Use .size to avoid N+1 query if likes are preloaded %>
+<% likes_count = item.likes.size %>
 
 <%= button_to toggle_like_path(likeable_type: item.class.name, likeable_id: item.id),
               method: :post,
