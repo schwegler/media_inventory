@@ -57,13 +57,21 @@ module ApplicationHelper
     end
   end
 
-  def render_stars(rating)
+  def render_stars(rating, show_number: false)
     return '' if rating.blank?
 
     num = rating.to_f
     full_stars = num.floor
     half_star = num - full_stars >= 0.5 ? '½' : ''
-    ('★' * full_stars) + half_star
+    stars_text = ('★' * full_stars) + half_star
+
+    stars_span = content_tag(:span, stars_text,
+                             class: 'stars-display',
+                             role: 'img',
+                             'aria-label': "Rated #{num} out of 5 stars",
+                             title: "#{num} / 5 stars")
+
+    show_number ? safe_join([stars_span, " (#{num})"]) : stars_span
   end
 
   def community_stats_for(item)

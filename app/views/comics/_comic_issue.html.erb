@@ -41,7 +41,7 @@
         <% if issue_lib&.consumed? && (issue_lib.review.present? || issue_lib.rating.present?) %>
           <div class="episode-rating-review-box">
             <% if issue_lib.rating.present? %>
-              <span class="episode-stars"><%= issue_lib.rating %> ★</span>
+              <span class="episode-stars"><%= render_stars(issue_lib.rating) %></span>
             <% end %>
             <% if issue_lib.review.present? %>
               <span class="episode-review-text"><%= issue_lib.review %></span>

@@ -56,7 +56,7 @@
         <% end %>
         <% if stats[:avg_rating] %>
           <div class="show-avg-rating" style="color: #94a3b8; font-size: 0.9em; font-weight: 500;">
-            <%= stats[:avg_rating] %> ★ avg
+            <%= render_stars(stats[:avg_rating], show_number: true) %> avg
           </div>
         <% end %>
       </div>

@@ -38,12 +38,12 @@
         <% if @wrestling_event.rating.present? %>
           <div class="detail-row" style="border-bottom: none; padding: 0;">
             <strong>Rating:</strong>
-            <span style="font-size: 1.2rem; color: #facc15;"><%= @wrestling_event.rating %> ★</span>
+            <%= render_stars(@wrestling_event.rating) %>
           </div>
         <% end %>
         <% if stats[:avg_rating] %>
           <div class="show-avg-rating" style="color: #94a3b8; font-size: 0.9em; font-weight: 500;">
-            <%= stats[:avg_rating] %> ★ avg
+            <%= render_stars(stats[:avg_rating], show_number: true) %> avg
           </div>
         <% end %>
       </div>
@@ -68,7 +68,7 @@
         <div class="stat-label">Average Rating</div>
         <div class="stat-value">
           <% if stats[:avg_rating] %>
-            <%= stats[:avg_rating] %> ★
+            <%= render_stars(stats[:avg_rating], show_number: true) %>
           <% else %>
             —
           <% end %>
@@ -92,7 +92,7 @@
             <div class="review-header">
               <span class="review-user"><%= matching_item.user.name.presence || matching_item.user.email %></span>
               <% if matching_item.rating.present? %>
-                <span class="review-rating"><%= matching_item.rating %> ★</span>
+                <span class="review-rating"><%= render_stars(matching_item.rating) %></span>
               <% end %>
             </div>
             <div class="review-content"><%= simple_format(matching_item.review) %></div>

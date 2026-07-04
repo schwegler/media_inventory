@@ -41,7 +41,7 @@
         <% if ep_lib&.consumed? && (ep_lib.review.present? || ep_lib.rating.present?) %>
           <div class="episode-rating-review-box">
             <% if ep_lib.rating.present? %>
-              <span class="episode-stars"><%= ep_lib.rating %> ★</span>
+              <span class="episode-stars"><%= render_stars(ep_lib.rating) %></span>
             <% end %>
             <% if ep_lib.review.present? %>
               <span class="episode-review-text"><%= ep_lib.review %></span>
