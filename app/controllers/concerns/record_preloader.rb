@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/ModuleLength
 module RecordPreloader
   extend ActiveSupport::Concern
 
@@ -100,18 +101,15 @@ module RecordPreloader
     @preloaded_liked_ids_by_type ||= {}
 
     # 1. Bulk fetch counts
-    counts = Like.where(likeable: likeables).group(:likeable_type, :likeable_id).count
-    counts.each do |(type, id), count|
+    Like.where(likeable: likeables).group(:likeable_type, :likeable_id).count.each do |(type, id), count|
       @preloaded_likes_counts["#{type}_#{id}"] = count
     end
 
     # 2. Bulk fetch current user's likes
-    if logged_in?
-      user_likes = current_user.likes.where(likeable: likeables)
-                               .pluck(:likeable_type, :likeable_id)
-      user_likes.each do |type, id|
-        (@preloaded_liked_ids_by_type[type] ||= Set.new) << id
-      end
+    return unless logged_in?
+
+    current_user.likes.where(likeable: likeables).pluck(:likeable_type, :likeable_id).each do |type, id|
+      (@preloaded_liked_ids_by_type[type] ||= Set.new) << id
     end
   end
 
@@ -119,20 +117,26 @@ module RecordPreloader
     entities = []
     records.each do |record|
       next if record.nil?
+
       entities << record if record.class.reflect_on_association(:likes)
-
-      # Recurse into trackable/item if they exist
-      if record.respond_to?(:trackable) && record.trackable
-        entities << record.trackable if record.trackable.class.reflect_on_association(:likes)
-        if record.trackable.respond_to?(:item) && record.trackable.item
-          entities << record.trackable.item if record.trackable.item.class.reflect_on_association(:likes)
-        end
-      end
-
-      next unless record.respond_to?(:item) && record.item
-      entities << record.item if record.item.class.reflect_on_association(:likes)
+      entities += extract_nested_likeables(record)
     end
     entities.uniq
+  end
+
+  def extract_nested_likeables(record)
+    nested = []
+    if record.respond_to?(:trackable) && record.trackable
+      nested << record.trackable if record.trackable.class.reflect_on_association(:likes)
+      if record.trackable.respond_to?(:item) && record.trackable.item&.class&.reflect_on_association(:likes)
+        nested << record.trackable.item
+      end
+    end
+
+    if record.respond_to?(:item) && record.item&.class&.reflect_on_association(:likes)
+      nested << record.item
+    end
+    nested
   end
 
   def preload_records_attachments(records)
@@ -149,3 +153,4 @@ module RecordPreloader
     records
   end
 end
+# rubocop:enable Metrics/ModuleLength
