@@ -66,6 +66,28 @@ module ApplicationHelper
     ('★' * full_stars) + half_star
   end
 
+  def liked_by_current_user?(item)
+    return false unless logged_in?
+    return false if item.nil?
+
+    if @preloaded_liked_ids_by_type&.key?(item.class.name)
+      @preloaded_liked_ids_by_type[item.class.name].include?(item.id)
+    else
+      current_user.liked?(item)
+    end
+  end
+
+  def likes_count_for(item)
+    return 0 if item.nil?
+
+    key = "#{item.class.name}_#{item.id}"
+    if @preloaded_likes_counts&.key?(key)
+      @preloaded_likes_counts[key]
+    else
+      item.likes.count
+    end
+  end
+
   def community_stats_for(item)
     matching_items = fetch_matching_items(item)
 

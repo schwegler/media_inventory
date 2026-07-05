@@ -14,13 +14,14 @@ module RecordPreloader
       preload_class_specific_associations(klass, grouped_records)
     end
 
+    preload_likes_data(records)
+
     records
   end
 
   def preload_standard_associations(klass, records)
     associations = []
     associations << :user if klass.reflect_on_association(:user)
-    associations << :likes if klass.reflect_on_association(:likes)
     associations << :comments if klass.reflect_on_association(:comments)
     associations << :likeable if klass.reflect_on_association(:likeable)
 
@@ -82,7 +83,56 @@ module RecordPreloader
     items = library_items.map(&:item).compact
     preload_records_attachments(items)
 
+    preload_likes_data(library_items.to_a + items)
+
     library_items
+  end
+
+  def preload_likes_data(records)
+    return if records.blank?
+
+    # ⚡ Bolt: Bulk preload likes count and current user's liked status to avoid N+1 queries
+    likeables = collect_likeable_entities(records)
+    return if likeables.empty?
+
+    # Initialize caches if they don't exist
+    @preloaded_likes_counts ||= {}
+    @preloaded_liked_ids_by_type ||= {}
+
+    # 1. Bulk fetch counts
+    counts = Like.where(likeable: likeables).group(:likeable_type, :likeable_id).count
+    counts.each do |(type, id), count|
+      @preloaded_likes_counts["#{type}_#{id}"] = count
+    end
+
+    # 2. Bulk fetch current user's likes
+    if logged_in?
+      user_likes = current_user.likes.where(likeable: likeables)
+                               .pluck(:likeable_type, :likeable_id)
+      user_likes.each do |type, id|
+        (@preloaded_liked_ids_by_type[type] ||= Set.new) << id
+      end
+    end
+  end
+
+  def collect_likeable_entities(records)
+    entities = []
+    records.each do |record|
+      next if record.nil?
+      entities << record if record.class.reflect_on_association(:likes)
+
+      # Recurse into trackable/item if they exist
+      if record.respond_to?(:trackable) && record.trackable
+        entities << record.trackable if record.trackable.class.reflect_on_association(:likes)
+        if record.trackable.respond_to?(:item) && record.trackable.item
+          entities << record.trackable.item if record.trackable.item.class.reflect_on_association(:likes)
+        end
+      end
+
+      next unless record.respond_to?(:item) && record.item
+      entities << record.item if record.item.class.reflect_on_association(:likes)
+    end
+    entities.uniq
   end
 
   def preload_records_attachments(records)
