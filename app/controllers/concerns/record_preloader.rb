@@ -96,9 +96,7 @@ module RecordPreloader
     likeables = collect_likeable_entities(records)
     return if likeables.empty?
 
-    # Initialize caches if they don't exist
-    @preloaded_likes_counts ||= {}
-    @preloaded_liked_ids_by_type ||= {}
+    initialize_likes_caches(likeables)
 
     # 1. Bulk fetch counts
     Like.where(likeable: likeables).group(:likeable_type, :likeable_id).count.each do |(type, id), count|
@@ -109,7 +107,17 @@ module RecordPreloader
     return unless logged_in?
 
     current_user.likes.where(likeable: likeables).pluck(:likeable_type, :likeable_id).each do |type, id|
-      (@preloaded_liked_ids_by_type[type] ||= Set.new) << id
+      @preloaded_liked_ids_by_type[type].add(id)
+    end
+  end
+
+  def initialize_likes_caches(likeables)
+    @preloaded_likes_counts ||= {}
+    @preloaded_liked_ids_by_type ||= {}
+
+    likeables.each do |item|
+      @preloaded_likes_counts["#{item.class.name}_#{item.id}"] ||= 0
+      @preloaded_liked_ids_by_type[item.class.name] ||= Set.new
     end
   end
 
@@ -128,14 +136,11 @@ module RecordPreloader
     nested = []
     if record.respond_to?(:trackable) && record.trackable
       nested << record.trackable if record.trackable.class.reflect_on_association(:likes)
-      if record.trackable.respond_to?(:item) && record.trackable.item&.class&.reflect_on_association(:likes)
-        nested << record.trackable.item
-      end
+      trackable_item = record.trackable.respond_to?(:item) && record.trackable.item
+      nested << trackable_item if trackable_item&.class&.reflect_on_association(:likes)
     end
 
-    if record.respond_to?(:item) && record.item&.class&.reflect_on_association(:likes)
-      nested << record.item
-    end
+    nested << record.item if record.respond_to?(:item) && record.item&.class&.reflect_on_association(:likes)
     nested
   end
 
