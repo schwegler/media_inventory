@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 class BooksController < InventoryController
-
   private
 
   def resource_params

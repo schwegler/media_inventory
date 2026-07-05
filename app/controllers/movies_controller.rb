@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 class MoviesController < InventoryController
-
   private
 
   def resource_params
