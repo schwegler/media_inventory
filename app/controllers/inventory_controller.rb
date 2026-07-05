@@ -2,7 +2,7 @@
 
 # rubocop:disable Metrics/ClassLength
 class InventoryController < ApplicationController
-  before_action :logged_in_user, only: %i[new create]
+  before_action :logged_in_user, only: %i[new create edit update destroy]
 
   def index
     @resources = resource_class.order(created_at: :desc).page(params[:page])
@@ -16,7 +16,6 @@ class InventoryController < ApplicationController
 
   # rubocop:disable Metrics/MethodLength
   def create
-    Rails.logger.debug "DEBUG CREATE PARAMS: #{params.inspect}"
     global_params = resource_params.except(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
                                            :consumed_at, :is_public, :owned_physically, :owned_physically_format,
                                            :owned_digitally, :owned_digitally_format)
@@ -33,7 +32,8 @@ class InventoryController < ApplicationController
                   resource_class.find_or_initialize_by(title: global_params[:title])
                 end
 
-    @resource.assign_attributes(global_params)
+    # Only allow administrators to modify global metadata of an existing record
+    @resource.assign_attributes(global_params) if @resource.new_record? || current_user&.admin?
     instance_variable_set("@#{resource_name}", @resource)
 
     ActiveRecord::Base.transaction do
@@ -113,7 +113,8 @@ class InventoryController < ApplicationController
     library_params[:in_backlog] = library_params.delete(:in_watchlist) if library_params.key?(:in_watchlist)
 
     ActiveRecord::Base.transaction do
-      @resource.update!(global_params) if global_params.to_h.any?
+      # Only allow administrators to modify global metadata of an existing record
+      @resource.update!(global_params) if global_params.to_h.any? && current_user&.admin?
       @library_item.update!(library_params)
     end
 
