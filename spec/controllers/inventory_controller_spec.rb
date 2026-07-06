@@ -8,7 +8,7 @@ RSpec.describe InventoryController, type: :controller do
     Class.new do
       include ActiveModel::Model
 
-      attr_accessor :id, :user, :title, :is_public
+      attr_accessor :id, :user, :title, :director, :is_public
 
       def initialize(params = {})
         super
@@ -46,6 +46,10 @@ RSpec.describe InventoryController, type: :controller do
 
       def persisted?
         id.present?
+      end
+
+      def new_record?
+        !persisted?
       end
 
       def model_name
@@ -116,7 +120,7 @@ RSpec.describe InventoryController, type: :controller do
     end
 
     describe 'POST #create' do
-      let(:user) { User.new(id: 1) }
+      let(:user) { User.new(id: 1, admin: false) }
       let(:library_item) { instance_double('LibraryItem', update!: true, save!: true) }
 
       before do
@@ -135,6 +139,23 @@ RSpec.describe InventoryController, type: :controller do
 
           # Since it's comics controller, it redirects to the comic
           expect(response).to redirect_to(comic_url(resource))
+        end
+
+        it 'allows non-admin to set global metadata on a NEW record' do
+          post :create, params: { comic: { title: 'New Comic', director: 'Some Director' } }
+          resource = controller.instance_variable_get(:@resource)
+          expect(resource.director).to eq('Some Director')
+        end
+      end
+
+      context 'with existing record' do
+        it 'prevents non-admin from modifying global metadata on an existing record' do
+          existing_comic = DummyModel.new(id: 1, title: 'Original Title', director: 'Original Director')
+          allow(DummyModel).to receive(:find_or_initialize_by).and_return(existing_comic)
+
+          post :create, params: { comic: { title: 'Original Title', director: 'Hacked Director' } }
+
+          expect(existing_comic.director).to eq('Original Director')
         end
       end
 
@@ -157,6 +178,33 @@ RSpec.describe InventoryController, type: :controller do
           resource = controller.instance_variable_get(:@resource)
           expect(resource.errors).not_to be_empty
         end
+      end
+    end
+
+    describe 'PATCH #update' do
+      let(:user) { User.new(id: 1, admin: false) }
+      let(:existing_comic) { DummyModel.new(id: 1, title: 'Original Title', director: 'Original Director') }
+      let(:library_item) { instance_double('LibraryItem', update!: true) }
+
+      before do
+        allow(controller).to receive(:current_user).and_return(user)
+        allow(DummyModel).to receive(:find).and_return(existing_comic)
+        allow(LibraryItem).to receive(:find_or_initialize_by).and_return(library_item)
+        # Mock update! on DummyModel
+        allow(existing_comic).to receive(:update!) do |params|
+          params.each { |k, v| existing_comic.send("#{k}=", v) }
+        end
+      end
+
+      it 'prevents non-admin from modifying global metadata on update' do
+        patch :update, params: { id: '1', comic: { title: 'Hacked Title' } }
+        expect(existing_comic.title).to eq('Original Title')
+      end
+
+      it 'allows admin to modify global metadata on update' do
+        user.admin = true
+        patch :update, params: { id: '1', comic: { title: 'New Title' } }
+        expect(existing_comic.title).to eq('New Title')
       end
     end
   end
