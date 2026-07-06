@@ -74,7 +74,7 @@ RSpec.describe InventoryController, type: :controller do
       end
 
       def resource_params
-        params.require(:comic).permit(:title)
+        params.require(:comic).permit(:title, :director)
       end
 
       # We have to skip the before_action since it requires login
