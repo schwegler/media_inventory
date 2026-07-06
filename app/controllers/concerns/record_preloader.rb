@@ -14,7 +14,64 @@ module RecordPreloader
       preload_class_specific_associations(klass, grouped_records)
     end
 
+    # ⚡ Bolt: Preload likes data to avoid N+1 queries in views
+    # Must be done AFTER associations are preloaded to avoid N+1 during collection
+    preload_likes_data(records)
+
     records
+  end
+
+  def preload_likes_data(records)
+    return records if records.blank?
+
+    likeables = collect_likeable_entities(records)
+    return records if likeables.empty?
+
+    initialize_likes_caches(likeables)
+    records
+  end
+
+  def collect_likeable_entities(records)
+    entities = Set.new
+    records.compact.each do |record|
+      add_if_likeable(entities, record)
+
+      if record.respond_to?(:trackable)
+        add_if_likeable(entities, record.trackable)
+        add_if_likeable(entities, record.trackable.item) if record.trackable.is_a?(LibraryItem)
+      elsif record.is_a?(LibraryItem)
+        add_if_likeable(entities, record.item)
+      elsif record.is_a?(Like)
+        add_if_likeable(entities, record.likeable)
+      end
+    end
+    entities.to_a.compact
+  end
+
+  def add_if_likeable(set, record)
+    return if record.nil?
+
+    set << record if record.class.respond_to?(:reflect_on_association) && record.class.reflect_on_association(:likes)
+  end
+
+  def initialize_likes_caches(likeables)
+    @preloaded_likes_counts ||= {}
+    @preloaded_liked_ids_by_type ||= {}
+
+    # Fetch counts for all likeables in one query
+    counts = Like.where(likeable: likeables).group(:likeable_type, :likeable_id).count
+    counts.each do |(type, id), count|
+      @preloaded_likes_counts["#{type}_#{id}"] = count
+    end
+
+    # Fetch which items the current user has liked in one query
+    return unless logged_in?
+
+    liked_ids = Like.where(user: current_user, likeable: likeables)
+                    .pluck(:likeable_type, :likeable_id)
+    liked_ids.each do |type, id|
+      (@preloaded_liked_ids_by_type[type] ||= Set.new) << id
+    end
   end
 
   def preload_standard_associations(klass, records)
@@ -81,6 +138,9 @@ module RecordPreloader
     # 2. Preload attachments for the items
     items = library_items.map(&:item).compact
     preload_records_attachments(items)
+
+    # ⚡ Bolt: Preload likes data after items are loaded
+    preload_likes_data(library_items)
 
     library_items
   end

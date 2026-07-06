@@ -66,6 +66,31 @@ module ApplicationHelper
     ('★' * full_stars) + half_star
   end
 
+  # ⚡ Bolt: Helper to check if item is liked by current user using preloaded cache
+  def liked_by_current_user?(item)
+    return false unless logged_in?
+    return false if item.nil?
+
+    if @preloaded_liked_ids_by_type
+      set = @preloaded_liked_ids_by_type[item.class.name]
+      return set.include?(item.id) if set
+      return false
+    end
+
+    current_user.liked?(item)
+  end
+
+  # ⚡ Bolt: Helper to get likes count using preloaded cache
+  def likes_count_for(item)
+    return 0 if item.nil?
+
+    if @preloaded_likes_counts
+      return @preloaded_likes_counts["#{item.class.name}_#{item.id}"] || 0
+    end
+
+    item.likes.count
+  end
+
   def community_stats_for(item)
     matching_items = fetch_matching_items(item)
 

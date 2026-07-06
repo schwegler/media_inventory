@@ -40,6 +40,9 @@ class UsersController < ApplicationController
     # Preload likes
     preload_social_feed(@likes)
 
+    # ⚡ Bolt: Ensure items are preloaded with likes data in bulk
+    preload_likes_data(@likes.map(&:likeable).compact)
+
     @collection_items = preload_library_items(fetch_library_items(is_collected: true))
     @backlog_items = preload_library_items(fetch_library_items(in_backlog: true))
   end

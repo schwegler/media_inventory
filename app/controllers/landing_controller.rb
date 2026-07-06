@@ -6,7 +6,7 @@ class LandingController < ApplicationController
   def index
     if logged_in?
       @new_from_friends = preload_social_feed(fetch_friend_activities.to_a)
-      @popular_items = fetch_popular_items
+      @popular_items = preload_likes_data(fetch_popular_items)
       @popular_reviews = preload_social_feed(fetch_popular_reviews.to_a)
     else
       @activities = public_activity_feed
