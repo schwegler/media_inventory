@@ -31,17 +31,21 @@ module RecordPreloader
     records
   end
 
-  def collect_likeable_entities(records)
+  def collect_likeable_entities(records) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
     entities = Set.new
     records.compact.each do |record|
       add_if_likeable(entities, record)
 
-      if record.respond_to?(:trackable)
-        add_if_likeable(entities, record.trackable)
-        add_if_likeable(entities, record.trackable.item) if record.trackable.is_a?(LibraryItem)
-      elsif record.is_a?(LibraryItem)
+      # ⚡ Bolt: Safely traverse preloaded associations to gather likeable entities
+      if record.respond_to?(:trackable) && record.association(:trackable).loaded?
+        trackable = record.trackable
+        add_if_likeable(entities, trackable)
+        if trackable.is_a?(LibraryItem) && trackable.association(:item).loaded?
+          add_if_likeable(entities, trackable.item)
+        end
+      elsif record.is_a?(LibraryItem) && record.association(:item).loaded?
         add_if_likeable(entities, record.item)
-      elsif record.is_a?(Like)
+      elsif record.is_a?(Like) && record.association(:likeable).loaded?
         add_if_likeable(entities, record.likeable)
       end
     end
