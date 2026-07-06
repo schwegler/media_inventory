@@ -10,7 +10,9 @@ module MentionsHelper
       username = ::Regexp.last_match(1)
       user = User.find_by(username: username)
       if user
-        link_to mention, user_path(user), class: 'mention-link', style: 'color: #818cf8; font-weight: 500; position: relative; z-index: 2;'
+        link_to mention, user_path(user),
+                class: 'mention-link',
+                style: 'color: #818cf8; font-weight: 500; position: relative; z-index: 2;'
       else
         mention
       end
