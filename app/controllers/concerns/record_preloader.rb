@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/ModuleLength
 module RecordPreloader
   extend ActiveSupport::Concern
 
@@ -31,25 +32,27 @@ module RecordPreloader
     records
   end
 
-  def collect_likeable_entities(records) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+  def collect_likeable_entities(records)
     entities = Set.new
     records.compact.each do |record|
       add_if_likeable(entities, record)
 
       # ⚡ Bolt: Safely traverse preloaded associations to gather likeable entities
-      if record.respond_to?(:trackable) && record.association(:trackable).loaded?
-        trackable = record.trackable
-        add_if_likeable(entities, trackable)
-        if trackable.is_a?(LibraryItem) && trackable.association(:item).loaded?
-          add_if_likeable(entities, trackable.item)
-        end
-      elsif record.is_a?(LibraryItem) && record.association(:item).loaded?
-        add_if_likeable(entities, record.item)
-      elsif record.is_a?(Like) && record.association(:likeable).loaded?
-        add_if_likeable(entities, record.likeable)
-      end
+      extract_nested_likeables(entities, record)
     end
     entities.to_a.compact
+  end
+
+  def extract_nested_likeables(entities, record)
+    if record.respond_to?(:trackable) && record.association(:trackable).loaded?
+      trackable = record.trackable
+      add_if_likeable(entities, trackable)
+      add_if_likeable(entities, trackable.item) if trackable.is_a?(LibraryItem) && trackable.association(:item).loaded?
+    elsif record.is_a?(LibraryItem) && record.association(:item).loaded?
+      add_if_likeable(entities, record.item)
+    elsif record.is_a?(Like) && record.association(:likeable).loaded?
+      add_if_likeable(entities, record.likeable)
+    end
   end
 
   def add_if_likeable(set, record)
@@ -61,6 +64,10 @@ module RecordPreloader
   def initialize_likes_caches(likeables)
     @preloaded_likes_counts ||= {}
     @preloaded_liked_ids_by_type ||= {}
+    @preloaded_likeable_keys ||= Set.new
+
+    # Mark these items as preloaded to allow helpers to distinguish between "0 likes" and "not preloaded"
+    likeables.each { |item| @preloaded_likeable_keys << "#{item.class.name}_#{item.id}" }
 
     # Fetch counts for all likeables in one query
     counts = Like.where(likeable: likeables).group(:likeable_type, :likeable_id).count
@@ -163,3 +170,4 @@ module RecordPreloader
     records
   end
 end
+# rubocop:enable Metrics/ModuleLength

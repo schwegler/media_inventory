@@ -71,10 +71,10 @@ module ApplicationHelper
     return false unless logged_in?
     return false if item.nil?
 
-    if @preloaded_liked_ids_by_type
+    if @preloaded_likeable_keys&.include?("#{item.class.name}_#{item.id}")
       set = @preloaded_liked_ids_by_type[item.class.name]
-      return set.include?(item.id) if set
-      return false
+
+      return set&.include?(item.id) || false
     end
 
     current_user.liked?(item)
@@ -84,7 +84,7 @@ module ApplicationHelper
   def likes_count_for(item)
     return 0 if item.nil?
 
-    if @preloaded_likes_counts
+    if @preloaded_likeable_keys&.include?("#{item.class.name}_#{item.id}")
       return @preloaded_likes_counts["#{item.class.name}_#{item.id}"] || 0
     end
 
