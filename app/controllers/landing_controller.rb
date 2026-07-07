@@ -17,6 +17,18 @@ class LandingController < ApplicationController
     end
   end
 
+  def db_status
+    status = {
+      database_connected: ActiveRecord::Base.connection.active?,
+      activities_count: Activity.count,
+      users_count: User.count,
+      database_url: ENV['DATABASE_URL']&.gsub(%r{:[^@/]+@}, ':FILTERED@')
+    }
+    render json: status
+  rescue StandardError => e
+    render json: { database_connected: false, database_error: "#{e.class}: #{e.message}" }
+  end
+
   private
 
   def fetch_friend_activities
@@ -83,17 +95,5 @@ class LandingController < ApplicationController
 
   def authenticate_admin
     redirect_to root_path, alert: 'Not authorized.' unless logged_in? && current_user&.admin?
-  end
-
-  def db_status
-    status = {
-      database_connected: ActiveRecord::Base.connection.active?,
-      activities_count: Activity.count,
-      users_count: User.count,
-      database_url: ENV['DATABASE_URL']&.gsub(%r{:[^@/]+@}, ':FILTERED@')
-    }
-    render json: status
-  rescue StandardError => e
-    render json: { database_connected: false, database_error: "#{e.class}: #{e.message}" }
   end
 end
