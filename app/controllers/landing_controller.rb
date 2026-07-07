@@ -3,6 +3,8 @@
 class LandingController < ApplicationController
   include RecordPreloader
 
+  before_action :authenticate_admin, only: %i[db_status]
+
   def index
     if logged_in?
       @new_from_friends = preload_social_feed(fetch_friend_activities.to_a)
@@ -77,6 +79,10 @@ class LandingController < ApplicationController
             .order(created_at: :desc)
             .limit(20)
             .select { |a| a.trackable&.review.present? }.first(3)
+  end
+
+  def authenticate_admin
+    redirect_to root_path, alert: 'Not authorized.' unless logged_in? && current_user&.admin?
   end
 
   def db_status
