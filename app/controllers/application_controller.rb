@@ -34,6 +34,10 @@ class ApplicationController < ActionController::Base
     request.user_agent&.include?('MediaInventoryDesktop')
   end
 
+  def authenticate_admin
+    redirect_to root_path, alert: 'Not authorized.' unless logged_in? && current_user&.admin?
+  end
+
   # Confirms a logged-in user.
   def logged_in_user
     return if logged_in?
