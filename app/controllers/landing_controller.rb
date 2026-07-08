@@ -92,5 +92,4 @@ class LandingController < ApplicationController
             .limit(20)
             .select { |a| a.trackable&.review.present? }.first(3)
   end
-
 end

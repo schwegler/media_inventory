@@ -33,9 +33,7 @@ class InventoryController < ApplicationController
                 end
 
     # Only allow administrators to modify global metadata once a record is persisted
-    if @resource && (@resource.new_record? || current_user&.admin?)
-      @resource.assign_attributes(global_params)
-    end
+    @resource&.assign_attributes(global_params) if @resource&.new_record? || current_user&.admin?
     instance_variable_set("@#{resource_name}", @resource)
 
     ActiveRecord::Base.transaction do
