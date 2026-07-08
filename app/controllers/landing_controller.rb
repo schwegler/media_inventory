@@ -11,7 +11,8 @@ class LandingController < ApplicationController
     else
       @activities = public_activity_feed
       preload_social_feed(@activities.to_a)
-      @active_trackers = User.where.not(confirmed_at: nil).limit(5)
+      # Eager load avatars to prevent N+1 queries in the guest sidebar
+      @active_trackers = User.where.not(confirmed_at: nil).with_attached_avatar.limit(5)
     end
   end
 
