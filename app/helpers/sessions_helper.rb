@@ -29,4 +29,8 @@ module SessionsHelper
     session.delete(:user_id)
     @current_user = nil
   end
+
+  def authenticate_admin
+    redirect_to root_path, alert: 'Not authorized.' unless logged_in? && current_user&.admin?
+  end
 end
