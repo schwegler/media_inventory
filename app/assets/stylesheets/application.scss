@@ -2175,6 +2175,28 @@ header nav ul.nav-links {
   color: $star-color;
   margin-top: 0.75rem;
   letter-spacing: 2px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stars-display {
+  cursor: help;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+.stars-number {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: $text-muted;
+  background: rgba(var(--rgb-inverse), 0.05);
+  padding: 2px 8px;
+  border-radius: 12px;
+  letter-spacing: normal;
 }
 
 .show-review {
