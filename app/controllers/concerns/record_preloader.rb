@@ -125,11 +125,11 @@ module RecordPreloader
     end
 
     # 2. Fetch liked status for the current user
-    if logged_in?
-      liked_ids = Like.where(user: current_user, likeable: targets)
-                      .pluck(:likeable_type, :likeable_id)
-                      .map { |type, id| "#{type}:#{id}" }
-      @preloaded_liked_ids.merge(liked_ids)
-    end
+    return unless logged_in?
+
+    liked_ids = Like.where(user: current_user, likeable: targets)
+                    .pluck(:likeable_type, :likeable_id)
+                    .map { |type, id| "#{type}:#{id}" }
+    @preloaded_liked_ids.merge(liked_ids)
   end
 end
