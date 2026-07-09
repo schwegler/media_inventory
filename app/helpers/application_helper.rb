@@ -90,4 +90,22 @@ module ApplicationHelper
       query.where(is_public: true).includes(:user)
     end
   end
+
+  def liked_by_current_user?(item)
+    return false unless logged_in?
+
+    if @preloaded_liked_ids
+      @preloaded_liked_ids.include?("#{item.class.name}:#{item.id}")
+    else
+      current_user.liked?(item)
+    end
+  end
+
+  def likes_count_for(item)
+    if @preloaded_likes_counts
+      @preloaded_likes_counts["#{item.class.name}:#{item.id}"] || 0
+    else
+      item.likes.count
+    end
+  end
 end

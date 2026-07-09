@@ -98,4 +98,38 @@ module RecordPreloader
     end
     records
   end
+
+  # Preloads total likes counts and the current user's liked status for a set of records.
+  # This eliminates N+1 queries in views that use the 'likes/like_button' partial.
+  def preload_likes_data(records)
+    return if records.blank?
+
+    # Initialize caches
+    @preloaded_likes_counts ||= {}
+    @preloaded_liked_ids ||= Set.new
+
+    # Filter out records we've already preloaded to avoid redundant queries
+    targets = records.compact.uniq.reject do |r|
+      @preloaded_likes_counts.key?("#{r.class.name}:#{r.id}")
+    end
+    return if targets.empty?
+
+    # 1. Fetch total counts for all targets
+    counts = Like.where(likeable: targets)
+                 .group(:likeable_type, :likeable_id)
+                 .count
+
+    targets.each do |record|
+      key = "#{record.class.name}:#{record.id}"
+      @preloaded_likes_counts[key] = counts[[record.class.name, record.id]] || 0
+    end
+
+    # 2. Fetch liked status for the current user
+    if logged_in?
+      liked_ids = Like.where(user: current_user, likeable: targets)
+                      .pluck(:likeable_type, :likeable_id)
+                      .map { |type, id| "#{type}:#{id}" }
+      @preloaded_liked_ids.merge(liked_ids)
+    end
+  end
 end

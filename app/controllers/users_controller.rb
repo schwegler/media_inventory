@@ -40,6 +40,9 @@ class UsersController < ApplicationController
     # Preload likes
     preload_social_feed(@likes)
 
+    # Bulk preload likes data for all feed items and liked items
+    preload_likes_data(@combined_feed + @likes)
+
     @collection_items = preload_library_items(fetch_library_items(is_collected: true))
     @backlog_items = preload_library_items(fetch_library_items(in_backlog: true))
   end
