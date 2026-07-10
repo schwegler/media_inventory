@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'set'
+
 module RecordPreloader
   extend ActiveSupport::Concern
 
@@ -67,6 +69,56 @@ module RecordPreloader
     # 3. Preload attachments for the underlying items
     preload_records_attachments(items)
     activities
+  end
+
+  def preload_likes_data(records)
+    return records if records.blank?
+
+    # Collect all items that can be liked
+    likeable_entities = collect_likeable_entities(records)
+    return records if likeable_entities.blank?
+
+    # 1. Bulk-fetch Like counts (ONE Query)
+    counts = Like.where(likeable: likeable_entities)
+                 .group(:likeable_type, :likeable_id).count
+
+    @preloaded_likes_counts ||= {}
+    counts.each do |(type, id), count|
+      @preloaded_likes_counts["#{type}:#{id}"] = count
+    end
+
+    # 2. Bulk-fetch current user's Likes (ONE Query)
+    if logged_in?
+      liked_ids = Like.where(user_id: current_user.id, likeable: likeable_entities)
+                      .pluck(:likeable_type, :likeable_id)
+                      .map { |type, id| "#{type}:#{id}" }
+
+      @preloaded_liked_keys ||= Set.new
+      @preloaded_liked_keys.merge(liked_ids)
+    end
+
+    # Track which items we've preloaded counts for (to differentiate 0 from nil)
+    @preloaded_likeable_keys ||= Set.new
+    likeable_entities.each { |item| @preloaded_likeable_keys.add("#{item.class.base_class.name}:#{item.id}") }
+
+    records
+  end
+
+  def collect_likeable_entities(records)
+    entities = []
+    records.each do |record|
+      entities << record if record.respond_to?(:likes)
+      # Some records (Activities, LibraryItems) proxy to another item
+      if record.respond_to?(:trackable)
+        trackable = record.association(:trackable).loaded? ? record.trackable : nil
+        entities << trackable if trackable
+      end
+      if record.respond_to?(:item)
+        item = record.association(:item).loaded? ? record.item : nil
+        entities << item if item
+      end
+    end
+    entities.uniq.compact
   end
 
   def preload_library_items(library_items)
