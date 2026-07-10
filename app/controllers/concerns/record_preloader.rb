@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-require 'set'
-
+# rubocop:disable Metrics/ModuleLength
 module RecordPreloader
   extend ActiveSupport::Concern
 
@@ -151,3 +150,4 @@ module RecordPreloader
     records
   end
 end
+# rubocop:enable Metrics/ModuleLength
