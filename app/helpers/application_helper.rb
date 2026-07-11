@@ -84,10 +84,12 @@ module ApplicationHelper
 
   def fetch_matching_items(item)
     query = LibraryItem.where(item: item)
+    # Eager load user avatars to prevent N+1 queries when rendering community reviewers and members
+    # Reducies queries by O(N) where N is the number of community interactions displayed
     if logged_in?
-      query.where('is_public = ? OR user_id = ?', true, current_user.id).includes(:user)
+      query.where('is_public = ? OR user_id = ?', true, current_user.id).includes(user: { avatar_attachment: :blob })
     else
-      query.where(is_public: true).includes(:user)
+      query.where(is_public: true).includes(user: { avatar_attachment: :blob })
     end
   end
 end
