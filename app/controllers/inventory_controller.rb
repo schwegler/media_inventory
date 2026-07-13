@@ -16,7 +16,6 @@ class InventoryController < ApplicationController
 
   # rubocop:disable Metrics/MethodLength
   def create
-    Rails.logger.debug "DEBUG CREATE PARAMS: #{params.inspect}"
     global_params = resource_params.except(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
                                            :consumed_at, :is_public, :owned_physically, :owned_physically_format,
                                            :owned_digitally, :owned_digitally_format)
@@ -33,7 +32,9 @@ class InventoryController < ApplicationController
                   resource_class.find_or_initialize_by(title: global_params[:title])
                 end
 
-    @resource.assign_attributes(global_params)
+    # Only allow non-admins to set global metadata on new records.
+    # Once a record is in the system, only admins can modify the shared metadata.
+    @resource.assign_attributes(global_params) if @resource.new_record? || current_user&.admin?
     instance_variable_set("@#{resource_name}", @resource)
 
     ActiveRecord::Base.transaction do
@@ -113,7 +114,8 @@ class InventoryController < ApplicationController
     library_params[:in_backlog] = library_params.delete(:in_watchlist) if library_params.key?(:in_watchlist)
 
     ActiveRecord::Base.transaction do
-      @resource.update!(global_params) if global_params.to_h.any?
+      # Only allow admins to update global metadata on existing records.
+      @resource.update!(global_params) if global_params.to_h.any? && current_user&.admin?
       @library_item.update!(library_params)
     end
 
