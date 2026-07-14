@@ -7,3 +7,8 @@
 **Vulnerability:** In `SessionsController`, the Bluesky login used `user.bsky_password == bsky_password`. In Ruby, `nil == nil` is true. If a user hadn't set an app password and the attacker provided a null/missing parameter, they could log in.
 **Learning:** Never rely on direct equality for password comparison without ensuring both sides are present. Even with `has_secure_password`, custom authentication flows must explicitly validate input presence.
 **Prevention:** Always check `.present?` on password parameters before attempting any comparison or authentication logic.
+
+## 2026-07-14 - [Shared Inventory Global Metadata Overwrite]
+**Vulnerability:** In the shared media inventory system, the `InventoryController#update` action allowed any user who had an item in their library to update the global metadata (title, director, etc.) of that item, affecting all other users.
+**Learning:** When using a single model for both global metadata and personal library status (via a join model like `LibraryItem`), it's easy to accidentally permit updates to global fields when only personal fields should be mutable by non-admins.
+**Prevention:** Explicitly separate global parameters from personal parameters in the controller and restrict the update of global parameters to users with administrative privileges (`current_user.admin?`).
