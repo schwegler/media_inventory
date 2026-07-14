@@ -13,3 +13,7 @@
 ## 2025-05-16 - [Skip to Content Link for Keyboard Accessibility]
 **Learning:** For keyboard and screen-reader users, navigating through repetitive header links on every page load is tedious. A "Skip to Content" link is a critical foundational UX improvement for accessibility.
 **Action:** Always include a `.skip-link` as the first element in the `<body>` that targets the `<main>` content area with an ID like `#main-content`, ensuring it is visually hidden until it receives focus.
+
+## 2026-07-14 - [Global Keyboard Shortcuts and Discoverability]
+**Learning:** Global keyboard shortcuts (like '/' for search) significantly improve UX for power users but are invisible to casual users. Informing the user via contextual hints (e.g., in placeholders) makes the feature discoverable.
+**Action:** When adding global shortcuts, update relevant UI elements (placeholders, tooltips) with a parenthetical hint like "(/)" and ensure 'role="search"' is applied to forms for accessibility.
