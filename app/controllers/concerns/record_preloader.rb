@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/ModuleLength
 module RecordPreloader
   extend ActiveSupport::Concern
 
@@ -129,6 +130,7 @@ module RecordPreloader
     entities.each { |e| @preloaded_likeable_keys.add("#{e.class.base_class.name}:#{e.id}") }
   end
 
+  # rubocop:disable Metrics/PerceivedComplexity
   def collect_likeable_entities(records)
     entities = []
     records.compact.each do |record|
@@ -136,13 +138,15 @@ module RecordPreloader
 
       if record.is_a?(Activity) && record.trackable
         entities << record.trackable if record.trackable.class.reflect_on_association(:likes)
-        if record.trackable.is_a?(LibraryItem) && record.trackable.item
-          entities << record.trackable.item if record.trackable.item.class.reflect_on_association(:likes)
+        if record.trackable.is_a?(LibraryItem) && record.trackable.item&.class&.reflect_on_association(:likes)
+          entities << record.trackable.item
         end
-      elsif record.is_a?(LibraryItem) && record.item
-        entities << record.item if record.item.class.reflect_on_association(:likes)
+      elsif record.is_a?(LibraryItem) && record.item&.class&.reflect_on_association(:likes)
+        entities << record.item
       end
     end
     entities.uniq
   end
+  # rubocop:enable Metrics/PerceivedComplexity
 end
+# rubocop:enable Metrics/ModuleLength
