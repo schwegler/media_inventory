@@ -130,7 +130,7 @@ module RecordPreloader
     entities.each { |e| @preloaded_likeable_keys.add("#{e.class.base_class.name}:#{e.id}") }
   end
 
-  # rubocop:disable Metrics/PerceivedComplexity
+  # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
   def collect_likeable_entities(records)
     entities = []
     records.compact.each do |record|
@@ -147,6 +147,6 @@ module RecordPreloader
     end
     entities.uniq
   end
-  # rubocop:enable Metrics/PerceivedComplexity
+  # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 end
 # rubocop:enable Metrics/ModuleLength
