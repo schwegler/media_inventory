@@ -42,6 +42,8 @@ class UsersController < ApplicationController
 
     @collection_items = preload_library_items(fetch_library_items(is_collected: true))
     @backlog_items = preload_library_items(fetch_library_items(in_backlog: true))
+
+    preload_likes_data(@combined_feed + @likes + @collection_items + @backlog_items, current_user)
   end
 
   def new

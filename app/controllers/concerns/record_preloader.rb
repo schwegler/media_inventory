@@ -98,4 +98,51 @@ module RecordPreloader
     end
     records
   end
+
+  def preload_likes_data(records, user = nil)
+    return if records.blank?
+
+    entities = collect_likeable_entities(records)
+    return if entities.empty?
+
+    @preloaded_likes_counts ||= {}
+    @preloaded_user_likes ||= Set.new
+    @preloaded_likeable_keys ||= Set.new
+
+    types = entities.map { |e| e.class.base_class.name }.uniq
+    ids = entities.map(&:id).uniq
+
+    # 1. Bulk fetch like counts
+    Like.where(likeable_type: types, likeable_id: ids)
+        .group(:likeable_type, :likeable_id).count.each do |(type, id), count|
+      @preloaded_likes_counts["#{type}:#{id}"] = count
+    end
+
+    # 2. Bulk fetch current user's likes
+    if user
+      Like.where(user: user, likeable_type: types, likeable_id: ids)
+          .pluck(:likeable_type, :likeable_id).each do |type, id|
+        @preloaded_user_likes.add("#{type}:#{id}")
+      end
+    end
+
+    entities.each { |e| @preloaded_likeable_keys.add("#{e.class.base_class.name}:#{e.id}") }
+  end
+
+  def collect_likeable_entities(records)
+    entities = []
+    records.compact.each do |record|
+      entities << record if record.class.reflect_on_association(:likes)
+
+      if record.is_a?(Activity) && record.trackable
+        entities << record.trackable if record.trackable.class.reflect_on_association(:likes)
+        if record.trackable.is_a?(LibraryItem) && record.trackable.item
+          entities << record.trackable.item if record.trackable.item.class.reflect_on_association(:likes)
+        end
+      elsif record.is_a?(LibraryItem) && record.item
+        entities << record.item if record.item.class.reflect_on_association(:likes)
+      end
+    end
+    entities.uniq
+  end
 end

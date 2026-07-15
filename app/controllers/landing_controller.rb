@@ -8,10 +8,14 @@ class LandingController < ApplicationController
       @new_from_friends = preload_social_feed(fetch_friend_activities.to_a)
       @popular_items = fetch_popular_items
       @popular_reviews = preload_social_feed(fetch_popular_reviews.to_a)
+
+      preload_likes_data(@new_from_friends + @popular_items + @popular_reviews, current_user)
     else
       @activities = public_activity_feed
       preload_social_feed(@activities.to_a)
       @active_trackers = User.where.not(confirmed_at: nil).limit(5)
+
+      preload_likes_data(@activities)
     end
   end
 
