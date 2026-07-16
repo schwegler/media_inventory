@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class BooksController < InventoryController
-  before_action :logged_in_user, only: %i[new create]
+
 
   private
 

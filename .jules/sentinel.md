@@ -7,3 +7,8 @@
 **Vulnerability:** In `SessionsController`, the Bluesky login used `user.bsky_password == bsky_password`. In Ruby, `nil == nil` is true. If a user hadn't set an app password and the attacker provided a null/missing parameter, they could log in.
 **Learning:** Never rely on direct equality for password comparison without ensuring both sides are present. Even with `has_secure_password`, custom authentication flows must explicitly validate input presence.
 **Prevention:** Always check `.present?` on password parameters before attempting any comparison or authentication logic.
+
+## 2026-07-16 - [Unauthorized Global Metadata Modification in Shared Inventory]
+**Vulnerability:** The `InventoryController#update` action allowed any authenticated user to modify global metadata (like titles or directors) of shared resources. This was because the controller didn't distinguish between global resource attributes and user-specific library attributes during updates.
+**Learning:** In a shared inventory system, authorization must be enforced at the attribute level. Authenticated users should only be able to modify their personal relationship with a resource, while global attributes must be restricted to administrators.
+**Prevention:** Explicitly separate global and user-specific parameters in controllers and wrap global updates in an admin-only authorization check. Centralize authentication filters in base controllers to avoid redundancy and gaps in protection.
