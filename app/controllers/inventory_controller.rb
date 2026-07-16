@@ -15,6 +15,7 @@ class InventoryController < ApplicationController
   end
 
   # rubocop:disable Metrics/MethodLength
+  # rubocop:disable Metrics/AbcSize
   def create
     global_params = resource_params.except(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
                                            :consumed_at, :is_public, :owned_physically, :owned_physically_format,
@@ -131,6 +132,7 @@ class InventoryController < ApplicationController
       format.html { render :edit, status: failure_status }
     end
   end
+  # rubocop:enable Metrics/AbcSize
 
   def destroy
     @resource = resource_class.find(params[:id])

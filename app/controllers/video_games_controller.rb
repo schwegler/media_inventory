@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 class VideoGamesController < InventoryController
-
-
   private
 
   def resource_params
