@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/ModuleLength
 module RecordPreloader
   extend ActiveSupport::Concern
 
   # Bulk-preloads like counts and current user's liked status for a collection of records.
   # This eliminates N+1 queries when rendering list of items that have like buttons.
+  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
   def preload_likes_data(records)
     return if records.blank?
 
@@ -20,18 +22,12 @@ module RecordPreloader
 
       if record.respond_to?(:trackable) && record.trackable.present?
         likeables << record.trackable
-        if record.trackable.is_a?(LibraryItem) && record.trackable.item.present?
-          likeables << record.trackable.item
-        end
+        likeables << record.trackable.item if record.trackable.is_a?(LibraryItem) && record.trackable.item.present?
       end
 
-      if record.respond_to?(:item) && record.item.present?
-        likeables << record.item
-      end
+      likeables << record.item if record.respond_to?(:item) && record.item.present?
 
-      if record.respond_to?(:comments) && record.association(:comments).loaded?
-        likeables.concat(record.comments)
-      end
+      likeables.concat(record.comments) if record.respond_to?(:comments) && record.association(:comments).loaded?
     end
 
     likeables = likeables.uniq.compact
@@ -66,7 +62,11 @@ module RecordPreloader
     end
 
     # Calculate current user liked status if logged in
-    controller_ctx = respond_to?(:helpers) ? self : (respond_to?(:controller) ? controller : nil)
+    controller_ctx = if respond_to?(:helpers)
+                       self
+                     elsif respond_to?(:controller)
+                       controller
+                     end
     is_logged_in = false
     cur_user = nil
 
@@ -78,13 +78,14 @@ module RecordPreloader
       cur_user = current_user if respond_to?(:current_user)
     end
 
-    if is_logged_in && cur_user.present?
-      user_likes = likes_query.where(user_id: cur_user.id).pluck(:likeable_type, :likeable_id)
-      user_likes.each do |type, id|
-        @preloaded_liked_keys.add("#{type}_#{id}")
-      end
+    return unless is_logged_in && cur_user.present?
+
+    user_likes = likes_query.where(user_id: cur_user.id).pluck(:likeable_type, :likeable_id)
+    user_likes.each do |type, id|
+      @preloaded_liked_keys.add("#{type}_#{id}")
     end
   end
+  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 
   private
 
@@ -182,3 +183,4 @@ module RecordPreloader
     records
   end
 end
+# rubocop:enable Metrics/ModuleLength

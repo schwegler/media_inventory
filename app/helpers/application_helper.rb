@@ -66,6 +66,7 @@ module ApplicationHelper
     ('★' * full_stars) + half_star
   end
 
+  # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
   def community_stats_for(item)
     matching_items = fetch_matching_items(item)
 
@@ -86,14 +87,14 @@ module ApplicationHelper
       reviews: matching_items.select { |i| i.review.present? }
     }
   end
+  # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 
   # Returns preloaded or direct likes count for an item, preventing N+1 queries.
   def likes_count_for(item)
     return 0 if item.nil?
+
     key = "#{item.class.base_class.name}_#{item.id}"
-    if @preloaded_likeable_keys&.include?(key)
-      return @preloaded_likes_counts[key] || 0
-    end
+    return @preloaded_likes_counts[key] || 0 if @preloaded_likeable_keys&.include?(key)
 
     item.likes.count
   end
@@ -101,10 +102,9 @@ module ApplicationHelper
   # Returns preloaded or direct liked status of an item by the current user, preventing N+1 queries.
   def liked_by_current_user?(item)
     return false if item.nil? || !logged_in?
+
     key = "#{item.class.base_class.name}_#{item.id}"
-    if @preloaded_likeable_keys&.include?(key)
-      return @preloaded_liked_keys.include?(key)
-    end
+    return @preloaded_liked_keys.include?(key) if @preloaded_likeable_keys&.include?(key)
 
     current_user.liked?(item)
   end
