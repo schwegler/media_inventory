@@ -13,3 +13,7 @@
 ## 2025-05-16 - [Skip to Content Link for Keyboard Accessibility]
 **Learning:** For keyboard and screen-reader users, navigating through repetitive header links on every page load is tedious. A "Skip to Content" link is a critical foundational UX improvement for accessibility.
 **Action:** Always include a `.skip-link` as the first element in the `<body>` that targets the `<main>` content area with an ID like `#main-content`, ensuring it is visually hidden until it receives focus.
+
+## 2026-07-17 - [WAI-ARIA Compliant Accessible Tab System]
+**Learning:** Adding accessibility and screen-reader friendliness to tab components requires not only structural container roles (such as `role="tablist"`, `role="tab"`, and `role="tabpanel"`) but also interactive state management (`aria-selected="true/false"`) in the governing Stimulus controller to dynamically communicate panel activation.
+**Action:** Always pair `tabs_controller.js` dynamic updates of `aria-selected` with semantic ARIA roles and linking attributes (`aria-controls`, `aria-labelledby`, and `id`) in the views when building or modifying tabbed interfaces.

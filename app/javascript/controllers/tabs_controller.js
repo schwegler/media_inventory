@@ -7,7 +7,9 @@ export default class extends Controller {
     const tabName = event.currentTarget.dataset.tabName
 
     this.tabTargets.forEach(tab => {
-      tab.classList.toggle("active", tab === event.currentTarget)
+      const isActive = tab === event.currentTarget
+      tab.classList.toggle("active", isActive)
+      tab.setAttribute("aria-selected", isActive ? "true" : "false")
     })
 
     this.contentTargets.forEach(content => {
