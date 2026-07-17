@@ -114,7 +114,7 @@ GEM
     crack (1.0.1)
       bigdecimal
       rexml
-    crass (1.0.6)
+    crass (1.0.7)
     dartsass-rails (0.5.1)
       railties (>= 6.0.0)
       sass-embedded (~> 1.63)
@@ -261,8 +261,7 @@ GEM
       actionpack (>= 7.0.0)
       activesupport (>= 7.0.0)
       rack
-    psych (5.4.0)
-      date
+    psych (5.0.1)
       stringio
     public_suffix (7.0.5)
     puma (8.0.2)
@@ -404,7 +403,7 @@ GEM
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
     websocket (1.2.11)
-    websocket-driver (0.8.0)
+    websocket-driver (0.8.2)
       base64
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
@@ -434,7 +433,7 @@ DEPENDENCIES
   omniauth-rails_csrf_protection (~> 2.0)
   pg
   propshaft
-  psych (= 5.4.0)
+  psych (= 5.0.1)
   puma (>= 5.0)
   rails (~> 8.1.3)
   rdoc (>= 6.5.1.1)

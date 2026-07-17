@@ -7,3 +7,8 @@
 **Vulnerability:** In `SessionsController`, the Bluesky login used `user.bsky_password == bsky_password`. In Ruby, `nil == nil` is true. If a user hadn't set an app password and the attacker provided a null/missing parameter, they could log in.
 **Learning:** Never rely on direct equality for password comparison without ensuring both sides are present. Even with `has_secure_password`, custom authentication flows must explicitly validate input presence.
 **Prevention:** Always check `.present?` on password parameters before attempting any comparison or authentication logic.
+
+## 2026-07-17 - [Sensitive Information Disclosure via Parameter Inspection]
+**Vulnerability:** Debug logs and plain-text HTTP error responses directly exposed un-sanitized client-submitted parameters via `.inspect` methods on request parameters (`params.inspect`).
+**Learning:** Callers using `.inspect` on `ActionController::Parameters` or `Rack` request parameters bypass configured attribute filtering and echo raw request payloads directly, exposing potential tokens, secrets, or PII.
+**Prevention:** Avoid logging or returning raw request parameter hashes via `.inspect`. Only log/render white-listed attributes or use Rails' configured parameter filtering where appropriate.
