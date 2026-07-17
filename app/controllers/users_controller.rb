@@ -2,8 +2,6 @@
 
 # rubocop:disable Metrics/ClassLength
 class UsersController < ApplicationController
-  include RecordPreloader
-
   before_action :logged_in_user, only: %i[index show edit update destroy following followers]
   before_action :correct_user,   only: %i[edit update]
   before_action :admin_user,     only: :destroy
@@ -42,6 +40,9 @@ class UsersController < ApplicationController
 
     @collection_items = preload_library_items(fetch_library_items(is_collected: true))
     @backlog_items = preload_library_items(fetch_library_items(in_backlog: true))
+
+    # Bulk-preload likes counts and liked status to eliminate N+1 queries in views
+    preload_likes_data(@combined_feed + @likes + @collection_items.to_a + @backlog_items.to_a)
   end
 
   def new

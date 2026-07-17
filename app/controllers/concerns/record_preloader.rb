@@ -3,6 +3,90 @@
 module RecordPreloader
   extend ActiveSupport::Concern
 
+  # Bulk-preloads like counts and current user's liked status for a collection of records.
+  # This eliminates N+1 queries when rendering list of items that have like buttons.
+  def preload_likes_data(records)
+    return if records.blank?
+
+    @preloaded_likes_counts ||= {}
+    @preloaded_liked_keys ||= Set.new
+    @preloaded_likeable_keys ||= Set.new
+
+    likeables = []
+    records.each do |record|
+      next if record.nil?
+
+      likeables << record
+
+      if record.respond_to?(:trackable) && record.trackable.present?
+        likeables << record.trackable
+        if record.trackable.is_a?(LibraryItem) && record.trackable.item.present?
+          likeables << record.trackable.item
+        end
+      end
+
+      if record.respond_to?(:item) && record.item.present?
+        likeables << record.item
+      end
+
+      if record.respond_to?(:comments) && record.association(:comments).loaded?
+        likeables.concat(record.comments)
+      end
+    end
+
+    likeables = likeables.uniq.compact
+    return if likeables.empty?
+
+    new_likeables = likeables.reject do |item|
+      key = "#{item.class.base_class.name}_#{item.id}"
+      @preloaded_likeable_keys.include?(key)
+    end
+
+    return if new_likeables.empty?
+
+    new_likeables.each do |item|
+      key = "#{item.class.base_class.name}_#{item.id}"
+      @preloaded_likeable_keys.add(key)
+    end
+
+    by_class = new_likeables.group_by { |item| item.class.base_class.name }
+    conditions = []
+    by_class.each do |klass_name, items|
+      ids = items.map(&:id)
+      conditions << "(likeable_type = '#{klass_name}' AND likeable_id IN (#{ids.join(',')}))"
+    end
+
+    return if conditions.empty?
+
+    likes_query = Like.where(conditions.join(' OR '))
+
+    # Calculate counts
+    counts = likes_query.group(:likeable_type, :likeable_id).count
+    counts.each do |(type, id), count|
+      @preloaded_likes_counts["#{type}_#{id}"] = count
+    end
+
+    # Calculate current user liked status if logged in
+    controller_ctx = respond_to?(:helpers) ? self : (respond_to?(:controller) ? controller : nil)
+    is_logged_in = false
+    cur_user = nil
+
+    if controller_ctx
+      is_logged_in = controller_ctx.send(:logged_in?) if controller_ctx.respond_to?(:logged_in?, true)
+      cur_user = controller_ctx.send(:current_user) if controller_ctx.respond_to?(:current_user, true)
+    else
+      is_logged_in = logged_in? if respond_to?(:logged_in?)
+      cur_user = current_user if respond_to?(:current_user)
+    end
+
+    if is_logged_in && cur_user.present?
+      user_likes = likes_query.where(user_id: cur_user.id).pluck(:likeable_type, :likeable_id)
+      user_likes.each do |type, id|
+        @preloaded_liked_keys.add("#{type}_#{id}")
+      end
+    end
+  end
+
   private
 
   def preload_social_feed(records)

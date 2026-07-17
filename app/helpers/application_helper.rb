@@ -69,6 +69,13 @@ module ApplicationHelper
   def community_stats_for(item)
     matching_items = fetch_matching_items(item)
 
+    # Preload likes data for the item itself and all matching reviews/collection items to eliminate N+1 queries.
+    if respond_to?(:preload_likes_data)
+      preload_likes_data([item] + matching_items.to_a)
+    elsif respond_to?(:controller) && controller.respond_to?(:preload_likes_data)
+      controller.preload_likes_data([item] + matching_items.to_a)
+    end
+
     ratings = matching_items.map { |i| i.rating.to_f if i.rating.present? }.compact
     avg_rating = ratings.any? ? (ratings.sum.to_f / ratings.size).round(1) : nil
 
@@ -78,6 +85,28 @@ module ApplicationHelper
       collectors: matching_items.select(&:is_collected?).map(&:user).uniq.compact,
       reviews: matching_items.select { |i| i.review.present? }
     }
+  end
+
+  # Returns preloaded or direct likes count for an item, preventing N+1 queries.
+  def likes_count_for(item)
+    return 0 if item.nil?
+    key = "#{item.class.base_class.name}_#{item.id}"
+    if @preloaded_likeable_keys&.include?(key)
+      return @preloaded_likes_counts[key] || 0
+    end
+
+    item.likes.count
+  end
+
+  # Returns preloaded or direct liked status of an item by the current user, preventing N+1 queries.
+  def liked_by_current_user?(item)
+    return false if item.nil? || !logged_in?
+    key = "#{item.class.base_class.name}_#{item.id}"
+    if @preloaded_likeable_keys&.include?(key)
+      return @preloaded_liked_keys.include?(key)
+    end
+
+    current_user.liked?(item)
   end
 
   private
