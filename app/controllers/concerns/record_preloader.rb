@@ -50,15 +50,14 @@ module RecordPreloader
     end
 
     by_class = new_likeables.group_by { |item| item.class.base_class.name }
-    conditions = []
+    likes_query = nil
     by_class.each do |klass_name, items|
       ids = items.map(&:id)
-      conditions << "(likeable_type = '#{klass_name}' AND likeable_id IN (#{ids.join(',')}))"
+      sub_query = Like.where(likeable_type: klass_name, likeable_id: ids)
+      likes_query = likes_query ? likes_query.or(sub_query) : sub_query
     end
 
-    return if conditions.empty?
-
-    likes_query = Like.where(conditions.join(' OR '))
+    return if likes_query.nil?
 
     # Calculate counts
     counts = likes_query.group(:likeable_type, :likeable_id).count
