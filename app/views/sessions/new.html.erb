@@ -3,13 +3,13 @@
 <div class="row">
   <div class="col-md-6 col-md-offset-3">
     <div data-controller="tabs" class="auth-tabs-container">
-      <div class="auth-tabs">
-        <button type="button" class="auth-tab active" data-tabs-target="tab" data-tab-name="email" data-action="click->tabs#switch">Email</button>
-        <button type="button" class="auth-tab" data-tabs-target="tab" data-tab-name="bsky-oauth" data-action="click->tabs#switch">Bluesky</button>
-        <button type="button" class="auth-tab" data-tabs-target="tab" data-tab-name="mastodon" data-action="click->tabs#switch">Mastodon</button>
+      <div class="auth-tabs" role="tablist" aria-label="Login Options">
+        <button type="button" class="auth-tab active" role="tab" id="tab-login-email" aria-controls="panel-login-email" data-tabs-target="tab" data-tab-name="email" data-action="click->tabs#switch keydown->tabs#keydown">Email</button>
+        <button type="button" class="auth-tab" role="tab" id="tab-login-bsky" aria-controls="panel-login-bsky" data-tabs-target="tab" data-tab-name="bsky-oauth" data-action="click->tabs#switch keydown->tabs#keydown">Bluesky</button>
+        <button type="button" class="auth-tab" role="tab" id="tab-login-mastodon" aria-controls="panel-login-mastodon" data-tabs-target="tab" data-tab-name="mastodon" data-action="click->tabs#switch keydown->tabs#keydown">Mastodon</button>
       </div>
 
-      <div class="auth-tab-content" data-tabs-target="content" data-tab-name="email">
+      <div class="auth-tab-content" role="tabpanel" id="panel-login-email" aria-labelledby="tab-login-email" data-tabs-target="content" data-tab-name="email">
         <h2 class="auth-section-title">Log in with Email</h2>
         <div class="auth-section-body">
           <%= form_with(url: login_path, scope: :session, class: "standard-form") do |f| %>
@@ -28,7 +28,7 @@
         </div>
       </div>
 
-      <div class="auth-tab-content hidden" data-tabs-target="content" data-tab-name="bsky-oauth">
+      <div class="auth-tab-content hidden" role="tabpanel" id="panel-login-bsky" aria-labelledby="tab-login-bsky" data-tabs-target="content" data-tab-name="bsky-oauth">
         <h2 class="auth-section-title">🦋 Log in with Bluesky</h2>
         <div class="auth-section-body">
           <%= form_tag "/auth/atproto", method: :post, data: { turbo: false } do %>
@@ -41,7 +41,7 @@
         </div>
       </div>
 
-      <div class="auth-tab-content hidden" data-tabs-target="content" data-tab-name="mastodon">
+      <div class="auth-tab-content hidden" role="tabpanel" id="panel-login-mastodon" aria-labelledby="tab-login-mastodon" data-tabs-target="content" data-tab-name="mastodon">
         <h2 class="auth-section-title">🐘 Log in with Mastodon</h2>
         <div class="auth-section-body">
           <%= form_tag "/auth/mastodon", method: :post, data: { turbo: false } do %>
