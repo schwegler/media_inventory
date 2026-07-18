@@ -5,3 +5,7 @@
 ## 2026-06-19 - Risks of Nested Eager Loading on Polymorphic Associations
 **Learning:** Eager loading nested associations on a polymorphic relation (e.g., `includes(trackable: { tv_show: :user })`) will raise an `ActiveRecord::AssociationNotFoundError` if *any* of the returned records belong to a model that does not define that nested association (e.g., a `Movie` or `Album` which doesn't have a `tv_show`).
 **Action:** Stick to first-level eager loading for polymorphic associations (`includes(:trackable)`) or use the grouping/bulk-fetch pattern if nested associations are required for specific types. Also, use `.load` in the controller if the view uses `.any?` or `.exists?` to prevent redundant COUNT queries before the SELECT.
+
+## 2026-07-18 - Preventing O(N) N+1 Query Bottlenecks on User Avatars
+**Learning:** Rendering lists of users or user-related associations (like the community section on media show views, and the index, following, followers directories in UsersController) triggers O(N) N+1 queries for Active Storage avatar attachments and blobs if they are not explicitly eager loaded.
+**Action:** Use the `.with_attached_avatar` Active Storage eager-loading scope on User queries or include `{ user: { avatar_attachment: :blob } }` on parent associations to eliminate these bottlenecks cleanly.
