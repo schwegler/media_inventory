@@ -20,11 +20,11 @@ module RecordPreloader
   def preload_standard_associations(klass, records)
     associations = []
     if klass.reflect_on_association(:user)
-      if %w[Activity Comment Like Post].include?(klass.name)
-        associations << { user: { avatar_attachment: :blob } }
-      else
-        associations << :user
-      end
+      associations << if %w[Activity Comment Like Post].include?(klass.name)
+                        { user: { avatar_attachment: :blob } }
+                      else
+                        :user
+                      end
     end
     associations << :likes if klass.reflect_on_association(:likes)
     associations << :comments if klass.reflect_on_association(:comments)
