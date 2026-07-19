@@ -8,6 +8,7 @@
               class: local_assigns[:tweet_style] ? "btn-tweet-like btn-unstyled #{'liked' if liked}" : "btn-like-icon #{'liked' if liked}",
               style: local_assigns[:tweet_style] ? "display: flex; align-items: center; gap: 6px; cursor: pointer;" : "",
               form_class: local_assigns[:tweet_style] ? "inline-form" : "",
+              aria: { label: "#{liked ? 'Unlike' : 'Like'} #{item.class.name.downcase}" },
               form: { data: { turbo: true } } do %>
   <% if local_assigns[:tweet_style] %>
     <div class="tweet-action-item">
