@@ -74,10 +74,8 @@ class OmniAuthCallbacksController < ApplicationController
   def setup_mastodon(req)
     server = req.params['mastodon_server'] || request.params['mastodon_server'] || session[:mastodon_server]
     if server.blank?
-      render plain: "Mastodon server required.
-              req.params: #{req.params.inspect},
-              request.params: #{request.params.inspect}",
-             status: 400
+      # Secure error response to avoid parameter reflection and potential sensitive data leakage
+      render plain: 'Mastodon server required.', status: :bad_request
       return
     end
 

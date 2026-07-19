@@ -7,3 +7,8 @@
 **Vulnerability:** In `SessionsController`, the Bluesky login used `user.bsky_password == bsky_password`. In Ruby, `nil == nil` is true. If a user hadn't set an app password and the attacker provided a null/missing parameter, they could log in.
 **Learning:** Never rely on direct equality for password comparison without ensuring both sides are present. Even with `has_secure_password`, custom authentication flows must explicitly validate input presence.
 **Prevention:** Always check `.present?` on password parameters before attempting any comparison or authentication logic.
+
+## 2026-07-19 - [Sensitive Parameter Leakage via Debug Logs and Error Reflection]
+**Vulnerability:** Sensitive request parameters (including passwords, tokens, or PII) were logged raw in `InventoryController#create` using `Rails.logger.debug "DEBUG CREATE PARAMS: #{params.inspect}"`. Additionally, `OmniAuthCallbacksController#setup_mastodon` leaked the raw request and environment parameters via raw `.inspect` output in plain text error responses when the target server was blank.
+**Learning:** Hardcoding `.inspect` calls on request objects or params in both logs and error templates can easily bypass parameter filtering mechanisms and expose internal state to any user or log aggregator.
+**Prevention:** Avoid debugging parameters directly via `.inspect` in production code. Use generic, static error responses instead of mirroring parameters or object dumps in API failure responses.
