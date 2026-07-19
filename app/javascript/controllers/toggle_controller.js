@@ -9,13 +9,6 @@ export default class extends Controller {
     event.preventDefault()
     this.elementTargets.forEach((el) => {
       el.classList.toggle(this.hiddenClass)
-      const isVisible = !el.classList.contains(this.hiddenClass)
-      if (isVisible) {
-        const input = el.querySelector("input:not([type='hidden']), textarea, select")
-        if (input) {
-          setTimeout(() => input.focus(), 50)
-        }
-      }
     })
   }
 
