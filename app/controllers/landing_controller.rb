@@ -42,6 +42,12 @@ class LandingController < ApplicationController
     return fallback_popular_items if counts.empty?
 
     items = map_counts_to_items(counts)
+
+    # Preload to eliminate N+1 queries for LibraryItem polymorphic associations and attachments
+    lib_items, direct_items = items.partition { |item| item.is_a?(LibraryItem) }
+    preload_library_items(lib_items) if lib_items.any?
+    preload_records_attachments(direct_items) if direct_items.any?
+
     items.presence || fallback_popular_items
   end
 
@@ -72,11 +78,17 @@ class LandingController < ApplicationController
   end
 
   def fetch_popular_reviews
-    Activity.includes(:user, :trackable)
-            .where(activity_type: 'reviewed')
-            .order(created_at: :desc)
-            .limit(20)
-            .select { |a| a.trackable&.review.present? }.first(3)
+    activities = Activity.includes(:user, :trackable)
+                         .where(activity_type: 'reviewed')
+                         .order(created_at: :desc)
+                         .limit(20).to_a
+
+    # Preload the nested :item polymorphic association on LibraryItem trackables
+    # to avoid triggering individual DB queries during the select/filtering process
+    lib_items = activities.map(&:trackable).grep(LibraryItem)
+    preload_library_items(lib_items) if lib_items.any?
+
+    activities.select { |a| a.trackable&.review.present? }.first(3)
   end
 
   def db_status
