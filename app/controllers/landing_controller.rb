@@ -3,6 +3,8 @@
 class LandingController < ApplicationController
   include RecordPreloader
 
+  before_action :authenticate_admin, only: :db_status
+
   def index
     if logged_in?
       @new_from_friends = preload_social_feed(fetch_friend_activities.to_a)
@@ -13,6 +15,18 @@ class LandingController < ApplicationController
       preload_social_feed(@activities.to_a)
       @active_trackers = User.where.not(confirmed_at: nil).limit(5)
     end
+  end
+
+  def db_status
+    status = {
+      database_connected: ActiveRecord::Base.connection.active?,
+      activities_count: Activity.count,
+      users_count: User.count,
+      database_url: ENV['DATABASE_URL']&.gsub(%r{:[^@/]+@}, ':FILTERED@')
+    }
+    render json: status
+  rescue StandardError => e
+    render json: { database_connected: false, database_error: "#{e.class}: #{e.message}" }
   end
 
   private
@@ -77,17 +91,5 @@ class LandingController < ApplicationController
             .order(created_at: :desc)
             .limit(20)
             .select { |a| a.trackable&.review.present? }.first(3)
-  end
-
-  def db_status
-    status = {
-      database_connected: ActiveRecord::Base.connection.active?,
-      activities_count: Activity.count,
-      users_count: User.count,
-      database_url: ENV['DATABASE_URL']&.gsub(%r{:[^@/]+@}, ':FILTERED@')
-    }
-    render json: status
-  rescue StandardError => e
-    render json: { database_connected: false, database_error: "#{e.class}: #{e.message}" }
   end
 end

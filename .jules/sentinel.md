@@ -7,3 +7,8 @@
 **Vulnerability:** In `SessionsController`, the Bluesky login used `user.bsky_password == bsky_password`. In Ruby, `nil == nil` is true. If a user hadn't set an app password and the attacker provided a null/missing parameter, they could log in.
 **Learning:** Never rely on direct equality for password comparison without ensuring both sides are present. Even with `has_secure_password`, custom authentication flows must explicitly validate input presence.
 **Prevention:** Always check `.present?` on password parameters before attempting any comparison or authentication logic.
+
+## 2026-07-21 - [Sensitive Endpoint Exposed & Private Controller Action 404 Bug]
+**Vulnerability:** The `/db_status` endpoint exposed sensitive system and database metrics to public, unauthenticated users. Additionally, it was placed below the `private` keyword in `LandingController`, making it raise an ActionNotFound (404) routing error and rendering it completely unusable.
+**Learning:** Router-facing controller actions in Rails must always be public methods. If defined under the `private` keyword, they trigger `ActionNotFound` routing errors.
+**Prevention:** Always place routing action methods in the public scope of the controller, and restrict access using centralized filters like `before_action :authenticate_admin`.
