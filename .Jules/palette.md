@@ -13,3 +13,7 @@
 ## 2025-05-16 - [Skip to Content Link for Keyboard Accessibility]
 **Learning:** For keyboard and screen-reader users, navigating through repetitive header links on every page load is tedious. A "Skip to Content" link is a critical foundational UX improvement for accessibility.
 **Action:** Always include a `.skip-link` as the first element in the `<body>` that targets the `<main>` content area with an ID like `#main-content`, ensuring it is visually hidden until it receives focus.
+
+## 2026-07-22 - [Keyboard Focus Management in Toggleable Forms]
+**Learning:** Toggling a hidden form or element via Stimulus without managing active focus breaks the keyboard-only navigation flow. Keyboard-only users expect the first visible interactive input of an opened form to automatically receive focus, and conversely, cancelling/hiding the form should cleanly return focus to the initial triggering element to avoid losing place on the page.
+**Action:** Enhance general toggle controllers to automatically locate and focus the first visible `input`, `textarea`, or `select` within target elements when toggled to visible, and restore focus to the triggering element (identified by `aria-expanded="true"`) when the form is hidden.
