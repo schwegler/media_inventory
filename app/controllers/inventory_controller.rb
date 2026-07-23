@@ -54,9 +54,10 @@ class InventoryController < ApplicationController
     end
   end
 
+  # rubocop:disable Metrics/AbcSize
   def show
     @resource = if resource_class.respond_to?(:includes)
-                  resource_class.includes(:likes, comments: [:user, :likes, replies: [:user, :likes]]).find(params[:id])
+                  resource_class.includes(:likes, comments: [:user, :likes, { replies: %i[user likes] }]).find(params[:id])
                 else
                   resource_class.find(params[:id])
                 end
@@ -79,6 +80,7 @@ class InventoryController < ApplicationController
     end
     instance_variable_set("@#{resource_name}", @resource)
   end
+  # rubocop:enable Metrics/AbcSize
 
   def edit
     @resource = resource_class.find(params[:id])
