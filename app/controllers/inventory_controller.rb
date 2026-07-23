@@ -55,7 +55,11 @@ class InventoryController < ApplicationController
   end
 
   def show
-    @resource = resource_class.find(params[:id])
+    @resource = if resource_class.respond_to?(:includes)
+                  resource_class.includes(:likes, comments: [:user, :likes, replies: [:user, :likes]]).find(params[:id])
+                else
+                  resource_class.find(params[:id])
+                end
     if logged_in?
       @library_item = LibraryItem.find_by(user: current_user, item: @resource)
       if @library_item

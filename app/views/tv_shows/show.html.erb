@@ -35,7 +35,7 @@
         <% stats = community_stats_for(@tv_show) %>
         <span class="stat-item" title="Watchers"><span class="stat-icon">👁</span> <%= stats[:watchers].size %></span>
         <span class="stat-item" title="Collectors"><span class="stat-icon">📁</span> <%= stats[:collectors].size %></span>
-        <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @tv_show.likes.count %></span>
+        <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @tv_show.likes.size %></span>
       </div>
     </div>
     <div style="margin-bottom: 2rem;">

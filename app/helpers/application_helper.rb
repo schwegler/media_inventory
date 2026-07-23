@@ -85,9 +85,10 @@ module ApplicationHelper
   def fetch_matching_items(item)
     query = LibraryItem.where(item: item)
     if logged_in?
-      query.where('is_public = ? OR user_id = ?', true, current_user.id).includes(:user)
+      query = query.where('is_public = ? OR user_id = ?', true, current_user.id)
     else
-      query.where(is_public: true).includes(:user)
+      query = query.where(is_public: true)
     end
+    query.includes(:user, comments: [:user, :likes, replies: [:user, :likes]])
   end
 end
