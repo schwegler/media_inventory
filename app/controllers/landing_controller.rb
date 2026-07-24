@@ -72,11 +72,23 @@ class LandingController < ApplicationController
   end
 
   def fetch_popular_reviews
+    # OPTIMIZE: Join library_items to filter out blank/nil reviews directly in SQL.
+    # We pluck the IDs of the top 3 matching activities first, then retrieve those exact
+    # records with includes(:user, :trackable). This avoids loading up to 20 activity records,
+    # their users, and their polymorphic attachments, and prevents any
+    # ActiveRecord::EagerLoadPolymorphicError that can occur when mixing includes and joins.
+    activity_ids = Activity.joins('INNER JOIN library_items ON library_items.id = activities.trackable_id')
+                           .where(activity_type: 'reviewed', trackable_type: 'LibraryItem')
+                           .where.not(library_items: { review: [nil, ''] })
+                           .order(created_at: :desc)
+                           .limit(3)
+                           .pluck(:id)
+
+    return Activity.none if activity_ids.empty?
+
     Activity.includes(:user, :trackable)
-            .where(activity_type: 'reviewed')
+            .where(id: activity_ids)
             .order(created_at: :desc)
-            .limit(20)
-            .select { |a| a.trackable&.review.present? }.first(3)
   end
 
   def db_status
