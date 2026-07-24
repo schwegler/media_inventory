@@ -34,11 +34,14 @@ RSpec.describe 'Authentication', type: :request do
   end
 
   describe 'invalid login' do
-    it 'renders the new session template with error' do
+    it 'renders the new session template with error and contains dismissal button' do
       post login_path, params: { session: { email: user.email, password: 'wrongpassword' } }
       expect(session[:user_id]).to be_nil
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.body).to include('Invalid email/password combination')
+      expect(response.body).to include('class="alert-dismiss-btn"')
+      expect(response.body).to include('data-action="click->flash#dismiss"')
+      expect(response.body).to include('aria-label="Dismiss alert"')
     end
   end
 
