@@ -13,3 +13,7 @@
 ## 2025-05-16 - [Skip to Content Link for Keyboard Accessibility]
 **Learning:** For keyboard and screen-reader users, navigating through repetitive header links on every page load is tedious. A "Skip to Content" link is a critical foundational UX improvement for accessibility.
 **Action:** Always include a `.skip-link` as the first element in the `<body>` that targets the `<main>` content area with an ID like `#main-content`, ensuring it is visually hidden until it receives focus.
+
+## 2026-07-25 - [Discoverable Search Keyboard Shortcut]
+**Learning:** Adding keyboard shortcuts (like `/` to focus search) drastically improves power-user experience, but must be paired with visible cues (updating the input's placeholder to `Search (/)`) and robust element filtering (ignoring key presses when the user is typing in forms) to ensure discoverability and prevent layout frustration.
+**Action:** When adding global search keyboard shortcuts, use `Search (/)` as the placeholder, add `aria-keyshortcuts="/"`, and guard the event listener using `target.tagName` checks in the Stimulus controller to avoid hijacking user input.
