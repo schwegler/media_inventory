@@ -81,6 +81,53 @@ RSpec.describe 'Collections', type: :request do
         expect(response.body).to include('Public Video Game')
         expect(response.body).not_to include('Private Video Game')
       end
+
+      it 'is optimized to avoid N+1 queries when loading collection page' do
+        # Record queries for 1 item per category (already created in let! blocks)
+        query_count_base = 0
+        subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
+          query_count_base += 1 unless payload[:name] == 'SCHEMA' || payload[:sql].include?('PRAGMA')
+        end
+        get "/collections/#{user.id}"
+        ActiveSupport::Notifications.unsubscribe(subscriber)
+
+        # Create more items
+        4.times do |i|
+          LibraryItem.create!(user: user, is_public: true, is_collected: true,
+                              item: Album.create!(title: "Extra Album #{i}"))
+          LibraryItem.create!(user: user, is_public: true, is_collected: true,
+                              item: Comic.create!(title: "Extra Comic #{i}"))
+          LibraryItem.create!(user: user, is_public: true, is_collected: true,
+                              item: Movie.create!(title: "Extra Movie #{i}"))
+          LibraryItem.create!(user: user, is_public: true, is_collected: true,
+                              item: TvShow.create!(title: "Extra TV Show #{i}"))
+          LibraryItem.create!(user: user, is_public: true, is_collected: true,
+                              item: VideoGame.create!(title: "Extra Game #{i}"))
+        end
+
+        # Record queries for 5 items per category
+        query_count_after = 0
+        subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
+          query_count_after += 1 unless payload[:name] == 'SCHEMA' || payload[:sql].include?('PRAGMA')
+        end
+        get "/collections/#{user.id}"
+        ActiveSupport::Notifications.unsubscribe(subscriber)
+
+        # Assert query counts are constant and do not grow with N
+        expect(query_count_after).to eq(query_count_base)
+      end
+
+      it 'safely and successfully filters the collection items using search term without database errors' do
+        get "/collections/#{user.id}", params: { q: 'Public' }
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include('Public Album')
+        expect(response.body).not_to include('Extra Album')
+
+        get "/collections/#{user.id}", params: { q: 'Non-existent' }
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include('No items found matching')
+        expect(response.body).not_to include('Public Album')
+      end
     end
 
     context 'when the user is unconfirmed' do
