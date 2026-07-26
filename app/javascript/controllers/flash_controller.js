@@ -14,10 +14,7 @@ export default class extends Controller {
     if (this.timeout) clearTimeout(this.timeout)
   }
 
-  dismiss(event = null) {
-    if (event) {
-      event.preventDefault()
-    }
+  dismiss() {
     this.element.style.transition = "opacity 0.3s ease, transform 0.3s ease"
     this.element.style.opacity = "0"
     this.element.style.transform = "translateY(-10px)"
