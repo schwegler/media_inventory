@@ -743,7 +743,7 @@ table {
 }
 
 .alert {
-  padding: 1rem 1.5rem;
+  padding: 0.75rem 1.25rem;
   border-radius: $radius-md;
   margin-bottom: 0;
   font-size: 0.9rem;
@@ -754,7 +754,42 @@ table {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
   pointer-events: auto;
   /* Re-enable pointer events for the alert itself */
-  text-align: center;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.alert-message {
+  flex: 1;
+  text-align: left;
+}
+
+.alert-dismiss {
+  background: transparent;
+  border: none;
+  color: inherit;
+  opacity: 0.6;
+  cursor: pointer;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: opacity 0.2s, background-color 0.2s;
+
+  &:hover {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  &:focus-visible {
+    opacity: 1;
+    outline: 2px solid var(--accent-gold);
+    outline-offset: 1px;
+    background-color: rgba(255, 255, 255, 0.1);
+  }
 }
 
 .alert-danger {

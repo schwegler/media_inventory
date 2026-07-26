@@ -13,3 +13,7 @@
 ## 2025-05-16 - [Skip to Content Link for Keyboard Accessibility]
 **Learning:** For keyboard and screen-reader users, navigating through repetitive header links on every page load is tedious. A "Skip to Content" link is a critical foundational UX improvement for accessibility.
 **Action:** Always include a `.skip-link` as the first element in the `<body>` that targets the `<main>` content area with an ID like `#main-content`, ensuring it is visually hidden until it receives focus.
+
+## 2026-07-26 - [Manual Alert Dismissal for Accessibility and Control]
+**Learning:** For temporary alert notifications that fade out automatically, users must be given manual control to dismiss them instantly. Supporting keyboard accessibility means the dismiss button needs an explicit focus-visible state and an `aria-label`. Additionally, the Stimulus controller's dismiss action must safely handle an optional event parameter to prevent default actions across different triggers.
+**Action:** Always include a `<button type="button" class="alert-dismiss" data-action="click->flash#dismiss" aria-label="Dismiss alert">` in flash alerts, style it with focus-visible rings (e.g., using `--accent-gold`), and implement `dismiss(event = null) { if (event) event.preventDefault(); ... }` in `flash_controller.js`.
