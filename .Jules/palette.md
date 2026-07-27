@@ -13,3 +13,7 @@
 ## 2025-05-16 - [Skip to Content Link for Keyboard Accessibility]
 **Learning:** For keyboard and screen-reader users, navigating through repetitive header links on every page load is tedious. A "Skip to Content" link is a critical foundational UX improvement for accessibility.
 **Action:** Always include a `.skip-link` as the first element in the `<body>` that targets the `<main>` content area with an ID like `#main-content`, ensuring it is visually hidden until it receives focus.
+
+## 2026-06-21 - [ARIA Relationships for Dynamic Actions and Icon Buttons]
+**Learning:** For dynamic elements (such as likes/unlikes and reply forms) and icon-only submit buttons, providing just an `aria-label` is insufficient for assistive technologies if the action controls or alters a separate DOM region. Explicitly associating elements using both custom `aria-label` (dynamic based on state) and `aria-controls` (linking back to the targets) provides screen reader users with precise context and control over UI changes.
+**Action:** Always link dynamic toggle and submit buttons to their targeted input or container elements via `aria-controls`, and use state-aware dynamic translations for `aria-label` in helper templates.

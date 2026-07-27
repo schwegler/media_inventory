@@ -4,8 +4,8 @@
   <div class="search-filters">
     <form action="<%= search_path %>" method="get" class="search-results-form" data-turbo-action="advance">
       <div class="search-input-wrapper">
-        <input type="text" name="q" value="<%= @query %>" class="search-input" placeholder="Search Trove..." autocomplete="off">
-        <button type="submit" class="search-submit">
+        <input type="text" id="search-page-input" name="q" value="<%= @query %>" class="search-input" placeholder="Search Trove..." autocomplete="off">
+        <button type="submit" class="search-submit" aria-label="Submit search" aria-controls="search-page-input">
           <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>

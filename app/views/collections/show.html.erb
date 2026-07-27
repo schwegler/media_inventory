@@ -7,8 +7,8 @@
 <% else %>
   <div class="collection-search-container">
     <form action="<%= collection_path(@user) %>" method="get" class="local-search-form" data-turbo-action="advance">
-      <input type="text" name="q" class="local-search-input" placeholder="Search <%= @user.name %>'s collection..." value="<%= @query %>" autocomplete="off">
-      <button type="submit" class="local-search-btn">
+      <input type="text" id="collection-search-input" name="q" class="local-search-input" placeholder="Search <%= @user.name %>'s collection..." value="<%= @query %>" autocomplete="off">
+      <button type="submit" class="local-search-btn" aria-label="Submit search in collection" aria-controls="collection-search-input">
         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>

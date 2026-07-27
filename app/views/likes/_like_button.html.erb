@@ -8,7 +8,11 @@
               class: local_assigns[:tweet_style] ? "btn-tweet-like btn-unstyled #{'liked' if liked}" : "btn-like-icon #{'liked' if liked}",
               style: local_assigns[:tweet_style] ? "display: flex; align-items: center; gap: 6px; cursor: pointer;" : "",
               form_class: local_assigns[:tweet_style] ? "inline-form" : "",
-              form: { data: { turbo: true } } do %>
+              form: { data: { turbo: true } },
+              aria: {
+                label: liked ? "Unlike this #{item.class.name.titleize.downcase}" : "Like this #{item.class.name.titleize.downcase}",
+                controls: "like_button_#{item.class.name}_#{item.id}"
+              } do %>
   <% if local_assigns[:tweet_style] %>
     <div class="tweet-action-item">
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="<%= liked ? '#ec4899' : 'none' %>" stroke="<%= liked ? '#ec4899' : 'currentColor' %>" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition: transform 0.2s, color 0.2s;" onmouseover="this.style.color='#ec4899';" onmouseout="this.style.color='<%= liked ? '#ec4899' : 'currentColor' %>';">
