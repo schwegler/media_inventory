@@ -5,17 +5,36 @@ export default class extends Controller {
   static targets = ["element"]
   static classes = ["hidden"]
 
+  connect() {
+    this.element.dataset.connected = "true"
+  }
+
   toggle(event) {
-    event.preventDefault()
+    if (event) event.preventDefault()
+    const hiddenClass = this.hasHiddenClass ? this.hiddenClass : "hidden"
+
     this.elementTargets.forEach((el) => {
-      el.classList.toggle(this.hiddenClass)
+      const isHiddenBefore = el.classList.contains(hiddenClass)
+      el.classList.toggle(hiddenClass)
+      const isHiddenAfter = el.classList.contains(hiddenClass)
+
+      // If it is now visible, search for the first visible interactive element and focus it
+      if (isHiddenBefore && !isHiddenAfter) {
+        const focusable = el.querySelector('input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), select:not([disabled])')
+        if (focusable) {
+          // A tiny timeout to ensure rendering/animation is complete and element is fully interactable
+          setTimeout(() => focusable.focus(), 50)
+        }
+      }
     })
   }
 
   hide(event) {
-    event.preventDefault()
+    if (event) event.preventDefault()
+    const hiddenClass = this.hasHiddenClass ? this.hiddenClass : "hidden"
+
     this.elementTargets.forEach((el) => {
-      el.classList.add(this.hiddenClass)
+      el.classList.add(hiddenClass)
     })
   }
 }
