@@ -5,3 +5,7 @@
 ## 2026-06-19 - Risks of Nested Eager Loading on Polymorphic Associations
 **Learning:** Eager loading nested associations on a polymorphic relation (e.g., `includes(trackable: { tv_show: :user })`) will raise an `ActiveRecord::AssociationNotFoundError` if *any* of the returned records belong to a model that does not define that nested association (e.g., a `Movie` or `Album` which doesn't have a `tv_show`).
 **Action:** Stick to first-level eager loading for polymorphic associations (`includes(:trackable)`) or use the grouping/bulk-fetch pattern if nested associations are required for specific types. Also, use `.load` in the controller if the view uses `.any?` or `.exists?` to prevent redundant COUNT queries before the SELECT.
+
+## 2026-06-20 - Safe SQL Filtering and Preloading on Polymorphic Joins
+**Learning:** Polling or querying collections on polymorphic join tables (such as `library_items` representing user collections of albums, comics, etc.) suffers from O(N) N+1 query bottlenecks if the polymorphic `:item` association is not preloaded during rendering. However, performing SQL-level filters (like search `LIKE`) on nested associations during eager loading fails with `ActiveRecord::EagerLoadPolymorphicError` or triggers SQLite missing column errors if queried directly on the join model.
+**Action:** Always pluck the matching join record IDs in an initial inner join query specific to the target media model, and then retrieve those records using a simple ID-based search combined with `includes(:item)`.

@@ -81,6 +81,28 @@ RSpec.describe 'Collections', type: :request do
         expect(response.body).to include('Public Video Game')
         expect(response.body).not_to include('Private Video Game')
       end
+
+      context 'when searching the collection' do
+        it 'returns only items matching the search query' do
+          get "/collections/#{user.id}", params: { q: 'Movie' }
+          expect(response).to have_http_status(:success)
+
+          expect(response.body).to include('Public Movie')
+          expect(response.body).not_to include('Public Album')
+          expect(response.body).not_to include('Public Comic')
+          expect(response.body).not_to include('Public TV Show')
+          expect(response.body).not_to include('Public Video Game')
+        end
+
+        it 'handles query with no matching items correctly' do
+          get "/collections/#{user.id}", params: { q: 'NonexistentTitle' }
+          expect(response).to have_http_status(:success)
+
+          expect(response.body).to include('No items found matching "NonexistentTitle" in Test\'s collection.')
+          expect(response.body).not_to include('Public Movie')
+          expect(response.body).not_to include('Public Album')
+        end
+      end
     end
 
     context 'when the user is unconfirmed' do
