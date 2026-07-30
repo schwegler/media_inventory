@@ -4,9 +4,9 @@
   <div class="col-md-6 col-md-offset-3">
     <div data-controller="tabs" class="auth-tabs-container">
       <div class="auth-tabs">
-        <button type="button" class="auth-tab active" data-tabs-target="tab" data-tab-name="email" data-action="click->tabs#switch">Email</button>
-        <button type="button" class="auth-tab" data-tabs-target="tab" data-tab-name="bsky-oauth" data-action="click->tabs#switch">Bluesky</button>
-        <button type="button" class="auth-tab" data-tabs-target="tab" data-tab-name="mastodon" data-action="click->tabs#switch">Mastodon</button>
+        <button type="button" class="auth-tab active" data-tabs-target="tab" data-tab-name="email" data-action="click->tabs#switch keydown->tabs#keydown">Email</button>
+        <button type="button" class="auth-tab" data-tabs-target="tab" data-tab-name="bsky-oauth" data-action="click->tabs#switch keydown->tabs#keydown">Bluesky</button>
+        <button type="button" class="auth-tab" data-tabs-target="tab" data-tab-name="mastodon" data-action="click->tabs#switch keydown->tabs#keydown">Mastodon</button>
       </div>
 
       <div class="auth-tab-content" data-tabs-target="content" data-tab-name="email">
