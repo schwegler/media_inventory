@@ -8,15 +8,19 @@
               class: local_assigns[:tweet_style] ? "btn-tweet-like btn-unstyled #{'liked' if liked}" : "btn-like-icon #{'liked' if liked}",
               style: local_assigns[:tweet_style] ? "display: flex; align-items: center; gap: 6px; cursor: pointer;" : "",
               form_class: local_assigns[:tweet_style] ? "inline-form" : "",
-              form: { data: { turbo: true } } do %>
+              form: { data: { turbo: true } },
+              aria: {
+                label: "#{liked ? 'Unlike' : 'Like'} #{item.class.name.titleize}",
+                controls: "likes_count_#{item.class.name.underscore}_#{item.id}"
+              } do %>
   <% if local_assigns[:tweet_style] %>
     <div class="tweet-action-item">
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="<%= liked ? '#ec4899' : 'none' %>" stroke="<%= liked ? '#ec4899' : 'currentColor' %>" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition: transform 0.2s, color 0.2s;" onmouseover="this.style.color='#ec4899';" onmouseout="this.style.color='<%= liked ? '#ec4899' : 'currentColor' %>';">
         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
       </svg>
-      <span style="font-size: 0.9rem; color: <%= liked ? '#ec4899' : '#94a3b8' %>;"><%= likes_count > 0 ? likes_count : '' %></span>
+      <span id="likes_count_<%= item.class.name.underscore %>_<%= item.id %>" style="font-size: 0.9rem; color: <%= liked ? '#ec4899' : '#94a3b8' %>;"><%= likes_count > 0 ? likes_count : '' %></span>
     </div>
   <% else %>
-    <span class="heart <%= liked ? 'is-liked' : 'is-unliked' %>">♥</span> <span class="like-text">Like</span> <span class="likes-count"><%= likes_count %></span>
+    <span class="heart <%= liked ? 'is-liked' : 'is-unliked' %>">♥</span> <span class="like-text">Like</span> <span id="likes_count_<%= item.class.name.underscore %>_<%= item.id %>" class="likes-count"><%= likes_count %></span>
   <% end %>
 <% end %>
