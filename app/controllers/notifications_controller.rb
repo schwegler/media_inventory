@@ -4,7 +4,7 @@ class NotificationsController < ApplicationController
   before_action :logged_in_user
 
   def index
-    # Optimize to eager load notifiable items and actors with their avatars to prevent N+1 queries when rendering notifications list
+    # Optimize to eager load notifiable items and actors with their avatars to prevent N+1 queries
     @notifications = current_user.notifications
                                  .includes(:notifiable, actor: { avatar_attachment: :blob })
                                  .order(created_at: :desc)
