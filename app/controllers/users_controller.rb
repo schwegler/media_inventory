@@ -9,7 +9,8 @@ class UsersController < ApplicationController
   before_action :admin_user,     only: :destroy
 
   def index
-    @users = User.page(params[:page])
+    # Optimize to eager load user avatars to prevent N+1 queries when rendering the user list
+    @users = User.with_attached_avatar.page(params[:page])
   end
 
   def show
@@ -92,14 +93,16 @@ class UsersController < ApplicationController
   def following
     @title = 'Following'
     @user  = User.find(params[:id])
-    @users = @user.following.page(params[:page])
+    # Optimize to eager load user avatars to prevent N+1 queries when rendering following user cards
+    @users = @user.following.with_attached_avatar.page(params[:page])
     render 'show_follow'
   end
 
   def followers
     @title = 'Followers'
     @user  = User.find(params[:id])
-    @users = @user.followers.page(params[:page])
+    # Optimize to eager load user avatars to prevent N+1 queries when rendering followers user cards
+    @users = @user.followers.with_attached_avatar.page(params[:page])
     render 'show_follow'
   end
 
