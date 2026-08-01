@@ -1,0 +1,30 @@
+<% if defined?(current_user) && current_user && library_item.user_id != current_user.id && library_item.respond_to?(:owned_physically?) && library_item.owned_physically? %>
+  <% existing_request = library_item.borrow_requests.where(borrower: current_user, status: [:pending, :approved, :active]).first %>
+  
+  <% if existing_request %>
+    <button class="btn btn-sm" disabled style="background: rgba(255,255,255,0.1); color: #94a3b8; cursor: not-allowed; border: 1px solid rgba(255,255,255,0.05);">
+      Requested
+    </button>
+  <% elsif library_item.respond_to?(:currently_lent?) && library_item.currently_lent? %>
+    <button class="btn btn-sm" disabled style="background: rgba(255,255,255,0.1); color: #94a3b8; cursor: not-allowed; border: 1px solid rgba(255,255,255,0.05);">
+      Currently Lent Out
+    </button>
+  <% else %>
+    <details class="borrow-dropdown" style="position: relative; display: inline-block;">
+      <summary class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px; cursor: pointer; list-style: none;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
+        Request to Borrow
+      </summary>
+      <div style="position: absolute; top: 100%; right: 0; margin-top: 8px; background: #1e293b; border: 1px solid #334155; padding: 12px; border-radius: 8px; width: 250px; z-index: 50; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); text-align: left;">
+        <%= form_with url: borrow_requests_path, method: :post, local: true do |f| %>
+          <%= f.hidden_field :library_item_id, value: library_item.id %>
+          <div style="margin-bottom: 10px;">
+            <%= f.label :message, "Add a message (optional)", style: "display: block; font-size: 0.8rem; margin-bottom: 4px; color: #94a3b8;" %>
+            <%= f.text_area :message, rows: 2, class: "form-control", style: "width: 100%; padding: 6px; background: rgba(0,0,0,0.2); border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.85rem;" %>
+          </div>
+          <%= f.submit "Send Request", class: "btn btn-primary btn-sm", style: "width: 100%;" %>
+        <% end %>
+      </div>
+    </details>
+  <% end %>
+<% end %>

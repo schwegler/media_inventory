@@ -5107,3 +5107,554 @@ input[type="submit"]:focus-visible {
   margin: 0 !important;
   align-items: center !important;
 }
+
+// ==========================================================================
+//  BORROWING & LENDING
+// ==========================================================================
+
+.borrow-dashboard {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.borrow-dashboard h1 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.borrow-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.borrow-tabs .tab-btn {
+  padding: 10px 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.borrow-tabs .tab-btn:hover {
+  color: var(--text-main);
+}
+
+.borrow-tabs .tab-btn.active {
+  color: var(--accent-cyan);
+  border-bottom-color: var(--accent-cyan);
+}
+
+.borrow-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-left: 6px;
+  background: var(--accent-cyan);
+  color: #fff;
+}
+
+// --- Borrow Request Cards ---
+.borrow-request-card {
+  display: flex;
+  gap: 14px;
+  padding: 1rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.borrow-request-card:hover {
+  border-color: var(--border-medium);
+}
+
+.borrow-request-card.overdue {
+  border-color: rgba(239, 68, 68, 0.3);
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.08);
+}
+
+.borrow-item-thumb {
+  width: 56px;
+  height: 80px;
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--bg-surface);
+}
+
+.borrow-item-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.borrow-item-thumb .thumb-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.borrow-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.borrow-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.borrow-card-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-main);
+}
+
+.borrow-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.borrow-card-meta .user-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-main);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.borrow-card-meta .user-link:hover {
+  color: var(--accent-cyan);
+}
+
+.borrow-card-message {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding: 8px 10px;
+  background: rgba(var(--rgb-inverse), 0.03);
+  border-left: 3px solid var(--accent-cyan);
+  border-radius: 0 4px 4px 0;
+  margin: 8px 0;
+  font-style: italic;
+}
+
+.borrow-card-due {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.borrow-card-due.due-soon {
+  color: #fbbf24;
+  font-weight: 500;
+}
+
+.borrow-card-due.overdue {
+  color: #ef4444;
+  font-weight: 600;
+  animation: pulse-overdue 2s ease-in-out infinite;
+}
+
+@keyframes pulse-overdue {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.borrow-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+// --- Status Badges ---
+.borrow-status {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.borrow-status-pending {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+}
+
+.borrow-status-approved {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+.borrow-status-active {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.borrow-status-returned {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+}
+
+.borrow-status-declined {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.borrow-status-cancelled {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+}
+
+.borrow-status-overdue {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  font-weight: 700;
+}
+
+// --- Approve Form ---
+.borrow-approve-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(var(--rgb-inverse), 0.03);
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.borrow-approve-form label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.borrow-approve-form input[type="date"],
+.borrow-approve-form textarea {
+  background: var(--bg-dark);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  color: var(--text-main);
+  font-family: inherit;
+  resize: vertical;
+}
+
+.borrow-approve-form textarea {
+  min-height: 50px;
+  max-height: 120px;
+}
+
+.borrow-approve-form .form-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.borrow-approve-form .form-row .field {
+  flex: 1;
+}
+
+// --- Borrow Button (on item cards) ---
+.borrow-btn-container {
+  margin-top: 6px;
+}
+
+.btn-borrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid var(--accent-cyan);
+  background: rgba(6, 182, 212, 0.1);
+  color: var(--accent-cyan);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-borrow:hover {
+  background: rgba(6, 182, 212, 0.2);
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.15);
+}
+
+.btn-borrow:disabled,
+.btn-borrow.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-borrow-requested {
+  border-color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+  color: #fbbf24;
+}
+
+.btn-borrow-lent {
+  border-color: var(--text-dim);
+  background: rgba(var(--rgb-inverse), 0.03);
+  color: var(--text-dim);
+}
+
+// --- Borrow inline message form ---
+.borrow-message-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.borrow-message-form {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  width: 280px;
+  background: var(--card-bg-solid);
+  border: 1px solid var(--border-medium);
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  z-index: 20;
+  display: none;
+}
+
+.borrow-message-form.open {
+  display: block;
+}
+
+.borrow-message-form textarea {
+  width: 100%;
+  background: var(--bg-dark);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 0.82rem;
+  color: var(--text-main);
+  font-family: inherit;
+  resize: vertical;
+  min-height: 60px;
+  margin-bottom: 8px;
+}
+
+.borrow-message-form .form-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+// --- Dashboard Home Borrowing Section ---
+.borrowing-activity-section {
+  margin-bottom: 2rem;
+}
+
+.borrowing-alert-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.12), rgba(99, 102, 241, 0.08));
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  color: var(--text-main);
+}
+
+.borrowing-alert-banner:hover {
+  border-color: rgba(6, 182, 212, 0.4);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.1);
+}
+
+.borrowing-alert-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 182, 212, 0.15);
+  border-radius: 10px;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.borrowing-alert-content {
+  flex: 1;
+}
+
+.borrowing-alert-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 2px;
+}
+
+.borrowing-alert-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.borrowing-compact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.borrowing-compact-card {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  align-items: center;
+  transition: border-color 0.2s ease;
+}
+
+.borrowing-compact-card:hover {
+  border-color: var(--border-medium);
+}
+
+.borrowing-compact-card.overdue {
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+.borrowing-compact-thumb {
+  width: 36px;
+  height: 52px;
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--bg-surface);
+}
+
+.borrowing-compact-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.borrowing-compact-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.borrowing-compact-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.borrowing-compact-detail {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+// --- Profile Lending Tab ---
+.lending-stats-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+
+.lending-stat-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.lending-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+.lending-stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+// --- Responsive ---
+@media (max-width: 640px) {
+  .borrow-tabs {
+    gap: 0;
+  }
+
+  .borrow-tabs .tab-btn {
+    padding: 8px 10px;
+    font-size: 0.78rem;
+  }
+
+  .borrow-request-card {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .borrow-item-thumb {
+    width: 100%;
+    height: 120px;
+  }
+
+  .borrow-approve-form .form-row {
+    flex-direction: column;
+  }
+
+  .borrowing-compact-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lending-stats-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

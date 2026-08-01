@@ -1,0 +1,85 @@
+<%
+  item = borrow_request.library_item.item
+  other_user = perspective == :lender ? borrow_request.borrower : borrow_request.library_item.user
+  status = borrow_request.status.to_s
+  is_overdue = borrow_request.due_date.present? && borrow_request.due_date < Date.today && ['active', 'approved'].include?(status)
+  
+  badge_style = case status
+    when 'pending' then 'background: rgba(251, 191, 36, 0.15); color: #fbbf24;'
+    when 'approved' then 'background: rgba(59, 130, 246, 0.15); color: #60a5fa;'
+    when 'active' then 'background: rgba(16, 185, 129, 0.15); color: #10b981;'
+    when 'returned', 'cancelled' then 'background: rgba(148, 163, 184, 0.15); color: #94a3b8;'
+    when 'declined' then 'background: rgba(239, 68, 68, 0.15); color: #ef4444;'
+    end
+    
+  if is_overdue
+    badge_style = 'background: rgba(239, 68, 68, 0.2); color: #ef4444; font-weight: 600;'
+    status = 'overdue'
+  end
+  
+  timestamp = case status
+    when 'pending' then borrow_request.created_at
+    when 'active', 'approved', 'overdue' then borrow_request.picked_up_at || borrow_request.updated_at
+    when 'returned' then borrow_request.returned_at || borrow_request.updated_at
+    else borrow_request.updated_at
+    end
+%>
+
+<div class="notification-card" style="padding: 1rem; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px;">
+  <div class="request-thumbnail" style="flex-shrink: 0; width: 60px; height: 90px; border-radius: 4px; overflow: hidden; background: #222;">
+    <% if item.respond_to?(:cover_image) && item.cover_image.attached? %>
+      <%= image_tag item.cover_image, style: "width: 100%; height: 100%; object-fit: cover;" %>
+    <% elsif item.respond_to?(:thumbnail_url) && item.thumbnail_url.present? %>
+      <img src="<%= item.thumbnail_url %>" style="width: 100%; height: 100%; object-fit: cover;">
+    <% else %>
+      <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 24px;">📦</div>
+    <% end %>
+  </div>
+  
+  <div class="request-content" style="flex: 1;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+      <div>
+        <h4 style="margin: 0; font-size: 1.1rem; color: var(--text-main, #fff);"><%= item.title %></h4>
+        <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+          <%= user_avatar_tag(other_user, size: 24) %>
+          <span style="font-size: 0.9rem; color: var(--text-muted, #94a3b8);">
+            <%= perspective == :lender ? 'Requested by' : 'Lender:' %> <strong><%= other_user.name %></strong>
+          </span>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+        <span style="padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; <%= badge_style %>">
+          <%= status %>
+        </span>
+        <span style="font-size: 0.8rem; color: var(--text-muted, #94a3b8);">
+          <%= time_ago_in_words(timestamp) %> ago
+        </span>
+      </div>
+    </div>
+    
+    <% if borrow_request.message.present? %>
+      <div style="margin-top: 8px; padding: 8px 12px; background: rgba(0,0,0,0.2); border-left: 3px solid rgba(255,255,255,0.1); font-size: 0.85rem; color: #cbd5e1; border-radius: 0 4px 4px 0;">
+        "<%= borrow_request.message %>"
+      </div>
+    <% end %>
+    
+    <% if borrow_request.due_date.present? %>
+      <div style="margin-top: 8px; font-size: 0.85rem; color: <%= is_overdue ? '#ef4444' : 'var(--text-muted, #94a3b8)' %>;">
+        <strong>Due Date:</strong> <%= borrow_request.due_date.strftime("%b %d, %Y") %>
+        <% if is_overdue %>
+          (Overdue)
+        <% end %>
+      </div>
+    <% end %>
+
+    <% if borrow_request.respond_to?(:lender_notes) && borrow_request.lender_notes.present? %>
+       <div style="margin-top: 8px; padding: 8px 12px; background: rgba(0,0,0,0.2); border-left: 3px solid var(--accent-cyan, #38bdf8); font-size: 0.85rem; color: #cbd5e1; border-radius: 0 4px 4px 0;">
+        <strong>Lender Note:</strong> <%= borrow_request.lender_notes %>
+      </div>
+    <% end %>
+    
+    <div style="margin-top: 12px;">
+      <%= yield %>
+    </div>
+  </div>
+</div>

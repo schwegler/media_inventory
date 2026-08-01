@@ -2,6 +2,15 @@
 
 SampleApp::Application.routes.draw do
   resources :posts, only: %i[create destroy show]
+  resources :borrow_requests, only: %i[index create] do
+    member do
+      patch :approve
+      patch :decline
+      patch :cancel
+      patch :pick_up
+      patch :return_item
+    end
+  end
   resources :notifications, only: %i[index] do
     collection do
       post :mark_as_read

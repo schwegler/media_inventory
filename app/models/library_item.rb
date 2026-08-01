@@ -8,6 +8,19 @@ class LibraryItem < ApplicationRecord
 
   has_many :likes, as: :likeable, dependent: :destroy
   has_many :comments, as: :commentable, dependent: :destroy
+  has_many :borrow_requests, dependent: :destroy
+
+  def currently_lent?
+    borrow_requests.active_loans.exists?
+  end
+
+  def current_borrower
+    borrow_requests.active_loans.first&.borrower
+  end
+
+  def available_to_borrow?
+    owned_physically? && !currently_lent?
+  end
 
   def method_missing(method, *, &)
     if item.respond_to?(method)

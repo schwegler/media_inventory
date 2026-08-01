@@ -1,0 +1,34 @@
+<div style="background-color: #0b0f19; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f8fafc; margin: 0; padding: 40px 20px; min-height: 100vh; box-sizing: border-box;">
+  <div style="max-width: 560px; margin: 0 auto; background-color: #1a2035; border-radius: 12px; border: 1px solid #2e374a; padding: 32px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);">
+    <div style="text-align: center; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid #2e374a;">
+      <h1 style="color: #06b6d4; font-size: 28px; font-weight: 700; margin: 0; letter-spacing: -0.5px;">Trove</h1>
+    </div>
+
+    <h2 style="color: #06b6d4; font-size: 20px; font-weight: 700; margin: 0 0 16px 0;">New Borrow Request</h2>
+
+    <p style="color: #f8fafc; font-size: 15px; line-height: 1.6; margin: 0 0 20px 0;">
+      <strong style="color: #06b6d4;"><%= @borrower.name %></strong> wants to borrow your copy of <strong style="color: #f8fafc;"><%= @item_title %></strong>.
+    </p>
+
+    <% if @borrow_request.message.present? %>
+      <div style="background-color: #111827; border-left: 4px solid #06b6d4; border-radius: 6px; padding: 16px; margin: 20px 0;">
+        <p style="color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin: 0 0 6px 0;">Message from <%= @borrower.name %></p>
+        <p style="color: #f8fafc; font-size: 14px; line-height: 1.6; margin: 0; font-style: italic;">"<%= @borrow_request.message %>"</p>
+      </div>
+    <% end %>
+
+    <p style="color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 20px 0 0 0;">
+      Please log in to your Trove account to approve or decline this request.
+    </p>
+
+    <div style="text-align: center; margin-top: 28px;">
+      <%= link_to "Review Borrow Request", borrow_requests_url, style: "display: inline-block; background-color: #06b6d4; color: #0b0f19; font-weight: 600; font-size: 15px; padding: 12px 24px; border-radius: 8px; text-decoration: none;" %>
+    </div>
+
+    <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid #2e374a; text-align: center;">
+      <p style="color: #94a3b8; font-size: 12px; line-height: 1.5; margin: 0;">
+        You're receiving this because you have borrow notifications enabled in your Trove settings.
+      </p>
+    </div>
+  </div>
+</div>

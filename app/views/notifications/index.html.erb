@@ -27,6 +27,32 @@
                 approved your edit suggestion for <%= notification.notifiable.suggestable.title rescue notification.notifiable.suggestable.name rescue 'a media item' %>.
               <% when 'rejected_edit' %>
                 rejected your edit suggestion for <%= notification.notifiable.suggestable.title rescue notification.notifiable.suggestable.name rescue 'a media item' %>.
+              <% when 'borrow_requested' %>
+                wants to borrow your copy of <strong>"<%= notification.notifiable&.media_title %>"</strong>.
+                <%= link_to 'View requests', borrow_requests_path, style: 'color: var(--accent-cyan); margin-left: 4px;' %>
+              <% when 'borrow_approved' %>
+                approved your borrow request for <strong>"<%= notification.notifiable&.media_title %>"</strong>!
+                <%= link_to 'View details', borrow_requests_path, style: 'color: var(--accent-cyan); margin-left: 4px;' %>
+              <% when 'borrow_declined' %>
+                declined your borrow request for <strong>"<%= notification.notifiable&.media_title %>"</strong>.
+              <% when 'borrow_cancelled' %>
+                cancelled their borrow request for <strong>"<%= notification.notifiable&.media_title %>"</strong>.
+              <% when 'borrow_picked_up' %>
+                has picked up <strong>"<%= notification.notifiable&.media_title %>"</strong>.
+              <% when 'borrow_returned' %>
+                has returned <strong>"<%= notification.notifiable&.media_title %>"</strong>.
+              <% when 'borrow_reminder' %>
+                <% if notification.notifiable&.overdue? %>
+                  <span style="color: #ef4444; font-weight: 600;">Reminder: "<%= notification.notifiable&.media_title %>" is overdue!</span>
+                <% else %>
+                  Reminder: "<%= notification.notifiable&.media_title %>" is due
+                  <% if notification.notifiable&.days_until_due&.zero? %>
+                    <strong>today</strong>.
+                  <% else %>
+                    in <strong><%= notification.notifiable&.days_until_due %> days</strong>.
+                  <% end %>
+                <% end %>
+                <%= link_to 'View', borrow_requests_path, style: 'color: var(--accent-cyan); margin-left: 4px;' %>
               <% else %>
                 <%= notification.action %>
               <% end %>

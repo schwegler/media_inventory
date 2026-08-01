@@ -97,7 +97,8 @@ class SettingsController < ApplicationController
       :notify_email_likes, :notify_push_likes,
       :notify_email_follows, :notify_push_follows,
       :notify_email_comments, :notify_push_comments,
-      :notify_email_posts, :notify_push_posts
+      :notify_email_posts, :notify_push_posts,
+      :notify_email_borrows
     )
   end
 

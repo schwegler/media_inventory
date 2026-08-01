@@ -8,6 +8,15 @@ class LandingController < ApplicationController
       @new_from_friends = preload_social_feed(fetch_friend_activities.to_a)
       @popular_items = fetch_popular_items
       @popular_reviews = preload_social_feed(fetch_popular_reviews.to_a)
+
+      # Borrowing activity
+      @pending_borrow_requests = current_user.pending_borrow_requests
+                                             .includes(:borrower, library_item: :item)
+                                             .order(created_at: :desc)
+      @active_loans = current_user.active_loans
+                                  .includes(:borrower, library_item: :item)
+      @active_borrows = current_user.active_borrows
+                                    .includes(:lender, library_item: :item)
     else
       @activities = public_activity_feed
       preload_social_feed(@activities.to_a)

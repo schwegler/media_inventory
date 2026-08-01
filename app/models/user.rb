@@ -48,6 +48,13 @@ class User < ApplicationRecord
   has_many :notifications, foreign_key: :recipient_id, dependent: :destroy
   has_many :posts, dependent: :destroy
 
+  has_many :borrow_requests_as_borrower, class_name: 'BorrowRequest',
+                                         foreign_key: 'borrower_id',
+                                         dependent: :destroy
+  has_many :borrow_requests_as_lender,   class_name: 'BorrowRequest',
+                                         foreign_key: 'lender_id',
+                                         dependent: :destroy
+
   has_many :active_relationships, class_name: 'Relationship',
                                   foreign_key: 'follower_id',
                                   dependent: :destroy
@@ -71,6 +78,19 @@ class User < ApplicationRecord
 
   def following?(other_user)
     following.include?(other_user)
+  end
+
+  # Borrowing helpers
+  def active_borrows
+    borrow_requests_as_borrower.active_loans
+  end
+
+  def active_loans
+    borrow_requests_as_lender.active_loans
+  end
+
+  def pending_borrow_requests
+    borrow_requests_as_lender.pending_requests
   end
 
   def display_handle

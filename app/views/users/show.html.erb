@@ -94,6 +94,14 @@
         <button class="tab-btn" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="collection">Collection</button>
         <button class="tab-btn" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="backlog">Backlog</button>
         <button class="tab-btn" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="likes">Likes</button>
+        <% if current_user?(@user) %>
+          <button class="tab-btn" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="lending">
+            Lending
+            <% if @pending_incoming_requests&.any? %>
+              <span class="borrow-tab-badge"><%= @pending_incoming_requests.count %></span>
+            <% end %>
+          </button>
+        <% end %>
       </nav>
 
       <div class="tab-content" data-tabs-target="content" data-tab-name="posts">
@@ -179,6 +187,9 @@
                    <% item = lib_item.item %>
                    <% next unless item %>
                    <%= render partial: 'shared/media_card', locals: { media_item: item } %>
+                   <% if logged_in? && !current_user?(@user) && lib_item.owned_physically? %>
+                     <%= render partial: 'borrow_requests/borrow_button', locals: { library_item: lib_item } %>
+                   <% end %>
                  <% end %>
              <% else %>
                <p class="empty-state">No items in collection.</p>
@@ -200,6 +211,54 @@
            <% end %>
         </div>
       </div>
+
+      <% if current_user?(@user) %>
+      <div class="tab-content hidden" data-tabs-target="content" data-tab-name="lending">
+        <div class="lending-stats-row">
+          <div class="lending-stat-card">
+            <span class="lending-stat-value"><%= @active_loans&.count || 0 %></span>
+            <span class="lending-stat-label">Lent Out</span>
+          </div>
+          <div class="lending-stat-card">
+            <span class="lending-stat-value"><%= @active_borrows&.count || 0 %></span>
+            <span class="lending-stat-label">Borrowing</span>
+          </div>
+          <div class="lending-stat-card">
+            <span class="lending-stat-value"><%= @pending_incoming_requests&.count || 0 %></span>
+            <span class="lending-stat-label">Pending</span>
+          </div>
+        </div>
+
+        <% if @pending_incoming_requests&.any? %>
+          <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--text-main);">Pending Requests</h3>
+          <% @pending_incoming_requests.each do |request| %>
+            <%= render partial: 'borrow_requests/request_card', locals: { borrow_request: request, perspective: :lender } %>
+          <% end %>
+        <% end %>
+
+        <% if @active_loans&.any? %>
+          <h3 style="font-size: 1rem; margin: 16px 0 10px; color: var(--text-main);">Currently Lent Out</h3>
+          <% @active_loans.each do |loan| %>
+            <%= render partial: 'borrow_requests/request_card', locals: { borrow_request: loan, perspective: :lender } %>
+          <% end %>
+        <% end %>
+
+        <% if @active_borrows&.any? %>
+          <h3 style="font-size: 1rem; margin: 16px 0 10px; color: var(--text-main);">Currently Borrowing</h3>
+          <% @active_borrows.each do |borrow| %>
+            <%= render partial: 'borrow_requests/request_card', locals: { borrow_request: borrow, perspective: :borrower } %>
+          <% end %>
+        <% end %>
+
+        <% if (@pending_incoming_requests.blank? || @pending_incoming_requests.none?) && (@active_loans.blank? || @active_loans.none?) && (@active_borrows.blank? || @active_borrows.none?) %>
+          <p class="empty-state">No lending activity yet. When friends borrow your items, they'll show up here.</p>
+        <% end %>
+
+        <div style="margin-top: 16px; text-align: center;">
+          <%= link_to 'View Full Borrowing Dashboard →', borrow_requests_path, style: 'color: var(--accent-cyan); font-size: 0.85rem;' %>
+        </div>
+      </div>
+      <% end %>
 
       <div class="tab-content hidden" data-tabs-target="content" data-tab-name="likes">
         <div class="likes-feed">

@@ -3,6 +3,94 @@
     <h1>Welcome back, <span class="welcome-name"><%= current_user.name %></span>. Here’s what your friends have been watching…</h1>
   </div>
 
+  <% if @pending_borrow_requests&.any? || @active_loans&.any? || @active_borrows&.any? %>
+    <section class="borrowing-activity-section">
+      <div class="section-header">
+        <h2>BORROWING & LENDING</h2>
+        <%= link_to "MANAGE", borrow_requests_path, class: "section-more-link" %>
+      </div>
+
+      <% if @pending_borrow_requests&.any? %>
+        <%= link_to borrow_requests_path, class: "borrowing-alert-banner" do %>
+          <div class="borrowing-alert-icon">📬</div>
+          <div class="borrowing-alert-content">
+            <div class="borrowing-alert-title">
+              You have <%= @pending_borrow_requests.count %> borrow <%= 'request'.pluralize(@pending_borrow_requests.count) %> waiting
+            </div>
+            <div class="borrowing-alert-subtitle">Click to review and respond</div>
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        <% end %>
+      <% end %>
+
+      <% if @active_loans&.any? %>
+        <h3 style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Items You've Lent Out</h3>
+        <div class="borrowing-compact-grid" style="margin-bottom: 16px;">
+          <% @active_loans.each do |loan| %>
+            <% media = loan.library_item&.item %>
+            <div class="borrowing-compact-card <%= 'overdue' if loan.overdue? %>">
+              <div class="borrowing-compact-thumb">
+                <% if media&.respond_to?(:cover_image) && media.cover_image.attached? %>
+                  <%= image_tag media.cover_image, alt: media.title %>
+                <% elsif media&.respond_to?(:thumbnail_url) && media&.thumbnail_url.present? %>
+                  <img src="<%= media.thumbnail_url %>" alt="<%= media&.title %>">
+                <% end %>
+              </div>
+              <div class="borrowing-compact-info">
+                <div class="borrowing-compact-title"><%= media&.title || 'Unknown' %></div>
+                <div class="borrowing-compact-detail">
+                  Lent to <%= loan.borrower.name %>
+                  <% if loan.due_date.present? %>
+                    <% if loan.overdue? %>
+                      · <span style="color: #ef4444; font-weight: 600;">Overdue by <%= (Date.current - loan.due_date).to_i %> days</span>
+                    <% elsif loan.due_soon? %>
+                      · <span style="color: #fbbf24;">Due in <%= loan.days_until_due %> days</span>
+                    <% else %>
+                      · Due <%= loan.due_date.strftime('%b %d') %>
+                    <% end %>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <% if @active_borrows&.any? %>
+        <h3 style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Items You're Borrowing</h3>
+        <div class="borrowing-compact-grid">
+          <% @active_borrows.each do |borrow| %>
+            <% media = borrow.library_item&.item %>
+            <div class="borrowing-compact-card <%= 'overdue' if borrow.overdue? %>">
+              <div class="borrowing-compact-thumb">
+                <% if media&.respond_to?(:cover_image) && media.cover_image.attached? %>
+                  <%= image_tag media.cover_image, alt: media.title %>
+                <% elsif media&.respond_to?(:thumbnail_url) && media&.thumbnail_url.present? %>
+                  <img src="<%= media.thumbnail_url %>" alt="<%= media&.title %>">
+                <% end %>
+              </div>
+              <div class="borrowing-compact-info">
+                <div class="borrowing-compact-title"><%= media&.title || 'Unknown' %></div>
+                <div class="borrowing-compact-detail">
+                  From <%= borrow.lender.name %>
+                  <% if borrow.due_date.present? %>
+                    <% if borrow.overdue? %>
+                      · <span style="color: #ef4444; font-weight: 600;">Overdue!</span>
+                    <% elsif borrow.due_soon? %>
+                      · <span style="color: #fbbf24;">Due in <%= borrow.days_until_due %> days</span>
+                    <% else %>
+                      · Due <%= borrow.due_date.strftime('%b %d') %>
+                    <% end %>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </section>
+  <% end %>
+
   <section class="dashboard-section">
     <div class="section-header">
       <h2>NEW FROM FRIENDS</h2>

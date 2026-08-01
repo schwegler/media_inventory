@@ -1,0 +1,23 @@
+<div style="background-color: #0b0f19; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f8fafc; margin: 0; padding: 40px 20px; min-height: 100vh; box-sizing: border-box;">
+  <div style="max-width: 560px; margin: 0 auto; background-color: #1a2035; border-radius: 12px; border: 1px solid #2e374a; padding: 32px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);">
+    <div style="text-align: center; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid #2e374a;">
+      <h1 style="color: #06b6d4; font-size: 28px; font-weight: 700; margin: 0; letter-spacing: -0.5px;">Trove</h1>
+    </div>
+
+    <h2 style="color: #94a3b8; font-size: 20px; font-weight: 700; margin: 0 0 16px 0;">Request Declined</h2>
+
+    <p style="color: #f8fafc; font-size: 15px; line-height: 1.6; margin: 0 0 20px 0;">
+      Your request to borrow <strong style="color: #f8fafc;"><%= @item_title %></strong> from <strong style="color: #06b6d4;"><%= @lender.name %></strong> was declined.
+    </p>
+
+    <div style="text-align: center; margin-top: 28px;">
+      <%= link_to "Browse Other Items", root_url, style: "display: inline-block; background-color: #2e374a; color: #f8fafc; font-weight: 600; font-size: 15px; padding: 12px 24px; border-radius: 8px; text-decoration: none;" %>
+    </div>
+
+    <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid #2e374a; text-align: center;">
+      <p style="color: #94a3b8; font-size: 12px; line-height: 1.5; margin: 0;">
+        You're receiving this because you have borrow notifications enabled in your Trove settings.
+      </p>
+    </div>
+  </div>
+</div>

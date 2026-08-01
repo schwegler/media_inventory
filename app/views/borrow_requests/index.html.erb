@@ -1,0 +1,107 @@
+<%= content_for(:title, 'Borrowing & Lending') %>
+
+<div class="container" style="max-width: 900px; margin-top: 2rem;" data-controller="tabs">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <h1 style="margin: 0; font-size: 1.8rem;">Borrowing & Lending</h1>
+  </div>
+
+  <nav class="profile-tabs" style="margin-bottom: 2rem;">
+    <button class="tab-btn active" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="incoming">Incoming Requests</button>
+    <button class="tab-btn" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="my-requests">My Requests</button>
+    <button class="tab-btn" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="active-loans">Active Loans</button>
+    <button class="tab-btn" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="currently-borrowing">Currently Borrowing</button>
+    <button class="tab-btn" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="history">History</button>
+  </nav>
+
+  <div class="tab-content" data-tabs-target="content" data-tab-name="incoming">
+    <% if @pending_incoming.any? %>
+      <% @pending_incoming.each do |request| %>
+        <%= render layout: 'request_card', locals: { borrow_request: request, perspective: :lender } do %>
+          <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+            <%= form_with url: approve_borrow_request_path(request), method: :patch, class: "approve-form", style: "display: flex; gap: 10px; flex-wrap: wrap; flex: 1; align-items: flex-end;" do |f| %>
+              <div style="flex: 1; min-width: 120px;">
+                <%= f.label :due_date, "Due Date (Optional)", style: "display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;" %>
+                <%= f.date_field :due_date, class: "form-control", style: "width: 100%; padding: 6px; background: rgba(0,0,0,0.2); border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.85rem;" %>
+              </div>
+              <div style="flex: 2; min-width: 200px;">
+                <%= f.label :lender_notes, "Note to borrower (Optional)", style: "display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;" %>
+                <%= f.text_field :lender_notes, class: "form-control", style: "width: 100%; padding: 6px; background: rgba(0,0,0,0.2); border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 0.85rem;" %>
+              </div>
+              <%= f.submit "Approve", class: "btn btn-primary btn-sm" %>
+            <% end %>
+            <%= button_to "Decline", decline_borrow_request_path(request), method: :patch, class: "btn btn-secondary btn-sm" %>
+          </div>
+        <% end %>
+      <% end %>
+    <% else %>
+      <div class="empty-state card" style="padding: 2rem; text-align: center; border-radius: 8px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+        <p>No incoming borrow requests.</p>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="tab-content hidden" data-tabs-target="content" data-tab-name="my-requests">
+    <% if @my_requests.any? %>
+      <% @my_requests.each do |request| %>
+        <%= render layout: 'request_card', locals: { borrow_request: request, perspective: :borrower } do %>
+          <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <% if request.status == 'pending' %>
+              <%= button_to "Cancel Request", cancel_borrow_request_path(request), method: :patch, class: "btn btn-secondary btn-sm", style: "color: #ef4444;" %>
+            <% elsif request.status == 'approved' %>
+              <%= button_to "Confirm Pickup", pick_up_borrow_request_path(request), method: :patch, class: "btn btn-primary btn-sm" %>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
+    <% else %>
+      <div class="empty-state card" style="padding: 2rem; text-align: center; border-radius: 8px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+        <p>You have no pending or approved borrow requests.</p>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="tab-content hidden" data-tabs-target="content" data-tab-name="active-loans">
+    <% if @active_loans.any? %>
+      <% @active_loans.each do |request| %>
+        <%= render layout: 'request_card', locals: { borrow_request: request, perspective: :lender } do %>
+          <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <%= button_to "Mark Returned", return_item_borrow_request_path(request), method: :patch, class: "btn btn-primary btn-sm" %>
+          </div>
+        <% end %>
+      <% end %>
+    <% else %>
+      <div class="empty-state card" style="padding: 2rem; text-align: center; border-radius: 8px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+        <p>You have no active loans.</p>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="tab-content hidden" data-tabs-target="content" data-tab-name="currently-borrowing">
+    <% if @active_borrows.any? %>
+      <% @active_borrows.each do |request| %>
+        <%= render layout: 'request_card', locals: { borrow_request: request, perspective: :borrower } do %>
+          <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 10px;">
+            Please coordinate with the lender to return this item.
+          </div>
+        <% end %>
+      <% end %>
+    <% else %>
+      <div class="empty-state card" style="padding: 2rem; text-align: center; border-radius: 8px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+        <p>You are not currently borrowing any items.</p>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="tab-content hidden" data-tabs-target="content" data-tab-name="history">
+    <% if @history.any? %>
+      <% @history.each do |request| %>
+        <%= render layout: 'request_card', locals: { borrow_request: request, perspective: (request.borrower_id == current_user.id ? :borrower : :lender) } do %>
+        <% end %>
+      <% end %>
+    <% else %>
+      <div class="empty-state card" style="padding: 2rem; text-align: center; border-radius: 8px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+        <p>No borrow history.</p>
+      </div>
+    <% end %>
+  </div>
+</div>

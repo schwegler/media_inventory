@@ -42,6 +42,13 @@ class UsersController < ApplicationController
 
     @collection_items = preload_library_items(fetch_library_items(is_collected: true))
     @backlog_items = preload_library_items(fetch_library_items(in_backlog: true))
+
+    # Borrowing/Lending data (visible only to profile owner)
+    if current_user?(@user)
+      @active_loans = @user.active_loans.includes(:borrower, library_item: :item)
+      @active_borrows = @user.active_borrows.includes(:lender, library_item: :item)
+      @pending_incoming_requests = @user.pending_borrow_requests.includes(:borrower, library_item: :item)
+    end
   end
 
   def new
