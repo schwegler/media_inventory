@@ -85,9 +85,11 @@ module ApplicationHelper
   def fetch_matching_items(item)
     query = LibraryItem.where(item: item)
     if logged_in?
-      query.where('is_public = ? OR user_id = ?', true, current_user.id).includes(:user)
+      # Optimize to eager load user avatars to prevent N+1 queries in the community/watchers/collectors lists
+      query.where('is_public = ? OR user_id = ?', true, current_user.id).includes(user: { avatar_attachment: :blob })
     else
-      query.where(is_public: true).includes(:user)
+      # Optimize to eager load user avatars to prevent N+1 queries in the community/watchers/collectors lists
+      query.where(is_public: true).includes(user: { avatar_attachment: :blob })
     end
   end
 end

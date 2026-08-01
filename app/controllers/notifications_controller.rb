@@ -4,7 +4,11 @@ class NotificationsController < ApplicationController
   before_action :logged_in_user
 
   def index
-    @notifications = current_user.notifications.order(created_at: :desc).limit(50)
+    # Optimize to eager load notifiable items and actors with their avatars to prevent N+1 queries
+    @notifications = current_user.notifications
+                                 .includes(:notifiable, actor: { avatar_attachment: :blob })
+                                 .order(created_at: :desc)
+                                 .limit(50)
   end
 
   def mark_as_read
