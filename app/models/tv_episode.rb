@@ -28,6 +28,24 @@ class TvEpisode < ApplicationRecord
     watched_at
   end
 
+  # Attempt to fetch a thumbnail from TVMaze if this episode is missing one.
+  # Called opportunistically when marking an episode as watched or reviewed.
+  def attempt_thumbnail_update!
+    return if thumbnail_url.present?
+    return unless tv_show&.api_id.present? && !tv_show.api_id.to_s.start_with?('tmdb_')
+
+    require 'net/http'
+    require 'json'
+
+    url = URI("https://api.tvmaze.com/shows/#{tv_show.api_id}/episodebynumber?season=#{season}&number=#{episode}")
+    response = Net::HTTP.get(url)
+    data = JSON.parse(response)
+    image_url = data.dig('image', 'original') || data.dig('image', 'medium')
+    update!(thumbnail_url: image_url) if image_url.present?
+  rescue StandardError => e
+    Rails.logger.error "Failed to update TV episode thumbnail: #{e.message}"
+  end
+
   # Dirty tracking helper methods to prevent NoMethodErrors from Trackable concern
   def saved_change_to_consumed?
     saved_change_to_watched?
