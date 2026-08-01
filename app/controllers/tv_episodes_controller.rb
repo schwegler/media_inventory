@@ -21,6 +21,9 @@ class TvEpisodesController < ApplicationController
     @library_item = LibraryItem.find_or_initialize_by(user: current_user, item: @tv_episode)
 
     if @library_item.update(tv_episode_params)
+      # Opportunistically fetch missing episode thumbnails from TVMaze
+      @tv_episode.attempt_thumbnail_update! if @tv_episode.thumbnail_url.blank?
+
       respond_to do |format|
         if params[:back_to_episode]
           format.html { redirect_to @tv_episode, notice: 'Episode updated.' }
