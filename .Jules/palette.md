@@ -11,5 +11,9 @@
 **Action:** Implement a `keydown` listener in dropdown controllers that specifically checks for `Escape`, hides the menu, and explicitly calls `.focus()` on the `buttonTarget`.
 
 ## 2025-05-16 - [Skip to Content Link for Keyboard Accessibility]
-**Learning:** For keyboard and screen-reader users, navigating through repetitive header links on every page load is tedious. A "Skip to Content" link is a critical foundational UX improvement for accessibility.
+**Learning:** For keyboard and screen-reader users, navigating through repetitive header links on every page load is every page load is tedious. A "Skip to Content" link is a critical foundational UX improvement for accessibility.
 **Action:** Always include a `.skip-link` as the first element in the `<body>` that targets the `<main>` content area with an ID like `#main-content`, ensuring it is visually hidden until it receives focus.
+
+## 2026-08-02 - [Dynamic Focus After Toggle Transitions]
+**Learning:** In Stimulus controllers that toggle DOM element visibility, immediately attempting to focus an interactive child element (like an input or textarea) can sometimes fail if the element is not fully painted or visible in the viewport.
+**Action:** Use `requestAnimationFrame` to defer the `.focus()` call, guaranteeing that the browser has finished painting and the element is fully interactive and visible before setting focus.
