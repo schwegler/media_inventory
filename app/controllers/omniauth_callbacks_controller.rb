@@ -74,10 +74,13 @@ class OmniAuthCallbacksController < ApplicationController
   def setup_mastodon(req)
     server = req.params['mastodon_server'] || request.params['mastodon_server'] || session[:mastodon_server]
     if server.blank?
-      render plain: "Mastodon server required.
-              req.params: #{req.params.inspect},
-              request.params: #{request.params.inspect}",
-             status: 400
+      render plain: 'Mastodon server required.', status: 400
+      return
+    end
+
+    host = server.to_s.sub(%r{^https?://}, '').split('/').first
+    unless MastodonAppRegistration.safe_host?(host)
+      render plain: 'Invalid Mastodon server.', status: 400
       return
     end
 
@@ -88,7 +91,7 @@ class OmniAuthCallbacksController < ApplicationController
 
     app = MastodonAppRegistration.register(server, callback_url)
     unless app
-      render plain: "Failed to register application on #{server}", status: 500
+      render plain: 'Failed to register application.', status: 500
       return
     end
 

@@ -10,6 +10,9 @@ class MastodonAppRegistration
     host = server.to_s.sub(%r{^https?://}, '').split('/').first
     return nil if host.blank?
 
+    # Security: Validate host to prevent Server-Side Request Forgery (SSRF)
+    return nil unless safe_host?(host)
+
     app = MastodonOauthApplication.find_by(server: host)
     return app if app
 
@@ -18,6 +21,30 @@ class MastodonAppRegistration
     req = build_request(uri, callback_url)
 
     execute_registration(host, uri, req)
+  end
+
+  # Security helper: Validate hostname to prevent Server-Side Request Forgery (SSRF)
+  # by ensuring resolved IP addresses are public, non-private, non-loopback, and non-link-local.
+  def self.safe_host?(host)
+    require 'resolv'
+    require 'ipaddr'
+
+    clean_host = host.to_s.split(':').first
+    return false if clean_host.blank?
+
+    begin
+      ips = Resolv.getaddresses(clean_host)
+    rescue StandardError
+      ips = []
+    end
+    return false if ips.empty?
+
+    ips.all? do |ip_str|
+      ip = IPAddr.new(ip_str)
+      !ip.private? && !ip.loopback? && !(ip.respond_to?(:link_local?) && ip.link_local?)
+    rescue StandardError
+      false
+    end
   end
 
   def self.build_request(uri, callback_url)

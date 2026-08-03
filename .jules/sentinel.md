@@ -7,3 +7,8 @@
 **Vulnerability:** In `SessionsController`, the Bluesky login used `user.bsky_password == bsky_password`. In Ruby, `nil == nil` is true. If a user hadn't set an app password and the attacker provided a null/missing parameter, they could log in.
 **Learning:** Never rely on direct equality for password comparison without ensuring both sides are present. Even with `has_secure_password`, custom authentication flows must explicitly validate input presence.
 **Prevention:** Always check `.present?` on password parameters before attempting any comparison or authentication logic.
+
+## 2026-08-03 - [SSRF and Sensitive Information Disclosure in OAuth setup]
+**Vulnerability:** The `MastodonAppRegistration` service accepted user-provided server hosts without validating the resolved IP addresses, which allowed outbound requests to arbitrary hosts, potentially enabling SSRF. Additionally, `OmniAuthCallbacksController` reflected all request params in an error response when the server param was blank, risking leakage of sensitive data like session tokens.
+**Learning:** Directly sending outbound HTTP requests to user-supplied hostnames without resolving and validating the destination IPs exposes internal networks. Error handlers should never reflect unvalidated request parameters.
+**Prevention:** Always filter hostnames by resolving their IPs and ensuring they do not belong to private or loopback ranges before executing outbound requests. Return static, generic error messages rather than reflecting full user input/parameters on failure.
