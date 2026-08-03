@@ -13,3 +13,7 @@
 ## 2025-05-16 - [Skip to Content Link for Keyboard Accessibility]
 **Learning:** For keyboard and screen-reader users, navigating through repetitive header links on every page load is tedious. A "Skip to Content" link is a critical foundational UX improvement for accessibility.
 **Action:** Always include a `.skip-link` as the first element in the `<body>` that targets the `<main>` content area with an ID like `#main-content`, ensuring it is visually hidden until it receives focus.
+
+## 2026-08-03 - [Focus and Accessibility in Toggled Content Forms]
+**Learning:** Expanding hidden/toggled form sections (e.g., dynamic comment reply forms) creates interaction gaps for keyboard and screen-reader users if not explicitly handled. Focusing the first interactive element instantly is a huge interaction win, while synchronizing the `aria-expanded` and `aria-label` attributes on the trigger keeps screen readers correctly informed.
+**Action:** Implement automated focus and aria-expanded state synchronization inside shared toggle controllers so that any toggled form gains focus and triggers state updates transparently.
