@@ -32,7 +32,8 @@ RSpec.describe 'Sentinel Security Controls', type: :request do
 
     it 'blocks unsafe loopback/private Mastodon servers' do
       allow(Rails.env).to receive(:test?).and_return(false)
-      strategy = double('strategy', request: double('request', params: { 'mastodon_server' => 'http://127.0.0.1' }), name: 'mastodon')
+      request_double = double('request', params: { 'mastodon_server' => 'http://127.0.0.1' })
+      strategy = double('strategy', request: request_double, name: 'mastodon')
 
       post '/auth/mastodon/setup', env: { 'omniauth.strategy' => strategy }
 
