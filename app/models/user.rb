@@ -57,8 +57,16 @@ class User < ApplicationRecord
   has_many :following, through: :active_relationships,  source: :followed
   has_many :followers, through: :passive_relationships, source: :follower
 
+  # Caches the user's liked items as an in-memory Set of [likeable_type, likeable_id] pairs
+  # to completely eliminate O(N) database queries during feed or list rendering.
   def liked?(likeable)
-    likes.exists?(likeable_type: likeable.class.name, likeable_id: likeable.id)
+    @liked_item_ids ||= likes.pluck(:likeable_type, :likeable_id).to_set
+    @liked_item_ids.include?([likeable.class.name, likeable.id])
+  end
+
+  # Invalidates the cached likes so that next checked likes retrieve fresh database data.
+  def clear_likes_cache
+    @liked_item_ids = nil
   end
 
   def follow(other_user)

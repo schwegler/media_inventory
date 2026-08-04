@@ -7,8 +7,15 @@ class Like < ApplicationRecord
   validates :user_id, uniqueness: { scope: %i[likeable_type likeable_id] }
 
   after_create_commit :process_notifications
+  after_commit :clear_user_likes_cache
 
   private
+
+  # Clears the cached list of liked items on the associated user instance
+  # to keep the in-memory cache synchronized with the database.
+  def clear_user_likes_cache
+    user&.clear_likes_cache if user.respond_to?(:clear_likes_cache)
+  end
 
   def process_notifications
     return unless likeable.respond_to?(:user) && likeable.user_id != user_id
