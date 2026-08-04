@@ -7,7 +7,8 @@ class Like < ApplicationRecord
   validates :user_id, uniqueness: { scope: %i[likeable_type likeable_id] }
 
   after_create_commit :process_notifications
-  after_commit :clear_user_likes_cache
+  after_save :clear_user_likes_cache
+  after_destroy :clear_user_likes_cache
 
   private
 

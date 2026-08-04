@@ -94,7 +94,14 @@ RSpec.describe User, type: :model do
   end
 
   describe 'likes caching and invalidation' do
-    let(:user) { User.create!(name: 'Tester', email: 'tester@example.com', password: 'password123', password_confirmation: 'password123') }
+    let(:user) do
+      User.create!(
+        name: 'Tester',
+        email: 'tester@example.com',
+        password: 'password123',
+        password_confirmation: 'password123'
+      )
+    end
     let(:movie) { Movie.create!(title: 'Test Movie') }
 
     it 'caches liked? queries and invalidates the cache when likes are updated' do
@@ -102,7 +109,13 @@ RSpec.describe User, type: :model do
 
       # The cache is now populated and should return false without hitting DB
       # We insert directly to database to bypass ActiveRecord object synchronization
-      Like.insert!({ user_id: user.id, likeable_type: 'Movie', likeable_id: movie.id, created_at: Time.current, updated_at: Time.current })
+      Like.insert!({
+                     user_id: user.id,
+                     likeable_type: 'Movie',
+                     likeable_id: movie.id,
+                     created_at: Time.current,
+                     updated_at: Time.current
+                   })
 
       # Since user instance has a cached Set, liked? should still return false
       expect(user.liked?(movie)).to be false
