@@ -5,7 +5,7 @@ class ComicIssuesController < ApplicationController
 
   def show
     # Eager load comments and nested structures to prevent N+1 queries.
-    @comic_issue = ComicIssue.includes(comments: [:user, :likes, replies: [:user, :likes]]).find(params[:id])
+    @comic_issue = ComicIssue.includes(comments: [:user, :likes, { replies: %i[user likes] }]).find(params[:id])
     return unless logged_in?
 
     @library_item = LibraryItem.find_by(user: current_user, item: @comic_issue)
