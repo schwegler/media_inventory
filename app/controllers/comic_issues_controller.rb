@@ -4,7 +4,8 @@ class ComicIssuesController < ApplicationController
   before_action :logged_in_user, only: %i[toggle_read]
 
   def show
-    @comic_issue = ComicIssue.find(params[:id])
+    # Eager load comments and nested structures to prevent N+1 queries.
+    @comic_issue = ComicIssue.includes(comments: [:user, :likes, replies: [:user, :likes]]).find(params[:id])
     return unless logged_in?
 
     @library_item = LibraryItem.find_by(user: current_user, item: @comic_issue)

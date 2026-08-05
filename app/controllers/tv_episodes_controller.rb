@@ -4,7 +4,8 @@ class TvEpisodesController < ApplicationController
   before_action :logged_in_user, only: %i[toggle_watched]
 
   def show
-    @tv_episode = TvEpisode.find(params[:id])
+    # Eager load comments and nested structures to prevent N+1 queries.
+    @tv_episode = TvEpisode.includes(comments: [:user, :likes, replies: [:user, :likes]]).find(params[:id])
     return unless logged_in?
 
     @library_item = LibraryItem.find_by(user: current_user, item: @tv_episode)

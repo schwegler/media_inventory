@@ -1,4 +1,5 @@
 <%# Local variables: comment, matching_item, depth: 0 %>
+<% replies_to_render = comment.replies.loaded? ? comment.replies : comment.replies.includes(:user, :likes) %>
 <div class="comment-item">
   <div>
     <%= link_to user_path(comment.user), style: "z-index: 1;" do %>
@@ -22,7 +23,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
             </svg>
-            <span style="font-size: 0.8rem;"><%= comment.replies.count > 0 ? comment.replies.count : '' %></span>
+            <span style="font-size: 0.8rem;"><%= replies_to_render.size > 0 ? replies_to_render.size : '' %></span>
           </button>
           
           <%= render 'likes/like_button', item: comment, tweet_style: true %>
@@ -41,9 +42,9 @@
       </div>
     <% end %>
 
-  <% if comment.replies.any? %>
+  <% if replies_to_render.size > 0 %>
     <div class="comment-replies-list">
-      <% comment.replies.includes(:user).each do |reply| %>
+      <% replies_to_render.each do |reply| %>
         <%= render 'shared/comment', comment: reply, matching_item: matching_item, depth: depth + 1 %>
       <% end %>
     </div>
