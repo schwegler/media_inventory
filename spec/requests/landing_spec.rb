@@ -4,11 +4,24 @@ require 'rails_helper'
 
 RSpec.describe 'Landing Controller', type: :request do
   let(:regular_user) do
-    User.create!(name: 'Regular User', email: 'regular@example.com', password: 'password', password_confirmation: 'password', username: 'regular')
+    User.create!(
+      name: 'Regular User',
+      email: 'regular@example.com',
+      password: 'password',
+      password_confirmation: 'password',
+      username: 'regular'
+    )
   end
 
   let(:admin_user) do
-    User.create!(name: 'Admin User', email: 'admin@example.com', password: 'password', password_confirmation: 'password', username: 'admin', admin: true)
+    User.create!(
+      name: 'Admin User',
+      email: 'admin@example.com',
+      password: 'password',
+      password_confirmation: 'password',
+      username: 'admin',
+      admin: true
+    )
   end
 
   describe 'GET /db_status' do
