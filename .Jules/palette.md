@@ -13,3 +13,7 @@
 ## 2025-05-16 - [Skip to Content Link for Keyboard Accessibility]
 **Learning:** For keyboard and screen-reader users, navigating through repetitive header links on every page load is tedious. A "Skip to Content" link is a critical foundational UX improvement for accessibility.
 **Action:** Always include a `.skip-link` as the first element in the `<body>` that targets the `<main>` content area with an ID like `#main-content`, ensuring it is visually hidden until it receives focus.
+
+## 2025-05-17 - [Focus Management in Multi-Action Toggle Elements]
+**Learning:** In interactive lists or dynamic comment feeds where inline reply fields can be toggled, failing to manage keyboard focus upon expansion makes keyboard navigation frustrating. Integrating automatic input/textarea targeting directly inside a generalized Stimulus `toggle_controller` ensures predictable focus transitions.
+**Action:** Design toggle controllers to automatically identify and focus the first visible interactive input on activation, and explicitly return focus to the dynamic triggering button upon cancellation or dismissal.
