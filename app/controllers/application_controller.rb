@@ -42,6 +42,11 @@ class ApplicationController < ActionController::Base
     redirect_to login_url
   end
 
+  # Confirms an admin user.
+  def authenticate_admin
+    redirect_to root_url, alert: 'Not authorized.' unless logged_in? && current_user&.admin?
+  end
+
   def can_access?(resource)
     return false if resource.nil?
 
