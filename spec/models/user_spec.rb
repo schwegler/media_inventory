@@ -92,4 +92,51 @@ RSpec.describe User, type: :model do
     end
     it { should_not be_valid }
   end
+
+  describe '#liked?' do
+    let(:user) do
+      User.create!(name: 'Test', email: 'test_likes@example.com', password: 'password', password_confirmation: 'password')
+    end
+    let(:movie) { Movie.create!(title: 'Inception') }
+    let(:another_movie) { Movie.create!(title: 'The Matrix') }
+
+    it 'caches the liked items on the user instance and prevents N+1 queries' do
+      user.liked?(movie) # First call fetches and caches
+
+      # Second call should not trigger any database query on likes table
+      queries = 0
+      ActiveSupport::Notifications.subscribed(lambda { |*args|
+        payload = args.last
+        queries += 1 if payload[:sql] =~ /likes/i && payload[:sql] =~ /SELECT/i
+      }, 'sql.active_record') do
+        user.liked?(movie)
+        user.liked?(another_movie)
+      end
+
+      expect(queries).to eq(0)
+    end
+
+    it 'correctly checks if an item is liked' do
+      expect(user.liked?(movie)).to be false
+
+      like = Like.create!(user: user, likeable: movie)
+      expect(user.liked?(movie)).to be true
+      expect(user.liked?(another_movie)).to be false
+
+      like.destroy
+      expect(user.liked?(movie)).to be false
+    end
+
+    it 'invalidates the cache when a like is created or destroyed' do
+      expect(user.liked?(movie)).to be false
+
+      like = Like.create!(user: user, likeable: movie)
+      # Creating the like must clear the cache on the user instance (via callback)
+      expect(user.liked?(movie)).to be true
+
+      like.destroy
+      # Destroying the like must also clear the cache
+      expect(user.liked?(movie)).to be false
+    end
+  end
 end
