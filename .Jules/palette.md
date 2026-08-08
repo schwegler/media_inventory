@@ -1,3 +1,7 @@
+## 2026-08-08 - [Keyboard Shortcuts for Search Discoverability]
+**Learning:** Global hotkeys (like `/` to focus search) drastically improve keyboard-driven workflows. To ensure accessibility and make the feature discoverable, always update placeholder hints (e.g., "Search (/)") and use standard ARIA roles (`role="search"`) on forms so screen readers announce them properly.
+**Action:** When implementing interactive global hotkeys, advertise the shortcut clearly in placeholders and/or tooltips, use semantic search landmarks, and ensure the hotkey logic ignores key presses when other input elements are focused.
+
 ## 2025-05-15 - [Stimulus Test Synchronization]
 **Learning:** System tests in this environment are highly sensitive to race conditions where Capybara attempts to interact with elements before their associated Stimulus controllers have fully connected and initialized (e.g., setting up event listeners or initial ARIA states).
 **Action:** Implement a `data-connected="true"` attribute in the Stimulus `connect()` method and use `expect(page).to have_css('[data-connected="true"]')` in system tests before interacting with Stimulus-powered components to ensure reliable synchronization.
