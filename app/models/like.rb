@@ -7,6 +7,7 @@ class Like < ApplicationRecord
   validates :user_id, uniqueness: { scope: %i[likeable_type likeable_id] }
 
   after_create_commit :process_notifications
+  after_commit :clear_user_likes_cache
 
   private
 
@@ -14,5 +15,9 @@ class Like < ApplicationRecord
     return unless likeable.respond_to?(:user) && likeable.user_id != user_id
 
     Notification.create!(recipient: likeable.user, actor: user, notifiable: self, action: 'liked')
+  end
+
+  def clear_user_likes_cache
+    user&.clear_likes_cache
   end
 end

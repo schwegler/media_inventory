@@ -58,7 +58,13 @@ class User < ApplicationRecord
   has_many :followers, through: :passive_relationships, source: :follower
 
   def liked?(likeable)
-    likes.exists?(likeable_type: likeable.class.name, likeable_id: likeable.id)
+    # Cache liked items as an in-memory Set of [likeable_type, likeable_id] to prevent N+1 queries in loops
+    @liked_item_keys ||= likes.pluck(:likeable_type, :likeable_id).to_set
+    @liked_item_keys.include?([likeable.class.name, likeable.id])
+  end
+
+  def clear_likes_cache
+    @liked_item_keys = nil
   end
 
   def follow(other_user)

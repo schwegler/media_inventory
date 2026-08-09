@@ -92,4 +92,39 @@ RSpec.describe User, type: :model do
     end
     it { should_not be_valid }
   end
+
+  describe 'likes caching' do
+    let(:movie) { Movie.create!(title: 'Inception') }
+    let(:other_movie) { Movie.create!(title: 'Avatar') }
+
+    before do
+      @user.save!
+    end
+
+    it 'caches liked items and clears them appropriately' do
+      # Initially, liked? is false
+      expect(@user.liked?(movie)).to be false
+      expect(@user.instance_variable_get(:@liked_item_keys)).to eq([].to_set)
+
+      # Create a like for movie. This should trigger after_commit callback which clears the cache on @user.
+      like = Like.create!(user: @user, likeable: movie)
+      expect(@user.instance_variable_get(:@liked_item_keys)).to be_nil
+
+      # Next call to liked? should fetch from database and cache the new like status
+      expect(@user.liked?(movie)).to be true
+      expect(@user.liked?(other_movie)).to be false
+      expect(@user.instance_variable_get(:@liked_item_keys)).to eq([['Movie', movie.id]].to_set)
+
+      # Manual cache clear
+      @user.clear_likes_cache
+      expect(@user.instance_variable_get(:@liked_item_keys)).to be_nil
+
+      # Destroying the like should trigger after_commit callback to clear the cache again
+      like.destroy
+      expect(@user.instance_variable_get(:@liked_item_keys)).to be_nil
+
+      # Verify it returns false now
+      expect(@user.liked?(movie)).to be false
+    end
+  end
 end
