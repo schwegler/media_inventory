@@ -13,3 +13,7 @@
 ## 2025-05-16 - [Skip to Content Link for Keyboard Accessibility]
 **Learning:** For keyboard and screen-reader users, navigating through repetitive header links on every page load is tedious. A "Skip to Content" link is a critical foundational UX improvement for accessibility.
 **Action:** Always include a `.skip-link` as the first element in the `<body>` that targets the `<main>` content area with an ID like `#main-content`, ensuring it is visually hidden until it receives focus.
+
+## 2026-06-21 - [Dynamic ARIA Feedback for Copy-to-Clipboard Actions]
+**Learning:** Icon-only buttons that trigger copy-to-clipboard interactions provide clear visual feedback (e.g. checkmarks) but remain silent for screen reader users unless their `aria-label` is dynamically updated. Testing these flows in headless browsers requires explicitly granting `['clipboard-read', 'clipboard-write']` permissions.
+**Action:** When implementing copy buttons, bind the button as a Stimulus target, dynamically set its `aria-label` to 'Copied!' upon success, and revert it back to 'Copy handle' after a timeout.

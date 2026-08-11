@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["copyIcon", "checkIcon"]
+  static targets = ["copyIcon", "checkIcon", "button"]
   static values = { text: String }
 
   copy(event) {
@@ -19,9 +19,16 @@ export default class extends Controller {
       this.copyIconTarget.classList.add("hidden")
       this.checkIconTarget.classList.remove("hidden")
 
+      if (this.hasButtonTarget) {
+        this.buttonTarget.setAttribute("aria-label", "Copied!")
+      }
+
       setTimeout(() => {
         this.copyIconTarget.classList.remove("hidden")
         this.checkIconTarget.classList.add("hidden")
+        if (this.hasButtonTarget) {
+          this.buttonTarget.setAttribute("aria-label", "Copy handle")
+        }
       }, 2000)
     }
   }
