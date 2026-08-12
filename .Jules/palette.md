@@ -13,3 +13,7 @@
 ## 2025-05-16 - [Skip to Content Link for Keyboard Accessibility]
 **Learning:** For keyboard and screen-reader users, navigating through repetitive header links on every page load is tedious. A "Skip to Content" link is a critical foundational UX improvement for accessibility.
 **Action:** Always include a `.skip-link` as the first element in the `<body>` that targets the `<main>` content area with an ID like `#main-content`, ensuring it is visually hidden until it receives focus.
+
+## 2026-06-21 - [Focus Management inside Toggled Forms with Hidden Fields]
+**Learning:** When dynamically managing keyboard focus inside toggled forms (such as comment reply blocks), using a generic selector like `input` often matches hidden metadata fields (like CSRF tokens or polymorphic parent references), leading to broken focus flows where focus is lost on an invisible element.
+**Action:** Always target focusable inputs specifically by excluding hidden fields using `input:not([type='hidden']), textarea` to ensure the correct interactive element receives the user's cursor.
