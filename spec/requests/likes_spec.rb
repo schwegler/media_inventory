@@ -18,6 +18,47 @@ RSpec.describe 'Likes', type: :request do
     )
   end
 
+  describe 'likes in-memory cache' do
+    let!(:movie2) { Movie.create!(title: 'The Dark Knight') }
+
+    it 'caches liked? in-memory and executes only one pluck' do
+      # Create a like
+      Like.create!(user: user, likeable: movie)
+
+      # Start fresh
+      user.clear_likes_cache
+
+      # Spy on user's likes association to verify pluck is called exactly once
+      expect(user.likes).to receive(:pluck).once.and_call_original
+
+      # Call liked? multiple times
+      user.liked?(movie)
+      user.liked?(movie2)
+      user.liked?(movie)
+    end
+
+    it 'invalidates cache when a like is created' do
+      expect(user.liked?(movie)).to be(false)
+
+      # Now create a like
+      Like.create!(user: user, likeable: movie)
+
+      # Should show as liked, which means cache was successfully cleared/reloaded
+      expect(user.liked?(movie)).to be(true)
+    end
+
+    it 'invalidates cache when a like is destroyed' do
+      like = Like.create!(user: user, likeable: movie)
+      expect(user.liked?(movie)).to be(true)
+
+      # Now destroy the like
+      like.destroy
+
+      # Should show as unliked, which means cache was successfully cleared/reloaded
+      expect(user.liked?(movie)).to be(false)
+    end
+  end
+
   describe 'POST /likes/toggle' do
     context 'when not logged in' do
       it 'redirects to login' do

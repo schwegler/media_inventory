@@ -49,8 +49,9 @@ class LikesController < ApplicationController
     likeable
   end
 
-  def perform_toggle_like(likeable) # rubocop:disable Naming/PredicateMethod
+  def perform_toggle_like(likeable)
     like = current_user.likes.find_by(likeable: likeable)
+    current_user.clear_likes_cache
     if like
       like.destroy
       false
@@ -58,5 +59,7 @@ class LikesController < ApplicationController
       current_user.likes.create!(likeable: likeable)
       true
     end
+  ensure
+    current_user.clear_likes_cache
   end
 end
