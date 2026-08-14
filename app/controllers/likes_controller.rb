@@ -53,9 +53,11 @@ class LikesController < ApplicationController
     like = current_user.likes.find_by(likeable: likeable)
     if like
       like.destroy
+      current_user.clear_likes_cache if current_user.respond_to?(:clear_likes_cache)
       false
     else
       current_user.likes.create!(likeable: likeable)
+      current_user.clear_likes_cache if current_user.respond_to?(:clear_likes_cache)
       true
     end
   end

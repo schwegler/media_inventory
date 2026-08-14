@@ -57,8 +57,17 @@ class User < ApplicationRecord
   has_many :following, through: :active_relationships,  source: :followed
   has_many :followers, through: :passive_relationships, source: :follower
 
+  # Check if user liked a specific likeable using an in-memory Set cache to prevent N+1 queries
   def liked?(likeable)
-    likes.exists?(likeable_type: likeable.class.name, likeable_id: likeable.id)
+    return false unless likeable
+
+    @liked_cache ||= likes.pluck(:likeable_type, :likeable_id).to_set
+    @liked_cache.include?([likeable.class.name, likeable.id])
+  end
+
+  # Clear the in-memory likes cache
+  def clear_likes_cache
+    @liked_cache = nil
   end
 
   def follow(other_user)

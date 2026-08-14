@@ -92,4 +92,46 @@ RSpec.describe User, type: :model do
     end
     it { should_not be_valid }
   end
+
+  describe '#liked? with in-memory caching' do
+    let(:user) do
+      User.create!(name: 'Tester', email: 'tester@example.com', password: 'password', password_confirmation: 'password')
+    end
+    let(:movie) { Movie.create!(title: 'The Dark Knight') }
+
+    it 'caches liked? query results and handles invalidation on mutate' do
+      # Expect initially not liked
+      expect(user.liked?(movie)).to be false
+
+      # The cache should be set now (it should be an empty Set)
+      expect(user.instance_variable_get(:@liked_cache)).to be_a(Set)
+      expect(user.instance_variable_get(:@liked_cache)).to be_empty
+
+      # Now, we create a Like on the movie
+      # This should trigger after_commit and clear the cache
+      like = Like.create!(user: user, likeable: movie)
+
+      # Ensure that the user's liked cache was cleared by the callback
+      expect(user.liked?(movie)).to be true
+
+      # If we destroy the like, the cache is invalidated again and it should return false
+      like.destroy
+      expect(user.liked?(movie)).to be false
+    end
+
+    it 'caches to prevent redundant database hits' do
+      expect(user.liked?(movie)).to be false
+
+      # Since it is cached, even if we add a like directly to the database without clearing the cache,
+      # the cached value should still return false (proving the cache is indeed being hit!)
+      Like.insert({ user_id: user.id, likeable_type: 'Movie', likeable_id: movie.id, created_at: Time.current,
+                    updated_at: Time.current })
+
+      expect(user.liked?(movie)).to be false # still false because of cache
+
+      # Now explicitly clear cache, it should return true
+      user.clear_likes_cache
+      expect(user.liked?(movie)).to be true
+    end
+  end
 end

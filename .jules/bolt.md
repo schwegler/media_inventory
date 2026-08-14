@@ -3,5 +3,9 @@
 **Action:** When bulk fetching polymorphic items, group by `trackable_type`, then perform a bulk query per type. Use `reflect_on_association` to conditionally include Active Storage attachments (like `cover_image_attachment: :blob`) to eliminate N+1 queries during view rendering while ensuring type safety.
 
 ## 2026-06-19 - Risks of Nested Eager Loading on Polymorphic Associations
-**Learning:** Eager loading nested associations on a polymorphic relation (e.g., `includes(trackable: { tv_show: :user })`) will raise an `ActiveRecord::AssociationNotFoundError` if *any* of the returned records belong to a model that does not define that nested association (e.g., a `Movie` or `Album` which doesn't have a `tv_show`).
+**Learning:** Eager loading nested associations on a polymorphic relation (e.g., `includes(trackable: { tv_show: :user })`) will raise an `ActiveRecord::AssociationNotFoundError` if *any* of the returned records belong to a oversimplified model that does not define that nested association (e.g., a `Movie` or `Album` which doesn't have a `tv_show`).
 **Action:** Stick to first-level eager loading for polymorphic associations (`includes(:trackable)`) or use the grouping/bulk-fetch pattern if nested associations are required for specific types. Also, use `.load` in the controller if the view uses `.any?` or `.exists?` to prevent redundant COUNT queries before the SELECT.
+
+## 2026-08-01 - Prevent O(N) Database Hits with User#liked? In-Memory Caching
+**Learning:** Calling `current_user.liked?(item)` on lists of media items, comments, or activities causes O(N) N+1 database queries because ActiveRecord's `.exists?` hits the database every time. Polymorphic associations make standard database preloading complex or error-prone.
+**Action:** Pluck and cache the user's liked items as an in-memory `Set` of `[likeable_type, likeable_id]` pairs directly on the user instance. Invalidate the cache using a `clear_likes_cache` method hooked into the `Like` model's `after_commit` callbacks and explicit controller toggle actions.
