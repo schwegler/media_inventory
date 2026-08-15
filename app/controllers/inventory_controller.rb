@@ -2,7 +2,7 @@
 
 # rubocop:disable Metrics/ClassLength
 class InventoryController < ApplicationController
-  before_action :logged_in_user, only: %i[new create]
+  before_action :logged_in_user, only: %i[new create edit update destroy]
 
   def index
     @resources = resource_class.order(created_at: :desc).page(params[:page])

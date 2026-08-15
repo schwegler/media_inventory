@@ -135,4 +135,25 @@ RSpec.describe 'Movies', type: :request do
       end
     end
   end
+
+  describe 'unauthenticated access to edit, update, and destroy' do
+    let!(:movie) { Movie.create!(title: 'Inception') }
+
+    it 'redirects GET /movies/:id/edit to login' do
+      get edit_movie_path(movie)
+      expect(response).to redirect_to(login_path)
+    end
+
+    it 'redirects PATCH /movies/:id to login' do
+      patch movie_path(movie), params: { movie: { title: 'Updated Title' } }
+      expect(response).to redirect_to(login_path)
+      expect(movie.reload.title).to eq('Inception')
+    end
+
+    it 'redirects DELETE /movies/:id to login' do
+      delete movie_path(movie)
+      expect(response).to redirect_to(login_path)
+      expect(Movie.exists?(movie.id)).to be true
+    end
+  end
 end
