@@ -14,7 +14,9 @@ RSpec.describe 'Performance Optimization', type: :request do
   end
 
   describe 'GET /' do
-    let!(:user) { User.create!(name: 'Test User', email: 'test@example.com', password: 'password', confirmed_at: Time.current) }
+    let!(:user) do
+      User.create!(name: 'Test User', email: 'test@example.com', password: 'password', confirmed_at: Time.current)
+    end
     let!(:movie) { Movie.create!(title: 'Inception', release_year: 2010) }
     let!(:library_item) do
       LibraryItem.create!(user: user, item: movie, rating: 5, review: 'Amazing movie!', is_public: true)
