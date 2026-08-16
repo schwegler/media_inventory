@@ -38,9 +38,9 @@ class EditSuggestionsController < ApplicationController
   end
 
   def authorize_suggestable!
-    unless @suggestable && can_access?(@suggestable)
-      redirect_to root_path, alert: 'Not authorized to suggest edits for this item.'
-    end
+    return if @suggestable && can_access?(@suggestable)
+
+    redirect_to root_path, alert: 'Not authorized to suggest edits for this item.'
   end
 
   def edit_suggestion_params

@@ -35,7 +35,8 @@ RSpec.describe 'EditSuggestions', type: :request do
 
     it 'redirects to root when suggestable does not exist' do
       expect do
-        post movie_edit_suggestions_path(movie_id: 999_999), params: { edit_suggestion: { proposed_changes: { title: 'New Title' } } }
+        post movie_edit_suggestions_path(movie_id: 999_999),
+             params: { edit_suggestion: { proposed_changes: { title: 'New Title' } } }
       end.not_to change(EditSuggestion, :count)
 
       expect(response).to redirect_to(root_path)
