@@ -72,11 +72,13 @@ class LandingController < ApplicationController
   end
 
   def fetch_popular_reviews
-    Activity.includes(:user, :trackable)
-            .where(activity_type: 'reviewed')
-            .order(created_at: :desc)
-            .limit(20)
-            .select { |a| a.trackable&.review.present? }.first(3)
+    activities = Activity.includes(:user, :trackable)
+                         .where(activity_type: 'reviewed')
+                         .order(created_at: :desc)
+                         .limit(20)
+                         .select { |a| a.trackable&.review.present? }.first(3)
+
+    preload_social_feed(activities)
   end
 
   def db_status
