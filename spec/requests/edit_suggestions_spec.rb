@@ -11,9 +11,15 @@ RSpec.describe 'EditSuggestions', type: :request do
   end
 
   describe 'GET /movies/:movie_id/edit_suggestions/new' do
-    it 'renders the new template' do
+    it 'renders the new template when user is authorized to access suggestable' do
       get new_movie_edit_suggestion_path(movie)
       expect(response).to have_http_status(200)
+    end
+
+    it 'redirects to root when suggestable does not exist' do
+      get new_movie_edit_suggestion_path(movie_id: 999_999)
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to eq('Not authorized to suggest edits for this item.')
     end
   end
 
@@ -25,6 +31,15 @@ RSpec.describe 'EditSuggestions', type: :request do
 
       expect(response).to redirect_to(movie_path(movie))
       expect(EditSuggestion.last.status).to eq('pending')
+    end
+
+    it 'redirects to root when suggestable does not exist' do
+      expect do
+        post movie_edit_suggestions_path(movie_id: 999_999), params: { edit_suggestion: { proposed_changes: { title: 'New Title' } } }
+      end.not_to change(EditSuggestion, :count)
+
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to eq('Not authorized to suggest edits for this item.')
     end
   end
 end
