@@ -27,4 +27,20 @@ RSpec.describe 'EditSuggestions', type: :request do
       expect(EditSuggestion.last.status).to eq('pending')
     end
   end
+
+  describe 'authorization and missing resource checks' do
+    it 'redirects to root when resource is not found' do
+      get new_movie_edit_suggestion_path(movie_id: 999_999)
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to eq('Not authorized or item not found.')
+    end
+
+    it 'redirects to root when user is unauthorized for resource' do
+      allow_any_instance_of(ApplicationController).to receive(:can_access?).with(movie).and_return(false)
+
+      post movie_edit_suggestions_path(movie), params: { edit_suggestion: { proposed_changes: { title: 'Hacked' } } }
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to eq('Not authorized or item not found.')
+    end
+  end
 end

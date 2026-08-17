@@ -3,6 +3,7 @@
 class EditSuggestionsController < ApplicationController
   before_action :logged_in_user
   before_action :set_suggestable
+  before_action :authorize_suggestable!
 
   def new
     @edit_suggestion = @suggestable.edit_suggestions.new
@@ -24,16 +25,23 @@ class EditSuggestionsController < ApplicationController
 
   def set_suggestable
     @suggestable = if params[:movie_id]
-                     Movie.find(params[:movie_id])
+                     Movie.find_by(id: params[:movie_id])
                    elsif params[:tv_show_id]
-                     TvShow.find(params[:tv_show_id])
+                     TvShow.find_by(id: params[:tv_show_id])
                    elsif params[:comic_id]
-                     Comic.find(params[:comic_id])
+                     Comic.find_by(id: params[:comic_id])
                    elsif params[:video_game_id]
-                     VideoGame.find(params[:video_game_id])
+                     VideoGame.find_by(id: params[:video_game_id])
                    elsif params[:album_id]
-                     Album.find(params[:album_id])
+                     Album.find_by(id: params[:album_id])
                    end
+  end
+
+  def authorize_suggestable!
+    # Ensure resource exists and current user has authorization to access it
+    return if @suggestable && can_access?(@suggestable)
+
+    redirect_to root_path, alert: 'Not authorized or item not found.'
   end
 
   def edit_suggestion_params
