@@ -14,7 +14,10 @@ RSpec.describe 'Performance Optimization', type: :request do
   end
 
   describe 'GET /posts/:id comment rendering performance' do
-    let(:user) { User.create!(name: 'Test User', username: 'test_user', email: 'test@example.com', password: 'password', confirmed_at: Time.current) }
+    let(:user) do
+      User.create!(name: 'Test User', username: 'test_user', email: 'test@example.com', password: 'password',
+                   confirmed_at: Time.current)
+    end
     let(:post_item) { Post.create!(user: user, content: 'Test post content') }
 
     before do
