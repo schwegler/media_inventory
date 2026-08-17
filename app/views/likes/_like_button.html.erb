@@ -1,6 +1,6 @@
 <%# Local variables: item %>
 <% liked = logged_in? && current_user.liked?(item) %>
-<% likes_count = item.likes.count %>
+<% likes_count = item.likes.size %>
 
 <%= button_to toggle_like_path(likeable_type: item.class.name, likeable_id: item.id),
               method: :post,

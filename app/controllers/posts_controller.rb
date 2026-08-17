@@ -4,7 +4,7 @@ class PostsController < ApplicationController
   before_action :logged_in_user
 
   def show
-    @post = Post.find(params[:id])
+    @post = Post.includes(comments: [:user, :likes, replies: [:user, :likes]]).find(params[:id])
     # Ensure user has permission to view this post
     redirect_to root_path, alert: 'Not authorized' and return unless can_access?(@post)
   end
