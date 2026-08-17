@@ -139,7 +139,7 @@
         <% end %>
       </div>
 
-      <button class="mobile-menu-btn" type="button" data-action="click->mobile-menu#toggle" aria-label="Toggle navigation">
+      <button class="mobile-menu-btn" type="button" data-action="click->mobile-menu#toggle" data-mobile-menu-target="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="mobile-nav-panel">
         <svg class="menu-icon" data-mobile-menu-target="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <line x1="3" y1="12" x2="21" y2="12"></line>
           <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -152,7 +152,7 @@
       </button>
     </nav>
 
-    <div class="mobile-nav-panel" data-mobile-menu-target="menu">
+    <div id="mobile-nav-panel" class="mobile-nav-panel" data-mobile-menu-target="menu">
       <div class="mobile-nav-search">
         <form action="<%= search_path %>" method="get" class="global-search-form" data-turbo-action="advance">
           <input type="text" name="q" class="global-search-input" placeholder="Search Trove..." aria-label="Search" value="<%= params[:q] %>" autocomplete="off">
