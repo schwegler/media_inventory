@@ -3,7 +3,9 @@
 require 'rails_helper'
 
 RSpec.describe 'EditSuggestions', type: :request do
-  let(:user) { User.create!(name: 'Alice', email: 'alice@example.com', password: 'password', confirmed_at: Time.current) }
+  let(:user) do
+    User.create!(name: 'Alice', email: 'alice@example.com', password: 'password', confirmed_at: Time.current)
+  end
   let(:movie) { Movie.create!(title: 'Inception') }
 
   before do
@@ -32,7 +34,8 @@ RSpec.describe 'EditSuggestions', type: :request do
     context 'when movie exists and is accessible' do
       it 'creates an edit suggestion' do
         expect do
-          post movie_edit_suggestions_path(movie), params: { edit_suggestion: { proposed_changes: { title: 'Inception 2' } } }
+          post movie_edit_suggestions_path(movie),
+               params: { edit_suggestion: { proposed_changes: { title: 'Inception 2' } } }
         end.to change(EditSuggestion, :count).by(1)
 
         expect(response).to redirect_to(movie_path(movie))
@@ -42,7 +45,8 @@ RSpec.describe 'EditSuggestions', type: :request do
     context 'when movie does not exist' do
       it 'redirects safely without creating a suggestion' do
         expect do
-          post movie_edit_suggestions_path(movie_id: 999_999), params: { edit_suggestion: { proposed_changes: { title: 'Ghost' } } }
+          post movie_edit_suggestions_path(movie_id: 999_999),
+               params: { edit_suggestion: { proposed_changes: { title: 'Ghost' } } }
         end.not_to change(EditSuggestion, :count)
 
         expect(response).to redirect_to(root_path)
