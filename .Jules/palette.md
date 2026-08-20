@@ -13,3 +13,7 @@
 ## 2025-05-16 - [Skip to Content Link for Keyboard Accessibility]
 **Learning:** For keyboard and screen-reader users, navigating through repetitive header links on every page load is tedious. A "Skip to Content" link is a critical foundational UX improvement for accessibility.
 **Action:** Always include a `.skip-link` as the first element in the `<body>` that targets the `<main>` content area with an ID like `#main-content`, ensuring it is visually hidden until it receives focus.
+
+## 2026-06-21 - [ARIA Selection State Announcement for Custom Grid Buttons]
+**Learning:** Dynamic custom button elements (such as cover thumbnail result cards) that use `role="button"` require `aria-pressed="true"/"false"` attributes to inform screen reader users of their current selection state when toggled.
+**Action:** Set `aria-pressed="false"` upon element creation and dynamically toggle `aria-pressed="true"` on the selected option card while clearing it on unselected cards.

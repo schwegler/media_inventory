@@ -168,6 +168,7 @@ export default class extends Controller {
         imgBtn.className = "thumbnail-option-card"
         imgBtn.setAttribute("tabindex", "0")
         imgBtn.setAttribute("role", "button")
+        imgBtn.setAttribute("aria-pressed", "false")
         imgBtn.setAttribute("aria-label", `Select ${option.title}`)
         
         const badgeClass = option.is_local ? "local" : "web"
@@ -196,8 +197,12 @@ export default class extends Controller {
         `
 
         imgBtn.addEventListener("click", (e) => {
-          this.optionsGridTarget.querySelectorAll(".thumbnail-option-card").forEach(card => card.classList.remove("selected"))
+          this.optionsGridTarget.querySelectorAll(".thumbnail-option-card").forEach(card => {
+            card.classList.remove("selected")
+            card.setAttribute("aria-pressed", "false")
+          })
           imgBtn.classList.add("selected")
+          imgBtn.setAttribute("aria-pressed", "true")
 
           // User clicked explicitly, so populate all text fields and transition to details view!
           this.selectOption(option, true)
@@ -206,8 +211,12 @@ export default class extends Controller {
         imgBtn.addEventListener("keydown", (e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault()
-            this.optionsGridTarget.querySelectorAll(".thumbnail-option-card").forEach(card => card.classList.remove("selected"))
+            this.optionsGridTarget.querySelectorAll(".thumbnail-option-card").forEach(card => {
+              card.classList.remove("selected")
+              card.setAttribute("aria-pressed", "false")
+            })
             imgBtn.classList.add("selected")
+            imgBtn.setAttribute("aria-pressed", "true")
             this.selectOption(option, true)
           }
         })
@@ -218,8 +227,12 @@ export default class extends Controller {
       // Auto-select first cover invisibly (only update cover preview, NOT text inputs!)
       const firstCard = this.optionsGridTarget.querySelector(".thumbnail-option-card")
       if (firstCard) {
-        this.optionsGridTarget.querySelectorAll(".thumbnail-option-card").forEach(card => card.classList.remove("selected"))
+        this.optionsGridTarget.querySelectorAll(".thumbnail-option-card").forEach(card => {
+          card.classList.remove("selected")
+          card.setAttribute("aria-pressed", "false")
+        })
         firstCard.classList.add("selected")
+        firstCard.setAttribute("aria-pressed", "true")
         const idx = Array.from(this.optionsGridTarget.children).indexOf(firstCard)
         this.selectOption(allResults[idx], false)
       }
