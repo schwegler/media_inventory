@@ -23,12 +23,24 @@ RSpec.describe 'Relationships', type: :request do
 
   describe 'DELETE /relationships/:id' do
     let!(:relationship) { user.active_relationships.create!(followed_id: other_user.id) }
+    let!(:third_user) do
+      User.create!(name: 'Third', email: "third#{SecureRandom.hex(4)}@test.com", password: 'password',
+                   password_confirmation: 'password')
+    end
 
-    it 'destroys a relationship when logged in' do
+    it 'destroys a relationship when logged in as the follower' do
       post login_path, params: { session: { email: user.email, password: 'password' } }
       expect do
         delete relationship_path(relationship)
       end.to change(Relationship, :count).by(-1)
+    end
+
+    it 'prevents another user from destroying a relationship they do not own' do
+      post login_path, params: { session: { email: third_user.email, password: 'password' } }
+      expect do
+        delete relationship_path(relationship)
+      end.not_to change(Relationship, :count)
+      expect(response).to redirect_to(root_path)
     end
   end
 end
