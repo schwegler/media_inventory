@@ -27,4 +27,17 @@ RSpec.describe 'EditSuggestions', type: :request do
       expect(EditSuggestion.last.status).to eq('pending')
     end
   end
+
+  describe 'authorization and invalid resource checks' do
+    let(:other_user) do
+      User.create!(name: 'Other', email: 'other@example.com', password: 'password', username: 'otheruser')
+    end
+    let(:private_post) { Post.create!(content: 'Private Post', user: other_user) }
+
+    it 'redirects to root when accessing edit suggestion for non-existent resource' do
+      get new_movie_edit_suggestion_path(movie_id: 999_999)
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to eq('Resource not found or unauthorized')
+    end
+  end
 end
