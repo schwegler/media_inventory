@@ -71,6 +71,36 @@ RSpec.describe 'Comics', type: :request do
       expect(response.body).to include('Batman')
       expect(response.body).to include('DC')
     end
+
+    context 'when logged in with multiple issues' do
+      let(:user) do
+        User.create!(name: 'Test User', email: 'test_issue@example.com', password: 'password123',
+                     password_confirmation: 'password123')
+      end
+
+      before do
+        10.times do |i|
+          issue = ComicIssue.create!(comic: comic, issue_number: i + 1, title: "Issue #{i + 1}")
+          LibraryItem.create!(user: user, item: issue, consumed: i.even?)
+        end
+        post login_path, params: { session: { email: user.email, password: 'password123' } }
+      end
+
+      it 'renders issues efficiently without N+1 queries' do
+        queries = []
+        subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |_name, _start, _finish, _id, payload|
+          queries << payload[:sql] unless payload[:name] == 'SCHEMA' || payload[:sql].include?('TRANSACTION')
+        end
+
+        get comic_path(comic)
+        ActiveSupport::Notifications.unsubscribe(subscriber)
+
+        expect(response).to have_http_status(200)
+        expect(response.body).to include('Issue 1')
+        expect(response.body).to include('Issue 10')
+        expect(queries.size).to be < 15
+      end
+    end
   end
 
   describe 'POST /comics' do

@@ -39,8 +39,17 @@
       </div>
     </div>
     <div style="margin-top: 1rem;">
-      <% completed_count = logged_in? ? LibraryItem.where(user: current_user, item: @comic.comic_issues, consumed: true).count : 0 %>
-      <%= render 'shared/progress_donut', total: @comic.comic_issues.count, completed: completed_count %>
+      <%
+        # Bolt: Fetch comic issues once to reuse loaded association across stats and issue lists
+        @comic_issues ||= @comic.comic_issues.order(:issue_number)
+        @user_issue_library_items ||= if logged_in? && @comic_issues.any?
+          LibraryItem.where(user: current_user, item_type: 'ComicIssue', item_id: @comic_issues.map(&:id)).index_by(&:item_id)
+        else
+          {}
+        end
+        completed_count = logged_in? ? @user_issue_library_items.values.count(&:consumed?) : 0
+      %>
+      <%= render 'shared/progress_donut', total: @comic_issues.size, completed: completed_count %>
     </div>
   </div>
 
@@ -76,14 +85,14 @@
     <% end %>
 
     <div class="show-community">
-      <% if @comic.comic_issues.any? %>
+      <% if @comic_issues.any? %>
         <div class="show-episodes-section" style="margin-top: 2.5rem; margin-bottom: 2.5rem;">
           <h2 style="font-size: 1.25rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; padding-bottom: 8px; margin-bottom: 12px;">
             Issues in this Series
           </h2>
 
           <div class="season-episodes-list" style="display: flex; flex-direction: column; gap: 12px;">
-            <% @comic.comic_issues.order(:issue_number).each do |issue| %>
+            <% @comic_issues.each do |issue| %>
               <%= render 'comics/comic_issue', issue: issue, comic: @comic %>
             <% end %>
           </div>

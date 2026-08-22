@@ -39,8 +39,17 @@
       </div>
     </div>
     <div style="margin-bottom: 2rem;">
-      <% completed_count = logged_in? ? LibraryItem.where(user: current_user, item: @tv_show.tv_episodes, consumed: true).count : 0 %>
-      <%= render 'shared/progress_donut', total: @tv_show.tv_episodes.count, completed: completed_count %>
+      <%
+        # Bolt: Fetch episodes once to reuse loaded association across stats and season lists
+        @tv_episodes ||= @tv_show.tv_episodes.order(:season, :episode)
+        @user_episode_library_items ||= if logged_in? && @tv_episodes.any?
+          LibraryItem.where(user: current_user, item_type: 'TvEpisode', item_id: @tv_episodes.map(&:id)).index_by(&:item_id)
+        else
+          {}
+        end
+        completed_count = logged_in? ? @user_episode_library_items.values.count(&:consumed?) : 0
+      %>
+      <%= render 'shared/progress_donut', total: @tv_episodes.size, completed: completed_count %>
     </div>
   </div>
 
@@ -75,9 +84,9 @@
       </div>
     <% end %>
 
-    <% if @tv_show.tv_episodes.any? %>
+    <% if @tv_episodes.any? %>
       <%
-        episodes_by_season = @tv_show.tv_episodes.order(:season, :episode).group_by(&:season)
+        episodes_by_season = @tv_episodes.group_by(&:season)
         sorted_seasons = episodes_by_season.keys.sort
       %>
       <div class="show-episodes-section" style="margin-top: 2.5rem; margin-bottom: 2.5rem;" data-controller="season-tabs">

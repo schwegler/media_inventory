@@ -52,6 +52,37 @@ RSpec.describe 'TvShows', type: :request do
       expect(response).to have_http_status(200)
       expect(response.body).to include('Breaking Bad')
     end
+
+    context 'when logged in with multiple episodes' do
+      let(:user) do
+        User.create!(name: 'Test User', email: 'test_ep@example.com', password: 'password123',
+                     password_confirmation: 'password123')
+      end
+      let(:tv_show) { TvShow.create!(title: 'Severance', network: 'Apple TV+') }
+
+      before do
+        10.times do |i|
+          ep = TvEpisode.create!(tv_show: tv_show, season: 1, episode: i + 1, name: "Episode #{i + 1}")
+          LibraryItem.create!(user: user, item: ep, consumed: i.even?)
+        end
+        post login_path, params: { session: { email: user.email, password: 'password123' } }
+      end
+
+      it 'renders episodes efficiently without N+1 queries' do
+        queries = []
+        subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |_name, _start, _finish, _id, payload|
+          queries << payload[:sql] unless payload[:name] == 'SCHEMA' || payload[:sql].include?('TRANSACTION')
+        end
+
+        get tv_show_path(tv_show)
+        ActiveSupport::Notifications.unsubscribe(subscriber)
+
+        expect(response).to have_http_status(200)
+        expect(response.body).to include('Episode 1')
+        expect(response.body).to include('Episode 10')
+        expect(queries.size).to be < 15
+      end
+    end
   end
 
   describe 'POST /tv_shows' do

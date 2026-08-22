@@ -14,7 +14,14 @@
             <% end %>
           </span>
 
-          <% issue_lib = LibraryItem.find_by(user: current_user, item: issue) if logged_in? %>
+          <%
+            # Bolt: Look up from pre-fetched map if available, fallback to single query for isolated rendering (e.g. Turbo Streams)
+            issue_lib = if instance_variable_defined?(:@user_issue_library_items) && @user_issue_library_items
+                          @user_issue_library_items[issue.id]
+                        elsif logged_in?
+                          LibraryItem.find_by(user: current_user, item: issue)
+                        end
+          %>
           <% if logged_in? && @library_item.present? %>
             <div class="episode-actions-wrapper">
               <% if issue_lib&.consumed? %>
