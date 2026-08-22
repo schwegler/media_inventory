@@ -37,6 +37,13 @@ export default class extends Controller {
     if (this.hasButtonTarget) {
       this.buttonTarget.setAttribute("aria-expanded", "true")
     }
+
+    if (this.hasMenuTarget) {
+      const firstFocusable = this.menuTarget.querySelector("a[href], button, [tabindex]:not([tabindex='-1'])")
+      if (firstFocusable) {
+        firstFocusable.focus()
+      }
+    }
   }
 
   hide() {
