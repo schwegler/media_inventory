@@ -3,12 +3,14 @@
 require 'net/http'
 require 'json'
 require 'uri'
+require 'resolv'
+require 'ipaddr'
 
 class MastodonAppRegistration
   def self.register(server, callback_url)
     # Ensure server is a plain hostname without http/https
     host = server.to_s.sub(%r{^https?://}, '').split('/').first
-    return nil if host.blank?
+    return nil if host.blank? || !safe_host?(host)
 
     app = MastodonOauthApplication.find_by(server: host)
     return app if app
@@ -18,6 +20,19 @@ class MastodonAppRegistration
     req = build_request(uri, callback_url)
 
     execute_registration(host, uri, req)
+  end
+
+  # Validates that the host resolves to public IP addresses to mitigate SSRF vulnerabilities.
+  def self.safe_host?(host)
+    ips = Resolv.getaddresses(host)
+    return false if ips.empty?
+
+    ips.all? do |ip_str|
+      ip = IPAddr.new(ip_str)
+      !ip.private? && !ip.loopback? && !ip.link_local?
+    end
+  rescue StandardError
+    false
   end
 
   def self.build_request(uri, callback_url)
