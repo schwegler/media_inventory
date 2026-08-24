@@ -5,6 +5,7 @@
 <%= button_to toggle_like_path(likeable_type: item.class.name, likeable_id: item.id),
               method: :post,
               id: "like_button_#{item.class.name}_#{item.id}",
+              aria: { label: liked ? "Unlike" : "Like" },
               class: local_assigns[:tweet_style] ? "btn-tweet-like btn-unstyled #{'liked' if liked}" : "btn-like-icon #{'liked' if liked}",
               style: local_assigns[:tweet_style] ? "display: flex; align-items: center; gap: 6px; cursor: pointer;" : "",
               form_class: local_assigns[:tweet_style] ? "inline-form" : "",
