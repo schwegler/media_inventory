@@ -14,6 +14,21 @@ RSpec.describe 'Movies', type: :request do
       expect(response).to have_http_status(200)
     end
 
+    it 'renders media items successfully with cover images attached' do
+      movie = Movie.create!(title: 'Eager Movie 1')
+      temp_file = Tempfile.new(['test_cover', '.png'])
+      temp_file.write('dummy content')
+      temp_file.rewind
+      movie.cover_image.attach(io: File.open(temp_file.path), filename: 'cover.png', content_type: 'image/png')
+
+      get movies_path
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Eager Movie 1')
+
+      temp_file.close
+      temp_file.unlink
+    end
+
     context 'with pagination' do
       before do
         30.times { |i| Movie.create!(title: "Movie #{i}") }
