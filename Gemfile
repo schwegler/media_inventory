@@ -21,7 +21,7 @@ gem 'propshaft'
 gem 'psych', '5.4.0'
 gem 'rdoc', '>= 6.5.1.1'
 
-gem 'sqlite3', '~> 2.9'
+gem 'sqlite3', '~> 2.9', '>= 2.9.6'
 
 group :development, :test do
   gem 'brakeman'
