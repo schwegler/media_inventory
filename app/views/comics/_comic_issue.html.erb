@@ -24,7 +24,8 @@
                               toggle_read_comic_issue_path(issue),
                               method: :patch,
                               params: { comic_issue: { consumed: false, rating: nil, review: nil, consumed_at: nil } },
-                              class: "episode-btn-unwatch" %>
+                              class: "episode-btn-unwatch",
+                              aria: { label: "Mark issue as unread" } %>
               <% else %>
                 <span class="episode-badge-not-watched">Not Read</span>
               <% end %>
