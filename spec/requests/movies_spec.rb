@@ -135,4 +135,25 @@ RSpec.describe 'Movies', type: :request do
       end
     end
   end
+
+  describe 'Authentication checks for mutating actions' do
+    let!(:movie) { Movie.create!(title: 'Test Movie') }
+
+    context 'when not logged in' do
+      it 'redirects GET /movies/:id/edit to login' do
+        get edit_movie_path(movie)
+        expect(response).to redirect_to(login_path)
+      end
+
+      it 'redirects PATCH /movies/:id to login' do
+        patch movie_path(movie), params: { movie: { title: 'Updated Title' } }
+        expect(response).to redirect_to(login_path)
+      end
+
+      it 'redirects DELETE /movies/:id to login' do
+        delete movie_path(movie)
+        expect(response).to redirect_to(login_path)
+      end
+    end
+  end
 end
