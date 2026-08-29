@@ -1,12 +1,17 @@
 # frozen_string_literal: true
 
 class PostsController < ApplicationController
+  include RecordPreloader
+
   before_action :logged_in_user
 
   def show
     @post = Post.find(params[:id])
     # Ensure user has permission to view this post
     redirect_to root_path, alert: 'Not authorized' and return unless can_access?(@post)
+
+    # Preload social associations (user avatars, likes, comments, and replies) to eliminate N+1 queries
+    preload_social_feed([@post])
   end
 
   def create
