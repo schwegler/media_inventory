@@ -30,5 +30,14 @@ RSpec.describe 'Relationships', type: :request do
         delete relationship_path(relationship)
       end.to change(Relationship, :count).by(-1)
     end
+
+    it 'prevents destroying another user relationship record (IDOR protection)' do
+      other_user_relationship = other_user.active_relationships.create!(followed_id: user.id)
+      post login_path, params: { session: { email: user.email, password: 'password' } }
+      expect do
+        delete relationship_path(other_user_relationship)
+      end.not_to change(Relationship, :count)
+      expect(response).to redirect_to(root_path)
+    end
   end
 end
