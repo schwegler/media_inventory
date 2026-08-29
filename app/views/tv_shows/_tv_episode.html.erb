@@ -24,7 +24,8 @@
                               toggle_watched_tv_episode_path(ep),
                               method: :patch,
                               params: { tv_episode: { consumed: false, rating: nil, review: nil, consumed_at: nil } },
-                              class: "episode-btn-unwatch" %>
+                              class: "episode-btn-unwatch",
+                              aria: { label: "Mark episode as unwatched" } %>
               <% else %>
                 <span class="episode-badge-not-watched">Not Watched</span>
               <% end %>
