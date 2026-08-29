@@ -448,7 +448,7 @@ DEPENDENCIES
   rubyzip (~> 2.3.0)
   selenium-webdriver
   simplecov
-  sqlite3 (~> 2.9)
+  sqlite3 (~> 2.9, >= 2.9.6)
   stimulus-rails
   turbo-rails
   web-console
