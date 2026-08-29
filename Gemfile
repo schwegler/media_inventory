@@ -18,7 +18,7 @@ gem 'dartsass-rails'
 gem 'propshaft'
 
 # Constrain dependencies to avoid compilation issues with native extensions
-gem 'psych', '5.4.0'
+gem 'psych', '5.0.1'
 gem 'rdoc', '>= 6.5.1.1'
 
 gem 'sqlite3', '~> 2.9', '>= 2.9.6'
