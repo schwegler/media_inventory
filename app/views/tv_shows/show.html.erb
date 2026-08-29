@@ -86,12 +86,17 @@
         </h2>
 
         <div class="season-tabs-container">
-          <div class="season-tabs-strip">
+          <div class="season-tabs-strip" role="tablist" aria-label="Seasons">
             <% sorted_seasons.each_with_index do |season, index| %>
               <button class="season-tab <%= 'active-tab' if index == 0 %>" 
+                      id="season-tab-<%= season %>"
+                      role="tab"
+                      aria-selected="<%= index == 0 ? 'true' : 'false' %>"
+                      aria-controls="season-panel-<%= season %>"
+                      tabindex="<%= index == 0 ? '0' : '-1' %>"
                       data-season-tabs-target="tab" 
                       data-season="<%= season %>" 
-                      data-action="click->season-tabs#select">
+                      data-action="click->season-tabs#select keydown->season-tabs#keydown">
                 Season <%= season %>
               </button>
             <% end %>
@@ -100,7 +105,11 @@
 
         <div>
           <% sorted_seasons.each_with_index do |season, index| %>
-            <div data-season-tabs-target="content" 
+            <div id="season-panel-<%= season %>"
+                 role="tabpanel"
+                 aria-labelledby="season-tab-<%= season %>"
+                 tabindex="0"
+                 data-season-tabs-target="content"
                  data-season="<%= season %>" 
                  class="season-episodes-list <%= 'hidden' unless index == 0 %>" 
                  style="display: flex; flex-direction: column; gap: 12px;">
