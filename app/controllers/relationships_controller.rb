@@ -11,9 +11,15 @@ class RelationshipsController < ApplicationController
   end
 
   def destroy
-    user = Relationship.find(params[:id]).followed
-    current_user.unfollow(user)
-    flash[:info] = "You have unfollowed #{user.name}"
-    redirect_back fallback_location: user
+    # Scope relationship lookup through current_user.active_relationships to prevent IDOR vulnerability
+    relationship = current_user.active_relationships.find_by(id: params[:id])
+    if relationship
+      user = relationship.followed
+      current_user.unfollow(user)
+      flash[:info] = "You have unfollowed #{user.name}"
+      redirect_back fallback_location: user
+    else
+      redirect_to root_path, alert: 'Relationship not found.'
+    end
   end
 end
