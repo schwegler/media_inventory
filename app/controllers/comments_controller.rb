@@ -19,6 +19,8 @@ class CommentsController < ApplicationController
       return
     end
 
+    return if invalid_parent_comment?(commentable_type, commentable_id)
+
     @comment = current_user.comments.build(comment_params)
     if @comment.save
       respond_to do |format|
@@ -34,7 +36,20 @@ class CommentsController < ApplicationController
 
   private
 
+  def invalid_parent_comment?(commentable_type, commentable_id)
+    parent_id = params.dig(:comment, :parent_id)
+    return false if parent_id.blank?
+
+    parent = Comment.find_by(id: parent_id)
+    valid = parent && parent.commentable_type == commentable_type && parent.commentable_id.to_s == commentable_id.to_s
+    unless valid
+      redirect_to root_path, alert: 'Invalid parent comment.'
+      return true
+    end
+    false
+  end
+
   def comment_params
-    params.require(:comment).permit(:content, :commentable_type, :commentable_id)
+    params.require(:comment).permit(:content, :commentable_type, :commentable_id, :parent_id)
   end
 end
