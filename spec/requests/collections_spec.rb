@@ -63,7 +63,7 @@ RSpec.describe 'Collections', type: :request do
         expect(response).to have_http_status(:success)
       end
 
-      it 'displays only public collections for the user' do
+      it 'displays only public collections for external visitors' do
         get "/collections/#{user.id}"
 
         expect(response.body).to include('Public Album')
@@ -80,6 +80,16 @@ RSpec.describe 'Collections', type: :request do
 
         expect(response.body).to include('Public Video Game')
         expect(response.body).not_to include('Private Video Game')
+      end
+
+      it 'displays private collections when the logged in user views their own collection' do
+        post login_path, params: { session: { email: user.email, password: 'password123' } }
+        get "/collections/#{user.id}"
+
+        expect(response.body).to include('Public Album')
+        expect(response.body).to include('Private Album')
+        expect(response.body).to include('Public Movie')
+        expect(response.body).to include('Private Movie')
       end
     end
 
