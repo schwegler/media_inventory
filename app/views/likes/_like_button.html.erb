@@ -1,13 +1,15 @@
 <%# Local variables: item %>
 <% liked = logged_in? && current_user.liked?(item) %>
-<%# Use .size instead of .count to utilize preloaded in-memory likes collection if present and prevent redundant database queries %>
-<% likes_count = item.likes.size %>
+<% likes_count = item.likes.respond_to?(:loaded?) && item.likes.loaded? ? item.likes.size : item.likes.count %>
+<% action_prefix = liked ? "Unlike" : "Like" %>
+<% aria_label_text = "#{action_prefix}#{likes_count > 0 ? " (#{likes_count})" : ""}" %>
 
 <%= button_to toggle_like_path(likeable_type: item.class.name, likeable_id: item.id),
               method: :post,
               id: "like_button_#{item.class.name}_#{item.id}",
               class: local_assigns[:tweet_style] ? "btn-tweet-like btn-unstyled #{'liked' if liked}" : "btn-like-icon #{'liked' if liked}",
               style: local_assigns[:tweet_style] ? "display: flex; align-items: center; gap: 6px; cursor: pointer;" : "",
+              aria: { label: aria_label_text },
               form_class: local_assigns[:tweet_style] ? "inline-form" : "",
               form: { data: { turbo: true } } do %>
   <% if local_assigns[:tweet_style] %>
