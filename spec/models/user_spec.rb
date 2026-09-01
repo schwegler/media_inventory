@@ -92,4 +92,45 @@ RSpec.describe User, type: :model do
     end
     it { should_not be_valid }
   end
+
+  describe '#liked?' do
+    let(:movie) { Movie.create!(title: 'Inception') }
+
+    before do
+      @user.save!
+    end
+
+    it 'returns false when likeable is nil' do
+      expect(@user.liked?(nil)).to be false
+    end
+
+    context 'when likes association is not loaded' do
+      it 'queries the database using exists?' do
+        expect(@user.likes.loaded?).to be false
+        expect(@user.liked?(movie)).to be false
+
+        @user.likes.create!(likeable: movie)
+
+        expect(@user.liked?(movie)).to be true
+      end
+    end
+
+    context 'when likes association is preloaded / loaded' do
+      it 'uses in-memory check without querying the database' do
+        @user.likes.create!(likeable: movie)
+
+        user_with_likes = User.includes(:likes).find(@user.id)
+        expect(user_with_likes.likes.loaded?).to be true
+
+        # Ensure no database query is executed when calling liked?
+        queries = []
+        callback = ->(_name, _start, _finish, _id, payload) { queries << payload[:sql] unless payload[:name] == 'SCHEMA' }
+        ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') do
+          expect(user_with_likes.liked?(movie)).to be true
+        end
+
+        expect(queries).to be_empty
+      end
+    end
+  end
 end
