@@ -13,13 +13,13 @@
         </button>
       </div>
       
-      <div class="filter-tabs">
-        <button type="submit" name="type" value="" class="filter-tab <%= @filter_type.blank? ? 'active' : '' %>">All</button>
-        <button type="submit" name="type" value="movies" class="filter-tab <%= @filter_type == 'movies' ? 'active' : '' %>">Movies</button>
-        <button type="submit" name="type" value="albums" class="filter-tab <%= @filter_type == 'albums' ? 'active' : '' %>">Albums</button>
-        <button type="submit" name="type" value="comics" class="filter-tab <%= @filter_type == 'comics' ? 'active' : '' %>">Comics</button>
-        <button type="submit" name="type" value="tv_shows" class="filter-tab <%= @filter_type == 'tv_shows' ? 'active' : '' %>">TV Shows</button>
-        <button type="submit" name="type" value="video_games" class="filter-tab <%= @filter_type == 'video_games' ? 'active' : '' %>">Games</button>
+      <div class="filter-tabs" role="tablist" aria-label="Filter results by category">
+        <button type="submit" name="type" value="" role="tab" aria-selected="<%= @filter_type.blank? ? 'true' : 'false' %>" class="filter-tab <%= @filter_type.blank? ? 'active' : '' %>">All</button>
+        <button type="submit" name="type" value="movies" role="tab" aria-selected="<%= @filter_type == 'movies' ? 'true' : 'false' %>" class="filter-tab <%= @filter_type == 'movies' ? 'active' : '' %>">Movies</button>
+        <button type="submit" name="type" value="albums" role="tab" aria-selected="<%= @filter_type == 'albums' ? 'true' : 'false' %>" class="filter-tab <%= @filter_type == 'albums' ? 'active' : '' %>">Albums</button>
+        <button type="submit" name="type" value="comics" role="tab" aria-selected="<%= @filter_type == 'comics' ? 'true' : 'false' %>" class="filter-tab <%= @filter_type == 'comics' ? 'active' : '' %>">Comics</button>
+        <button type="submit" name="type" value="tv_shows" role="tab" aria-selected="<%= @filter_type == 'tv_shows' ? 'true' : 'false' %>" class="filter-tab <%= @filter_type == 'tv_shows' ? 'active' : '' %>">TV Shows</button>
+        <button type="submit" name="type" value="video_games" role="tab" aria-selected="<%= @filter_type == 'video_games' ? 'true' : 'false' %>" class="filter-tab <%= @filter_type == 'video_games' ? 'active' : '' %>">Games</button>
       </div>
     </form>
   </div>
