@@ -42,9 +42,11 @@
       </div>
     <% end %>
 
-  <% if comment.replies.any? %>
+  <%# OPTIMIZATION: Use in-memory replies if association is loaded to prevent N+1 SQL queries. %>
+  <% replies = comment.replies.loaded? ? comment.replies : comment.replies.includes(:user) %>
+  <% if replies.any? %>
     <div class="comment-replies-list">
-      <% comment.replies.includes(:user).each do |reply| %>
+      <% replies.each do |reply| %>
         <%= render 'shared/comment', comment: reply, matching_item: matching_item, depth: depth + 1 %>
       <% end %>
     </div>
