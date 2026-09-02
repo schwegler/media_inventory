@@ -142,7 +142,7 @@ end
         
         <div class="inline-form-row">
           <div class="quick-review-rating-select">
-            <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: item.rating }, { class: "form-control quick-review-select" } %>
+            <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: item.rating }, { class: "form-control quick-review-select", aria: { label: "Rating" } } %>
           </div>
           
           <div class="inline-checkbox-group">
@@ -157,7 +157,7 @@ end
         </div>
 
         <div>
-          <%= f.text_area :review, placeholder: review_placeholder, rows: 3, class: "form-control quick-review-textarea" %>
+          <%= f.text_area :review, placeholder: review_placeholder, aria: { label: review_placeholder }, rows: 3, class: "form-control quick-review-textarea" %>
         </div>
 
         <div class="ownership-details-row" style="margin-top: 15px; margin-bottom: 15px; display: flex; gap: 20px;">
