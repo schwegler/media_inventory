@@ -34,7 +34,7 @@
             <%= cf.hidden_field :commentable_type, value: matching_item.class.name %>
             <%= cf.hidden_field :commentable_id, value: matching_item.id %>
             <%= cf.hidden_field :parent_id, value: comment.id %>
-            <%= cf.text_field :content, placeholder: "Reply to #{comment.user.name.presence || comment.user.display_handle}...", required: true, class: 'comment-input', data: { toggle_target: "input" } %>
+            <%= cf.text_field :content, placeholder: "Reply to #{comment.user.name.presence || comment.user.display_handle}...", aria: { label: "Reply to #{comment.user.name.presence || comment.user.display_handle}" }, required: true, class: 'comment-input', data: { toggle_target: "input" } %>
             <%= cf.submit 'Reply', class: 'btn btn-primary comment-reply-btn' %>
             <button type="button" class="btn-unstyled cancel-reply-link" data-action="toggle#hide">Cancel</button>
           <% end %>
