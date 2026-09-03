@@ -4,18 +4,23 @@ export default class extends Controller {
   static targets = ["overlay"]
 
   connect() {
+    this.element.dataset.connected = "true"
+
     // If the frame has content (modal loaded), show the overlay
     if (this.element.innerHTML.trim()) {
       document.body.style.overflow = "hidden"
+      this.previousActiveElement = document.activeElement
+      this.focusFirstElement()
     }
   }
 
   disconnect() {
     document.body.style.overflow = ""
+    this.restoreFocus()
   }
 
   close(event) {
-    event.preventDefault()
+    if (event) event.preventDefault()
     // Clear the turbo frame to dismiss the modal
     const frame = document.querySelector("turbo-frame#modal")
     if (frame) {
@@ -23,6 +28,7 @@ export default class extends Controller {
       frame.removeAttribute("src")
     }
     document.body.style.overflow = ""
+    this.restoreFocus()
   }
 
   closeOnBackdrop(event) {
@@ -35,6 +41,20 @@ export default class extends Controller {
   closeOnEsc(event) {
     if (event.key === "Escape") {
       this.close(event)
+    }
+  }
+
+  focusFirstElement() {
+    setTimeout(() => {
+      const focusable = this.element.querySelector("input:not([type='hidden']), textarea, select, button")
+      if (focusable) focusable.focus()
+    }, 50)
+  }
+
+  restoreFocus() {
+    if (this.previousActiveElement && typeof this.previousActiveElement.focus === "function") {
+      this.previousActiveElement.focus()
+      this.previousActiveElement = null
     }
   }
 }
