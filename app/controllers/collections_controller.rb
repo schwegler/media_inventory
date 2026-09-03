@@ -29,12 +29,14 @@ class CollectionsController < ApplicationController
   end
 
   def fetch_collection_scope(item_type, table_name)
-    scope = @user.library_items.includes(:item).where(item_type: item_type, is_public: true)
+    scope = @user.library_items.includes(:item).where(item_type: item_type)
+    scope = scope.where(is_public: true) unless current_user?(@user)
     return scope if @query.blank?
 
-    # Join corresponding media table for database-level title search filtering
+    # Security: Use Arel table matching instead of raw string interpolation to eliminate SQL injection risks
     join_clause = sanitize_join_sql(table_name)
-    scope.joins(join_clause).where("#{table_name}.title LIKE ?", "%#{@query}%")
+    table = Arel::Table.new(table_name)
+    scope.joins(join_clause).where(table[:title].matches("%#{@query}%"))
   end
 
   def sanitize_join_sql(table_name)

@@ -81,6 +81,22 @@ RSpec.describe 'Collections', type: :request do
         expect(response.body).to include('Public Video Game')
         expect(response.body).not_to include('Private Video Game')
       end
+
+      it 'filters collection items safely by search query q' do
+        get "/collections/#{user.id}?q=Movie"
+
+        expect(response.body).to include('Public Movie')
+        expect(response.body).not_to include('Public Album')
+        expect(response.body).not_to include('Public Comic')
+      end
+
+      it 'displays private items when logged in as the collection owner' do
+        post login_path, params: { email: user.email, password: 'password123' }
+        get "/collections/#{user.id}"
+
+        expect(response.body).to include('Private Album')
+        expect(response.body).to include('Private Movie')
+      end
     end
 
     context 'when the user is unconfirmed' do
