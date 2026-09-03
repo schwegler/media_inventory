@@ -35,7 +35,7 @@
         <% stats = community_stats_for(@comic) %>
         <span class="stat-item" title="Watchers"><span class="stat-icon">👁</span> <%= stats[:watchers].size %></span>
         <span class="stat-item" title="Collectors"><span class="stat-icon">📁</span> <%= stats[:collectors].size %></span>
-        <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @comic.likes.count %></span>
+        <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @comic.likes.size %></span>
       </div>
     </div>
     <div style="margin-top: 1rem;">

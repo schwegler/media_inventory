@@ -33,7 +33,7 @@
       
       <div class="poster-stats">
         <span class="stat-item" title="Watched"><span class="stat-icon">👁</span> <%= @library_item&.consumed? ? "Watched" : "Unwatched" %></span>
-        <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @tv_episode.likes.count %></span>
+        <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @tv_episode.likes.size %></span>
       </div>
     </div>
   </div>
