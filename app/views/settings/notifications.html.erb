@@ -22,11 +22,11 @@
             <div class="row-label"><%= label %></div>
             <div class="toggle-group">
               <label class="switch">
-                <%= f.check_box "notify_email_#{key}" %>
+                <%= f.check_box "notify_email_#{key}", aria: { label: "Email notifications for #{label.downcase}" } %>
                 <span class="slider round"></span>
               </label>
               <label class="switch">
-                <%= f.check_box "notify_push_#{key}" %>
+                <%= f.check_box "notify_push_#{key}", aria: { label: "Push notifications for #{label.downcase}" } %>
                 <span class="slider round"></span>
               </label>
             </div>

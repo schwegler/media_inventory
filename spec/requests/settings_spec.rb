@@ -26,6 +26,17 @@ RSpec.describe 'Settings', type: :request do
     end
   end
 
+  describe 'GET /settings/notifications' do
+    it 'returns http success and renders toggle checkboxes with accessible aria-labels' do
+      get settings_notifications_path
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include('aria-label="Email notifications for likes"')
+      expect(response.body).to include('aria-label="Push notifications for likes"')
+      expect(response.body).to include('aria-label="Email notifications for new posts"')
+      expect(response.body).to include('aria-label="Push notifications for new posts"')
+    end
+  end
+
   describe 'PATCH /settings/update_notifications' do
     it 'updates notification preferences' do
       patch settings_update_notifications_path, params: { user: { notify_email_likes: false, notify_push_follows: false } }
