@@ -42,19 +42,20 @@
 
       <div class="profile-stats">
         <div class="stat-item">
-          <span class="stat-count"><%= @collection_items.count %></span>
+          <%# Optimize to use .size instead of .count on preloaded in-memory arrays and associations to prevent redundant SQL COUNT queries %>
+          <span class="stat-count"><%= @collection_items.size %></span>
           <span class="stat-label">Collection</span>
         </div>
         <div class="stat-item">
-          <span class="stat-count"><%= @backlog_items.count %></span>
+          <span class="stat-count"><%= @backlog_items.size %></span>
           <span class="stat-label">Backlog</span>
         </div>
         <%= link_to following_user_path(@user), class: "stat-item" do %>
-          <span class="stat-count"><%= @user.following.count %></span>
+          <span class="stat-count"><%= @user.following.size %></span>
           <span class="stat-label">Following</span>
         <% end %>
         <%= link_to followers_user_path(@user), class: "stat-item" do %>
-          <span class="stat-count"><%= @user.followers.count %></span>
+          <span class="stat-count"><%= @user.followers.size %></span>
           <span class="stat-label">Followers</span>
         <% end %>
       </div>
