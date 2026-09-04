@@ -42,11 +42,16 @@ class ApplicationController < ActionController::Base
     redirect_to login_url
   end
 
+  # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
   def can_access?(resource)
     return false if resource.nil?
 
-    # Global and social media types are always accessible
-    accessible_types = %w[Movie TvShow TvEpisode Album Comic ComicIssue Book VideoGame WrestlingEvent Activity Comment]
+    # Delegate access check for Activity and Comment wrappers to underlying trackable/commentable
+    return can_access?(resource.trackable) if resource.is_a?(Activity) && resource.trackable.present?
+    return can_access?(resource.commentable) if resource.is_a?(Comment) && resource.commentable.present?
+
+    # Global catalog media types are always accessible
+    accessible_types = %w[Movie TvShow TvEpisode Album Comic ComicIssue Book VideoGame WrestlingEvent]
     return true if accessible_types.include?(resource.class.name)
 
     # 1. Owner access
@@ -60,4 +65,5 @@ class ApplicationController < ActionController::Base
 
     false
   end
+  # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 end
