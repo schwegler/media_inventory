@@ -5,5 +5,6 @@ export default class extends Controller {
 
   connect() {
     this.element.style.background = `conic-gradient(#3b82f6 0% ${this.percentageValue}%, #1e293b ${this.percentageValue}% 100%)`
+    this.element.setAttribute("data-connected", "true")
   }
 }
