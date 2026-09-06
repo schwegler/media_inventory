@@ -7,3 +7,8 @@
 **Vulnerability:** In `SessionsController`, the Bluesky login used `user.bsky_password == bsky_password`. In Ruby, `nil == nil` is true. If a user hadn't set an app password and the attacker provided a null/missing parameter, they could log in.
 **Learning:** Never rely on direct equality for password comparison without ensuring both sides are present. Even with `has_secure_password`, custom authentication flows must explicitly validate input presence.
 **Prevention:** Always check `.present?` on password parameters before attempting any comparison or authentication logic.
+
+## 2026-09-06 - [Private Review Leakage in ActivityPub Outbox]
+**Vulnerability:** `ActivitypubController#outbox` generated public ActivityStream objects for all user activities of type `reviewed`, exposing private user reviews (`is_public: false` on `LibraryItem`) to unauthenticated API requests.
+**Learning:** Public federation feeds and API endpoints must explicitly check resource privacy attributes (`is_public`) on underlying trackables or polymorphic items before serializing them into public activity collections.
+**Prevention:** Always verify `trackable.is_public` (or call authorization helpers like `can_access?`) when mapping domain objects for public API endpoints or ActivityPub feeds.
