@@ -9,6 +9,15 @@ RSpec.describe 'Search', type: :request do
       expect(response).to have_http_status(:success)
     end
 
+    it 'renders WAI-ARIA accessibility attributes for filter tabs' do
+      get search_path, params: { q: 'Matrix', type: 'movies' }
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include('role="tablist"')
+      expect(response.body).to include('aria-label="Filter results by category"')
+      expect(response.body).to include('role="tab"')
+      expect(response.body).to include('aria-selected="true"')
+    end
+
     it 'eager loads cover images and avoids N+1 queries when rendering results' do
       movie1 = Movie.create!(title: 'Matrix 1', director: 'Lana', release_year: 1999)
       movie2 = Movie.create!(title: 'Matrix 2', director: 'Lana', release_year: 2003)
