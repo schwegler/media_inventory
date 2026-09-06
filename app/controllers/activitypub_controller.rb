@@ -48,8 +48,13 @@ class ActivitypubController < ApplicationController
   private
 
   def outbox_item_for(act, domain)
+    return nil if act.trackable.nil?
+    # Security: Do not leak private user reviews in public ActivityPub outbox feed
+    return nil if act.trackable.respond_to?(:is_public) && !act.trackable.is_public
+
+    target = act.trackable.respond_to?(:item) ? act.trackable.item : act.trackable
     review_url = begin
-      polymorphic_url(act.trackable, host: domain)
+      polymorphic_url(target, host: domain)
     rescue StandardError
       nil
     end
