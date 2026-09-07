@@ -35,7 +35,8 @@
         <% stats = community_stats_for(@book) %>
         <span class="stat-item" title="Readers"><span class="stat-icon">👁</span> <%= stats[:watchers].size %></span>
         <span class="stat-item" title="Collectors"><span class="stat-icon">📁</span> <%= stats[:collectors].size %></span>
-        <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @book.likes.count %></span>
+        <%# Optimize to use .size instead of .count to utilize cached/loaded association array without SQL COUNT queries %>
+        <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @book.likes.size %></span>
       </div>
     </div>
 
