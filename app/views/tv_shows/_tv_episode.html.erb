@@ -59,9 +59,9 @@
           <%= form.hidden_field :consumed_at, value: Time.current.to_date %>
 
           <div class="episode-form-inputs">
-            <%= form.text_field :review, value: ep_lib&.review, placeholder: ep_lib&.consumed? ? "Edit review..." : "Add watch review...", class: "episode-input-review" %>
+            <%= form.text_field :review, value: ep_lib&.review, placeholder: ep_lib&.consumed? ? "Edit review..." : "Add watch review...", class: "episode-input-review", aria: { label: "Review for Episode #{ep.episode}" } %>
 
-            <%= form.select :rating, [["Rating", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: ep_lib&.rating }, { class: "episode-select-rating" } %>
+            <%= form.select :rating, [["Rating", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: ep_lib&.rating }, { class: "episode-select-rating", aria: { label: "Rating for Episode #{ep.episode}" } } %>
             <% if ep_lib&.consumed? %>
               <%= form.submit "Update", class: "episode-btn-rate" %>
             <%else%>
