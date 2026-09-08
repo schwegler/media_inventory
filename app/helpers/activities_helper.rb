@@ -38,7 +38,7 @@ module ActivitiesHelper
       artist = item.artist.present? ? html_escape(item.artist) : 'unknown artist'
       "#{user_link} added #{artist}'s '#{trackable_link}' to their album collection"
     when 'Comic'
-      issue = item.issue_number.present? ? " ##{item.issue_number}" : ''
+      issue = item.issue_number.present? ? " ##{html_escape(item.issue_number)}" : ''
       "#{user_link} added issue#{issue} of '#{trackable_link}' to their comic collection"
     when 'TvShow'
       "#{user_link} added TV show '#{trackable_link}' to their collection"
@@ -53,7 +53,7 @@ module ActivitiesHelper
 
   def reviewed_description(user_link, trackable, trackable_link)
     item = trackable.is_a?(LibraryItem) ? trackable.item : trackable
-    rating_str = trackable.rating.present? ? " (Rating: #{trackable.rating} ★)" : ''
+    rating_str = trackable.rating.present? ? " (Rating: #{html_escape(trackable.rating)} ★)" : ''
     case item.class.name
     when 'Movie'
       "#{user_link} reviewed movie '#{trackable_link}'#{rating_str}"
@@ -61,7 +61,7 @@ module ActivitiesHelper
       artist = item.artist.present? ? " by #{html_escape(item.artist)}" : ''
       "#{user_link} reviewed album '#{trackable_link}'#{artist}#{rating_str}"
     when 'Comic'
-      issue = item.issue_number.present? ? " issue ##{item.issue_number}" : ''
+      issue = item.issue_number.present? ? " issue ##{html_escape(item.issue_number)}" : ''
       "#{user_link} reviewed comic '#{trackable_link}'#{issue}#{rating_str}"
     when 'TvShow'
       "#{user_link} reviewed TV show '#{trackable_link}'#{rating_str}"
@@ -83,7 +83,7 @@ module ActivitiesHelper
       artist = item.artist.present? ? " by #{html_escape(item.artist)}" : ''
       "#{user_link} added album '#{trackable_link}'#{artist} to their watchlist"
     when 'Comic'
-      issue = item.issue_number.present? ? " issue ##{item.issue_number}" : ''
+      issue = item.issue_number.present? ? " issue ##{html_escape(item.issue_number)}" : ''
       "#{user_link} added comic '#{trackable_link}'#{issue} to their watchlist"
     when 'TvShow'
       "#{user_link} added TV show '#{trackable_link}' to their watchlist"
@@ -105,7 +105,7 @@ module ActivitiesHelper
       artist = item.artist.present? ? " by #{html_escape(item.artist)}" : ''
       "#{user_link} #{verb} album '#{trackable_link}'#{artist}#{date_str}"
     when 'Comic'
-      issue = item.issue_number.present? ? " issue ##{item.issue_number}" : ''
+      issue = item.issue_number.present? ? " issue ##{html_escape(item.issue_number)}" : ''
       "#{user_link} #{verb} comic '#{trackable_link}'#{issue}#{date_str}"
     when 'TvShow'
       "#{user_link} #{verb} TV show '#{trackable_link}'#{date_str}"
