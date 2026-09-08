@@ -3,7 +3,9 @@
 require 'rails_helper'
 
 RSpec.describe ActivitiesHelper, type: :helper do
-  let(:user) { User.create!(name: 'Alice', email: 'alice@example.com', password: 'password123', confirmed_at: Time.current) }
+  let(:user) do
+    User.create!(name: 'Alice', email: 'alice@example.com', password: 'password123', confirmed_at: Time.current)
+  end
 
   describe '#activity_link_description' do
     it 'escapes HTML inside rating string' do
