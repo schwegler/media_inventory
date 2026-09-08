@@ -1,10 +1,9 @@
 # frozen_string_literal: true
 
 class CollectionsController < ApplicationController
-  # OPTIMIZATION: Eager load polymorphic `:item` association and inner join media tables for search.
-  # PERFORMANCE IMPACT: Reduces database query count from 1 + 5*N (N+1 queries for each collection item)
-  # to a constant 5 queries (1 per media type). When search query is present, enables safe database-level
-  # filtering on media titles without triggering SQL "no such column: title" errors.
+  # OPTIMIZATION: Eager load polymorphic `:item` association, inner join media tables for search, and call `.load`.
+  # PERFORMANCE IMPACT: Loads records into memory in the controller action, eliminating up to 10 redundant SQL
+  # `SELECT COUNT(*)` queries executed during view rendering when `.any?` is evaluated on unloaded relations.
   def show
     @user = User.find(params[:user_id])
     @query = params[:q]
@@ -30,11 +29,9 @@ class CollectionsController < ApplicationController
 
   def fetch_collection_scope(item_type, table_name)
     scope = @user.library_items.includes(:item).where(item_type: item_type, is_public: true)
-    return scope if @query.blank?
-
-    # Join corresponding media table for database-level title search filtering
-    join_clause = sanitize_join_sql(table_name)
-    scope.joins(join_clause).where("#{table_name}.title LIKE ?", "%#{@query}%")
+    scope = scope.joins(sanitize_join_sql(table_name)).where("#{table_name}.title LIKE ?", "%#{@query}%") if @query.present?
+    # Eagerly load records into memory to prevent redundant SELECT COUNT(*) queries when .any? is called in views
+    scope.load
   end
 
   def sanitize_join_sql(table_name)
