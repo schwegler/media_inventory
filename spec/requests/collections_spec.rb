@@ -81,6 +81,14 @@ RSpec.describe 'Collections', type: :request do
         expect(response.body).to include('Public Video Game')
         expect(response.body).not_to include('Private Video Game')
       end
+
+      it 'filters public collections by search query parameter' do
+        get "/collections/#{user.id}", params: { q: 'Comic' }
+
+        expect(response.body).to include('Public Comic')
+        expect(response.body).not_to include('Public Album')
+        expect(response.body).not_to include('Public Movie')
+      end
     end
 
     context 'when the user is unconfirmed' do
