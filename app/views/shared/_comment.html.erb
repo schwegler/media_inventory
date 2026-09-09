@@ -44,7 +44,9 @@
 
   <% if comment.replies.any? %>
     <div class="comment-replies-list">
-      <% comment.replies.includes(:user).each do |reply| %>
+      <%# Performance optimization: Use in-memory preloaded replies collection when loaded to avoid redundant SQL queries %>
+      <% replies = comment.replies.loaded? ? comment.replies : comment.replies.includes(:user) %>
+      <% replies.each do |reply| %>
         <%= render 'shared/comment', comment: reply, matching_item: matching_item, depth: depth + 1 %>
       <% end %>
     </div>
