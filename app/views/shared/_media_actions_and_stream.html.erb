@@ -142,7 +142,7 @@ end
         
         <div class="inline-form-row">
           <div class="quick-review-rating-select">
-            <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: item.rating }, { class: "form-control quick-review-select" } %>
+            <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: item.rating }, { class: "form-control quick-review-select", aria: { label: "Rating" } } %>
           </div>
           
           <div class="inline-checkbox-group">
@@ -157,7 +157,7 @@ end
         </div>
 
         <div>
-          <%= f.text_area :review, placeholder: review_placeholder, rows: 3, class: "form-control quick-review-textarea" %>
+          <%= f.text_area :review, placeholder: review_placeholder, rows: 3, class: "form-control quick-review-textarea", aria: { label: review_placeholder } %>
         </div>
 
         <div class="ownership-details-row" style="margin-top: 15px; margin-bottom: 15px; display: flex; gap: 20px;">
@@ -166,7 +166,7 @@ end
               <%= f.check_box :owned_physically, id: "inline-phys-checkbox-#{item.id}" %>
               <%= f.label :owned_physically, "Own Physically", for: "inline-phys-checkbox-#{item.id}", class: "inline-checkbox-label", style: "margin: 0;" %>
             </div>
-            <%= f.select :owned_physically_format, physical_formats, { include_blank: 'Select Format...' }, { class: "form-control quick-review-select format-select", style: "width: 100%;" } %>
+            <%= f.select :owned_physically_format, physical_formats, { include_blank: 'Select Format...' }, { class: "form-control quick-review-select format-select", style: "width: 100%;", aria: { label: "Physical format" } } %>
           </div>
 
           <div class="inline-checkbox-group" style="display: flex; flex-direction: column; gap: 5px; flex: 1;">
@@ -174,7 +174,7 @@ end
               <%= f.check_box :owned_digitally, id: "inline-digi-checkbox-#{item.id}" %>
               <%= f.label :owned_digitally, "Own Digitally", for: "inline-digi-checkbox-#{item.id}", class: "inline-checkbox-label", style: "margin: 0;" %>
             </div>
-            <%= f.select :owned_digitally_format, digital_formats, { include_blank: 'Select Format...' }, { class: "form-control quick-review-select format-select", style: "width: 100%;" } %>
+            <%= f.select :owned_digitally_format, digital_formats, { include_blank: 'Select Format...' }, { class: "form-control quick-review-select format-select", style: "width: 100%;", aria: { label: "Digital format" } } %>
           </div>
         </div>
 
