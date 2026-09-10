@@ -3,7 +3,9 @@
 require 'rails_helper'
 
 RSpec.describe 'shared/_media_actions_and_stream.html.erb', type: :view do
-  let(:user) { User.create!(name: 'Test User', email: 'test@example.com', password: 'password', confirmed_at: Time.current) }
+  let(:user) do
+    User.create!(name: 'Test User', email: 'test@example.com', password: 'password', confirmed_at: Time.current)
+  end
   let(:movie) { Movie.create!(title: 'Inception', release_year: 2010, is_collected: true) }
 
   before do
