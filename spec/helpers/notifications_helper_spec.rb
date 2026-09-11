@@ -4,8 +4,24 @@ require 'rails_helper'
 
 RSpec.describe NotificationsHelper, type: :helper do
   describe '#notification_target_path' do
-    let(:user) { User.create!(name: 'Test User', email: 'test@example.com', password: 'password', password_confirmation: 'password', confirmed_at: Time.current) }
-    let(:actor) { User.create!(name: 'Actor User', email: 'actor@example.com', password: 'password', password_confirmation: 'password', confirmed_at: Time.current) }
+    let(:user) do
+      User.create!(
+        name: 'Test User',
+        email: 'test@example.com',
+        password: 'password',
+        password_confirmation: 'password',
+        confirmed_at: Time.current
+      )
+    end
+    let(:actor) do
+      User.create!(
+        name: 'Actor User',
+        email: 'actor@example.com',
+        password: 'password',
+        password_confirmation: 'password',
+        confirmed_at: Time.current
+      )
+    end
     let(:movie) { Movie.create!(title: 'Inception') }
 
     it 'returns nil when notification is nil or has no notifiable' do
