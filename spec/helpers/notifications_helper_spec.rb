@@ -2,16 +2,34 @@
 
 require 'rails_helper'
 
-# Specs in this file have access to a helper object that includes
-# the NotificationsHelper. For example:
-#
-# describe NotificationsHelper do
-#   describe "string concat" do
-#     it "concats two strings with spaces" do
-#       expect(helper.concat_strings("this","that")).to eq("this that")
-#     end
-#   end
-# end
 RSpec.describe NotificationsHelper, type: :helper do
-  pending "add some examples to (or delete) #{__FILE__}"
+  describe '#notification_target_path' do
+    let(:user) { User.create!(name: 'Test User', email: 'test@example.com', password: 'password', password_confirmation: 'password', confirmed_at: Time.current) }
+    let(:actor) { User.create!(name: 'Actor User', email: 'actor@example.com', password: 'password', password_confirmation: 'password', confirmed_at: Time.current) }
+    let(:movie) { Movie.create!(title: 'Inception') }
+
+    it 'returns nil when notification is nil or has no notifiable' do
+      expect(helper.notification_target_path(nil)).to be_nil
+      notification = Notification.new
+      expect(helper.notification_target_path(notification)).to be_nil
+    end
+
+    it 'returns path for a Like on a Movie' do
+      like = Like.create!(user: actor, likeable: movie)
+      notification = Notification.create!(recipient: user, actor: actor, action: 'liked', notifiable: like)
+      expect(helper.notification_target_path(notification)).to eq(movie_path(movie))
+    end
+
+    it 'returns path for a Comment on a Movie' do
+      comment = Comment.create!(user: actor, commentable: movie, content: 'Great movie!')
+      notification = Notification.create!(recipient: user, actor: actor, action: 'commented', notifiable: comment)
+      expect(helper.notification_target_path(notification)).to eq(movie_path(movie))
+    end
+
+    it 'returns path for an EditSuggestion' do
+      suggestion = EditSuggestion.create!(user: actor, suggestable: movie, proposed_changes: { 'title' => 'Inception 2' })
+      notification = Notification.create!(recipient: user, actor: actor, action: 'approved_edit', notifiable: suggestion)
+      expect(helper.notification_target_path(notification)).to eq(movie_path(movie))
+    end
+  end
 end
