@@ -7,3 +7,8 @@
 **Vulnerability:** In `SessionsController`, the Bluesky login used `user.bsky_password == bsky_password`. In Ruby, `nil == nil` is true. If a user hadn't set an app password and the attacker provided a null/missing parameter, they could log in.
 **Learning:** Never rely on direct equality for password comparison without ensuring both sides are present. Even with `has_secure_password`, custom authentication flows must explicitly validate input presence.
 **Prevention:** Always check `.present?` on password parameters before attempting any comparison or authentication logic.
+
+## 2026-09-11 - [Path Traversal Vulnerability in rubyzip Dependency]
+**Vulnerability:** `bundler-audit` flagged CVE-2026-85396 (GHSA-47m2-wp7j-p9vc) in `rubyzip < 3.4.0` during CI lint checks.
+**Learning:** Security dependencies or gem lockfiles in CI environments like `bundler-audit` automatically fetch updated advisory databases (`ruby-advisory-db`) that may enforce minimum safe gem versions on CI runs even if local tests pass.
+**Prevention:** Ensure dependency lockfiles (`Gemfile.lock`) satisfy security advisory databases by running `bundle exec bundler-audit --update` locally before submitting PRs.
