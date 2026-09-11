@@ -9,24 +9,30 @@
   <div class="notifications-list" style="display: flex; flex-direction: column; gap: 10px;">
     <% if @notifications.any? %>
       <% @notifications.each do |notification| %>
+        <% actor_name = notification.actor.name.presence || notification.actor.display_handle %>
+        <% target_path = notification_target_path(notification) %>
         <div class="notification-card <%= 'unread' if notification.read_at.nil? %>" style="padding: 1rem; background: <%= notification.read_at.nil? ? 'rgba(129, 140, 248, 0.1)' : 'rgba(255,255,255,0.02)' %>; border: 1px solid <%= notification.read_at.nil? ? 'rgba(129, 140, 248, 0.3)' : 'rgba(255,255,255,0.05)' %>; border-radius: 8px; display: flex; gap: 12px; align-items: flex-start;">
-          <%= user_avatar_tag(notification.actor, size: 40) %>
+          <%= link_to user_path(notification.actor), aria: { label: "#{actor_name}'s profile" } do %>
+            <%= user_avatar_tag(notification.actor, size: 40) %>
+          <% end %>
           <div class="notification-content" style="flex: 1;">
             <p style="margin: 0; font-size: 0.95rem;">
-              <strong><%= notification.actor.name.presence || notification.actor.display_handle %></strong>
+              <strong><%= link_to actor_name, user_path(notification.actor), style: "color: inherit; text-decoration: none;" %></strong>
               <% case notification.action %>
               <% when 'liked' %>
-                liked your <%= notification.notifiable.likeable_type.downcase %>.
+                liked your <%= target_path ? link_to(notification.notifiable.likeable_type.downcase, target_path, style: "color: #818cf8;") : notification.notifiable.likeable_type.downcase %>.
               <% when 'commented' %>
-                commented on your <%= notification.notifiable.commentable_type.downcase %>.
+                commented on your <%= target_path ? link_to(notification.notifiable.commentable_type.downcase, target_path, style: "color: #818cf8;") : notification.notifiable.commentable_type.downcase %>.
               <% when 'replied' %>
-                replied to your comment.
+                replied to your <%= target_path ? link_to("comment", target_path, style: "color: #818cf8;") : "comment" %>.
               <% when 'mentioned' %>
-                mentioned you in a comment.
+                mentioned you in a <%= target_path ? link_to("comment", target_path, style: "color: #818cf8;") : "comment" %>.
               <% when 'approved_edit' %>
-                approved your edit suggestion for <%= notification.notifiable.suggestable.title rescue notification.notifiable.suggestable.name rescue 'a media item' %>.
+                <% item_title = (notification.notifiable.suggestable.try(:title) || notification.notifiable.suggestable.try(:name) rescue 'a media item') %>
+                approved your edit suggestion for <%= target_path ? link_to(item_title, target_path, style: "color: #818cf8;") : item_title %>.
               <% when 'rejected_edit' %>
-                rejected your edit suggestion for <%= notification.notifiable.suggestable.title rescue notification.notifiable.suggestable.name rescue 'a media item' %>.
+                <% item_title = (notification.notifiable.suggestable.try(:title) || notification.notifiable.suggestable.try(:name) rescue 'a media item') %>
+                rejected your edit suggestion for <%= target_path ? link_to(item_title, target_path, style: "color: #818cf8;") : item_title %>.
               <% else %>
                 <%= notification.action %>
               <% end %>
