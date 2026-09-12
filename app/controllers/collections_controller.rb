@@ -34,7 +34,8 @@ class CollectionsController < ApplicationController
 
     # Join corresponding media table for database-level title search filtering
     join_clause = sanitize_join_sql(table_name)
-    scope.joins(join_clause).where("#{table_name}.title LIKE ?", "%#{@query}%")
+    table = Arel::Table.new(table_name)
+    scope.joins(join_clause).where(table[:title].matches("%#{@query}%"))
   end
 
   def sanitize_join_sql(table_name)
