@@ -28,13 +28,16 @@ class CollectionsController < ApplicationController
     @video_games = fetch_collection_scope('VideoGame', 'video_games')
   end
 
+  # OPTIMIZATION: Eagerly load relations with `.load` to cache results in memory.
+  # PERFORMANCE IMPACT: Prevents up to 10 redundant SQL `SELECT COUNT(*)` queries during view rendering
+  # when `.any?` is evaluated multiple times across collection section checks in `collections/show.html.erb`.
   def fetch_collection_scope(item_type, table_name)
     scope = @user.library_items.includes(:item).where(item_type: item_type, is_public: true)
-    return scope if @query.blank?
+    return scope.load if @query.blank?
 
     # Join corresponding media table for database-level title search filtering
     join_clause = sanitize_join_sql(table_name)
-    scope.joins(join_clause).where("#{table_name}.title LIKE ?", "%#{@query}%")
+    scope.joins(join_clause).where("#{table_name}.title LIKE ?", "%#{@query}%").load
   end
 
   def sanitize_join_sql(table_name)
