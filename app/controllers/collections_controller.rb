@@ -30,11 +30,10 @@ class CollectionsController < ApplicationController
 
   def fetch_collection_scope(item_type, table_name)
     scope = @user.library_items.includes(:item).where(item_type: item_type, is_public: true)
-    return scope if @query.blank?
-
-    # Join corresponding media table for database-level title search filtering
-    join_clause = sanitize_join_sql(table_name)
-    scope.joins(join_clause).where("#{table_name}.title LIKE ?", "%#{@query}%")
+    scope = scope.joins(sanitize_join_sql(table_name)).where("#{table_name}.title LIKE ?", "%#{@query}%") if @query.present?
+    # Chain .load to immediately execute queries in controller and populate in-memory arrays.
+    # Eliminates up to 10 redundant SQL SELECT COUNT(*) queries in collections view when .any? is checked repeatedly.
+    scope.load
   end
 
   def sanitize_join_sql(table_name)
