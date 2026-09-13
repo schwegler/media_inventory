@@ -17,3 +17,7 @@
 ## 2026-08-29 - [Focus Restoration and Input Auto-Focus in Toggled Containers]
 **Learning:** When toggling container visibility (like comment reply forms), automatically focusing the first visible interactive element improves keyboard flow, and restoring focus back to the triggering element upon close/cancel prevents focus loss to the document body.
 **Action:** In toggle controllers, detect visibility changes to focus `input:not([type='hidden'])` when shown and call `.focus()` on `triggerTarget` when hidden.
+
+## 2026-09-13 - [Pause Auto-Dismissal on Hover and Focus for Notifications]
+**Learning:** Automatically dismissing flash messages while a user is actively hovering over them to read or focusing into them with screen readers/keyboards causes unexpected content loss and breaks WCAG 2.2 SC 2.2.1.
+**Action:** In notification controllers, listen to `mouseenter` and `focusin` events to clear auto-dismiss timers, and resume on `mouseleave` and `focusout`.
