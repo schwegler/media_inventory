@@ -32,9 +32,11 @@ class CollectionsController < ApplicationController
     scope = @user.library_items.includes(:item).where(item_type: item_type, is_public: true)
     return scope if @query.blank?
 
-    # Join corresponding media table for database-level title search filtering
+    # Join corresponding media table and use Arel with sanitized query for secure title search filtering
     join_clause = sanitize_join_sql(table_name)
-    scope.joins(join_clause).where("#{table_name}.title LIKE ?", "%#{@query}%")
+    sanitized_query = ActiveRecord::Base.sanitize_sql_like(@query)
+    title_attr = Arel::Table.new(table_name)[:title]
+    scope.joins(join_clause).where(title_attr.matches("%#{sanitized_query}%", '\\'))
   end
 
   def sanitize_join_sql(table_name)
