@@ -81,6 +81,26 @@ RSpec.describe 'Collections', type: :request do
         expect(response.body).to include('Public Video Game')
         expect(response.body).not_to include('Private Video Game')
       end
+
+      it 'filters items by title query parameter securely' do
+        get "/collections/#{user.id}", params: { q: 'Movie' }
+
+        expect(response.body).to include('Public Movie')
+        expect(response.body).not_to include('Public Album')
+        expect(response.body).not_to include('Public Comic')
+      end
+
+      it 'escapes LIKE wildcard characters in search query' do
+        movie1 = Movie.create!(title: '100% Cotton')
+        movie2 = Movie.create!(title: '1000 Cotton')
+        LibraryItem.create!(user: user, item: movie1, is_public: true, is_collected: true)
+        LibraryItem.create!(user: user, item: movie2, is_public: true, is_collected: true)
+
+        get "/collections/#{user.id}", params: { q: '100%' }
+
+        expect(response.body).to include('100% Cotton')
+        expect(response.body).not_to include('1000 Cotton')
+      end
     end
 
     context 'when the user is unconfirmed' do
