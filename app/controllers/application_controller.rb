@@ -45,8 +45,11 @@ class ApplicationController < ActionController::Base
   def can_access?(resource)
     return false if resource.nil?
 
+    # Delegation for Activity resources (check underlying trackable)
+    return can_access?(resource.trackable) if resource.is_a?(Activity)
+
     # Global and social media types are always accessible
-    accessible_types = %w[Movie TvShow TvEpisode Album Comic ComicIssue Book VideoGame WrestlingEvent Activity Comment]
+    accessible_types = %w[Movie TvShow TvEpisode Album Comic ComicIssue Book VideoGame WrestlingEvent Comment]
     return true if accessible_types.include?(resource.class.name)
 
     # 1. Owner access

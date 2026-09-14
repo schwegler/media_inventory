@@ -89,6 +89,23 @@ RSpec.describe 'Likes', type: :request do
             expect(response.body).to include('turbo-stream action="replace" target="like_button_Movie_')
           end
         end
+
+        context 'Activity authorization' do
+          let(:other_user) do
+            User.create!(name: 'Other', email: 'other@example.com', password: 'password', username: 'other')
+          end
+          let(:private_library_item) do
+            LibraryItem.create!(user: other_user, item: movie, is_collected: true, is_public: false)
+          end
+          let(:activity) do
+            Activity.create!(user: other_user, trackable: private_library_item, activity_type: 'added')
+          end
+
+          it 'rejects liking an activity wrapping a private library item of another user' do
+            post toggle_like_path, params: { likeable_type: 'Activity', likeable_id: activity.id }
+            expect(response).to have_http_status(:forbidden)
+          end
+        end
       end
     end
   end
