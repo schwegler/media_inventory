@@ -92,7 +92,7 @@
             
             <div class="inline-form-row">
               <div class="quick-review-rating-select">
-                <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: @library_item&.rating }, { class: "form-control quick-review-select" } %>
+                <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: @library_item&.rating }, { class: "form-control quick-review-select", aria: { label: "Rating for #{@comic_issue.display_title}" } } %>
               </div>
             </div>
 
