@@ -42,6 +42,8 @@ RSpec.describe 'ActivityPub & WebFinger API', type: :request do
   end
 
   describe 'ActivityPub Outbox' do
+    let!(:movie) { Movie.create!(title: 'Inception', release_year: 2010) }
+
     it 'renders empty collection when there are no reviews' do
       get "/users/#{user.id}/outbox"
       expect(response).to have_http_status(:ok)
@@ -49,6 +51,26 @@ RSpec.describe 'ActivityPub & WebFinger API', type: :request do
       json = JSON.parse(response.body)
       expect(json['type']).to eq('OrderedCollection')
       expect(json['totalItems']).to eq(0)
+    end
+
+    it 'includes public reviews in the outbox payload' do
+      LibraryItem.create!(user: user, item: movie, review: 'Great movie!', rating: 5, is_public: true)
+
+      get "/users/#{user.id}/outbox"
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json['totalItems']).to eq(1)
+      expect(json['orderedItems'].first['object']['content']).to include('Inception: Great movie!')
+    end
+
+    it 'excludes private reviews from the outbox payload' do
+      LibraryItem.create!(user: user, item: movie, review: 'Private thoughts', rating: 3, is_public: false)
+
+      get "/users/#{user.id}/outbox"
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json['totalItems']).to eq(0)
+      expect(json['orderedItems']).to be_empty
     end
   end
 end
