@@ -48,8 +48,15 @@ class ActivitypubController < ApplicationController
   private
 
   def outbox_item_for(act, domain)
+    return nil unless act.trackable.present?
+    # Guard against information leakage: do not expose reviews for private user library items
+    return nil if act.trackable.respond_to?(:is_public) && !act.trackable.is_public
+
+    target_item = act.trackable.respond_to?(:item) ? act.trackable.item : act.trackable
+    return nil unless target_item.present?
+
     review_url = begin
-      polymorphic_url(act.trackable, host: domain)
+      polymorphic_url(target_item, host: domain)
     rescue StandardError
       nil
     end
@@ -65,7 +72,7 @@ class ActivitypubController < ApplicationController
         type: 'Note',
         published: act.created_at.utc.iso8601,
         attributedTo: activitypub_actor_url(@user.id, host: domain),
-        content: "Reviewed #{act.trackable&.title}: #{act.trackable&.review} (#{act.trackable&.rating} stars)",
+        content: "Reviewed #{target_item.title}: #{act.trackable.review} (#{act.trackable.rating} stars)",
         to: ['https://www.w3.org/ns/activitystreams#Public']
       }
     }
