@@ -89,14 +89,14 @@
     </aside>
 
     <main class="profile-content" data-controller="tabs">
-      <nav class="profile-tabs">
-        <button class="tab-btn active" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="posts">Activity</button>
-        <button class="tab-btn" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="collection">Collection</button>
-        <button class="tab-btn" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="backlog">Backlog</button>
-        <button class="tab-btn" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="likes">Likes</button>
+      <nav class="profile-tabs" role="tablist" aria-label="Profile sections">
+        <button class="tab-btn active" data-action="click->tabs#switch keydown->tabs#keydown" data-tabs-target="tab" data-tab-name="posts" role="tab" id="profile-tab-posts" aria-selected="true" aria-controls="profile-panel-posts" tabindex="0">Activity</button>
+        <button class="tab-btn" data-action="click->tabs#switch keydown->tabs#keydown" data-tabs-target="tab" data-tab-name="collection" role="tab" id="profile-tab-collection" aria-selected="false" aria-controls="profile-panel-collection" tabindex="-1">Collection</button>
+        <button class="tab-btn" data-action="click->tabs#switch keydown->tabs#keydown" data-tabs-target="tab" data-tab-name="backlog" role="tab" id="profile-tab-backlog" aria-selected="false" aria-controls="profile-panel-backlog" tabindex="-1">Backlog</button>
+        <button class="tab-btn" data-action="click->tabs#switch keydown->tabs#keydown" data-tabs-target="tab" data-tab-name="likes" role="tab" id="profile-tab-likes" aria-selected="false" aria-controls="profile-panel-likes" tabindex="-1">Likes</button>
       </nav>
 
-      <div class="tab-content" data-tabs-target="content" data-tab-name="posts">
+      <div class="tab-content" data-tabs-target="content" data-tab-name="posts" role="tabpanel" id="profile-panel-posts" aria-labelledby="profile-tab-posts">
         <% if current_user?(@user) %>
           <div class="post-creation-box card" style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 8px;">
             <%= form_with model: Post.new, url: posts_path, local: true do |f| %>
@@ -158,7 +158,7 @@
         </div>
       </div>
 
-      <div class="tab-content hidden" data-tabs-target="content" data-tab-name="collection">
+      <div class="tab-content hidden" data-tabs-target="content" data-tab-name="collection" role="tabpanel" id="profile-panel-collection" aria-labelledby="profile-tab-collection">
         <%= turbo_frame_tag "collection_frame" do %>
           <div class="media-filter-bar" style="margin-bottom: 20px;">
             <form action="<%= user_path(@user) %>" method="get" data-controller="filter" data-turbo-frame="collection_frame" data-turbo-action="advance">
@@ -188,7 +188,7 @@
         <% end %>
       </div>
 
-      <div class="tab-content hidden" data-tabs-target="content" data-tab-name="backlog">
+      <div class="tab-content hidden" data-tabs-target="content" data-tab-name="backlog" role="tabpanel" id="profile-panel-backlog" aria-labelledby="profile-tab-backlog">
         <div class="media-grid">
            <% if @backlog_items.any? %>
                <% @backlog_items.each do |lib_item| %>
@@ -202,7 +202,7 @@
         </div>
       </div>
 
-      <div class="tab-content hidden" data-tabs-target="content" data-tab-name="likes">
+      <div class="tab-content hidden" data-tabs-target="content" data-tab-name="likes" role="tabpanel" id="profile-panel-likes" aria-labelledby="profile-tab-likes">
         <div class="likes-feed">
           <% if @likes.any? %>
             <% @likes.each do |like| %>
