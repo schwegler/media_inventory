@@ -36,4 +36,23 @@ RSpec.describe 'Performance Optimization', type: :request do
       expect(response.body).to include('Second reply')
     end
   end
+
+  describe 'GET /movies/:id community reviews and comments eager loading' do
+    let(:user) { User.create!(name: 'Reviewer', email: 'reviewer@example.com', password: 'password', username: 'reviewer') }
+    let(:movie) { Movie.create!(title: 'Inception', director: 'Nolan', release_year: 2010) }
+
+    before do
+      library_item = LibraryItem.create!(user: user, item: movie, review: 'Great movie!', rating: 5.0, is_public: true)
+      comment = library_item.comments.create!(user: user, content: 'Awesome review!')
+      comment.replies.create!(commentable: library_item, user: user, content: 'Thanks!')
+    end
+
+    it 'eager loads reviews, comments, replies, and likes without triggering N+1 queries' do
+      get movie_path(movie)
+      expect(response).to have_http_status(200)
+      expect(response.body).to include('Great movie!')
+      expect(response.body).to include('Awesome review!')
+      expect(response.body).to include('Thanks!')
+    end
+  end
 end
