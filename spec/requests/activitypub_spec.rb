@@ -59,7 +59,7 @@ RSpec.describe 'ActivityPub & WebFinger API', type: :request do
       )
       public_activity = public_item.activities.find_by(activity_type: 'reviewed')
 
-      private_item = LibraryItem.create!(
+      LibraryItem.create!(
         user: user, item: movie, is_public: false, review: 'Secret review', rating: '1'
       )
 
