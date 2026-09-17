@@ -63,6 +63,12 @@ RSpec.describe 'Collections', type: :request do
         expect(response).to have_http_status(:success)
       end
 
+      it 'filters public collections by search query when q parameter is provided' do
+        get "/collections/#{user.id}?q=Public Album"
+        expect(response.body).to include('Public Album')
+        expect(response.body).not_to include('Public Comic')
+      end
+
       it 'displays only public collections for the user' do
         get "/collections/#{user.id}"
 
