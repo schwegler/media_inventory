@@ -89,11 +89,11 @@
     </aside>
 
     <main class="profile-content" data-controller="tabs">
-      <nav class="profile-tabs">
-        <button class="tab-btn active" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="posts">Activity</button>
-        <button class="tab-btn" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="collection">Collection</button>
-        <button class="tab-btn" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="backlog">Backlog</button>
-        <button class="tab-btn" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="likes">Likes</button>
+      <nav class="profile-tabs" role="tablist" aria-label="Profile section tabs">
+        <button class="tab-btn active" role="tab" aria-selected="true" tabindex="0" data-action="click->tabs#switch keydown->tabs#keydown" data-tabs-target="tab" data-tab-name="posts">Activity</button>
+        <button class="tab-btn" role="tab" aria-selected="false" tabindex="-1" data-action="click->tabs#switch keydown->tabs#keydown" data-tabs-target="tab" data-tab-name="collection">Collection</button>
+        <button class="tab-btn" role="tab" aria-selected="false" tabindex="-1" data-action="click->tabs#switch keydown->tabs#keydown" data-tabs-target="tab" data-tab-name="backlog">Backlog</button>
+        <button class="tab-btn" role="tab" aria-selected="false" tabindex="-1" data-action="click->tabs#switch keydown->tabs#keydown" data-tabs-target="tab" data-tab-name="likes">Likes</button>
       </nav>
 
       <div class="tab-content" data-tabs-target="content" data-tab-name="posts">
