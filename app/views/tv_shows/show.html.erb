@@ -35,12 +35,13 @@
         <% stats = community_stats_for(@tv_show) %>
         <span class="stat-item" title="Watchers"><span class="stat-icon">👁</span> <%= stats[:watchers].size %></span>
         <span class="stat-item" title="Collectors"><span class="stat-icon">📁</span> <%= stats[:collectors].size %></span>
-        <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @tv_show.likes.count %></span>
+        <%# Use .size instead of .count to utilize preloaded or in-memory collection array without extra SQL queries %>
+        <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @tv_show.likes.size %></span>
       </div>
     </div>
     <div style="margin-bottom: 2rem;">
       <% completed_count = logged_in? ? LibraryItem.where(user: current_user, item: @tv_show.tv_episodes, consumed: true).count : 0 %>
-      <%= render 'shared/progress_donut', total: @tv_show.tv_episodes.count, completed: completed_count %>
+      <%= render 'shared/progress_donut', total: @tv_show.tv_episodes.size, completed: completed_count %>
     </div>
   </div>
 
