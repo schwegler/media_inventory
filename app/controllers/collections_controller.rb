@@ -29,7 +29,9 @@ class CollectionsController < ApplicationController
   end
 
   def fetch_collection_scope(item_type, table_name)
-    scope = @user.library_items.includes(:item).where(item_type: item_type, is_public: true)
+    # Scope collection items by visibility: owner sees all items, visitors see only public items
+    scope = @user.library_items.includes(:item).where(item_type: item_type)
+    scope = scope.where(is_public: true) unless current_user?(@user)
     return scope if @query.blank?
 
     # Join corresponding media table for database-level title search filtering
