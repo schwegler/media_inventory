@@ -41,6 +41,7 @@
       </div>
 
       <div class="profile-stats">
+        <%# Use .size instead of .count to utilize loaded collection if present and prevent redundant database queries %>
         <div class="stat-item">
           <span class="stat-count"><%= @collection_items.size %></span>
           <span class="stat-label">Collection</span>

@@ -1,5 +1,6 @@
 <%# Local variables: item %>
 <% liked = logged_in? && current_user.liked?(item) %>
+<%# Use .size instead of .count to utilize loaded collection if present and prevent redundant database queries %>
 <% likes_count = item.likes.size %>
 <% action_prefix = liked ? "Unlike" : "Like" %>
 <% aria_label_text = "#{action_prefix}#{likes_count > 0 ? " (#{likes_count})" : ""}" %>

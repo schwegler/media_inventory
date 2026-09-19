@@ -33,6 +33,7 @@
       
       <div class="poster-stats">
         <span class="stat-item" title="Read"><span class="stat-icon">👁</span> <%= @library_item&.consumed? ? "Read" : "Unread" %></span>
+        <%# Use .size instead of .count to utilize loaded collection if present and prevent redundant database queries %>
         <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @comic_issue.likes.size %></span>
       </div>
     </div>
