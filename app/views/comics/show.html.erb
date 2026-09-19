@@ -35,12 +35,14 @@
         <% stats = community_stats_for(@comic) %>
         <span class="stat-item" title="Watchers"><span class="stat-icon">👁</span> <%= stats[:watchers].size %></span>
         <span class="stat-item" title="Collectors"><span class="stat-icon">📁</span> <%= stats[:collectors].size %></span>
-        <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @comic.likes.count %></span>
+        <%# Use .size instead of .count to utilize loaded collection if present and prevent redundant database queries %>
+        <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @comic.likes.size %></span>
       </div>
     </div>
     <div style="margin-top: 1rem;">
       <% completed_count = logged_in? ? LibraryItem.where(user: current_user, item: @comic.comic_issues, consumed: true).count : 0 %>
-      <%= render 'shared/progress_donut', total: @comic.comic_issues.count, completed: completed_count %>
+      <%# Use .size instead of .count to utilize loaded collection if present and prevent redundant database queries %>
+      <%= render 'shared/progress_donut', total: @comic.comic_issues.size, completed: completed_count %>
     </div>
   </div>
 
