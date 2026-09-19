@@ -13,7 +13,8 @@ class ComicIssuesController < ApplicationController
   def toggle_read
     @comic_issue = ComicIssue.find(params[:id])
 
-    unless LibraryItem.exists?(user: current_user, item: @comic_issue.comic)
+    # Security check: verify user can access parent comic and has it in their library
+    unless can_access?(@comic_issue.comic) && LibraryItem.exists?(user: current_user, item: @comic_issue.comic)
       redirect_to root_path, alert: 'Not authorized'
       return
     end

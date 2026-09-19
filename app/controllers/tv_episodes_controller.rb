@@ -13,7 +13,8 @@ class TvEpisodesController < ApplicationController
   def toggle_watched
     @tv_episode = TvEpisode.find(params[:id])
 
-    unless LibraryItem.exists?(user: current_user, item: @tv_episode.tv_show)
+    # Security check: verify user can access parent TV show and has it in their library
+    unless can_access?(@tv_episode.tv_show) && LibraryItem.exists?(user: current_user, item: @tv_episode.tv_show)
       redirect_to root_path, alert: 'Not authorized'
       return
     end
