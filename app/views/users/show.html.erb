@@ -163,7 +163,7 @@
           <div class="media-filter-bar" style="margin-bottom: 20px;">
             <form action="<%= user_path(@user) %>" method="get" data-controller="filter" data-turbo-frame="collection_frame" data-turbo-action="advance">
               <input type="hidden" name="tab" value="collection">
-              <select name="type" data-action="change->filter#submit" class="filter-select">
+              <select name="type" data-action="change->filter#submit" class="filter-select" aria-label="Filter collection by media type">
                 <option value="">All Media</option>
                 <option value="Movie" <%= 'selected' if params[:type] == 'Movie' %>>Movies</option>
                 <option value="TvShow" <%= 'selected' if params[:type] == 'TvShow' %>>TV Shows</option>
