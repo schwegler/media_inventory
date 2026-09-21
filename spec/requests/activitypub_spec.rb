@@ -50,5 +50,24 @@ RSpec.describe 'ActivityPub & WebFinger API', type: :request do
       expect(json['type']).to eq('OrderedCollection')
       expect(json['totalItems']).to eq(0)
     end
+
+    it 'escapes HTML in review title and body to prevent XSS' do
+      movie = Movie.create!(
+        title: '<script>alert("xss")</script>'
+      )
+      user.activities.create!(
+        activity_type: 'reviewed',
+        trackable: movie
+      )
+
+      get "/users/#{user.id}/outbox"
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json['totalItems']).to eq(1)
+
+      content = json['orderedItems'].first['object']['content']
+      expect(content).not_to include('<script>')
+      expect(content).to include('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;')
+    end
   end
 end

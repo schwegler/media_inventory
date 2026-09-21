@@ -65,7 +65,8 @@ class ActivitypubController < ApplicationController
         type: 'Note',
         published: act.created_at.utc.iso8601,
         attributedTo: activitypub_actor_url(@user.id, host: domain),
-        content: "Reviewed #{act.trackable&.title}: #{act.trackable&.review} (#{act.trackable&.rating} stars)",
+        content: "Reviewed #{ERB::Util.html_escape(act.trackable&.title)}: " \
+                 "#{ERB::Util.html_escape(act.trackable&.review)} (#{act.trackable&.rating} stars)",
         to: ['https://www.w3.org/ns/activitystreams#Public']
       }
     }
