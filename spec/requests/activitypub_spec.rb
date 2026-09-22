@@ -53,7 +53,7 @@ RSpec.describe 'ActivityPub & WebFinger API', type: :request do
 
     it 'renders public reviews and filters out private reviews while escaping HTML' do
       movie = Movie.create!(title: 'Inception <Script>')
-      lib_public = LibraryItem.create!(
+      LibraryItem.create!(
         user: user,
         item: movie,
         review: 'Great movie! <script>alert(1)</script>',
