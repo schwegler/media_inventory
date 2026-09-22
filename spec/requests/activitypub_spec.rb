@@ -50,5 +50,37 @@ RSpec.describe 'ActivityPub & WebFinger API', type: :request do
       expect(json['type']).to eq('OrderedCollection')
       expect(json['totalItems']).to eq(0)
     end
+
+    it 'renders public reviews and filters out private reviews while escaping HTML' do
+      movie = Movie.create!(title: 'Inception <Script>')
+      LibraryItem.create!(
+        user: user,
+        item: movie,
+        review: 'Great movie! <script>alert(1)</script>',
+        rating: '5',
+        is_public: true
+      )
+
+      # Update after creation so after_save log_activities isn't triggered on initial create
+      lib_private = LibraryItem.new(
+        user: user,
+        item: movie,
+        is_public: false
+      )
+      lib_private.save!(validate: false)
+      lib_private.update_columns(review: 'Secret review', rating: '4')
+      Activity.create!(user: user, trackable: lib_private, activity_type: 'reviewed')
+
+      get "/users/#{user.id}/outbox"
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json['totalItems']).to eq(1)
+
+      item = json['orderedItems'].first
+      expect(item['object']['content']).to include('Inception &lt;Script&gt;')
+      expect(item['object']['content']).to include('Great movie! &lt;script&gt;alert(1)&lt;/script&gt;')
+      expect(item['object']['content']).not_to include('<script>')
+      expect(item['object']['content']).not_to include('Secret review')
+    end
   end
 end
