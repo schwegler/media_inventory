@@ -15,6 +15,24 @@ class LandingController < ApplicationController
     end
   end
 
+  def db_status
+    # Ensure only admin users can access database metrics / diagnostic information
+    unless logged_in? && current_user&.admin?
+      redirect_to root_path, alert: 'Not authorized'
+      return
+    end
+
+    status = {
+      database_connected: ActiveRecord::Base.connection.active?,
+      activities_count: Activity.count,
+      users_count: User.count,
+      database_url: ENV['DATABASE_URL']&.gsub(%r{:[^@/]+@}, ':FILTERED@')
+    }
+    render json: status
+  rescue StandardError => e
+    render json: { database_connected: false, database_error: "#{e.class}: #{e.message}" }
+  end
+
   private
 
   def fetch_friend_activities
@@ -77,17 +95,5 @@ class LandingController < ApplicationController
             .order(created_at: :desc)
             .limit(20)
             .select { |a| a.trackable&.review.present? }.first(3)
-  end
-
-  def db_status
-    status = {
-      database_connected: ActiveRecord::Base.connection.active?,
-      activities_count: Activity.count,
-      users_count: User.count,
-      database_url: ENV['DATABASE_URL']&.gsub(%r{:[^@/]+@}, ':FILTERED@')
-    }
-    render json: status
-  rescue StandardError => e
-    render json: { database_connected: false, database_error: "#{e.class}: #{e.message}" }
   end
 end
