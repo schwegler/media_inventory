@@ -20,8 +20,8 @@ export default class extends Controller {
 
   showSuccess() {
     const btn = this.element.querySelector("button") || this.element
-    if (!btn.dataset.originalAriaLabel) {
-      btn.dataset.originalAriaLabel = btn.getAttribute("aria-label") || "Copy handle"
+    if (!btn.dataset.originalAriaLabel && btn.hasAttribute("aria-label")) {
+      btn.dataset.originalAriaLabel = btn.getAttribute("aria-label")
     }
 
     btn.setAttribute("aria-label", "Copied!")
@@ -38,7 +38,11 @@ export default class extends Controller {
         this.copyIconTarget.classList.remove("hidden")
         this.checkIconTarget.classList.add("hidden")
       }
-      btn.setAttribute("aria-label", btn.dataset.originalAriaLabel)
+      if (btn.dataset.originalAriaLabel !== undefined) {
+        btn.setAttribute("aria-label", btn.dataset.originalAriaLabel)
+      } else {
+        btn.removeAttribute("aria-label")
+      }
     }, 2000)
   }
 
