@@ -58,7 +58,12 @@ class User < ApplicationRecord
   has_many :followers, through: :passive_relationships, source: :follower
 
   def liked?(likeable)
-    likes.exists?(likeable_type: likeable.class.name, likeable_id: likeable.id)
+    # Reuse preloaded likes collection in memory if loaded to avoid N+1 SQL query
+    if likes.loaded?
+      likes.any? { |like| like.likeable_type == likeable.class.name && like.likeable_id == likeable.id }
+    else
+      likes.exists?(likeable_type: likeable.class.name, likeable_id: likeable.id)
+    end
   end
 
   def follow(other_user)
