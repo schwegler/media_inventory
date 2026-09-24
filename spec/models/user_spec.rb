@@ -92,4 +92,52 @@ RSpec.describe User, type: :model do
     end
     it { should_not be_valid }
   end
+
+  describe '#liked?' do
+    let!(:user) { User.create!(name: 'Tester', email: 'tester@example.com', password: 'password123') }
+    let!(:post_item) { Post.create!(user: user, content: 'Test post') }
+
+    context 'when likes association is not loaded' do
+      it 'returns true when liked and executes database query' do
+        Like.create!(user: user, likeable: post_item)
+        expect(user.likes.loaded?).to be false
+        expect(user.liked?(post_item)).to be true
+      end
+
+      it 'returns false when not liked' do
+        expect(user.liked?(post_item)).to be false
+      end
+    end
+
+    context 'when likes association is loaded' do
+      it 'uses in-memory checking without making extra database queries' do
+        Like.create!(user: user, likeable: post_item)
+        user.likes.load
+
+        expect(user.likes.loaded?).to be true
+        queries = []
+        subscription = ActiveSupport::Notifications.subscribe('sql.active_record') do |_name, _start, _finish, _id, payload|
+          queries << payload[:sql] unless payload[:name] == 'SCHEMA'
+        end
+
+        expect(user.liked?(post_item)).to be true
+        ActiveSupport::Notifications.unsubscribe(subscription)
+        expect(queries).to be_empty
+      end
+
+      it 'returns false in memory when not liked' do
+        user.likes.load
+
+        expect(user.likes.loaded?).to be true
+        queries = []
+        subscription = ActiveSupport::Notifications.subscribe('sql.active_record') do |_name, _start, _finish, _id, payload|
+          queries << payload[:sql] unless payload[:name] == 'SCHEMA'
+        end
+
+        expect(user.liked?(post_item)).to be false
+        ActiveSupport::Notifications.unsubscribe(subscription)
+        expect(queries).to be_empty
+      end
+    end
+  end
 end
