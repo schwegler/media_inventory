@@ -6,12 +6,22 @@ export default class extends Controller {
   static targets = ["checkbox", "dateRow"]
 
   connect() {
-    this.toggle()
+    this.toggle(false)
+    this.element.dataset.connected = "true"
   }
 
-  toggle() {
+  toggle(shouldFocus = true) {
     if (this.hasDateRowTarget && this.hasCheckboxTarget) {
-      this.dateRowTarget.style.display = this.checkboxTarget.checked ? "block" : "none"
+      const isChecked = this.checkboxTarget.checked
+      this.dateRowTarget.style.display = isChecked ? "block" : "none"
+      this.checkboxTarget.setAttribute("aria-expanded", isChecked.toString())
+
+      if (isChecked && shouldFocus) {
+        const dateInput = this.dateRowTarget.querySelector("input")
+        if (dateInput) {
+          dateInput.focus()
+        }
+      }
     }
   }
 }
