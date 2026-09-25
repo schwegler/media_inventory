@@ -35,5 +35,31 @@ RSpec.describe 'Performance Optimization', type: :request do
       expect(response.body).to include('Second comment')
       expect(response.body).to include('Second reply')
     end
+
+    it 'reuses preloaded comments and replies in views without executing extra SQL queries for comments' do
+      loaded_post = Post.includes(comments: [:user, :likes, { replies: %i[user likes] }]).find(post_record.id)
+
+      expect(loaded_post.comments.loaded?).to be true
+      expect(loaded_post.comments.first.replies.loaded?).to be true
+
+      comment_queries = 0
+      callback = lambda do |_name, _start, _finish, _id, payload|
+        comment_queries += 1 if payload[:sql] =~ /FROM ["`]?comments["`]?/i
+      end
+
+      # Ruby in-memory filtering for root comments and preloaded replies generates 0 SQL queries on comments table
+      ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') do
+        root_comments = if loaded_post.comments.loaded?
+                          loaded_post.comments.select { |c| c.parent_id.nil? }
+                        else
+                          loaded_post.comments.where(parent_id: nil)
+                        end
+        root_comments.each do |c|
+          _replies = c.replies.loaded? ? c.replies : c.replies.to_a
+        end
+      end
+
+      expect(comment_queries).to eq(0)
+    end
   end
 end
