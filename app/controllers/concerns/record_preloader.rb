@@ -24,7 +24,10 @@ module RecordPreloader
       associations << { user: { avatar_attachment: :blob } }
     end
     associations << :likes if klass.reflect_on_association(:likes)
-    associations << :comments if klass.reflect_on_association(:comments)
+    if klass.reflect_on_association(:comments)
+      associations << { comments: [:likes, { user: { avatar_attachment: :blob } },
+                                   { replies: [:likes, { user: { avatar_attachment: :blob } }] }] }
+    end
     associations << :likeable if klass.reflect_on_association(:likeable)
 
     return if associations.empty?
