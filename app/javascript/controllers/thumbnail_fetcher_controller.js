@@ -63,10 +63,15 @@ export default class extends Controller {
       this.modalTitleTarget.textContent = "Log Details"
     }
 
-    // Ensure focus is moved to an interactive element in the new stage
-    if (this.hasBackBtnTarget) {
-      setTimeout(() => this.backBtnTarget.focus(), 50)
-    }
+    // Ensure focus is moved to the first interactive form input in details stage, or back button
+    setTimeout(() => {
+      const firstInput = this.hasDetailsStageTarget ? this.detailsStageTarget.querySelector("input:not([type='hidden']), textarea, select") : null
+      if (firstInput) {
+        firstInput.focus()
+      } else if (this.hasBackBtnTarget) {
+        this.backBtnTarget.focus()
+      }
+    }, 50)
   }
 
   showManualForm() {
