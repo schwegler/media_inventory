@@ -81,7 +81,7 @@ class LandingController < ApplicationController
             .joins(join_sql)
             .where(activity_type: 'reviewed')
             .where.not(library_items: { review: [nil, ''] })
-            .order(created_at: :desc)
+            .order(activities: { created_at: :desc })
             .limit(3)
   end
 
