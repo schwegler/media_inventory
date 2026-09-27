@@ -72,11 +72,17 @@ class LandingController < ApplicationController
   end
 
   def fetch_popular_reviews
-    Activity.includes(:user, :trackable)
+    # Optimize to filter for non-blank reviews at the SQL level via library_items join
+    # instead of loading up to 20 activity records and filtering in Ruby.
+    # Note: trackable is preloaded via preload_social_feed to prevent EagerLoadPolymorphicError with joins.
+    join_sql = 'INNER JOIN library_items ON library_items.id = activities.trackable_id ' \
+               "AND activities.trackable_type = 'LibraryItem'"
+    Activity.includes(:user)
+            .joins(join_sql)
             .where(activity_type: 'reviewed')
-            .order(created_at: :desc)
-            .limit(20)
-            .select { |a| a.trackable&.review.present? }.first(3)
+            .where.not(library_items: { review: [nil, ''] })
+            .order(activities: { created_at: :desc })
+            .limit(3)
   end
 
   def db_status
