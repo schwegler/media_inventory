@@ -7,6 +7,27 @@ export default class extends Controller {
 
   connect() {
     this.element.dataset.connected = "true"
+    this.keydownHandler = this.keydown.bind(this)
+    this.element.addEventListener("keydown", this.keydownHandler)
+  }
+
+  disconnect() {
+    if (this.element && this.keydownHandler) {
+      this.element.removeEventListener("keydown", this.keydownHandler)
+    }
+  }
+
+  keydown(event) {
+    if (event.key === "Escape") {
+      const anyVisible = this.elementTargets.some(
+        (el) => !el.classList.contains(this.hiddenClass)
+      )
+      if (anyVisible) {
+        event.preventDefault()
+        event.stopPropagation()
+        this.hide(event)
+      }
+    }
   }
 
   toggle(event) {
