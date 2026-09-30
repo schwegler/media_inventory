@@ -33,7 +33,7 @@
       
       <div class="poster-stats">
         <span class="stat-item" title="Read"><span class="stat-icon">👁</span> <%= @library_item&.consumed? ? "Read" : "Unread" %></span>
-        <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @comic_issue.likes.count %></span>
+        <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @comic_issue.likes.size %></span>
       </div>
     </div>
   </div>
