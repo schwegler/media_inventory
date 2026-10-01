@@ -72,6 +72,33 @@ module RecordPreloader
     activities
   end
 
+  def preload_notifications_associations(notifications)
+    return notifications if notifications.blank?
+
+    notifiables = notifications.map(&:notifiable).compact
+    notifiables.group_by(&:class).each do |klass, grouped_notifiables|
+      case klass.name
+      when 'Like'
+        ActiveRecord::Associations::Preloader.new(
+          records: grouped_notifiables,
+          associations: :likeable
+        ).call
+      when 'Comment'
+        ActiveRecord::Associations::Preloader.new(
+          records: grouped_notifiables,
+          associations: :commentable
+        ).call
+      when 'EditSuggestion'
+        ActiveRecord::Associations::Preloader.new(
+          records: grouped_notifiables,
+          associations: :suggestable
+        ).call
+      end
+    end
+
+    notifications
+  end
+
   def preload_library_items(library_items)
     return library_items if library_items.blank?
 

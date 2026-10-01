@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class NotificationsController < ApplicationController
+  include RecordPreloader
+
   before_action :logged_in_user
 
   def index
@@ -9,6 +11,9 @@ class NotificationsController < ApplicationController
                                  .includes(:notifiable, actor: { avatar_attachment: :blob })
                                  .order(created_at: :desc)
                                  .limit(50)
+                                 .to_a
+
+    preload_notifications_associations(@notifications)
   end
 
   def mark_as_read
