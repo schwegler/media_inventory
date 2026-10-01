@@ -36,4 +36,33 @@ RSpec.describe 'Performance Optimization', type: :request do
       expect(response.body).to include('Second reply')
     end
   end
+
+  describe 'GET /notifications' do
+    let(:user) do
+      User.create!(name: 'Recipient', email: 'recipient@example.com', password: 'password', username: 'recipient')
+    end
+    let(:actor) { User.create!(name: 'Actor', email: 'actor@example.com', password: 'password', username: 'actor') }
+    let(:movie) { Movie.create!(title: 'Inception') }
+
+    before do
+      post login_path, params: { session: { email: user.email, password: 'password' } }
+
+      # Create various notifications with polymorphic targets (Like, Comment, EditSuggestion)
+      like = Like.create!(user: actor, likeable: movie)
+      comment = Comment.create!(user: actor, commentable: movie, content: 'Great movie!')
+      edit_suggestion = EditSuggestion.create!(user: actor, suggestable: movie, proposed_changes: { title: 'Inception 2' })
+
+      Notification.create!(recipient: user, actor: actor, notifiable: like, action: 'liked')
+      Notification.create!(recipient: user, actor: actor, notifiable: comment, action: 'commented')
+      Notification.create!(recipient: user, actor: actor, notifiable: edit_suggestion, action: 'approved_edit')
+    end
+
+    it 'eager loads polymorphic notification targets and renders successfully' do
+      get notifications_path
+      expect(response).to have_http_status(200)
+      expect(response.body).to include('liked your movie.')
+      expect(response.body).to include('commented on your movie.')
+      expect(response.body).to include('approved your edit suggestion for Inception')
+    end
+  end
 end
