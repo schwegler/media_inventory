@@ -1,7 +1,9 @@
 <%# Local variables: matching_item %>
 <div class="review-comments-box" id="comments_for_<%= matching_item.class.name %>_<%= matching_item.id %>" style="border-top: 1px dashed rgba(255,255,255,0.05);">
   <div class="comments-list" id="comments_list_for_<%= matching_item.class.name %>_<%= matching_item.id %>" style="display: flex; flex-direction: column; gap: 8px;">
-    <% matching_item.comments.where(parent_id: nil).includes(:user).each do |comment| %>
+    <%# Reuse in-memory loaded comments if available to avoid DB queries; otherwise fallback to eager loading user and avatar blob %>
+    <% comments = matching_item.comments.loaded? ? matching_item.comments.select { |c| c.parent_id.nil? } : matching_item.comments.where(parent_id: nil).includes(user: { avatar_attachment: :blob }).to_a %>
+    <% comments.each do |comment| %>
       <%= render 'shared/comment', comment: comment, matching_item: matching_item, depth: 0 %>
     <% end %>
   </div>
@@ -10,7 +12,7 @@
     <%= form_with model: Comment.new, url: comments_path, local: false, class: 'comment-form', style: 'margin-top: 10px; display: flex; gap: 8px;' do |cf| %>
       <%= cf.hidden_field :commentable_type, value: matching_item.class.name %>
       <%= cf.hidden_field :commentable_id, value: matching_item.id %>
-      <%= cf.text_field :content, placeholder: 'Write a comment...', required: true, style: 'flex: 1;' %>
+      <%= cf.text_field :content, placeholder: 'Write a comment...', required: true, style: 'flex: 1;', aria: { label: 'Write a comment' } %>
       <div class="quick-review-submit-row"><%= cf.submit 'Comment', class: 'btn btn-primary quick-review-submit-btn' %></div>
     <% end %>
   <% end %>
