@@ -55,7 +55,8 @@ gem 'omniauth', '~> 2.1'
 gem 'omniauth-atproto', '~> 0.1.4'
 gem 'omniauth-oauth2', '~> 1.9'
 gem 'omniauth-rails_csrf_protection', '~> 2.0'
-gem 'rubyzip', '~> 2.3.0'
+# Updated to >= 3.4.0 to resolve CVE-2026-85396 path traversal advisory in bundler-audit CI
+gem 'rubyzip', '>= 3.4.0'
 
 gem 'administrate', '~> 1.0'
 
