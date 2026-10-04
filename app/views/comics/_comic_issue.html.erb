@@ -14,7 +14,7 @@
             <% end %>
           </span>
 
-          <% issue_lib = LibraryItem.find_by(user: current_user, item: issue) if logged_in? %>
+          <% issue_lib = local_assigns.key?(:issue_lib) ? issue_lib : (LibraryItem.find_by(user: current_user, item: issue) if logged_in?) %>
           <% if logged_in? && @library_item.present? %>
             <div class="episode-actions-wrapper">
               <% if issue_lib&.consumed? %>

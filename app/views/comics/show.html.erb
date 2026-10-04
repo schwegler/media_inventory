@@ -35,11 +35,14 @@
         <% stats = community_stats_for(@comic) %>
         <span class="stat-item" title="Watchers"><span class="stat-icon">👁</span> <%= stats[:watchers].size %></span>
         <span class="stat-item" title="Collectors"><span class="stat-icon">📁</span> <%= stats[:collectors].size %></span>
-        <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @comic.likes.count %></span>
+        <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @comic.likes.size %></span>
       </div>
     </div>
     <div style="margin-top: 1rem;">
-      <% completed_count = logged_in? ? LibraryItem.where(user: current_user, item: @comic.comic_issues, consumed: true).count : 0 %>
+      <%
+        user_issues_library_items = logged_in? ? current_user.library_items.where(item_type: 'ComicIssue', item_id: @comic.comic_issues.select(:id)).index_by(&:item_id) : {}
+        completed_count = user_issues_library_items.values.count(&:consumed?)
+      %>
       <%= render 'shared/progress_donut', total: @comic.comic_issues.count, completed: completed_count %>
     </div>
   </div>
@@ -84,7 +87,7 @@
 
           <div class="season-episodes-list" style="display: flex; flex-direction: column; gap: 12px;">
             <% @comic.comic_issues.order(:issue_number).each do |issue| %>
-              <%= render 'comics/comic_issue', issue: issue, comic: @comic %>
+              <%= render 'comics/comic_issue', issue: issue, comic: @comic, issue_lib: user_issues_library_items[issue.id] %>
             <% end %>
           </div>
         </div>
