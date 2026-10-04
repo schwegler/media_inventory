@@ -47,13 +47,27 @@ class ActivitypubController < ApplicationController
 
   private
 
+  # rubocop:disable Metrics/MethodLength
   def outbox_item_for(act, domain)
+    return nil unless act.trackable.present?
+    # Ensure private user items are omitted to prevent information disclosure
+    return nil if act.trackable.respond_to?(:is_public) && !act.trackable.is_public
+
+    # Extract target media item if trackable is a LibraryItem wrapper
+    target = act.trackable.is_a?(LibraryItem) ? act.trackable.item : act.trackable
+    return nil if target.nil?
+
     review_url = begin
-      polymorphic_url(act.trackable, host: domain)
+      polymorphic_url(target, host: domain)
     rescue StandardError
       nil
     end
     return nil if review_url.nil?
+
+    # HTML-escape user controlled fields to prevent stored XSS
+    title = ERB::Util.html_escape(target.try(:title) || target.try(:name) || '')
+    review = ERB::Util.html_escape(act.trackable.try(:review).to_s)
+    rating = act.trackable.try(:rating)
 
     {
       '@context': 'https://www.w3.org/ns/activitystreams',
@@ -65,9 +79,10 @@ class ActivitypubController < ApplicationController
         type: 'Note',
         published: act.created_at.utc.iso8601,
         attributedTo: activitypub_actor_url(@user.id, host: domain),
-        content: "Reviewed #{act.trackable&.title}: #{act.trackable&.review} (#{act.trackable&.rating} stars)",
+        content: "Reviewed #{title}: #{review} (#{rating} stars)",
         to: ['https://www.w3.org/ns/activitystreams#Public']
       }
     }
   end
+  # rubocop:enable Metrics/MethodLength
 end
