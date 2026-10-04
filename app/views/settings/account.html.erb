@@ -8,6 +8,7 @@
       <h3 class="section-subtitle">Email Address</h3>
       <%= form_with(model: @user, url: settings_update_account_path, local: true, class: "settings-form") do |f| %>
         <div class="form-group">
+          <%= f.label :email, "Email Address" %>
           <%= f.email_field :email, class: 'form-control', placeholder: 'your@email.com' %>
         </div>
         <div class="form-actions">
