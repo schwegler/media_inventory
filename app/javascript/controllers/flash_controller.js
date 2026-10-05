@@ -5,13 +5,46 @@ export default class extends Controller {
   static values = { dismissAfter: { type: Number, default: 3000 } }
 
   connect() {
+    this.pause = this.pause.bind(this)
+    this.resume = this.resume.bind(this)
+
+    this.element.addEventListener("mouseenter", this.pause)
+    this.element.addEventListener("mouseleave", this.resume)
+    this.element.addEventListener("focusin", this.pause)
+    this.element.addEventListener("focusout", this.resume)
+
+    this.startTimer()
+    this.element.dataset.connected = "true"
+  }
+
+  disconnect() {
+    this.clearTimer()
+    this.element.removeEventListener("mouseenter", this.pause)
+    this.element.removeEventListener("mouseleave", this.resume)
+    this.element.removeEventListener("focusin", this.pause)
+    this.element.removeEventListener("focusout", this.resume)
+  }
+
+  startTimer() {
+    this.clearTimer()
     this.timeout = setTimeout(() => {
       this.dismiss()
     }, this.dismissAfterValue)
   }
 
-  disconnect() {
-    if (this.timeout) clearTimeout(this.timeout)
+  clearTimer() {
+    if (this.timeout) {
+      clearTimeout(this.timeout)
+      this.timeout = null
+    }
+  }
+
+  pause() {
+    this.clearTimer()
+  }
+
+  resume() {
+    this.startTimer()
   }
 
   dismiss() {
