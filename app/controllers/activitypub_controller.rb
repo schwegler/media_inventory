@@ -47,13 +47,22 @@ class ActivitypubController < ApplicationController
 
   private
 
+  # rubocop:disable Metrics/MethodLength
   def outbox_item_for(act, domain)
+    trackable = act.trackable
+    return nil if trackable.nil? || (trackable.respond_to?(:is_public) && !trackable.is_public)
+
+    target = trackable.is_a?(LibraryItem) ? trackable.item : trackable
     review_url = begin
-      polymorphic_url(act.trackable, host: domain)
+      polymorphic_url(target, host: domain)
     rescue StandardError
       nil
     end
     return nil if review_url.nil?
+
+    title = ERB::Util.html_escape(trackable.try(:title) || target.try(:title) || 'an item')
+    review = ERB::Util.html_escape(trackable.try(:review).to_s)
+    rating = trackable.try(:rating)
 
     {
       '@context': 'https://www.w3.org/ns/activitystreams',
@@ -65,9 +74,10 @@ class ActivitypubController < ApplicationController
         type: 'Note',
         published: act.created_at.utc.iso8601,
         attributedTo: activitypub_actor_url(@user.id, host: domain),
-        content: "Reviewed #{act.trackable&.title}: #{act.trackable&.review} (#{act.trackable&.rating} stars)",
+        content: "Reviewed #{title}: #{review} (#{rating} stars)",
         to: ['https://www.w3.org/ns/activitystreams#Public']
       }
     }
   end
+  # rubocop:enable Metrics/MethodLength
 end
