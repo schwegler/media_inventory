@@ -74,12 +74,13 @@ class LandingController < ApplicationController
   def fetch_popular_reviews
     # Filter non-blank reviews directly in SQL via INNER JOIN on library_items
     # to avoid loading 20 records into Ruby array memory and filtering downstream.
-    # Omit :trackable from includes to prevent ActiveRecord::EagerLoadPolymorphicError;
-    # associations are preloaded downstream via preload_social_feed.
+    # Use preload(:user, :trackable) to safely eager load polymorphic trackable and user
+    # without ActiveRecord::EagerLoadPolymorphicError when combined with custom SQL joins.
     join_clause = 'INNER JOIN library_items ON activities.trackable_id = library_items.id ' \
                   "AND activities.trackable_type = 'LibraryItem'"
 
-    Activity.joins(join_clause)
+    Activity.preload(:user, :trackable)
+            .joins(join_clause)
             .where(activity_type: 'reviewed')
             .where.not(library_items: { review: [nil, ''] })
             .order(activities: { created_at: :desc })
