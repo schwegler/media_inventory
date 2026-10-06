@@ -48,24 +48,38 @@ class ActivitypubController < ApplicationController
   private
 
   def outbox_item_for(act, domain)
+    trackable = act.trackable
+    return nil if trackable.nil? || (trackable.respond_to?(:is_public) && !trackable.is_public)
+
+    target = trackable.is_a?(LibraryItem) ? trackable.item : trackable
+    return nil if target.nil?
+
     review_url = begin
-      polymorphic_url(act.trackable, host: domain)
+      polymorphic_url(target, host: domain)
     rescue StandardError
       nil
     end
     return nil if review_url.nil?
 
+    build_note_activity(act, trackable, review_url, domain)
+  end
+
+  def build_note_activity(act, trackable, review_url, domain)
+    actor_url = activitypub_actor_url(@user.id, host: domain)
+    title = ERB::Util.html_escape(trackable.title)
+    review = ERB::Util.html_escape(trackable.review)
+
     {
       '@context': 'https://www.w3.org/ns/activitystreams',
       id: "#{activitypub_outbox_url(@user.id, host: domain)}/activity/#{act.id}",
       type: 'Create',
-      actor: activitypub_actor_url(@user.id, host: domain),
+      actor: actor_url,
       object: {
         id: "#{review_url}#review-#{act.id}",
         type: 'Note',
         published: act.created_at.utc.iso8601,
-        attributedTo: activitypub_actor_url(@user.id, host: domain),
-        content: "Reviewed #{act.trackable&.title}: #{act.trackable&.review} (#{act.trackable&.rating} stars)",
+        attributedTo: actor_url,
+        content: "Reviewed #{title}: #{review} (#{trackable.rating} stars)",
         to: ['https://www.w3.org/ns/activitystreams#Public']
       }
     }

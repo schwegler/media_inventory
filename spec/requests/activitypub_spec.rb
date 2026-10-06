@@ -50,5 +50,41 @@ RSpec.describe 'ActivityPub & WebFinger API', type: :request do
       expect(json['type']).to eq('OrderedCollection')
       expect(json['totalItems']).to eq(0)
     end
+
+    it 'renders public reviews with escaped HTML content and unwrapped media URLs' do
+      movie = Movie.create!(title: 'The Matrix <script>alert(1)</script>')
+      library_item = LibraryItem.create!(
+        user: user,
+        item: movie,
+        is_public: true,
+        review: 'Awesome movie <b>cool</b>',
+        rating: 5
+      )
+
+      get "/users/#{user.id}/outbox"
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json['totalItems']).to eq(1)
+      note = json['orderedItems'].first['object']
+      expect(note['content']).to include('The Matrix &lt;script&gt;alert(1)&lt;/script&gt;')
+      expect(note['content']).to include('Awesome movie &lt;b&gt;cool&lt;/b&gt;')
+      expect(note['id']).to include("/movies/#{movie.id}#review-#{library_item.activities.last.id}")
+    end
+
+    it 'excludes private library item reviews from outbox' do
+      movie = Movie.create!(title: 'Secret Movie')
+      LibraryItem.create!(
+        user: user,
+        item: movie,
+        is_public: false,
+        review: 'Private thoughts',
+        rating: 4
+      )
+
+      get "/users/#{user.id}/outbox"
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json['totalItems']).to eq(0)
+    end
   end
 end
