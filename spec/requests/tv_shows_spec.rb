@@ -52,6 +52,31 @@ RSpec.describe 'TvShows', type: :request do
       expect(response).to have_http_status(200)
       expect(response.body).to include('Breaking Bad')
     end
+
+    context 'when logged in with episodes and user library items' do
+      let(:user) do
+        User.create!(name: 'Viewer', email: 'viewer@example.com', password: 'password123',
+                     password_confirmation: 'password123')
+      end
+
+      before do
+        post login_path, params: { session: { email: user.email, password: 'password123' } }
+      end
+
+      it 'renders episodes and preloaded library status efficiently' do
+        tv_show = TvShow.create!(title: 'Severance')
+        LibraryItem.create!(user: user, item: tv_show, is_collected: true)
+        ep1 = TvEpisode.create!(tv_show: tv_show, season: 1, episode: 1, name: 'Good News About Hell')
+        TvEpisode.create!(tv_show: tv_show, season: 1, episode: 2, name: 'Half Loop')
+        LibraryItem.create!(user: user, item: ep1, consumed: true)
+
+        get tv_show_path(tv_show)
+        expect(response).to have_http_status(200)
+        expect(response.body).to include('Good News About Hell')
+        expect(response.body).to include('Half Loop')
+        expect(response.body).to include('Watched')
+      end
+    end
   end
 
   describe 'POST /tv_shows' do

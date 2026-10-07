@@ -38,9 +38,18 @@
         <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @comic.likes.count %></span>
       </div>
     </div>
+    <%
+      # OPTIMIZATION: Preload all user LibraryItem records for this comic's issues in a single query
+      # to prevent N+1 queries during comic issue list rendering and progress donut calculation.
+      user_issues_lib = if logged_in?
+        LibraryItem.where(user: current_user, item_type: 'ComicIssue', item_id: @comic.comic_issues.select(:id)).index_by(&:item_id)
+      else
+        {}
+      end
+      completed_issues_count = user_issues_lib.values.count(&:consumed?)
+    %>
     <div style="margin-top: 1rem;">
-      <% completed_count = logged_in? ? LibraryItem.where(user: current_user, item: @comic.comic_issues, consumed: true).count : 0 %>
-      <%= render 'shared/progress_donut', total: @comic.comic_issues.count, completed: completed_count %>
+      <%= render 'shared/progress_donut', total: @comic.comic_issues.size, completed: completed_issues_count %>
     </div>
   </div>
 
@@ -84,7 +93,7 @@
 
           <div class="season-episodes-list" style="display: flex; flex-direction: column; gap: 12px;">
             <% @comic.comic_issues.order(:issue_number).each do |issue| %>
-              <%= render 'comics/comic_issue', issue: issue, comic: @comic %>
+              <%= render 'comics/comic_issue', issue: issue, comic: @comic, issue_lib: user_issues_lib[issue.id] %>
             <% end %>
           </div>
         </div>

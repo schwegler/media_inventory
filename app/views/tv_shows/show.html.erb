@@ -38,9 +38,18 @@
         <span class="stat-item" title="Likes"><span class="stat-icon">♥</span> <%= @tv_show.likes.count %></span>
       </div>
     </div>
+    <%
+      # OPTIMIZATION: Preload all user LibraryItem records for this show's episodes in a single query
+      # to prevent N+1 queries during episode list rendering and progress donut calculation.
+      user_episodes_lib = if logged_in?
+        LibraryItem.where(user: current_user, item_type: 'TvEpisode', item_id: @tv_show.tv_episodes.select(:id)).index_by(&:item_id)
+      else
+        {}
+      end
+      completed_episodes_count = user_episodes_lib.values.count(&:consumed?)
+    %>
     <div style="margin-bottom: 2rem;">
-      <% completed_count = logged_in? ? LibraryItem.where(user: current_user, item: @tv_show.tv_episodes, consumed: true).count : 0 %>
-      <%= render 'shared/progress_donut', total: @tv_show.tv_episodes.count, completed: completed_count %>
+      <%= render 'shared/progress_donut', total: @tv_show.tv_episodes.size, completed: completed_episodes_count %>
     </div>
   </div>
 
@@ -114,7 +123,7 @@
                  class="season-episodes-list <%= 'hidden' unless index == 0 %>" 
                  style="display: flex; flex-direction: column; gap: 12px;">
               <% episodes_by_season[season].each do |ep| %>
-                <%= render 'tv_shows/tv_episode', ep: ep, tv_show: @tv_show %>
+                <%= render 'tv_shows/tv_episode', ep: ep, tv_show: @tv_show, ep_lib: user_episodes_lib[ep.id] %>
               <% end %>
             </div>
           <% end %>

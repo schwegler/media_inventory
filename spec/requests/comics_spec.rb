@@ -71,6 +71,30 @@ RSpec.describe 'Comics', type: :request do
       expect(response.body).to include('Batman')
       expect(response.body).to include('DC')
     end
+
+    context 'when logged in with issues and user library items' do
+      let(:user) do
+        User.create!(name: 'Reader', email: 'reader@example.com', password: 'password123',
+                     password_confirmation: 'password123')
+      end
+
+      before do
+        post login_path, params: { session: { email: user.email, password: 'password123' } }
+      end
+
+      it 'renders issues and preloaded library status efficiently' do
+        issue1 = ComicIssue.create!(comic: comic, issue_number: 1, title: 'The Court of Owls Part 1')
+        ComicIssue.create!(comic: comic, issue_number: 2, title: 'The Court of Owls Part 2')
+        LibraryItem.create!(user: user, item: comic, is_collected: true)
+        LibraryItem.create!(user: user, item: issue1, consumed: true)
+
+        get comic_path(comic)
+        expect(response).to have_http_status(200)
+        expect(response.body).to include('The Court of Owls Part 1')
+        expect(response.body).to include('The Court of Owls Part 2')
+        expect(response.body).to include('Read')
+      end
+    end
   end
 
   describe 'POST /comics' do
