@@ -27,6 +27,21 @@ RSpec.describe 'TvEpisodes', type: :request do
       expect(response).to redirect_to(tv_show)
       expect(LibraryItem.find_by(user: user, item: tv_episode).consumed).to be(true)
     end
+
+    context 'when user does not have access to private TV show' do
+      let(:other_user) do
+        User.create!(name: 'Other User', email: 'other@example.com', password: 'password123', confirmed_at: Time.current)
+      end
+      let(:private_show) { TvShow.create!(title: 'Private Show') }
+      let!(:private_library_item) { LibraryItem.create!(user: other_user, item: private_show, is_public: false) }
+      let!(:private_episode) { private_show.tv_episodes.create!(name: 'Secret', season: 1, episode: 1) }
+
+      it 'prevents updating watched status and redirects' do
+        patch toggle_watched_tv_episode_path(private_episode), params: { tv_episode: { consumed: true } }
+        expect(response).to redirect_to(root_path)
+        expect(flash[:alert]).to eq('Not authorized')
+      end
+    end
   end
 
   describe 'GET /tv_episodes/:id' do

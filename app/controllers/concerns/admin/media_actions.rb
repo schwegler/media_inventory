@@ -72,10 +72,12 @@ module Admin
         :external_url, :thumbnail_url
       )
 
+      # Security: Restrict updates strictly to valid database columns to avoid arbitrary method invocation via dynamic send
+      valid_columns = @item.class.column_names
       api_data.to_h.each do |key, value|
-        next if value.blank?
+        next if value.blank? || !valid_columns.include?(key.to_s)
 
-        @item.send("#{key}=", value) if @item.respond_to?("#{key}=") && @item.send(key).blank?
+        @item.write_attribute(key, value) if @item.read_attribute(key).blank?
       end
 
       if @item.save
