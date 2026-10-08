@@ -457,6 +457,9 @@ table {
 
   nav.pagination {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 100%;
     gap: 4px;
     align-items: center;
 
@@ -515,6 +518,13 @@ table {
       background: none;
       border: 1px solid transparent;
       cursor: default;
+    }
+
+    // Kaminari wraps links in spans; only the link needs button spacing.
+    span:has(> a) {
+      min-width: 0;
+      height: auto;
+      padding: 0;
     }
   }
 }
