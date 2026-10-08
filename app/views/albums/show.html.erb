@@ -2,8 +2,8 @@
   backdrop_url = nil
   if @album.cover_image.attached?
     backdrop_url = url_for(@album.cover_image)
-  elsif @album.thumbnail_url.present?
-    backdrop_url = @album.thumbnail_url
+  elsif @album.stored_cover_url.present?
+    backdrop_url = @album.stored_cover_url
   end
 %>
 <% content_for(:title, @album.title) %>
@@ -28,8 +28,8 @@
       <div class="show-poster album-poster">
         <% if @album.cover_image.attached? %>
           <%= image_tag @album.cover_image, alt: "#{@album.title} Cover" %>
-        <% elsif @album.thumbnail_url.present? %>
-          <img src="<%= @album.thumbnail_url %>" alt="<%= @album.title %> Cover">
+        <% elsif @album.stored_cover_url.present? %>
+          <img src="<%= @album.stored_cover_url %>" alt="<%= @album.title %> Cover">
         <% else %>
           <div class="poster-fallback"><span class="fallback-emoji">💿</span></div>
         <% end %>

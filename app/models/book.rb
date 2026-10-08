@@ -3,6 +3,8 @@
 class Book < ApplicationRecord
   include LibraryItemFormAttributes
 
+  include StoredMediaCover
+
   has_one :metadata_refresh, as: :item, dependent: :destroy
   has_one_attached :cover_image
   has_many :likes, as: :likeable, dependent: :destroy
@@ -18,21 +20,23 @@ class Book < ApplicationRecord
 
   # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
   def sync_details_from_api
-    return if api_id.blank?
+    return unless MediaSources::Registry.enabled?('itunes', 'Book')
+
+    return unless api_id.to_s.match?(/\A(?:itunes_)?\d+\z/)
     return unless saved_change_to_api_id?
 
     require 'net/http'
     require 'json'
 
-    url = URI("https://itunes.apple.com/lookup?id=#{api_id}")
-    response = Net::HTTP.get(url)
+    url = URI("https://itunes.apple.com/lookup?id=#{api_id.delete_prefix('itunes_')}")
+    response = MediaSources::Http.get(url)
     data = JSON.parse(response)
 
     return unless data['results']&.any?
 
     item = data['results'].first
 
-    update_columns(
+    update!(
       title: item['trackName'] || title,
       author: item['artistName'] || author,
       publisher: item['sellerName'] || publisher,
@@ -41,7 +45,7 @@ class Book < ApplicationRecord
       external_url: item['trackViewUrl'] || external_url
     )
   rescue StandardError => e
-    Rails.logger.error "Failed to sync Book details: #{e.message}"
+    Rails.logger.error "Failed to sync Book details: #{e.class}"
   end
   # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 end

@@ -3,8 +3,8 @@
 
 <div class="activity-card">
   <div class="activity-thumbnail">
-    <% if trackable.respond_to?(:thumbnail_url) && trackable.thumbnail_url.present? %>
-      <img src="<%= trackable.thumbnail_url %>" alt="Cover">
+    <% if trackable.respond_to?(:stored_cover_url) && trackable.stored_cover_url.present? %>
+      <img src="<%= trackable.stored_cover_url %>" alt="Cover">
     <% else %>
       <span class="fallback-icon">
         <%= case activity.trackable_type

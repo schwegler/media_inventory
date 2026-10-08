@@ -3,53 +3,28 @@
 require 'rails_helper'
 
 RSpec.describe MediaApiFetcher do
-  describe '.call' do
-    let(:movie) { Movie.create!(title: 'The Matrix') }
-    let(:tv_show) { TvShow.create!(title: 'Breaking Bad') }
-    let(:album) { Album.create!(title: 'Abbey Road') }
+  before { MediaSources::Registry::CACHE.clear }
 
-    before do
-      ApiConfiguration.create!(source_name: 'itunes', media_type: 'Movie', is_active: true)
-      ApiConfiguration.create!(source_name: 'tvmaze', media_type: 'TvShow', is_active: true)
-      ApiConfiguration.create!(source_name: 'itunes', media_type: 'Album', is_active: true)
+  it 'combines missing metadata from matching sources without overwriting edits' do
+    item = Movie.create!(title: 'The Matrix', director: 'My edit')
+    allow(MediaSearchService).to receive(:call).and_return([
+                                                             { title: 'The Matrix', director: 'API director',
+                                                               release_year: 1999 },
+                                                             { title: 'The Matrix',
+                                                               external_url: 'https://www.themoviedb.org/movie/603' },
+                                                             { title: 'Matrix Reloaded', release_year: 2003 }
+                                                           ])
+    described_class.call(item)
+    expect(item.reload.director).to eq('My edit')
+    expect(item.release_year).to eq(1999)
+    expect(item.external_url).to eq('https://www.themoviedb.org/movie/603')
+  end
 
-      stub_request(:get, /itunes.apple.com/).to_return(
-        status: 200,
-        body: { results: [{ artistName: 'Lana Wachowski', releaseDate: '1999-03-31T07:00:00Z',
-                            artworkUrl100: 'http://example.com/matrix.jpg' }] }.to_json
-      )
-
-      stub_request(:get, /api.tvmaze.com/).to_return(
-        status: 200,
-        body: [{ show: { network: { name: 'AMC' }, image: { medium: 'http://example.com/bb.jpg' } } }].to_json
-      )
-
-      stub_request(:get, /musicbrainz.org/).to_return(
-        status: 200,
-        body: { 'release-groups' => [] }.to_json
-      )
-    end
-
-    it 'fetches movie data from iTunes' do
-      described_class.call(movie)
-      movie.reload
-      expect(movie.director).to eq('Lana Wachowski')
-      expect(movie.release_year).to eq(1999)
-      expect(movie.thumbnail_url).to eq('http://example.com/matrix.jpg')
-    end
-
-    it 'fetches tv show data from TVMaze' do
-      described_class.call(tv_show)
-      tv_show.reload
-      expect(tv_show.network).to eq('AMC')
-      expect(tv_show.thumbnail_url).to eq('http://example.com/bb.jpg')
-    end
-
-    it 'fetches album data from iTunes' do
-      described_class.call(album)
-      album.reload
-      expect(album.artist).to eq('Lana Wachowski') # stub is identical for all itunes calls
-      expect(album.release_year).to eq(1999)
-    end
+  it 'does not merge a different release of the same title' do
+    item = Movie.create!(title: 'Dune', release_year: 1984)
+    allow(MediaSearchService).to receive(:call).and_return([{ title: 'Dune', release_year: 2021,
+                                                              director: 'Wrong director' }])
+    described_class.call(item)
+    expect(item.reload.director).to be_blank
   end
 end

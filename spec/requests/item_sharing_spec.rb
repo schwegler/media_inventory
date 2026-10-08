@@ -13,12 +13,15 @@ RSpec.describe 'Public item sharing', type: :request do
   [Movie, Album, Book, Comic, TvShow, VideoGame].each do |model|
     it "renders stable public metadata and a numeric canonical URL for #{model.name}" do
       item = model.create!(title: "Public #{model.name}", thumbnail_url: 'https://covers.example.org/public.png')
+      item.cover_image.attach(io: File.open(Rails.root.join('public/favicon.svg')), filename: 'cover.svg',
+                              content_type: 'image/svg+xml')
       get polymorphic_path(item), params: { ref: 'blog', review: 'DO NOT PUBLISH THIS NOTE' }
 
       expect(response).to have_http_status(:ok)
       expect(metadata['title']).to eq("Public #{model.name} | Trove")
       expect(metadata['description']).to be_present
-      expect(metadata['image']).to eq('https://covers.example.org/public.png')
+      expect(metadata['image']).to start_with('https://trove.schweg.xyz/rails/active_storage/')
+      expect(response.body).not_to include('https://covers.example.org/public.png')
       expect(metadata['url']).to eq("https://trove.schweg.xyz/#{item.model_name.route_key}/#{item.id}")
       expect(metadata.values.join).not_to include('DO NOT PUBLISH THIS NOTE')
       document = Nokogiri::HTML(response.body)

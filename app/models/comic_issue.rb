@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 class ComicIssue < ApplicationRecord
+  include StoredMediaCover
+
+  has_one_attached :cover_image
+
   belongs_to :comic
   has_many :likes, as: :likeable, dependent: :destroy
   has_many :comments, as: :commentable, dependent: :destroy

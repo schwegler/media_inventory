@@ -43,15 +43,11 @@ class MetadataProvider
   def json(url, query = {})
     uri = URI(url)
     uri.query = URI.encode_www_form(query) if query.any?
-    request = Net::HTTP::Get.new(uri)
-    request['User-Agent'] = 'MediaInventory/1.0'
-    response = Net::HTTP.start(uri.host, uri.port, use_ssl: true, open_timeout: 5, read_timeout: 10) do |http|
-      http.request(request)
-    end
-    raise RateLimited if response.code == '429'
-    raise Unavailable unless response.is_a?(Net::HTTPSuccess)
+    JSON.parse(MediaSources::Http.get(uri))
+  rescue MediaSources::Http::Error => e
+    raise RateLimited if e.message == 'HTTP 429'
 
-    JSON.parse(response.body)
+    raise Unavailable
   end
 
   def key(source)
@@ -146,7 +142,7 @@ class MetadataProvider
   end
 
   def movie
-    return itunes(:director) if @item.external_url.to_s.match?(/apple\.com|itunes\.com/)
+    return itunes(:director) if @id.start_with?('itunes_') || @item.external_url.to_s.match?(/apple\.com|itunes\.com/)
 
     @provider = 'TMDB'
     active!('TMDB')
@@ -158,7 +154,7 @@ class MetadataProvider
   def book
     @provider = 'iTunes'
     active!('itunes')
-    data = json('https://itunes.apple.com/lookup', id: numeric_id).fetch('results').first
+    data = json('https://itunes.apple.com/lookup', id: numeric_id('itunes_')).fetch('results').first
     raise Unavailable unless data.is_a?(Hash)
 
     [{ author: data['artistName'], publisher: data['sellerName'], release_year: year(data['releaseDate']),
@@ -166,9 +162,11 @@ class MetadataProvider
   end
 
   def album
-    return itunes(:artist) if @id.match?(/\A\d+\z/)
+    return itunes(:artist) if @id.match?(/\A\d+\z/) || @id.start_with?('itunes_')
 
     @provider = 'MusicBrainz'
+    active!('MusicBrainz')
+    @id = @id.delete_prefix('musicbrainz_')
     raise Unsupported unless @id.match?(/\A[0-9a-f-]{36}\z/i)
 
     type = @item.external_url.to_s.include?('/release-group/') ? 'release-group' : 'release'
@@ -180,7 +178,7 @@ class MetadataProvider
   def itunes(creator)
     @provider = 'iTunes'
     active!('itunes')
-    data = json('https://itunes.apple.com/lookup', id: numeric_id).fetch('results').first
+    data = json('https://itunes.apple.com/lookup', id: numeric_id('itunes_')).fetch('results').first
     raise Unavailable unless data.is_a?(Hash)
 
     [{ creator => data['artistName'], release_year: year(data['releaseDate']),
@@ -207,7 +205,7 @@ class MetadataProvider
     raise Unavailable unless result['success'] && result['data'].is_a?(Hash)
 
     data = result['data']
-    artwork = "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/#{id}/library_600x900.jpg"
+    artwork = data['header_image'].presence || data['capsule_image'].presence
     [{ developer: data['developers']&.first, publisher: data['publishers']&.first,
        thumbnail_url: artwork }, []]
   end

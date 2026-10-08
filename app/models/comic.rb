@@ -3,6 +3,8 @@
 class Comic < ApplicationRecord
   include LibraryItemFormAttributes
 
+  include StoredMediaCover
+
   has_one :metadata_refresh, as: :item, dependent: :destroy
   has_one_attached :cover_image
   has_many :comic_issues, dependent: :destroy
@@ -21,7 +23,7 @@ class Comic < ApplicationRecord
 
   def sync_issues_from_api
     return if refreshing_metadata
-    return if api_id.blank?
+    return if api_id.blank? || !api_id.to_s.match?(/\A\d+\z/)
     return unless saved_change_to_api_id? || comic_issues.empty?
 
     issues_data = fetch_issues_from_api
@@ -29,8 +31,8 @@ class Comic < ApplicationRecord
   end
 
   def fetch_issues_from_api
-    api_key = ApiConfiguration.find_by(source_name: 'ComicVine', is_active: true)&.access_token
-    unless api_key
+    api_key = MediaSources::Registry.token('ComicVine', 'Comic')
+    if api_key.blank?
       Rails.logger.warn 'ComicVine API key not configured.'
       return nil
     end
@@ -51,7 +53,7 @@ class Comic < ApplicationRecord
 
     all_issues
   rescue StandardError => e
-    Rails.logger.error "Failed to sync Comic issues: #{e.message}"
+    Rails.logger.error "Failed to sync Comic issues: #{e.class}"
     nil
   end
 
@@ -63,12 +65,8 @@ class Comic < ApplicationRecord
       api_key: api_key, format: 'json', filter: "volume:#{api_id}",
       sort: 'issue_number:asc', limit: 100, offset: offset
     )
-    req = Net::HTTP::Get.new(url)
-    req['User-Agent'] = 'MediaInventoryApp/1.0'
-    res = Net::HTTP.start(url.hostname, url.port, use_ssl: url.scheme == 'https') do |http|
-      http.request(req)
-    end
-    JSON.parse(res.body)
+    response = MediaSources::Http.get(url)
+    JSON.parse(response)
   end
 
   def create_comic_issues(issues_data)

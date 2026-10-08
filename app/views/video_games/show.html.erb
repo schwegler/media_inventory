@@ -2,8 +2,8 @@
   backdrop_url = nil
   if @video_game.cover_image.attached?
     backdrop_url = url_for(@video_game.cover_image)
-  elsif @video_game.thumbnail_url.present?
-    backdrop_url = @video_game.thumbnail_url
+  elsif @video_game.stored_cover_url.present?
+    backdrop_url = @video_game.stored_cover_url
   end
 %>
 <% content_for(:title, @video_game.title) %>
@@ -27,8 +27,8 @@
       <div class="show-poster">
         <% if @video_game.cover_image.attached? %>
           <%= image_tag @video_game.cover_image, alt: "#{@video_game.title} Cover" %>
-        <% elsif @video_game.thumbnail_url.present? %>
-          <img src="<%= @video_game.thumbnail_url %>" alt="<%= @video_game.title %> Cover">
+        <% elsif @video_game.stored_cover_url.present? %>
+          <img src="<%= @video_game.stored_cover_url %>" alt="<%= @video_game.title %> Cover">
         <% else %>
           <div class="poster-fallback"><span class="fallback-emoji">🎮</span></div>
         <% end %>

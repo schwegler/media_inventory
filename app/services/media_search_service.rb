@@ -10,64 +10,49 @@ class MediaSearchService
   end
 
   def initialize(query, type)
-    @query = query
+    @query = query.to_s.strip.first(200)
     @type = type
   end
 
   def call
     return [] if @query.blank?
 
-    case @type
-    when 'movie' then search_movies
-    when 'album' then search_albums
-    when 'comic' then search_comics
-    when 'tv_show' then search_tv_shows
-    when 'video_game' then search_video_games
-    when 'book' then search_books
-    else []
+    return [] unless SOURCES.key?(@type)
+
+    @deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 12
+    MediaSources::Registry::CACHE.fetch(
+      ['media-search-v2', @type, @query.downcase.strip,
+       ApiConfiguration.order(:id).pluck(:source_name, :media_type, :is_active, :updated_at)], expires_in: 15.minutes
+    ) do
+      results = (SOURCES.fetch(@type) + [['InternetArchive', :fetch_internet_archive]]).flat_map do |source, method|
+        next [] unless MediaSources::Registry.enabled?(source, @type.camelize)
+
+        send(method, @query).map { |result| result.merge(source: source) }
+      end
+      filter_unique_results(results).first(20)
     end
   end
 
+  SOURCES = {
+    'movie' => [['TMDB', :fetch_tmdb_movies], ['itunes', :fetch_itunes_movies], ['Wikipedia', :fetch_wikipedia]],
+    'tv_show' => [['tvmaze', :fetch_tvmaze_tv_shows], ['TMDB', :fetch_tmdb_tv_shows], ['itunes', :fetch_itunes_tv],
+                  ['Wikipedia', :fetch_wikipedia]],
+    'album' => [['itunes', :fetch_itunes_albums], ['MusicBrainz', :fetch_musicbrainz_albums],
+                ['Wikipedia', :fetch_wikipedia]],
+    'video_game' => [['Steam', :fetch_steam_video_games], ['RAWG', :fetch_rawg_video_games],
+                     ['Wikipedia', :fetch_wikipedia]],
+    'comic' => [['ComicVine', :fetch_comicvine_comics], ['OpenLibrary', :fetch_open_library],
+                ['Wikipedia', :fetch_wikipedia]],
+    'book' => [['OpenLibrary', :fetch_open_library], ['itunes', :fetch_itunes_books], ['Wikipedia', :fetch_wikipedia]]
+  }.freeze
+
   private
-
-  def search_movies
-    web_results_tmdb = fetch_tmdb_movies(@query)
-    web_results_itunes = fetch_itunes_movies(@query)
-    filter_unique_results(web_results_tmdb + web_results_itunes)
-  end
-
-  def search_albums
-    web_results_itunes = fetch_itunes_albums(@query)
-    web_results_musicbrainz = fetch_musicbrainz_albums(@query)
-    filter_unique_results(web_results_itunes + web_results_musicbrainz)
-  end
-
-  def search_comics
-    web_results = fetch_comicvine_comics(@query)
-    filter_unique_results(web_results)
-  end
-
-  def search_tv_shows
-    web_results = fetch_tvmaze_tv_shows(@query)
-    web_results = fetch_tmdb_tv_shows(@query) if web_results.empty?
-    filter_unique_results(web_results)
-  end
-
-  def search_video_games
-    web_results = fetch_rawg_video_games(@query)
-    web_results = fetch_steam_video_games(@query) if web_results.empty?
-    wiki_results = Rails.env.test? ? [] : query_wikipedia_video_games(@query)
-    filter_unique_results(web_results + wiki_results)
-  end
-
-  def search_books
-    web_results = fetch_itunes_books(@query)
-    filter_unique_results(web_results)
-  end
 
   def filter_unique_results(all_results)
     seen = {}
     all_results.select do |item|
+      next false if item[:title].blank?
+
       key = "#{item[:title].to_s.downcase.strip}_#{item[:release_year]}"
 
       if seen[key]
@@ -81,19 +66,17 @@ class MediaSearchService
   # --- Movies ---
 
   def fetch_tmdb_movies(query)
-    return [] if Rails.env.test?
-
-    api_key = ApiConfiguration.find_by(source_name: 'TMDB', is_active: true)&.access_token
-    return [] unless api_key
+    api_key = MediaSources::Registry.token('TMDB', @type.camelize)
+    return [] if api_key.blank?
 
     url = URI("https://api.themoviedb.org/3/search/movie?api_key=#{api_key}&query=#{CGI.escape(query)}")
-    response = Net::HTTP.get(url)
+    response = MediaSources::Http.get(url, deadline: @deadline)
     data = JSON.parse(response)
 
     return [] unless data['results']
 
     results = data['results'].slice(0, 5).map do |item|
-      director = fetch_tmdb_director(item['id'], api_key)
+      director = '' # Details are fetched only after selection.
       {
         title: item['title'],
         director: director,
@@ -106,27 +89,13 @@ class MediaSearchService
     end
     results.select { |r| r[:thumbnail_url] }
   rescue StandardError => e
-    Rails.logger.error "TMDB Movie search failed: #{e.message}"
+    Rails.logger.error "TMDB Movie search failed: #{e.class}"
     []
   end
 
-  def fetch_tmdb_director(movie_id, api_key)
-    url = URI("https://api.themoviedb.org/3/movie/#{movie_id}/credits?api_key=#{api_key}")
-    response = Net::HTTP.get(url)
-    data = JSON.parse(response)
-    crew = data['crew'] || []
-    director = crew.find { |c| c['job'] == 'Director' }
-    director ? director['name'] : ''
-  rescue StandardError => e
-    Rails.logger.error "TMDB Credits fetch failed for #{movie_id}: #{e.message}"
-    ''
-  end
-
   def fetch_itunes_movies(query)
-    return [] if Rails.env.test?
-
     url = URI("https://itunes.apple.com/search?term=#{CGI.escape(query)}&entity=movie&limit=5&country=US")
-    response = Net::HTTP.get(url)
+    response = MediaSources::Http.get(url, deadline: @deadline)
     data = JSON.parse(response)
 
     return [] unless data['results']
@@ -137,24 +106,22 @@ class MediaSearchService
         director: item['artistName'],
         release_year: item['releaseDate']&.split('-')&.first,
         thumbnail_url: item['artworkUrl100']&.sub('100x100bb', '400x400bb'),
-        api_id: item['trackId'].to_s,
+        api_id: "itunes_#{item['trackId']}",
         external_url: item['trackViewUrl'],
         is_local: false
       }
     end
     results.select { |r| r[:thumbnail_url] }
   rescue StandardError => e
-    Rails.logger.error "iTunes Movie search failed: #{e.message}"
+    Rails.logger.error "iTunes Movie search failed: #{e.class}"
     []
   end
 
   # --- Albums ---
 
   def fetch_itunes_albums(query)
-    return [] if Rails.env.test?
-
     url = URI("https://itunes.apple.com/search?term=#{CGI.escape(query)}&media=music&entity=album&limit=5&country=US")
-    response = Net::HTTP.get(url)
+    response = MediaSources::Http.get(url, deadline: @deadline)
     data = JSON.parse(response)
 
     return [] unless data['results']
@@ -166,28 +133,21 @@ class MediaSearchService
         genre: item['primaryGenreName'],
         release_year: item['releaseDate']&.split('-')&.first,
         thumbnail_url: item['artworkUrl100']&.sub('100x100bb', '500x500bb'),
-        api_id: item['collectionId'].to_s,
+        api_id: "itunes_#{item['collectionId']}",
         external_url: item['collectionViewUrl'],
         is_local: false
       }
     end
     results.select { |r| r[:thumbnail_url] }
   rescue StandardError => e
-    Rails.logger.error "iTunes Album search failed: #{e.message}"
+    Rails.logger.error "iTunes Album search failed: #{e.class}"
     []
   end
 
   def fetch_musicbrainz_albums(query)
-    return [] if Rails.env.test?
-
     url = URI("https://musicbrainz.org/ws/2/release-group?query=#{CGI.escape(query)}&fmt=json")
-    req = Net::HTTP::Get.new(url)
-    req['User-Agent'] = 'MediaInventoryApp/1.0'
-
-    res = Net::HTTP.start(url.hostname, url.port, use_ssl: url.scheme == 'https') do |http|
-      http.request(req)
-    end
-    data = JSON.parse(res.body)
+    res = MediaSources::Http.get(url, deadline: @deadline)
+    data = JSON.parse(res)
 
     return [] unless data['release-groups']
 
@@ -199,34 +159,27 @@ class MediaSearchService
         genre: item.dig('tags', 0, 'name') || '',
         release_year: item['first-release-date']&.split('-')&.first,
         thumbnail_url: "https://coverartarchive.org/release-group/#{item['id']}/front-250",
-        api_id: item['id'].to_s,
+        api_id: "musicbrainz_#{item['id']}",
         external_url: "https://musicbrainz.org/release-group/#{item['id']}",
         is_local: false
       }
     end
   rescue StandardError => e
-    Rails.logger.error "MusicBrainz Album search failed: #{e.message}"
+    Rails.logger.error "MusicBrainz Album search failed: #{e.class}"
     []
   end
   # --- Comics ---
 
   def fetch_comicvine_comics(query)
-    return [] if Rails.env.test?
-
-    api_key = ApiConfiguration.find_by(source_name: 'ComicVine', is_active: true)&.access_token
-    return [] unless api_key
+    api_key = MediaSources::Registry.token('ComicVine', 'Comic')
+    return [] if api_key.blank?
 
     url = build_comicvine_url(query, api_key)
-    req = Net::HTTP::Get.new(url)
-    req['User-Agent'] = 'MediaInventoryApp/1.0'
+    res = MediaSources::Http.get(url, deadline: @deadline)
 
-    res = Net::HTTP.start(url.hostname, url.port, use_ssl: url.scheme == 'https') do |http|
-      http.request(req)
-    end
-
-    parse_comicvine_results(JSON.parse(res.body))
+    parse_comicvine_results(JSON.parse(res))
   rescue StandardError => e
-    Rails.logger.error "ComicVine search failed: #{e.message}"
+    Rails.logger.error "ComicVine search failed: #{e.class}"
     []
   end
 
@@ -257,13 +210,11 @@ class MediaSearchService
   # --- TV Shows ---
 
   def fetch_tmdb_tv_shows(query)
-    return [] if Rails.env.test?
-
-    api_key = ApiConfiguration.find_by(source_name: 'TMDB', is_active: true)&.access_token
-    return [] unless api_key
+    api_key = MediaSources::Registry.token('TMDB', @type.camelize)
+    return [] if api_key.blank?
 
     url = URI("https://api.themoviedb.org/3/search/tv?api_key=#{api_key}&query=#{CGI.escape(query)}")
-    response = Net::HTTP.get(url)
+    response = MediaSources::Http.get(url, deadline: @deadline)
     data = JSON.parse(response)
 
     return [] unless data['results']
@@ -281,15 +232,13 @@ class MediaSearchService
     end
     results.select { |r| r[:thumbnail_url] }
   rescue StandardError => e
-    Rails.logger.error "TMDB TV search failed: #{e.message}"
+    Rails.logger.error "TMDB TV search failed: #{e.class}"
     []
   end
 
   def fetch_tvmaze_tv_shows(query)
-    return [] if Rails.env.test?
-
     url = URI("https://api.tvmaze.com/search/shows?q=#{CGI.escape(query)}")
-    response = Net::HTTP.get(url)
+    response = MediaSources::Http.get(url, deadline: @deadline)
     data = JSON.parse(response)
 
     results = data.slice(0, 5).map do |item|
@@ -297,7 +246,7 @@ class MediaSearchService
     end
     results.select { |r| r[:thumbnail_url] }
   rescue StandardError => e
-    Rails.logger.error "TVMaze search failed: #{e.message}"
+    Rails.logger.error "TVMaze search failed: #{e.class}"
     []
   end
 
@@ -321,69 +270,31 @@ class MediaSearchService
 
   # --- Video Games ---
 
-  # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/MethodLength, Metrics/PerceivedComplexity
   def fetch_steam_video_games(query)
-    return [] if Rails.env.test?
-
-    begin
-      uri = URI("https://store.steampowered.com/api/storesearch/?term=#{CGI.escape(query)}&l=english&cc=US")
-      response = Net::HTTP.get(uri)
-      data = JSON.parse(response)
-      return [] unless data && data['items']
-
-      data['items'].slice(0, 5).map do |item|
-        Thread.new do
-          app_id = item['id']
-          platforms = []
-          if item['platforms']
-            platforms << 'PC' if item['platforms']['windows']
-            platforms << 'Mac' if item['platforms']['mac']
-            platforms << 'Linux' if item['platforms']['linux']
-          end
-
-          # Fetch additional details for developer and publisher
-          developer = ''
-          publisher = ''
-          release_year = nil
-          begin
-            details_uri = URI("https://store.steampowered.com/api/appdetails?appids=#{app_id}")
-            details_res = Net::HTTP.get(details_uri)
-            app_data = JSON.parse(details_res).dig(app_id.to_s, 'data') || {}
-            developer = app_data['developers']&.first || ''
-            publisher = app_data['publishers']&.first || ''
-            date_str = app_data.dig('release_date', 'date')
-            release_year = date_str ? date_str.split(',').last&.strip : nil
-          rescue StandardError
-            # Silently ignore details failure and fallback to empty
-          end
-
-          {
-            title: item['name'],
-            developer: developer,
-            publisher: publisher,
-            platform: platforms.join(', '),
-            release_year: release_year,
-            thumbnail_url: "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/#{app_id}/library_600x900.jpg",
-            api_id: "steam_#{app_id}",
-            external_url: "https://store.steampowered.com/app/#{app_id}",
-            is_local: false
-          }
-        end
-      end.map(&:value)
-    rescue StandardError => e
-      Rails.logger.error "Steam Store Search error: #{e.message}"
-      []
+    uri = URI('https://store.steampowered.com/api/storesearch/')
+    uri.query = URI.encode_www_form(term: query, l: 'english', cc: 'US')
+    data = JSON.parse(MediaSources::Http.get(uri, deadline: @deadline))
+    Array(data['items']).first(5).map do |item|
+      {
+        title: item['name'],
+        platform: (item['platforms'] || {}).select { |_key, supported| supported }.keys.join(', '),
+        thumbnail_url: item['tiny_image'],
+        api_id: "steam_#{item['id']}",
+        external_url: "https://store.steampowered.com/app/#{item['id']}",
+        is_local: false
+      }
     end
+  rescue StandardError => e
+    Rails.logger.warn "Steam search failed: #{e.class}"
+    []
   end
 
   def fetch_rawg_video_games(query)
-    return [] if Rails.env.test?
-
-    api_key = ApiConfiguration.find_by(source_name: 'RAWG', is_active: true)&.access_token
-    return [] unless api_key
+    api_key = MediaSources::Registry.token('RAWG', 'VideoGame')
+    return [] if api_key.blank?
 
     url = URI("https://api.rawg.io/api/games?search=#{CGI.escape(query)}&key=#{api_key}")
-    response = Net::HTTP.get(url)
+    response = MediaSources::Http.get(url, deadline: @deadline)
     data = JSON.parse(response)
 
     return [] unless data['results']
@@ -403,61 +314,96 @@ class MediaSearchService
     end
     results.select { |r| r[:thumbnail_url] }
   rescue StandardError => e
-    Rails.logger.error "RAWG search failed: #{e.message}"
-    []
-  end
-  # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/MethodLength, Metrics/PerceivedComplexity
-
-  def query_wikipedia_video_games(query)
-    search_url = 'https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=' \
-                 "#{CGI.escape("#{query} video game")}&format=json&origin=*"
-    uri = URI(search_url)
-    response = Net::HTTP.get(uri)
-    data = JSON.parse(response)
-    search_results = data.dig('query', 'search') || []
-
-    search_results.first(3).map { |result| parse_wikipedia_game(result) }.compact
-  rescue StandardError => e
-    Rails.logger.error "Wikipedia video game search failed: #{e.message}"
+    Rails.logger.error "RAWG search failed: #{e.class}"
     []
   end
 
-  def parse_wikipedia_game(result)
-    page_title = result['title']
-    summary_url = "https://en.wikipedia.org/api/rest_v1/page/summary/#{CGI.escape(page_title.gsub(' ', '_'))}"
-    sum_response = Net::HTTP.get(URI(summary_url))
-    sum_data = begin
-      JSON.parse(sum_response)
-    rescue StandardError
-      {}
+  def fetch_wikipedia(query)
+    category = { 'movie' => 'film', 'tv_show' => 'television series', 'album' => 'album',
+                 'comic' => 'comic', 'video_game' => 'video game', 'book' => 'book' }.fetch(@type)
+    uri = URI('https://en.wikipedia.org/w/api.php')
+    uri.query = URI.encode_www_form(action: 'query', generator: 'search', gsrsearch: "#{query} #{category}",
+                                    gsrlimit: 3, prop: 'pageimages|info', piprop: 'thumbnail',
+                                    pithumbsize: 500, pilicense: 'any',
+                                    inprop: 'url', format: 'json')
+    data = JSON.parse(MediaSources::Http.get(uri, deadline: @deadline))
+    (data.dig('query', 'pages') || {}).values.sort_by { |page| page['index'].to_i }.filter_map do |page|
+      next unless page.dig('thumbnail', 'source')
+
+      { title: page['title'].sub(/\s*\([^)]*\)$/, ''), thumbnail_url: page.dig('thumbnail', 'source'),
+        api_id: "wiki_#{page['pageid']}", external_url: page['fullurl'], is_local: false }
     end
+  rescue StandardError => e
+    Rails.logger.warn "Wikipedia search failed: #{e.class}"
+    []
+  end
 
-    return nil unless sum_data['originalimage'] && sum_data['originalimage']['source']
+  def fetch_internet_archive(query)
+    filter = {
+      'movie' => 'mediatype:movies AND collection:feature_films',
+      'tv_show' => 'mediatype:movies AND collection:classic_tv',
+      'album' => 'mediatype:audio AND (subject:album OR collection:netlabels)',
+      'video_game' => 'mediatype:software AND (subject:"video games" OR collection:softwarelibrary)',
+      'book' => 'mediatype:texts',
+      'comic' => 'mediatype:texts AND (subject:comics OR subject:"comic books")'
+    }.fetch(@type)
+    # Escape Lucene special characters rather than interpreting user input as operators.
+    phrase = query.gsub(/[^[:alnum:]\s]/, ' ')
+    uri = URI('https://archive.org/advancedsearch.php')
+    uri.query = URI.encode_www_form(q: "title:(#{phrase}) AND (#{filter})", rows: 5, output: 'json',
+                                    'fl[]' => %w[identifier title creator date], 'sort[]' => 'downloads desc')
+    data = JSON.parse(MediaSources::Http.get(uri, deadline: @deadline))
+    Array(data.dig('response', 'docs')).filter_map do |record|
+      id = record['identifier']
+      next unless id.to_s.match?(/\A[a-zA-Z0-9_.-]+\z/)
 
-    desc = sum_data['description'] || ''
-    year_match = desc.match(/\b(19\d\d|20\d\d)\b/)
-    release_year = year_match ? year_match[1].to_i : nil
+      creator = Array(record['creator']).first
+      { title: Array(record['title']).first, author: creator, writer: creator,
+        artist: creator, release_year: record['date'].to_s[/\A\d{4}/], api_id: "archive_#{id}",
+        thumbnail_url: "https://archive.org/services/img/#{id}",
+        external_url: "https://archive.org/details/#{id}", is_local: false }
+    end
+  rescue StandardError => e
+    Rails.logger.warn "Internet Archive search failed: #{e.class}"
+    []
+  end
 
-    {
-      title: sum_data['title'],
-      developer: 'Nintendo / Various',
-      publisher: '',
-      platform: 'Console / Various',
-      release_year: release_year,
-      thumbnail_url: sum_data['originalimage']['source'],
-      api_id: "wiki_#{sum_data['pageid'] || page_title}",
-      external_url: sum_data.dig('content_urls', 'desktop', 'page'),
-      is_local: false
-    }
+  def fetch_open_library(query)
+    uri = URI('https://openlibrary.org/search.json')
+    uri.query = URI.encode_www_form(q: @type == 'comic' ? "#{query} subject:comics" : query,
+                                    limit: 5, fields: 'key,title,author_name,first_publish_year,cover_i,publisher')
+    data = JSON.parse(MediaSources::Http.get(uri, deadline: @deadline))
+    Array(data['docs']).map do |book|
+      { title: book['title'], author: Array(book['author_name']).first,
+        writer: Array(book['author_name']).first, publisher: Array(book['publisher']).first,
+        release_year: book['first_publish_year'], api_id: "openlibrary_#{book['key']}",
+        thumbnail_url: book['cover_i'] ? "https://covers.openlibrary.org/b/id/#{book['cover_i']}-M.jpg" : nil,
+        external_url: "https://openlibrary.org#{book['key']}", is_local: false }
+    end
+  rescue StandardError => e
+    Rails.logger.warn "Open Library search failed: #{e.class}"
+    []
+  end
+
+  def fetch_itunes_tv(query)
+    uri = URI('https://itunes.apple.com/search')
+    uri.query = URI.encode_www_form(term: query, entity: 'tvSeason', limit: 5)
+    Array(JSON.parse(MediaSources::Http.get(uri, deadline: @deadline))['results']).map do |show|
+      { title: show['collectionName'] || show['trackName'], network: show['artistName'],
+        release_year: show['releaseDate']&.split('-')&.first, api_id: "itunes_#{show['collectionId']}",
+        thumbnail_url: show['artworkUrl100']&.sub('100x100bb', '400x400bb'),
+        external_url: show['collectionViewUrl'], is_local: false }
+    end
+  rescue StandardError => e
+    Rails.logger.warn "iTunes TV search failed: #{e.class}"
+    []
   end
 
   # --- Books ---
 
   def fetch_itunes_books(query)
-    return [] if Rails.env.test?
-
     url = URI("https://itunes.apple.com/search?term=#{CGI.escape(query)}&media=ebook&limit=5&country=US")
-    response = Net::HTTP.get(url)
+    response = MediaSources::Http.get(url, deadline: @deadline)
     data = JSON.parse(response)
 
     return [] unless data['results']
@@ -469,14 +415,14 @@ class MediaSearchService
         publisher: item['sellerName'],
         release_year: item['releaseDate']&.split('-')&.first,
         thumbnail_url: item['artworkUrl100']&.sub('100x100bb', '400x400bb'),
-        api_id: item['trackId'].to_s,
+        api_id: "itunes_#{item['trackId']}",
         external_url: item['trackViewUrl'],
         is_local: false
       }
     end
     results.select { |r| r[:thumbnail_url] }
   rescue StandardError => e
-    Rails.logger.error "iTunes Books search failed: #{e.message}"
+    Rails.logger.error "iTunes Books search failed: #{e.class}"
     []
   end
 end
