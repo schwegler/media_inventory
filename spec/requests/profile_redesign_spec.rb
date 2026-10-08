@@ -3,6 +3,17 @@
 require 'rails_helper'
 
 RSpec.describe 'Profile redesign', type: :request do
+  it 'renders apostrophes and special characters once in browser and social titles' do
+    user = User.create!(name: "O'Reilly & <script>alert(1)</script>", password: 'password123')
+    get user_path(user)
+    document = Nokogiri::HTML(response.body)
+    expected = "#{user.name}'s library | Trove"
+    expect(document.at_css('title').text).to eq(expected)
+    expect(document.at_css('meta[property="og:title"]')['content']).to eq(expected)
+    expect(document.at_css('meta[name="twitter:title"]')['content']).to eq(expected)
+    expect(document.css('title script')).to be_empty
+  end
+
   let!(:owner) do
     User.create!(name: 'Library Owner', username: 'library_owner', email: 'owner-profile@example.com',
                  password: 'password123', birthday: Date.new(1990, 2, 3))
