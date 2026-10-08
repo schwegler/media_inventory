@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="<%= current_user&.theme || 'os' %>">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title><%= content_for(:title).presence || admin_resource_title %> · Trove Admin</title>
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+  <%= stylesheet_link_tag 'admin', 'data-turbo-track': 'reload' %>
+  <%= javascript_importmap_tags %>
+</head>
+<body class="admin-app" data-controller="admin-shell">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <aside class="admin-sidebar" aria-label="Administration">
+    <%= link_to admin_root_path, class: 'admin-brand' do %>Trove <span>Admin</span><% end %>
+    <nav aria-label="Admin navigation">
+      <% Admin::CommandCenterHelper::NAVIGATION.each do |group, links| %>
+        <details class="nav-group" open>
+          <summary><%= group %><% if links.key?(controller_name.to_sym) %><small class="nav-current"><%= links[controller_name.to_sym] %></small><% end %></summary>
+          <% links.each do |key, label| %>
+            <% destination = key == :dashboard ? admin_root_path : url_for(controller: "/admin/#{key}", action: :index) %>
+            <%= link_to label, destination, class: 'nav-link', aria: { current: controller_name == key.to_s ? 'page' : nil } %>
+          <% end %>
+        </details>
+      <% end %>
+    </nav>
+    <div class="sidebar-footer">Media Inventory<br><span>A little order. More discovery.</span></div>
+  </aside>
+  <div class="admin-workspace">
+    <header class="admin-topbar">
+      <%= form_with url: admin_search_path, method: :get, class: 'global-admin-search', role: 'search' do |f| %>
+        <%= f.label :q, 'Search media and users', class: 'sr-only' %>
+        <%= f.search_field :q, id: 'admin-global-search', placeholder: 'Search media and users', value: controller_name == 'search' ? @query : nil, data: { admin_shell_target: 'search' }, minlength: 2, maxlength: 120 %>
+        <kbd aria-label="Control or Command K">⌘ / Ctrl K</kbd>
+        <%= f.submit 'Search', class: 'button button--neutral' %>
+      <% end %>
+      <%= link_to 'View Trove ↗', root_path, class: 'public-link' %>
+      <span class="admin-identity"><%= current_user&.name %></span>
+    </header>
+    <main id="main-content" class="main-content" tabindex="-1">
+      <% flash.each do |kind, message| %>
+        <div class="admin-alert <%= %w[alert error].include?(kind) ? 'admin-alert--error' : '' %>" role="<%= %w[alert error].include?(kind) ? 'alert' : 'status' %>"><%= message %></div>
+      <% end %>
+      <%= yield %>
+    </main>
+    <footer class="admin-footer">Trove operations <span>Built for the people behind the library.</span></footer>
+  </div>
+</body>
+</html>

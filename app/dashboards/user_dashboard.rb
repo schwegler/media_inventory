@@ -2,7 +2,6 @@
 
 require 'administrate/base_dashboard'
 
-# rubocop:disable Metrics/ClassLength
 class UserDashboard < Administrate::BaseDashboard
   # ATTRIBUTE_TYPES
   # a hash that describes the type of each of the model's fields.
@@ -18,7 +17,7 @@ class UserDashboard < Administrate::BaseDashboard
     avatar_url: Field::String,
     bio: Field::Text,
     birthday: Field::Date,
-    bsky_access_token: Field::String,
+    bsky_access_token: CredentialField,
     bsky_custom_message: Field::Text,
     bsky_did: Field::String,
     bsky_handle: Field::String,
@@ -27,7 +26,7 @@ class UserDashboard < Administrate::BaseDashboard
     bsky_post_activity: Field::Boolean,
     bsky_post_reviews: Field::Boolean,
     bsky_post_reviews_only: Field::Boolean,
-    bsky_refresh_token: Field::String,
+    bsky_refresh_token: CredentialField,
     comments: Field::HasMany,
     confirmed_at: Field::DateTime,
     email: Field::String,
@@ -35,12 +34,12 @@ class UserDashboard < Administrate::BaseDashboard
     following: Field::HasMany,
     library_items: Field::HasMany,
     likes: Field::HasMany,
-    mastodon_access_token: Field::String,
+    mastodon_access_token: CredentialField,
     mastodon_message_activity_template: Field::String,
     mastodon_message_review_template: Field::String,
     mastodon_post_activity: Field::Boolean,
     mastodon_post_reviews: Field::Boolean,
-    mastodon_refresh_token: Field::String,
+    mastodon_refresh_token: CredentialField,
     mastodon_server: Field::String,
     mastodon_uid: Field::String,
     name: Field::String,
@@ -53,8 +52,8 @@ class UserDashboard < Administrate::BaseDashboard
     notify_push_likes: Field::Boolean,
     notify_push_posts: Field::Boolean,
     passive_relationships: Field::HasMany,
-    password_digest: Field::String,
-    private_key: Field::Text,
+    password_digest: CredentialField,
+    private_key: CredentialField,
     public_key: Field::Text,
     theme: Field::String,
     username: Field::String,
@@ -68,117 +67,43 @@ class UserDashboard < Administrate::BaseDashboard
   # By default, it's limited to four items to reduce clutter on index pages.
   # Feel free to add, remove, or rearrange items.
   COLLECTION_ATTRIBUTES = %i[
+    name
     username
-    active_relationships
-    activities
+    email
     admin
   ].freeze
 
   # SHOW_PAGE_ATTRIBUTES
   # an array of attributes that will be displayed on the model's show page.
-  SHOW_PAGE_ATTRIBUTES = %i[
-    id
-    active_relationships
-    activities
-    admin
-    avatar_url
-    bio
-    birthday
-    bsky_access_token
-    bsky_custom_message
-    bsky_did
-    bsky_handle
-    bsky_message_activity_template
-    bsky_message_review_template
-    bsky_post_activity
-    bsky_post_reviews
-    bsky_post_reviews_only
-    bsky_refresh_token
-    comments
-    confirmed_at
-    email
-    followers
-    following
-    library_items
-    likes
-    mastodon_access_token
-    mastodon_message_activity_template
-    mastodon_message_review_template
-    mastodon_post_activity
-    mastodon_post_reviews
-    mastodon_refresh_token
-    mastodon_server
-    mastodon_uid
-    name
-    notify_email_comments
-    notify_email_follows
-    notify_email_likes
-    notify_email_posts
-    notify_push_comments
-    notify_push_follows
-    notify_push_likes
-    notify_push_posts
-    passive_relationships
-    password_digest
-    private_key
-    public_key
-    theme
-    username
-    created_at
-    updated_at
-  ].freeze
+  SHOW_PAGE_ATTRIBUTES = {
+    'Profile and account' => %i[
+      id admin avatar_url bio birthday confirmed_at email name theme username created_at
+      updated_at
+    ],
+    'Community relationships' => %i[
+      active_relationships activities comments followers following library_items likes
+      passive_relationships
+    ],
+    'Social connections' => %i[
+      bsky_access_token bsky_custom_message bsky_did bsky_handle
+      bsky_message_activity_template bsky_message_review_template bsky_post_activity
+      bsky_post_reviews bsky_post_reviews_only bsky_refresh_token mastodon_access_token
+      mastodon_message_activity_template mastodon_message_review_template
+      mastodon_post_activity mastodon_post_reviews mastodon_refresh_token mastodon_server
+      mastodon_uid
+    ],
+    'Notification preferences' => %i[
+      notify_email_comments notify_email_follows notify_email_likes notify_email_posts
+      notify_push_comments notify_push_follows notify_push_likes notify_push_posts
+    ]
+  }.freeze
 
   # FORM_ATTRIBUTES
   # an array of attributes that will be displayed
   # on the model's form (`new` and `edit`) pages.
-  FORM_ATTRIBUTES = %i[
-    active_relationships
-    activities
-    admin
-    avatar_url
-    bio
-    birthday
-    bsky_access_token
-    bsky_custom_message
-    bsky_did
-    bsky_handle
-    bsky_message_activity_template
-    bsky_message_review_template
-    bsky_post_activity
-    bsky_post_reviews
-    bsky_post_reviews_only
-    bsky_refresh_token
-    comments
-    confirmed_at
-    email
-    followers
-    following
-    library_items
-    likes
-    mastodon_access_token
-    mastodon_message_activity_template
-    mastodon_message_review_template
-    mastodon_post_activity
-    mastodon_post_reviews
-    mastodon_refresh_token
-    mastodon_server
-    mastodon_uid
-    name
-    notify_email_comments
-    notify_email_follows
-    notify_email_likes
-    notify_email_posts
-    notify_push_comments
-    notify_push_follows
-    notify_push_likes
-    notify_push_posts
-    passive_relationships
-    password_digest
-    private_key
-    public_key
-    theme
-    username
-  ].freeze
+  FORM_ATTRIBUTES = SHOW_PAGE_ATTRIBUTES.transform_values do |attributes|
+    attributes - %i[id created_at updated_at]
+  end.freeze
 
   # COLLECTION_FILTERS
   # a hash that defines filters that can be used while searching via the search
@@ -196,7 +121,6 @@ class UserDashboard < Administrate::BaseDashboard
   # across all pages of the admin dashboard.
   #
   def display_resource(user)
-    user.username
+    user.username.presence || user.name
   end
 end
-# rubocop:enable Metrics/ClassLength

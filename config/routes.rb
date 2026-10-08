@@ -73,7 +73,9 @@ SampleApp::Application.routes.draw do
       end
     end
 
-    root to: 'activities#index'
+    get 'search', to: 'search#index'
+    get 'attention', to: 'dashboard#attention'
+    root to: 'dashboard#index'
   end
   root 'landing#index'
   get 'test_bsky', to: 'landing#test_bsky'

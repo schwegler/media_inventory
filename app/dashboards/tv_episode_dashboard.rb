@@ -33,12 +33,7 @@ class TvEpisodeDashboard < Administrate::BaseDashboard
   #
   # By default, it's limited to four items to reduce clutter on index pages.
   # Feel free to add, remove, or rearrange items.
-  COLLECTION_ATTRIBUTES = %i[
-    name
-    air_date
-    comments
-    episode
-  ].freeze
+  COLLECTION_ATTRIBUTES = %i[name season episode updated_at].freeze
 
   # SHOW_PAGE_ATTRIBUTES
   # an array of attributes that will be displayed on the model's show page.
@@ -96,6 +91,6 @@ class TvEpisodeDashboard < Administrate::BaseDashboard
   # across all pages of the admin dashboard.
   #
   def display_resource(tv_episode)
-    tv_episode.name
+    tv_episode.title
   end
 end

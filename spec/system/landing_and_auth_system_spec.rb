@@ -68,7 +68,8 @@ RSpec.describe 'Landing and Authentication', type: :system do
       find('.nav-user-info').click
       click_button 'Sign Out'
     end
-    # Confirm we are logged out
+    # Wait for the Turbo logout response before issuing another navigation.
+    expect(page).to have_link('Log in', exact: true)
     visit root_path
     expect(page).to have_text('Community Activity')
   end

@@ -1,0 +1,8 @@
+<% content_for :title, 'Admin search' %>
+<header class="page-header"><div><h1>Admin search</h1><p>Find media and people across Trove.</p></div></header>
+<% if @query.length < 2 %><div class="empty-state"><h2>Find your next task</h2><p>Enter at least two characters in the search above. Use ⌘ / Ctrl K to focus it from any admin page.</p></div>
+<% elsif @results.empty? %><div class="empty-state"><h2>No results for “<%= @query %>”</h2><p>Try a shorter title, a name, username, or email.</p></div>
+<% else %>
+  <p class="muted">Results for “<%= @query %>” · up to eight recent matches per type</p>
+  <% @results.each do |model, records| %><section class="search-results"><div class="section-header"><h2><%= model.model_name.human.pluralize %></h2><%= link_to 'Search this resource →', url_for(controller: "/admin/#{model.model_name.route_key}", action: :index, search: @query) %></div><ul class="record-list"><% records.each do |record| %><li><% if admin_media?(record) %><%= render 'admin/application/artwork', record: record %><% end %><div><%= admin_record_link(record) %><small><%= admin_media?(record) ? admin_media_context(record) : record.try(:email) %></small></div><span class="badge"><%= model.model_name.human %></span></li><% end %></ul></section><% end %>
+<% end %>
