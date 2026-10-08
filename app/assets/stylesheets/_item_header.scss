@@ -11,7 +11,7 @@ body.item-detail { position: relative; isolation: isolate; }
 .item-detail .native-tools { position: relative; background: var(--canvas); }
 .item-page-artwork-image { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; opacity: .65; }
 .app-header.combined-header {
-  position: sticky; top: 0; z-index: 1000; background: transparent;
+  position: fixed; top: 0; z-index: 1000; background: transparent;
   backdrop-filter: none; -webkit-backdrop-filter: none;
   &::before {
     content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
@@ -35,16 +35,17 @@ body.item-detail { position: relative; isolation: isolate; }
 }
 
 // A single floating discovery bar, with symmetric space around its surface.
-.combined-search, .combined-search-toggle { display: none; }
+.combined-search { display: none; }
+.app-header .combined-search-toggle { display: none; }
 .combined-header .combined-search-toggle { display: none; }
 .app-header.combined-header {
-  top: 12px; width: calc(100% - 40px); max-width: 1320px; margin: 12px auto 42px;
+  top: 12px; left: 20px; right: 20px; width: auto; max-width: 1320px; margin: 0 auto;
   &::before { border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 4px 16px rgba(var(--rgb-inverse), .08); }
 }
 .app-header.combined-header .app-nav {
   width: 100%; min-height: 64px; padding: 8px 12px; gap: 12px;
 }
-.combined-header .brand-companion, .combined-header .app-nav .blog-nav-link { display: none; }
+.combined-header .library-nav, .combined-header .brand-companion, .combined-header .app-nav .blog-nav-link { display: none; }
 .combined-header .combined-search { display: block; flex: 1; min-width: 0; }
 .combined-header .combined-search .global-search-form { width: 100%; padding-block: 0; }
 .combined-header .app-nav .nav-user-section { display: flex; gap: 8px; }
@@ -70,3 +71,9 @@ body.item-detail { position: relative; isolation: isolate; }
   .combined-header .nav-user-section .nav-dropdown:has(.nav-user-info) { display: none; }
   .combined-header .combined-search-toggle { display: inline-flex; margin-left: auto; padding: 0; }
 }
+
+// Optical correction applies only to the compact bar; footer stays unchanged.
+.combined-header .nav-brand { position: relative; top: -2px; }
+.combined-header .brand-text { position: relative; top: -3px; }
+.header-shell { display: flow-root; }
+.app-header:not(.combined-header) { padding-bottom: 12px; }
