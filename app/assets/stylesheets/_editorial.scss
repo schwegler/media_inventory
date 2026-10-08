@@ -12,7 +12,7 @@
   .app-header { position: relative; padding: 0; margin: 0 0 42px; background: var(--bg-dark); box-shadow: none; backdrop-filter: none; border: 0; }
   .app-header .app-nav, .library-nav { max-width: 1320px; margin: auto; width: calc(100% - 40px); padding: 0; }
   .app-header .app-nav { min-height: 80px; gap: 24px; }
-  .nav-brand { display: flex; align-items: center; min-width: 0; }
+  .nav-brand { display: flex; align-items: baseline; min-width: 0; }
   .app-header .brand-text { line-height: 1; color: var(--text-main); font-size: 32px; font-weight: 700; letter-spacing: -1.5px; }
   .brand-companion { border-left: 1px solid var(--border-medium); margin-left: 24px; padding-left: 16px; color: var(--text-muted); font-size: 14px; white-space: nowrap; }
   .blog-nav-link { font-size: 14px; color: var(--text-muted); white-space: nowrap; }
@@ -79,8 +79,8 @@
   .app-footer { background: none; border: 0; padding: 0 0 24px; margin-top: 36px; }
   .app-footer .footer-content { display: flex; align-items: center; justify-content: space-between; padding: 20px 0; border-top: 1px solid var(--border-medium); gap: 20px; }
   .footer-wordmark { display: flex; align-items: baseline; gap: 10px; }
-  .footer-logo { object-fit: contain; flex-shrink: 0; }
-  .footer-brand { display: flex; align-items: center; gap: 22px; }
+  .footer-logo { object-fit: contain; object-position: bottom; flex-shrink: 0; }
+  .footer-brand { display: flex; align-items: baseline; gap: 22px; }
   .footer-brand strong { line-height: 1; color: var(--text-main); font-family: 'Space Grotesk', sans-serif; font-size: 24px; letter-spacing: -1px; }
   .footer-brand span { border-left: 1px solid var(--border-medium); padding-left: 22px; color: var(--text-muted); font-size: 14px; }
   .app-footer .footer-attribution { flex-direction: row; align-items: center; justify-content: flex-start; text-align: left; max-width: none; opacity: 1; gap: 12px; }
