@@ -1,34 +1,54 @@
 <div class="page-header">
-  <h1>All Users</h1>
+  <div>
+    <h1>Members</h1>
+    <p>Meet the people behind the shelves. Find a library that feels like yours.</p>
+  </div>
 </div>
 
-<turbo-frame id="users_list">
-  <div class="pagination-wrapper">
-    <%= paginate @users %>
-  </div>
-
-  <ul class="media-grid">
+<%= turbo_frame_tag 'users_list' do %>
+  <div class="pagination-wrapper"><%= paginate @users %></div>
+  <ul class="members-grid" aria-label="Members">
     <% @users.each do |user| %>
-      <li class="media-card user-card">
-        <div class="card-icon" style="background: none; border: none;">
-          <%= user_avatar_tag(user, size: 44) %>
-        </div>
-        <div class="card-content">
-          <h3><%= link_to user.name, user, data: { turbo_frame: "_top" } %></h3>
-          <span class="card-meta"><%= user.display_handle %></span>
-        </div>
-        <% if current_user.admin? && !current_user?(user) %>
-          <div class="card-actions">
-            <%= button_to "Delete", user, method: :delete,
-                                      data: { turbo_confirm: "Are you sure?", turbo_frame: "_top" },
-                                      class: "btn btn-danger btn-sm" %>
+      <li>
+        <article class="member-card" data-profile-accent="<%= user.profile_accent %>" data-profile-header="<%= user.profile_header %>">
+          <div class="member-card-banner" aria-hidden="true">
+            <% if user.header_banner.attached? %>
+              <%= image_tag user.header_banner, alt: '', loading: 'lazy' %>
+            <% end %>
           </div>
-        <% end %>
+          <div class="member-card-body">
+            <%= link_to user, class: 'member-card-identity', data: { turbo_frame: '_top' }, aria: { label: "View #{user.name}'s profile" } do %>
+              <%= user_avatar_tag(user, size: 64) %>
+              <div>
+                <h2><%= user.name %></h2>
+                <% if user.display_handle.present? %><p class="member-card-handle"><%= user.display_handle %></p><% end %>
+              </div>
+            <% end %>
+            <p class="member-card-bio"><%= user.bio.present? ? truncate(user.bio, length: 180) : 'A library waiting to be discovered.' %></p>
+            <div class="member-card-meta">
+              <span><%= pluralize(@public_collection_counts.fetch(user.id, 0), 'public collection item') %></span>
+              <span>Joined <%= user.created_at.strftime('%b %Y') %></span>
+            </div>
+            <div class="member-card-actions">
+              <%= link_to 'View library →', user, data: { turbo_frame: '_top' } %>
+              <% if current_user?(user) %><span class="member-card-self">Your profile</span><% end %>
+            </div>
+          </div>
+          <% if current_user.admin? %>
+            <div class="member-card-admin">
+              <% if current_user?(user) %>
+                <span class="member-card-self">Your account</span>
+              <% else %>
+              <%= button_to 'Delete account', user, method: :delete,
+                            data: { turbo_confirm: "Delete #{user.name}'s account? This cannot be undone.", turbo_frame: '_top' },
+                            class: 'btn btn-danger btn-sm', aria: { label: "Delete #{user.name}'s account" } %>
+              <% end %>
+            </div>
+          <% end %>
+        </article>
       </li>
     <% end %>
   </ul>
-
-  <div class="pagination-wrapper">
-    <%= paginate @users %>
-  </div>
-</turbo-frame>
+  <% if @users.empty? %><div class="empty-state"><h2>No members yet</h2><p>New libraries will appear here as people join.</p></div><% end %>
+  <div class="pagination-wrapper"><%= paginate @users %></div>
+<% end %>

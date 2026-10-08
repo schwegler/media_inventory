@@ -1,3 +1,9 @@
+<% content_for(:item_detail, 'true') %>
+<% if @wrestling_event.cover_image.attached? %>
+  <% content_for(:header_artwork, url_for(@wrestling_event.cover_image)) %>
+<% elsif @wrestling_event.thumbnail_url.present? %>
+  <% content_for(:header_artwork, @wrestling_event.thumbnail_url) %>
+<% end %>
 <div class="details-card" style="max-width: 700px;">
   <div class="media-item-header">
     <div class="media-item-cover">

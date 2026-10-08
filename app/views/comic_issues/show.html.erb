@@ -10,6 +10,9 @@
   end
 %>
 
+<% content_for(:item_detail, 'true') %>
+<% content_for(:header_artwork, backdrop_url) if backdrop_url.present? %>
+
 <div class="show-hero">
   <% if backdrop_url %>
     <img class="show-hero-backdrop" src="<%= backdrop_url %>" alt="" />

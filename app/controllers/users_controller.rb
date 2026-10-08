@@ -10,7 +10,9 @@ class UsersController < ApplicationController
 
   def index
     # Optimize to eager load user avatars to prevent N+1 queries when rendering the user list
-    @users = User.with_attached_avatar.page(params[:page])
+    @users = User.with_attached_avatar.with_attached_header_banner.page(params[:page])
+    @public_collection_counts = LibraryItem.where(user_id: @users.map(&:id), is_collected: true, is_public: true)
+                                           .group(:user_id).count
   end
 
   def show
