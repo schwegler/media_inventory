@@ -33,3 +33,27 @@ body.item-detail { position: relative; isolation: isolate; }
   .item-page-artwork { display: none; }
   .item-detail .app-header::before, .item-detail .native-tools { background: var(--canvas); backdrop-filter: none; -webkit-backdrop-filter: none; }
 }
+
+// The first row scrolls away naturally; only discovery/navigation stays pinned.
+// Keeping the header's flow height avoids scroll jumps from toggling display.
+.item-detail .app-header { padding-bottom: 12px; }
+.compact-menu-btn { display: none; }
+@media (min-width: 1051px) {
+  .item-detail .app-header { top: -80px; }
+  .item-detail .app-nav { height: 80px; }
+  .item-detail .library-nav { min-height: 64px; gap: 16px; padding-block: 5px; }
+  .item-detail .library-nav .nav-links { gap: 18px; }
+  .item-detail .library-nav .global-search-form { flex: 0 1 365px; min-width: 180px; padding-block: 4px; }
+  .item-detail .compact-menu-btn { display: inline-flex; flex-shrink: 0; order: 3; }
+  .item-detail .mobile-nav-panel.active {
+    display: flex; left: auto; right: max(20px, calc((100% - 1320px) / 2));
+    width: min(440px, calc(100% - 40px)); max-height: calc(100dvh - 90px);
+    border: 1px solid var(--border); border-radius: 12px;
+  }
+  // Keyboard focus brings the complete first row back into view.
+  .item-detail .app-header:has(.app-nav :focus-visible) { top: 0; }
+}
+@media (max-width: 1050px) {
+  .item-detail .app-header .app-nav { min-height: 64px; }
+  .item-detail .mobile-nav-panel { max-height: calc(100dvh - 76px); }
+}

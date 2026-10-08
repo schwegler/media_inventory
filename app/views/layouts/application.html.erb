@@ -99,7 +99,7 @@
           <div class="nav-dropdown" data-controller="dropdown">
             <button class="sleek-btn sleek-btn-success btn-log" type="button" data-action="click->dropdown#toggle" data-dropdown-target="button" aria-haspopup="true" aria-expanded="false" aria-label="Toggle log menu">
               <span>+ Add to library</span>
-              <svg class="dropdown-chevron" viewBox="0 0 20 20" fill="currentColor" style="width: 14px; height: 14px; margin-left: 4px;" aria-hidden="true" focusable="false">
+              <svg class="dropdown-chevron" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" focusable="false">
                 <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
               </svg>
             </button>
@@ -130,6 +130,9 @@
       </button>
     </nav>
     <nav class="library-nav desktop-nav" aria-label="Library">
+      <% if content_for?(:item_detail) %>
+        <button class="compact-menu-btn btn btn-ghost" type="button" data-action="mobile-menu#toggle" data-mobile-menu-target="button" aria-label="Open account and navigation menu" aria-controls="mobile-navigation" aria-expanded="false">Menu</button>
+      <% end %>
       <ul class="nav-links">
         <li><%= link_to "Movies", movies_path, aria: { current: controller_name == "movies" ? "page" : nil } %></li>
         <li><%= link_to "Albums", albums_path, aria: { current: controller_name == "albums" ? "page" : nil } %></li>

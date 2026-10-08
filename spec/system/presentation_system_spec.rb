@@ -5,6 +5,22 @@ require 'rails_helper'
 RSpec.describe 'Presentation and keyboard access', type: :system do
   before { page.current_window.resize_to(1440, 1000) }
 
+  it 'keeps item navigation compact when scrolling and restores account menu focus' do
+    create_and_login_user
+    movie = Movie.create!(title: 'Compact header')
+    visit movie_path(movie)
+    expect(page).to have_css('[data-controller="mobile-menu"][data-connected="true"]')
+    page.execute_script('window.scrollTo(0, 400)')
+    pinned_bottom = page.evaluate_script('document.querySelector(".app-header").getBoundingClientRect().bottom')
+    expect(pinned_bottom).to be <= 80
+    click_button 'Open account and navigation menu'
+    expect(page).to have_link('Settings', visible: true)
+    page.driver.browser.action.send_keys(:escape).perform
+    focused_label = page.evaluate_script('document.activeElement.getAttribute("aria-label")')
+    expect(focused_label).to eq('Open account and navigation menu')
+    expect(page).to have_css('.compact-menu-btn[aria-expanded="false"]')
+  end
+
   it 'supports narrow navigation, restores menu focus, and previews and persists profile themes' do
     user = create_and_login_user
     page.current_window.resize_to(390, 844)
