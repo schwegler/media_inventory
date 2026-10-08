@@ -44,8 +44,13 @@
     gtag('config', 'G-PPD2TWSZBW');
   </script>
 </head>
-<body data-controller="artwork form-errors" data-ui-preferences="<%= ui_preferences.to_json %>" <% if hotwire_native_app? %>data-native="true"<% end %>>
+<body class="<%= 'item-detail' if content_for?(:item_detail) %>" data-controller="artwork form-errors" data-ui-preferences="<%= ui_preferences.to_json %>" <% if hotwire_native_app? %>data-native="true"<% end %>>
   <a href="#main-content" class="skip-link">Skip to content</a>
+  <% if content_for?(:header_artwork) %>
+    <div class="item-page-artwork" aria-hidden="true">
+      <%= image_tag yield(:header_artwork), alt: '', class: 'item-page-artwork-image' %>
+    </div>
+  <% end %>
 
   <% unless hotwire_native_app? %>
   <header class="app-header" data-controller="mobile-menu">
@@ -53,7 +58,7 @@
       <div class="nav-brand">
         <%= link_to root_path, class: 'brand-link' do %>
           <%= image_tag 'tacobout-logo.png', class: 'brand-logo', width: 44, height: 34, alt: '' %>
-          <span class="brand-text">Trove</span>
+          <span class="brand-text">trove</span>
         <% end %>
         <a class="brand-companion" href="https://tacobout.online/">from taco ’bout it</a>
       </div>
@@ -61,7 +66,7 @@
       <div class="nav-user-section desktop-nav">
         <a class="blog-nav-link" href="https://tacobout.online/">Blog</a>
         <% if logged_in? %>
-          <div class="nav-notifications" style="margin-right: 15px; display: flex; align-items: center;">
+          <div class="nav-notifications">
             <%= link_to notifications_path, class: "notification-bell", aria: { label: "Notifications" } do %>
               <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -78,7 +83,7 @@
           <div class="nav-dropdown" data-controller="dropdown">
             <button class="nav-user-info sleek-btn usr-btn dropdown-toggle" type="button" data-action="click->dropdown#toggle" data-dropdown-target="button" aria-haspopup="true" aria-expanded="false">
               <%= user_avatar_tag(current_user, size: 24) %>
-              <span class="nav-username"><%= current_user.name.upcase %></span>
+              <span class="nav-username" title="<%= current_user.name %>"><%= current_user.name.upcase %></span>
               <svg class="dropdown-chevron" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" focusable="false">
                 <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
               </svg>
@@ -91,7 +96,7 @@
             </div>
           </div>
 
-          <div class="nav-dropdown" data-controller="dropdown" style="margin-left: 10px;">
+          <div class="nav-dropdown" data-controller="dropdown">
             <button class="sleek-btn sleek-btn-success btn-log" type="button" data-action="click->dropdown#toggle" data-dropdown-target="button" aria-haspopup="true" aria-expanded="false" aria-label="Toggle log menu">
               <span>+ Add to library</span>
               <svg class="dropdown-chevron" viewBox="0 0 20 20" fill="currentColor" style="width: 14px; height: 14px; margin-left: 4px;" aria-hidden="true" focusable="false">
@@ -178,7 +183,7 @@
           <div class="mobile-user-profile" style="position: relative; margin-bottom: 15px;">
             <%= user_avatar_tag(current_user, size: 48) %>
             <div class="mobile-user-info">
-              <span class="nav-username"><%= current_user.name.upcase %></span>
+              <span class="nav-username" title="<%= current_user.name %>"><%= current_user.name.upcase %></span>
               <div class="mobile-user-links">
                 <%= link_to "Profile", current_user, class: "mobile-link" %>
                 <%= link_to "Settings", settings_path, class: "mobile-link" %>
@@ -245,7 +250,7 @@
   <div class="container">
     <div class="footer-content">
       <div class="footer-copyright">
-        <div class="footer-brand"><div class="footer-wordmark"><%= image_tag 'tacobout-logo.png', width: 38, height: 30, alt: '', class: 'footer-logo', loading: 'lazy' %><strong>Trove</strong></div><span>A library companion to taco ’bout it.</span></div>
+        <div class="footer-brand"><div class="footer-wordmark"><%= image_tag 'tacobout-logo.png', width: 38, height: 30, alt: '', class: 'footer-logo', loading: 'lazy' %><strong>trove</strong></div><span>A library companion to taco ’bout it.</span></div>
       </div>
       <a class="blog-link" href="https://tacobout.online/">Visit the blog <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></a>
     </div>

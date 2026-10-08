@@ -11,6 +11,7 @@ RSpec.describe 'users/index.html.erb', type: :view do
   end
 
   before do
+    assign(:public_collection_counts, {})
     assign(:users, Kaminari.paginate_array([user1, user2]).page(1))
     allow(view).to receive(:current_user?).and_return(false)
   end

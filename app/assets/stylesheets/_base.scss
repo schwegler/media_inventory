@@ -254,39 +254,6 @@ a {
   }
 }
 
-// Extra styles for User Cards in User index
-.user-card {
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px;
-  gap: 16px;
-  box-sizing: border-box;
-
-  .card-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-  }
-
-  .card-content {
-    h3 {
-      margin: 0;
-
-      a {
-        color: var(--text-main);
-
-        &:hover {
-          color: $accent-orange;
-        }
-      }
-    }
-  }
-
-  .card-actions {
-    flex-shrink: 0;
-  }
-}
 
 .card-cover {
   img {
@@ -479,72 +446,6 @@ table {
 // ==========================================================================
 //  Alerts
 // ==========================================================================
-#flash-messages {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 9999;
-  width: 90%;
-  max-width: 600px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  pointer-events: none;
-  /* Allows clicking through the container */
-}
-
-.alert {
-  padding: 1rem 1.5rem;
-  border-radius: $radius-md;
-  margin-bottom: 0;
-  font-size: 0.9rem;
-  background: rgba(22, 27, 34, 0.9);
-  border: 1px solid $card-border;
-  backdrop-filter: blur(8px);
-  animation: alertSlideIn 0.3s ease-out;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  pointer-events: auto;
-  /* Re-enable pointer events for the alert itself */
-  text-align: center;
-}
-
-.alert-danger {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.25);
-  color: var(--danger-color);
-}
-
-.alert-success {
-  background: rgba(0, 230, 118, 0.1);
-  border-color: rgba(0, 230, 118, 0.25);
-  color: var(--success-color);
-}
-
-.alert-warning {
-  background: rgba(245, 158, 11, 0.1);
-  border-color: rgba(245, 158, 11, 0.25);
-  color: var(--warning-color);
-}
-
-.alert-info {
-  background: rgba(129, 140, 248, 0.1);
-  border-color: rgba(129, 140, 248, 0.25);
-  color: var(--info-color);
-}
-
-@keyframes alertSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 // ==========================================================================
 //  Pagination
 // ==========================================================================

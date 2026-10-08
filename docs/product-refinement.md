@@ -62,3 +62,11 @@ A future move can use a subdomain such as `trove.tacobout.online`; the name is i
 5. Verify any social/OAuth client registrations, callback URLs, mail links, monitoring, proxy/host allowlists and external integrations for the selected hostname. Test public-profile canonical URLs, sharing previews, artwork, login, mobile web and both native wrappers before redirecting normal traffic.
 
 The blog and inventory remain separate applications; no cross-subdomain session sharing, live DNS change or production redirect is introduced by the branding update.
+
+The visible wordmark is lowercase `trove`; the logo and wordmark share a baseline rather than centering artwork against a tall text line box. Item detail pages extend their cover artwork behind a sticky, translucent header. `_item_header.scss` adapts the blog's 16px blur / 180% saturation on a background pseudo-element, preserving dropdown/navigation positioning. The light/dark canvas supplies a readable glass tint, while reduced-effects and reduced-transparency preferences restore an opaque surface. Browsers without backdrop filtering also receive an opaque fallback. Catalog/profile/settings headers retain their editorial canvas treatment.
+
+Member discovery uses an independent responsive card grid with profile accents/banners, full wrapping identities, a short bio and public-only collection counts. Bulk aggregation avoids per-card count queries. Administrative deletion occupies a separate, labeled footer and never competes with profile links; no birthdays, emails or private collection counts appear.
+
+Profile follow/unfollow and sharing actions use the same button metrics and top alignment. Follow forms have no extra hidden-field wrapper or submit offset; the legacy global `form input` top margin is removed so action rows do not inherit field spacing. Narrow profile action groups use an intrinsic two-column layout and wrap additional controls instead of shrinking labels.
+
+The desktop navigation bell, account trigger and add-to-library trigger use a shared 44px border-box height. Long account names stay on one line, and redundant inline margins are removed. Profile filters use a button element and a 44px select so submit-input defaults cannot offset the filter action.

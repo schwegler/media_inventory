@@ -67,7 +67,7 @@
             <%= hidden_field_tag :preview, 'public' if params[:preview] == 'public' %>
             <%= label_tag :type, 'Media type' %>
             <%= select_tag :type, options_for_select(ProfilesHelper::PROFILE_MEDIA_TYPES.map { |key, label| [label, key] }, params[:type]), include_blank: 'All media' %>
-            <%= f.submit 'Filter', class: 'sleek-btn sleek-btn-secondary' %>
+            <%= f.button 'Filter', class: 'btn btn-secondary' %>
           <% end %>
           <%= render 'profile_shelf', items: @profile_tab == 'collection' ? @collection_items : @backlog_items, empty_title: 'Nothing here yet.', empty_description: params[:type].present? ? 'Try another media type or choose All media.' : (@profile_owner ? 'Browse Trove to start building this shelf.' : 'No public items on this shelf yet.') %>
         </section>

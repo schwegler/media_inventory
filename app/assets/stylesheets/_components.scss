@@ -115,6 +115,13 @@
   .settings-nav-item.active { color: var(--accent); background: var(--accent-subtle); border-left: 3px solid var(--accent); }
   .row-label, .toggle-headers, .section-subtitle { color: var(--text-secondary); }
   .notification-row { border-color: var(--border); gap: 1rem; flex-wrap: wrap; }
+  .nav-notifications, .nav-user-section .nav-dropdown { display: flex; align-items: center; }
+  .nav-user-section .nav-user-info, .nav-user-section .btn-log, .nav-user-section .notification-bell {
+    display: inline-flex; align-items: center; justify-content: center; height: 44px; min-height: 44px;
+    box-sizing: border-box; margin: 0;
+  }
+  .nav-user-section .nav-username { max-width: 16ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.4; }
+  .nav-user-section .notification-bell { width: 44px; padding: 0; border: 1px solid transparent; }
   .notification-bell { position: relative; color: var(--text); background: var(--inset); border-radius: 7px; }
   .user-avatar, .user-avatar-fallback {
     width: var(--avatar-size, 40px); height: var(--avatar-size, 40px); max-width: none; max-height: none;
@@ -130,7 +137,6 @@
   .badge-reviewed { color: var(--warning); }
   .badge-consumed, .badge-added { color: var(--positive); }
   .activity-review-quote { font-size: .9375rem; color: var(--text-secondary); border-left-color: var(--accent); }
-  .user-card { min-width: 0; }
   .comment-form { flex-wrap: wrap; }
   .comment-form input[type='text'] { flex: 1 1 180px; }
   .table-wrapper { overflow-x: auto; }
@@ -177,9 +183,10 @@
   .alert-success { border-left-color: var(--positive); }
   .alert-danger, .alert-alert { border-left-color: var(--destructive); }
   .alert-warning { border-left-color: var(--warning); }
-  #flash-messages { position: static; transform: none; width: 100%; max-width: none; margin-bottom: 1.5rem; }
+  #flash-messages { display: grid; gap: .75rem; margin-bottom: 1.5rem; }
   #flash-messages:empty { display: none; }
-  .alert { display: flex; align-items: center; gap: 1rem; text-align: left; backdrop-filter: none; }
+  .alert { display: flex; align-items: center; gap: 1rem; padding: 1rem; border-radius: 8px; font-size: 1rem; text-align: left; position: relative; isolation: isolate; }
+  .alert > span { min-width: 0; overflow-wrap: anywhere; }
   .flash-dismiss { margin-left: auto; flex-shrink: 0; }
   .empty-state { grid-column: 1 / -1; background: var(--inset); border: 1px solid var(--border); padding: 2rem 1rem; border-radius: 8px; }
   :root[data-density='compact'] { --space-6: 1.5rem; }

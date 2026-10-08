@@ -12,6 +12,7 @@
 @use "editorial";
 @use "profile";
 @use "components";
+@use "item_header";
 
 @include editorial.styles;
 @include profile.styles;

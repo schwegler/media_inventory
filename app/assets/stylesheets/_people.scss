@@ -204,3 +204,26 @@
 .hidden {
   display: none;
 }
+
+// Member cards have their own intrinsic grid; administrative actions cannot squeeze identity.
+.members-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: var(--space-5); }
+.members-grid > li { min-width: 0; }
+.member-card { display: flex; flex-direction: column; height: 100%; overflow: hidden; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+.member-card-banner { height: 96px; background: repeating-linear-gradient(0deg, transparent 0 19px, var(--border) 20px 21px), var(--accent-subtle); }
+.member-card-banner img { width: 100%; height: 100%; object-fit: cover; }
+.member-card[data-profile-header='solid'] .member-card-banner { background: var(--accent); }
+.member-card[data-profile-header='minimal'] .member-card-banner { background: var(--inset); border-bottom: 3px solid var(--accent); }
+.member-card-body { display: flex; flex-direction: column; flex: 1; padding: var(--space-5); min-width: 0; }
+.member-card-identity { display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; gap: var(--space-4); color: var(--text); text-decoration: none; }
+.member-card-identity h2 { font-size: 1.25rem; line-height: 1.25; border: 0; padding: 0; margin: 0; text-wrap: wrap; overflow-wrap: anywhere; }
+.member-card-identity:hover h2 { text-decoration: underline; text-underline-offset: .2em; }
+.member-card-handle { color: var(--text-secondary); margin: .25rem 0 0; font-size: .875rem; overflow-wrap: anywhere; }
+.member-card-bio { margin: var(--space-4) 0; font-size: .9375rem; line-height: 1.55; color: var(--text-secondary); }
+.member-card-meta { display: flex; flex-direction: column; gap: .25rem; color: var(--text-secondary); font-size: .8125rem; margin-top: auto; }
+.member-card-actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-3); border-top: 1px solid var(--border); margin-top: var(--space-4); padding-top: var(--space-3); }
+.member-card-actions a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
+.member-card-self { color: var(--text-secondary); font-size: .8125rem; }
+.member-card-admin { padding: var(--space-3) var(--space-5); border-top: 1px solid var(--border); background: var(--inset); }
+.member-card-admin form { display: block; }
+
+.member-card-admin .member-card-self { display: inline-flex; align-items: center; min-height: 44px; }
