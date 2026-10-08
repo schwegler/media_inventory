@@ -20,7 +20,7 @@ RSpec.describe 'Public item sharing', type: :request do
       expect(response).to have_http_status(:ok)
       expect(metadata['title']).to eq("Public #{model.name} | Trove")
       expect(metadata['description']).to be_present
-      expect(metadata['image']).to start_with('https://trove.schweg.xyz/rails/active_storage/')
+      expect(metadata['image']).to start_with('https://trove.schweg.xyz/media/covers/')
       expect(response.body).not_to include('https://covers.example.org/public.png')
       expect(metadata['url']).to eq("https://trove.schweg.xyz/#{item.model_name.route_key}/#{item.id}")
       expect(metadata.values.join).not_to include('DO NOT PUBLISH THIS NOTE')
@@ -51,13 +51,13 @@ RSpec.describe 'Public item sharing', type: :request do
     movie.cover_image.attach(io: File.open(Rails.root.join('public/favicon.svg')), filename: 'cover.svg',
                              content_type: 'image/svg+xml')
     get movie_path(movie)
-    expect(metadata['image']).to start_with('https://trove.schweg.xyz/rails/active_storage/')
+    expect(metadata['image']).to start_with('https://trove.schweg.xyz/media/covers/')
   end
 
   it 'uses an HTTPS fallback for an insecure thumbnail' do
     movie = Movie.create!(title: 'No secure cover', thumbnail_url: 'http://covers.example.org/cover.png')
     get movie_path(movie)
-    expect(metadata['image']).to eq('https://trove.schweg.xyz/favicon.svg')
+    expect(metadata['image']).to eq("https://trove.schweg.xyz/media/covers/movie/#{movie.id}")
   end
 
   it 'renders episode and issue catalog metadata without collection notes' do

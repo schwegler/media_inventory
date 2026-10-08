@@ -221,7 +221,7 @@ export default class extends Controller {
 
   selectOption(option, isManualClick = false) {
     // 1. Update cover art URL and previews
-    this.thumbnailUrlTarget.value = option.thumbnail_url || ""
+    this.thumbnailUrlTarget.value = option.cover_source_url || option.thumbnail_url || ""
     this.previewImgTarget.src = option.thumbnail_url || "/favicon.svg"
     this.previewImgTarget.style.display = "block"
     this.placeholderTarget.style.display = "none"

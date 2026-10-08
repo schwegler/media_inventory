@@ -7,9 +7,12 @@ module StoredMediaCover
     after_commit :enqueue_cover_import, on: %i[create update]
   end
 
-  # thumbnail_url is retained as provenance, never used to render saved media.
+  # Legacy records and interrupted imports recover through the app on first use.
+  # The browser never fetches the provider URL directly for saved catalog media.
   def stored_cover_url
-    Rails.application.routes.url_helpers.rails_blob_path(cover_image, only_path: true) if cover_image.attached?
+    return if thumbnail_url.blank? && !cover_image.attached?
+
+    Rails.application.routes.url_helpers.media_cover_path(type: self.class.name.underscore, id: id)
   end
 
   private

@@ -57,8 +57,8 @@
           <div class="popular-review-row">
             <div class="review-poster-col">
               <div class="review-poster">
-                <% if media.respond_to?(:cover_image) && media.cover_image.attached? %>
-                  <%= image_tag media.cover_image, alt: media.title, class: 'poster-img' %>
+                <% if media.respond_to?(:stored_cover_url) && media.stored_cover_url.present? %>
+                  <%= image_tag media.stored_cover_url, alt: media.title, class: 'poster-img' %>
                 <% elsif media.respond_to?(:stored_cover_url) && media.stored_cover_url.present? %>
                   <img src="<%= media.stored_cover_url %>" alt="<%= media.title %>" class="poster-img">
                 <% else %>

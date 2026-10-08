@@ -55,7 +55,8 @@ RSpec.describe 'Media Autocomplete', type: :request do
         expect(response).to have_http_status(:ok)
         json = JSON.parse(response.body)
         expect(json.size).to eq(1)
-        expect(json.first['thumbnail_url']).to include('cover.png')
+        expect(json.first['thumbnail_url']).to eq("/media/covers/movie/#{movie1.id}")
+        expect(json.first['cover_source_url']).to include('cover.png')
 
         temp_file.close
         temp_file.unlink

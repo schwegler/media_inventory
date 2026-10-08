@@ -4,9 +4,9 @@
       <% item = entry.item; next unless item %>
       <article class="profile-media-entry">
         <%= link_to item, class: 'profile-cover', aria: { label: item.title } do %>
-          <% if item.respond_to?(:cover_image) && item.cover_image.attached? %>
-            <%= image_tag item.cover_image, alt: '', loading: 'lazy' %>
-                <% else %>
+          <% if item.respond_to?(:stored_cover_url) && item.stored_cover_url.present? %>
+            <%= image_tag item.stored_cover_url, alt: '', loading: 'lazy' %>
+          <% else %>
             <span class="profile-cover-title"><%= item.title %></span>
           <% end %>
         <% end %>

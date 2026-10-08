@@ -2,12 +2,7 @@
 <% content_for(:meta_description, "Issue of #{@comic_issue.comic.title}") %>
 <%
   comic = @comic_issue.comic
-  backdrop_url = @comic_issue.stored_cover_url
-  if comic.cover_image.attached?
-    backdrop_url = url_for(comic.cover_image)
-  elsif comic.stored_cover_url.present?
-    backdrop_url = @comic_issue.stored_cover_url.presence || comic.stored_cover_url
-  end
+  backdrop_url = @comic_issue.stored_cover_url || comic.stored_cover_url
 %>
 
 <% content_for(:item_detail, 'true') %>
@@ -27,10 +22,8 @@
       <div class="show-poster" style="aspect-ratio: 2 / 3;">
         <% if @comic_issue.stored_cover_url.present? %>
           <img src="<%= @comic_issue.stored_cover_url %>" alt="<%= @comic_issue.display_title %> Cover" style="width: 100%; height: 100%; object-fit: cover;">
-        <% elsif comic.cover_image.attached? %>
-          <%= image_tag comic.cover_image, alt: "#{comic.title} Cover" %>
         <% elsif comic.stored_cover_url.present? %>
-          <img src="<%= comic.stored_cover_url %>" alt="<%= comic.title %> Cover">
+          <%= image_tag comic.stored_cover_url, alt: "#{comic.title} Cover" %>
         <% else %>
           <div class="poster-fallback"><span class="fallback-emoji">📖</span></div>
         <% end %>

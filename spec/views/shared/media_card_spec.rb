@@ -13,7 +13,7 @@ RSpec.describe 'shared/_media_card.html.erb', type: :view do
     render partial: 'shared/media_card', locals: { media_item: movie }
 
     expect(rendered).to have_css('img[alt="Inception cover"]')
-    expect(rendered).to have_css('img[src*="/rails/active_storage/"]')
+    expect(rendered).to have_css('img[src*="/media/covers/"]')
     expect(rendered).not_to include('https://example.com/')
   end
 end

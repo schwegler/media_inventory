@@ -1,8 +1,8 @@
 <% media_title = media_item.try(:title) || media_item.try(:name) || 'Media' %>
 <div class="card-2026" data-media-kind="<%= media_item.class.name %>">
   <div class="card-2026-cover">
-    <% if media_item.respond_to?(:cover_image) && media_item.cover_image.attached? %>
-      <%= image_tag media_item.cover_image, alt: "#{media_title} cover", loading: "lazy", decoding: "async" %>
+    <% if media_item.respond_to?(:stored_cover_url) && media_item.stored_cover_url.present? %>
+      <%= image_tag media_item.stored_cover_url, alt: "#{media_title} cover", loading: "lazy", decoding: "async" %>
     <% else %>
       <span class="fallback-emoji">
         <%= case media_item.class.name

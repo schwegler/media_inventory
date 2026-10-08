@@ -23,7 +23,7 @@ RSpec.describe 'shared/_activity_card.html.erb', type: :view do
     render partial: 'shared/activity_card', locals: { media_item: movie, activity: activity, lib_item: library_item }
 
     expect(rendered).to have_css('img[alt="The Matrix cover"]')
-    expect(rendered).to have_css('img[src*="/rails/active_storage/"]')
+    expect(rendered).to have_css('img[src*="/media/covers/"]')
     expect(rendered).not_to include('https://example.com/')
   end
 end
