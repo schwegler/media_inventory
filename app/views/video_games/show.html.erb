@@ -44,6 +44,7 @@
   <!-- Right Column: Title, Metadata, Reviews -->
   <div class="show-right">
     <div class="show-header-details">
+      <%= render "shared/item_sharing", item: @video_game %>
       <h1 class="show-title"><%= @video_game.title %></h1>
       <p class="show-meta-subtitle">
         Developed by <span class="meta-highlight"><%= @video_game.developer || 'Unknown Developer' %></span> &bull; <%= @video_game.platform %> &bull; <%= @video_game.release_year %>

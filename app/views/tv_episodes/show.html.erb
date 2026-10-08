@@ -1,3 +1,5 @@
+<% content_for(:title, @tv_episode.title) %>
+<% content_for(:meta_description, "Episode of #{@tv_episode.tv_show.title} • Season #{@tv_episode.season}, episode #{@tv_episode.episode}") %>
 <%
   tv_show = @tv_episode.tv_show
   backdrop_url = nil
@@ -41,6 +43,7 @@
   <!-- Right Column: Title, Metadata, Rating/Review, Comments -->
   <div class="show-right">
     <div class="show-header-details">
+      <%= render "shared/item_sharing", item: @tv_episode %>
       <h1 class="show-title"><%= @tv_episode.name %></h1>
       <p class="show-meta-subtitle">
         Season <%= @tv_episode.season %> Episode <%= @tv_episode.episode %> of <%= link_to tv_show.title, tv_show, class: 'meta-highlight' %>

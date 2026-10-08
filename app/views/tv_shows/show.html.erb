@@ -46,6 +46,7 @@
 
   <!-- Right Column: Title, Metadata, Reviews -->
   <div class="show-right">
+    <%= render "shared/item_sharing", item: @tv_show %>
     <div class="show-header-details" style="display: flex; justify-content: space-between; align-items: flex-start;">
       <div>
         <h1 class="show-title"><%= @tv_show.title %></h1>

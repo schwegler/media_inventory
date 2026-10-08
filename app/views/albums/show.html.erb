@@ -45,6 +45,7 @@
   <!-- Right Column: Title, Metadata, Reviews -->
   <div class="show-right">
     <div class="show-header-details">
+      <%= render "shared/item_sharing", item: @album %>
       <h1 class="show-title"><%= @album.title %></h1>
       <p class="show-meta-subtitle">
         by <span class="meta-highlight"><%= @album.artist || 'Unknown Artist' %></span> &bull; <%= @album.genre %> &bull; <%= @album.release_year %>

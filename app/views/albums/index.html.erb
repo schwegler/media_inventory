@@ -6,6 +6,9 @@
 </div>
 
 <turbo-frame id="items_list">
+  <% if @albums.empty? %>
+    <%= render 'shared/catalog_empty_state', media_name: 'albums', singular_name: 'album', article: 'an', new_item_path: new_album_path %>
+  <% end %>
   <div class="media-grid-2026">
     <% @albums.each do |album| %>
       <%= render partial: 'shared/media_card', locals: { media_item: album } %>

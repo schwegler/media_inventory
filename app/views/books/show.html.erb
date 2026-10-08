@@ -44,6 +44,7 @@
   <!-- Right Column: Title, Metadata, Reviews -->
   <div class="show-right">
     <div class="show-header-details">
+      <%= render "shared/item_sharing", item: @book %>
       <h1 class="show-title"><%= @book.title %></h1>
       <p class="show-meta-subtitle">
         Written by <span class="meta-highlight"><%= @book.author || 'Unknown' %></span> &bull; <%= @book.release_year %>

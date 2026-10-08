@@ -1,28 +1,46 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Connects to data-controller="mobile-menu"
 export default class extends Controller {
-  static targets = ["menu", "icon", "closeIcon"]
+  static targets = ["menu", "icon", "closeIcon", "button"]
 
   connect() {
     this.isOpen = false
+    this.render()
+    this.onKeydown = (event) => {
+      if (event.key === "Escape" && this.isOpen) {
+        this.close()
+        if (this.hasButtonTarget) this.buttonTarget.focus()
+      }
+    }
+    this.onClick = (event) => {
+      if (this.isOpen && !this.element.contains(event.target)) this.close()
+    }
+    this.onBeforeCache = () => this.close()
+    document.addEventListener("keydown", this.onKeydown)
+    document.addEventListener("click", this.onClick)
+    document.addEventListener("turbo:before-cache", this.onBeforeCache)
+  }
+
+  disconnect() {
+    document.removeEventListener("keydown", this.onKeydown)
+    document.removeEventListener("click", this.onClick)
+    document.removeEventListener("turbo:before-cache", this.onBeforeCache)
   }
 
   toggle() {
     this.isOpen = !this.isOpen
-    
-    if (this.isOpen) {
-      this.menuTarget.classList.add("active")
-      if (this.hasIconTarget) this.iconTarget.classList.add("hidden")
-      if (this.hasCloseIconTarget) this.closeIconTarget.classList.remove("hidden")
-    } else {
-      this.menuTarget.classList.remove("active")
-      if (this.hasIconTarget) this.iconTarget.classList.remove("hidden")
-      if (this.hasCloseIconTarget) this.closeIconTarget.classList.add("hidden")
-    }
+    this.render()
   }
 
-  disconnect() {
-    // No longer need to reset overflow here as we are not setting it
+  close() {
+    this.isOpen = false
+    this.render()
+  }
+
+  render() {
+    this.menuTarget.classList.toggle("active", this.isOpen)
+    if (this.hasIconTarget) this.iconTarget.classList.toggle("hidden", this.isOpen)
+    if (this.hasCloseIconTarget) this.closeIconTarget.classList.toggle("hidden", !this.isOpen)
+    if (this.hasButtonTarget) this.buttonTarget.setAttribute("aria-expanded", String(this.isOpen))
   }
 }
