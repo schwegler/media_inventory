@@ -4,7 +4,7 @@
 class UsersController < ApplicationController
   include RecordPreloader
 
-  before_action :logged_in_user, only: %i[index show edit update destroy following followers]
+  before_action :logged_in_user, only: %i[index edit update destroy]
   before_action :correct_user,   only: %i[edit update]
   before_action :admin_user,     only: :destroy
 
@@ -14,35 +14,32 @@ class UsersController < ApplicationController
   end
 
   def show
-    @user = User.find(params[:id])
+    @user = User.find_by_profile_param!(params[:id])
+    prepare_profile_library
     @activities = @user.activities.order(created_at: :desc)
     @likes = @user.likes.order(created_at: :desc)
 
     # Filter activities and likes based on privacy unless the current user is the owner
-    unless current_user?(@user)
-      @activities = @activities.joins(
-        'INNER JOIN library_items ON library_items.item_id = activities.trackable_id AND ' \
-        'library_items.item_type = activities.trackable_type AND library_items.user_id = activities.user_id'
-      ).where(library_items: { is_public: true })
-
-      @likes = @likes.joins(
-        'INNER JOIN library_items ON library_items.item_id = likes.likeable_id AND ' \
-        'library_items.item_type = likes.likeable_type AND library_items.user_id = likes.user_id'
-      ).where(library_items: { is_public: true })
+    unless @profile_owner
+      @activities = public_library_events(@activities, 'activities', 'trackable')
+      @likes = public_library_events(@likes, 'likes', 'likeable')
     end
 
     @activities = @activities.limit(20)
     @likes = @likes.to_a
 
     # Preload social feed (activities and posts)
-    @combined_feed = preload_social_feed(@activities.to_a + @user.posts.to_a)
+    @combined_feed = preload_social_feed(@activities.to_a + @user.posts.order(created_at: :desc).limit(20).to_a)
     @combined_feed.sort_by!(&:created_at).reverse!
+    @combined_feed = @combined_feed.first(20)
 
     # Preload likes
     preload_social_feed(@likes)
 
     @collection_items = preload_library_items(fetch_library_items(is_collected: true))
     @backlog_items = preload_library_items(fetch_library_items(in_backlog: true))
+    @recent_collection = preload_library_items(@visible_library.where(is_collected: true).order(created_at: :desc).limit(6))
+    load_shared_items
   end
 
   def new
@@ -65,11 +62,11 @@ class UsersController < ApplicationController
   end
 
   def edit
-    @user = User.find(params[:id])
+    @user = User.find_by_profile_param!(params[:id])
   end
 
   def update
-    @user = User.find(params[:id])
+    @user = User.find_by_profile_param!(params[:id])
     update_params = user_params.dup
     if update_params[:password].blank? && update_params[:password_confirmation].blank?
       update_params.delete(:password)
@@ -85,14 +82,14 @@ class UsersController < ApplicationController
   end
 
   def destroy
-    User.find(params[:id]).destroy
+    User.find_by_profile_param!(params[:id]).destroy
     flash[:success] = 'User deleted'
     redirect_to users_url, status: :see_other
   end
 
   def following
     @title = 'Following'
-    @user  = User.find(params[:id])
+    @user  = User.find_by_profile_param!(params[:id])
     # Optimize to eager load user avatars to prevent N+1 queries when rendering following user cards
     @users = @user.following.with_attached_avatar.page(params[:page])
     render 'show_follow'
@@ -100,13 +97,42 @@ class UsersController < ApplicationController
 
   def followers
     @title = 'Followers'
-    @user  = User.find(params[:id])
+    @user  = User.find_by_profile_param!(params[:id])
     # Optimize to eager load user avatars to prevent N+1 queries when rendering followers user cards
     @users = @user.followers.with_attached_avatar.page(params[:page])
     render 'show_follow'
   end
 
   private
+
+  def prepare_profile_library
+    @profile_owner = current_user?(@user) && params[:preview] != 'public'
+    @profile_tab = %w[overview collection backlog posts likes].include?(params[:tab]) ? params[:tab] : 'overview'
+    @visible_library = @user.library_items
+    @visible_library = @visible_library.where(is_public: true) unless @profile_owner
+    @collection_count = @visible_library.where(is_collected: true).count
+    @backlog_count = @visible_library.where(in_backlog: true).count
+    @library_mix = @visible_library.where(is_collected: true).group(:item_type).count
+  end
+
+  def load_shared_items
+    @shared_items = []
+    return unless logged_in? && !current_user?(@user)
+
+    own_pairs = current_user.library_items.where(is_collected: true).pluck(:item_type, :item_id).to_set
+    @shared_items = @visible_library.where(is_collected: true).select do |entry|
+      own_pairs.include?([entry.item_type, entry.item_id])
+    end
+    preload_library_items(@shared_items)
+  end
+
+  def public_library_events(scope, table, association)
+    scope.where('EXISTS (SELECT 1 FROM library_items WHERE library_items.is_public = ? AND ' \
+                "((#{table}.#{association}_type = 'LibraryItem' AND library_items.id = #{table}.#{association}_id) OR " \
+                "(library_items.item_type = #{table}.#{association}_type AND " \
+                "library_items.item_id = #{table}.#{association}_id " \
+                "AND library_items.user_id = #{table}.user_id)))", true)
+  end
 
   def user_params
     params.require(:user).permit(
@@ -125,15 +151,14 @@ class UsersController < ApplicationController
   end
 
   def fetch_library_items(filter)
-    items = @user.library_items.where(filter)
-    items = items.where(is_public: true) unless current_user?(@user)
-    items = items.where(item_type: params[:type]) if params[:type].present? && filter[:is_collected]
+    items = @visible_library.where(filter)
+    items = items.where(item_type: params[:type]) if %w[Movie TvShow Album Comic Book VideoGame].include?(params[:type])
     items.order(created_at: :desc)
   end
 
   # Confirms the correct user.
   def correct_user
-    @user = User.find(params[:id])
+    @user = User.find_by_profile_param!(params[:id])
     redirect_to(root_url) unless current_user?(@user)
   end
 

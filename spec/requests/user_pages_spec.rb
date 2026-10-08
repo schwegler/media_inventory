@@ -16,9 +16,9 @@ RSpec.describe 'User pages', type: :request do
       expect(response.body).to include(user.name)
     end
 
-    it 'redirects to login when not logged in' do
+    it 'shows the public profile when not logged in' do
       get user_path(user)
-      expect(response).to redirect_to(login_path)
+      expect(response).to have_http_status(:success)
     end
   end
 end
