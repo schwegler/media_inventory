@@ -183,17 +183,19 @@ export default class extends Controller {
         
         const yearInfo = option.release_year ? ` (${option.release_year})` : ""
         const tooltipText = `${option.title}${yearInfo} ${subtitle ? `- ${subtitle}` : ""}`
-        const fallbackUrl = mediaType === "video_game"
-          ? 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=400&h=600&q=80'
-          : 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=400&h=600&q=80';
-
-        imgBtn.innerHTML = `
-          <div class="thumbnail-option-img-wrap">
-            <img src="${option.thumbnail_url}" alt="${option.title}" onerror="this.onerror=null; this.src='${fallbackUrl}';">
-            <span class="option-badge ${badgeClass}">${badgeText}</span>
-          </div>
-          <div class="option-label">${tooltipText}</div>
-        `
+        const wrap = document.createElement("div")
+        wrap.className = "thumbnail-option-img-wrap"
+        const img = document.createElement("img")
+        img.src = option.thumbnail_url || ""
+        img.alt = option.title
+        const badge = document.createElement("span")
+        badge.className = `option-badge ${badgeClass}`
+        badge.textContent = badgeText
+        wrap.append(img, badge)
+        const label = document.createElement("div")
+        label.className = "option-label"
+        label.textContent = tooltipText
+        imgBtn.append(wrap, label)
 
         imgBtn.addEventListener("click", (e) => {
           this.optionsGridTarget.querySelectorAll(".thumbnail-option-card").forEach(card => card.classList.remove("selected"))

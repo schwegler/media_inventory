@@ -75,6 +75,7 @@ SampleApp::Application.routes.draw do
 
     root to: 'activities#index'
   end
+  post '/metadata/:media_type/:media_id/refresh', to: 'metadata_refreshes#create', as: 'refresh_metadata'
   root 'landing#index'
   get 'test_bsky', to: 'landing#test_bsky'
   get '/search', to: 'search#index', as: 'search'
@@ -115,6 +116,8 @@ SampleApp::Application.routes.draw do
 
   get '/settings', to: 'settings#basic_info', as: 'settings'
   scope :settings, as: 'settings' do
+    get 'appearance', to: 'settings#appearance'
+    patch 'appearance', to: 'settings#update_appearance'
     get 'basic_info', to: 'settings#basic_info'
     get 'notifications', to: 'settings#notifications'
     get 'account', to: 'settings#account'

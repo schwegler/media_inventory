@@ -1,0 +1,54 @@
+// Blog DNA: Instrument Sans, Space Grotesk, paper/ink neutrals and restrained violet.
+@each $weight in 400, 500, 600, 700 {
+  @font-face { font-family: 'Instrument Sans'; font-weight: $weight; font-style: normal; font-display: swap; src: url('instrument-sans-#{$weight}.ttf') format('truetype'); }
+  @font-face { font-family: 'Space Grotesk'; font-weight: $weight; font-style: normal; font-display: swap; src: url('space-grotesk-#{$weight}.ttf') format('truetype'); }
+}
+@mixin dark {
+  color-scheme: dark;
+  --canvas: #111113; --surface: #1c1c20; --inset: #242429;
+  --text: #f5f3f7; --text-secondary: #c0bbc6; --text-tertiary: #aaa4b0;
+  --border: #3a363f; --border-strong: #625c6a;
+  --violet: #c5adff; --violet-hover: #dfcfff; --violet-subtle: #30263f;
+  --ink: #d1cdd8; --ink-hover: #f4effc; --ink-subtle: #302d36;
+  --moss: #a6c8a3; --moss-hover: #c4e5c1; --moss-subtle: #233329;
+  --on-accent: #17131e; --positive: #a4cfb6; --positive-hover: #c2e6d1;
+  --warning: #e9c685; --destructive: #ffb3b3; --info: #abc7dd;
+  --hero-gradient-base: 17, 17, 19; --rgb-inverse: 255, 255, 255;
+  --hero-brightness: .35;
+}
+:root {
+  color-scheme: light;
+  --canvas: #fafafa; --surface: #ffffff; --inset: #f1eff3;
+  --text: #17151b; --text-secondary: #5f5967; --text-tertiary: #6d6575;
+  --border: #ddd8e2; --border-strong: #8b8296;
+  --violet: #654098; --violet-hover: #4c2c79; --violet-subtle: #efe8f8;
+  --ink: #47414f; --ink-hover: #29242f; --ink-subtle: #ebe8ef;
+  --moss: #3e6544; --moss-hover: #294c2f; --moss-subtle: #e7f0e7;
+  --on-accent: #ffffff; --positive: #326448; --positive-hover: #244d36;
+  --warning: #79551a; --destructive: #a52d39; --info: #365d75;
+  --overlay: rgba(12, 10, 17, .72); --selection: var(--accent-subtle);
+  --space-1: .25rem; --space-2: .5rem; --space-3: .75rem; --space-4: 1rem;
+  --space-5: 1.5rem; --space-6: 2rem; --space-7: 3rem; --space-8: 4rem;
+  --hero-gradient-base: 250, 250, 250; --rgb-inverse: 0, 0, 0; --hero-brightness: .55;
+}
+:root[data-theme='dark'] { @include dark; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']):not([data-theme='dark']) { @include dark; } }
+:root, [data-profile-accent], :root[data-accent='violet'] {
+  --accent: var(--violet); --accent-hover: var(--violet-hover); --accent-subtle: var(--violet-subtle);
+}
+:root[data-accent='ink'], [data-profile-accent='ink'] { --accent: var(--ink); --accent-hover: var(--ink-hover); --accent-subtle: var(--ink-subtle); }
+:root[data-accent='moss'], [data-profile-accent='moss'] { --accent: var(--moss); --accent-hover: var(--moss-hover); --accent-subtle: var(--moss-subtle); }
+:root, [data-profile-accent] {
+  --focus-ring: var(--accent); --link: var(--accent); --link-hover: var(--accent-hover);
+  // Compatibility aliases keep mature Rails components using the same semantic palette.
+  --bg-dark: var(--canvas); --bg-darker: var(--canvas); --bg-surface: var(--inset);
+  --card-bg: var(--surface); --card-bg-solid: var(--surface);
+  --text-main: var(--text); --text-muted: var(--text-secondary); --text-dim: var(--text-tertiary);
+  --border-subtle: var(--border); --border-medium: var(--border-strong); --border-color: var(--border);
+  --primary-color: var(--accent); --primary-hover: var(--accent-hover);
+  --accent-cyan: var(--accent); --accent-cyan-hover: var(--accent-hover);
+  --accent-orange: var(--warning); --accent-gold: var(--warning); --star-color: var(--warning);
+  --accent-green: var(--positive); --accent-green-hover: var(--positive-hover);
+  --danger-color: var(--destructive); --danger-hover-color: var(--destructive);
+  --secondary-color: var(--accent); --txt-btn-contrast: var(--on-accent);
+}

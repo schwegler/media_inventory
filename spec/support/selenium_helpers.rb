@@ -6,16 +6,19 @@ require 'selenium-webdriver'
 # Falls back to standard :selenium_chrome_headless if custom registration fails.
 Capybara.register_driver :selenium_chrome_headless_custom do |app|
   options = Selenium::WebDriver::Chrome::Options.new
+  options.binary = ENV['SE_CHROME_PATH'] if ENV['SE_CHROME_PATH'].present?
   options.add_argument('--headless=new')
   options.add_argument('--no-sandbox')
   options.add_argument('--disable-gpu')
   options.add_argument('--disable-dev-shm-usage')
   options.add_argument('--window-size=1400,900')
 
-  Capybara::Selenium::Driver.new(app, browser: :chrome, options: options)
+  service = Selenium::WebDriver::Chrome::Service.new(path: ENV['SE_CHROMEDRIVER']) if ENV['SE_CHROMEDRIVER'].present?
+  Capybara::Selenium::Driver.new(app, browser: :chrome, options: options, service: service)
 end
 
 Capybara.server_host = '127.0.0.1'
+Capybara.enable_aria_label = true
 
 RSpec.configure do |config|
   config.before(:each, type: :system) do
@@ -23,6 +26,7 @@ RSpec.configure do |config|
       driven_by :rack_test
     else
       driven_by :selenium_chrome_headless_custom
+      page.current_window.resize_to(1400, 900)
     end
   end
 end
@@ -44,6 +48,7 @@ module SystemTestHelpers
     fill_in 'Email', with: email
     fill_in 'Password', with: password
     click_button 'Log in'
+    expect(page).to have_text('Logged in successfully.')
 
     user
   end

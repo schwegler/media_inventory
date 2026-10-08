@@ -3,6 +3,7 @@
 class TvShow < ApplicationRecord
   include LibraryItemFormAttributes
 
+  has_one :metadata_refresh, as: :item, dependent: :destroy
   has_one_attached :cover_image
   has_many :tv_episodes, dependent: :destroy
   has_many :likes, as: :likeable, dependent: :destroy
@@ -14,9 +15,12 @@ class TvShow < ApplicationRecord
 
   after_commit :sync_episodes_from_api, on: %i[create update]
 
+  attr_accessor :refreshing_metadata
+
   private
 
   def sync_episodes_from_api
+    return if refreshing_metadata
     return if api_id.blank? || api_id.to_s.start_with?('tmdb_')
     return unless saved_change_to_api_id? || tv_episodes.empty?
 
@@ -36,16 +40,6 @@ class TvShow < ApplicationRecord
   end
 
   def create_tv_episodes(episodes_data)
-    tv_episodes.delete_all
-    episodes_data.each do |ep|
-      tv_episodes.create!(
-        name: ep['name'],
-        season: ep['season'],
-        episode: ep['number'],
-        air_date: ep['airdate'],
-        summary: ep['summary'],
-        thumbnail_url: ep.dig('image', 'original') || ep.dig('image', 'medium')
-      )
-    end
+    MetadataChildren.episodes(self, episodes_data)
   end
 end

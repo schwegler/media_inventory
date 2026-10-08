@@ -1,0 +1,206 @@
+@use "foundation" as *;
+/* --- Profile Page Styling --- */
+.profile-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding-bottom: 50px;
+}
+
+.profile-header {
+  background: $card-bg;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid $card-border;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  margin-bottom: 24px;
+}
+
+.header-banner {
+  height: 200px;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.2) 0%, rgba(247, 201, 72, 0.2) 100%);
+  position: relative;
+  border-bottom: 1px solid $card-border;
+}
+
+.banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-info-bar {
+  padding: 0 24px 24px;
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+  position: relative;
+}
+
+.avatar-container {
+  margin-top: -60px;
+  border: 4px solid $bg-surface;
+  border-radius: 50%;
+  background: $bg-surface;
+  z-index: 2;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.profile-main-meta { flex-grow: 1; padding-bottom: .5rem; }
+
+.profile-display-name {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0;
+  color: $text-main;
+}
+
+.profile-handle {
+  color: $text-muted;
+  margin: 0;
+}
+
+.profile-stats {
+  display: flex;
+  gap: 24px;
+  padding-bottom: 12px;
+}
+
+.stat-item {
+  text-decoration: none;
+  display: flex;
+  gap: 6px;
+  font-size: 14px;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.stat-count {
+  font-weight: 700;
+  color: $text-main;
+}
+
+.stat-label {
+  color: $text-muted;
+}
+
+.profile-actions {
+  padding-bottom: 12px;
+}
+
+.profile-body {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .profile-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background: $card-bg;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid $card-border;
+  border-radius: $radius-lg;
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  margin-bottom: 20px;
+  color: $text-main;
+}
+
+.bio-section h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: $text-main;
+}
+
+/* --- Tabs --- */
+
+
+
+
+// Like Button (Animated Icon)
+.btn-like-icon {
+  background: transparent;
+  border: none;
+  color: $text-muted;
+  cursor: pointer;
+  font-size: 1.25rem;
+  padding: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: none;
+
+  &:hover {
+    transform: scale(1.1);
+    color: #f43f5e;
+    background: rgba(244, 63, 94, 0.1);
+    box-shadow: none;
+  }
+
+  &.liked {
+    color: #f43f5e;
+
+    .heart-empty {
+      animation: heartbeat 0.4s ease-in-out;
+    }
+  }
+
+  .like-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .likes-count {
+    font-size: 0.8rem;
+    background: rgba(var(--rgb-inverse), 0.1);
+    padding: 2px 8px;
+    border-radius: 12px;
+  }
+}
+
+@keyframes heartbeat {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.3);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+// Typography Links
+
+.tab-btn.active {
+  color: $accent-orange;
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: $accent-orange;
+}
+
+.hidden {
+  display: none;
+}

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_21_200053) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_08_170000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -91,6 +91,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_21_200053) do
     t.integer "comic_id", null: false
     t.datetime "created_at", null: false
     t.integer "issue_number"
+    t.string "provider_id"
     t.string "publisher"
     t.string "rating"
     t.boolean "read", default: false, null: false
@@ -101,6 +102,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_21_200053) do
     t.string "thumbnail_url"
     t.string "title"
     t.datetime "updated_at", null: false
+    t.index ["comic_id", "provider_id"], name: "index_comic_issues_on_comic_id_and_provider_id", unique: true
     t.index ["comic_id"], name: "index_comic_issues_on_comic_id"
   end
 
@@ -184,6 +186,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_21_200053) do
     t.index ["server"], name: "index_mastodon_oauth_applications_on_server", unique: true
   end
 
+  create_table "metadata_refreshes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "item_id", null: false
+    t.string "item_type", null: false
+    t.string "provider"
+    t.json "provider_values", default: {}, null: false
+    t.datetime "requested_at"
+    t.string "state", default: "idle", null: false
+    t.datetime "succeeded_at"
+    t.datetime "updated_at", null: false
+    t.index ["item_type", "item_id"], name: "index_metadata_refreshes_on_item", unique: true
+  end
+
   create_table "movies", force: :cascade do |t|
     t.string "api_id"
     t.datetime "created_at", null: false
@@ -255,6 +270,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_21_200053) do
   end
 
   create_table "users", force: :cascade do |t|
+    t.string "accent_theme", default: "violet", null: false
     t.boolean "admin", default: false
     t.string "avatar_url"
     t.text "bio"
@@ -270,6 +286,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_21_200053) do
     t.boolean "bsky_post_reviews_only"
     t.string "bsky_refresh_token"
     t.datetime "confirmed_at"
+    t.string "content_density", default: "comfortable", null: false
     t.datetime "created_at", null: false
     t.string "email"
     t.string "mastodon_access_token"
@@ -280,6 +297,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_21_200053) do
     t.string "mastodon_refresh_token"
     t.string "mastodon_server"
     t.string "mastodon_uid"
+    t.string "media_layout", default: "covers", null: false
+    t.datetime "metadata_requested_at"
     t.string "name"
     t.boolean "notify_email_comments", default: true
     t.boolean "notify_email_follows", default: true
@@ -291,7 +310,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_21_200053) do
     t.boolean "notify_push_posts", default: true
     t.string "password_digest"
     t.text "private_key"
+    t.string "profile_accent", default: "violet", null: false
+    t.string "profile_header", default: "linen", null: false
     t.text "public_key"
+    t.boolean "reduce_effects", default: false, null: false
     t.string "theme", default: "os", null: false
     t.datetime "updated_at", null: false
     t.string "username"

@@ -1,0 +1,209 @@
+@use "foundation" as *;
+// ==========================================================================
+//  2026 Universal Card Grid
+// ==========================================================================
+
+
+
+
+
+.stretched-link::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  content: "";
+}
+
+// ==========================================================================
+//  Thumbnail Fetcher Component
+// ==========================================================================
+.thumbnail-fetcher-container {
+  margin-bottom: 1.5rem;
+
+  label {
+    margin-bottom: 0.75rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+}
+
+.thumbnail-fetcher-layout {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+
+  @media (max-width: 500px) {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+.thumbnail-preview-box {
+  width: 100px;
+  height: 150px;
+  background: rgba(13, 17, 23, 0.6);
+  border: 1px dashed rgba(var(--rgb-inverse), 0.1);
+  border-radius: $radius-md;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thumbnail-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbnail-preview-placeholder {
+  color: $text-dim;
+  font-size: 0.75rem;
+}
+
+.thumbnail-options-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fetcher-status-text {
+  font-size: 0.78rem;
+  color: $text-dim;
+}
+
+.thumbnail-options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+  gap: 10px;
+  max-height: 350px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--rgb-inverse), 0.08) transparent;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(var(--rgb-inverse), 0.1);
+    border-radius: 4px;
+  }
+}
+
+.thumbnail-option-card {
+  border: 2px solid rgba(var(--rgb-inverse), 0.06);
+  border-radius: $radius-sm;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  overflow: hidden;
+  background: rgba(13, 17, 23, 0.5);
+  position: relative;
+
+  .thumbnail-option-img-wrap {
+    width: 100%;
+    height: 120px;
+    position: relative;
+    border-radius: 4px;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .option-badge {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    font-size: 0.55rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    padding: 1px 4px;
+    border-radius: 3px;
+    letter-spacing: 0.03em;
+    z-index: 10;
+
+    &.local {
+      background: rgba(0, 230, 118, 0.9);
+      color: var(--text-main);
+    }
+
+    &.web {
+      background: rgba(255, 107, 53, 0.9);
+      color: var(--text-main);
+    }
+  }
+
+  .option-label {
+    display: block;
+    color: var(--text-main);
+    font-size: 0.65rem;
+    text-align: center;
+    padding: 6px 4px;
+    text-overflow: ellipsis;
+  }
+
+  .thumbnail-option-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 6px;
+  }
+
+  .option-action-btn {
+    width: 100%;
+    background: $accent-orange;
+    color: white;
+    border: none;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.2s, transform 0.1s;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+
+    &.add-watchlist-btn {
+      background: #4b5563;
+
+      &:hover {
+        background: #374151;
+      }
+    }
+
+    &:hover {
+      background: $primary-hover;
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  &:hover {
+    border-color: rgba(255, 107, 53, 0.3);
+    transform: translateY(-2px);
+  }
+
+  &.selected {
+    border-color: $accent-orange;
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
+  }
+}
