@@ -2,6 +2,7 @@
 
 class LandingController < ApplicationController
   include RecordPreloader
+  include DashboardActivityDeduplication
 
   def index
     if logged_in?
@@ -18,15 +19,15 @@ class LandingController < ApplicationController
   private
 
   def fetch_friend_activities
-    activities = dashboard_activity_scope.where.not(user_id: current_user.id).limit(9)
+    activities = unique_dashboard_activities(dashboard_activity_scope.where.not(user_id: current_user.id), limit: 9)
     return activities if activities.size >= 3
 
-    dashboard_activity_scope.limit(9)
+    unique_dashboard_activities(dashboard_activity_scope, limit: 9)
   end
 
   def dashboard_activity_scope
     Activity.where(activity_type: %w[added consumed reviewed])
-            .order(created_at: :desc)
+            .order(created_at: :desc, id: :desc)
   end
 
   def public_activity_feed
@@ -36,11 +37,7 @@ class LandingController < ApplicationController
   end
 
   def fetch_popular_items
-    counts = Activity.group(:trackable_type, :trackable_id)
-                     .order('count_all DESC').limit(9).count
-
-    return fallback_popular_items if counts.empty?
-
+    counts = Activity.group(:trackable_type, :trackable_id).count
     items = map_counts_to_items(counts)
     items.presence || fallback_popular_items
   end
@@ -51,7 +48,21 @@ class LandingController < ApplicationController
     end
 
     fetched = bulk_fetch_trackables(ids_by_type)
-    counts.map { |(type, id), _| fetched.dig(type, id) }.compact
+    library_items = fetched.fetch('LibraryItem', {}).values
+    ActiveRecord::Associations::Preloader.new(records: library_items, associations: :item).call if library_items.any?
+
+    totals = Hash.new(0)
+    media_by_key = {}
+    counts.each do |(type, id), count|
+      media = dashboard_media(fetched.dig(type, id))
+      next unless media
+
+      key = [media.class.name, media.id]
+      totals[key] += count
+      media_by_key[key] = media
+    end
+    items = totals.sort_by { |key, count| [-count, key] }.first(9).map { |key, _| media_by_key[key] }
+    preload_records_attachments(items)
   end
 
   def bulk_fetch_trackables(ids_by_type)
@@ -67,16 +78,14 @@ class LandingController < ApplicationController
 
   def fallback_popular_items
     items = LibraryItem.includes(:item).where(item_type: %w[Movie Album VideoGame],
-                                              is_public: true).limit(6).map(&:item)
+                                              is_public: true)
+                       .map(&:item).compact.uniq { |item| [item.class.name, item.id] }
     preload_records_attachments(items).sample(6)
   end
 
   def fetch_popular_reviews
-    Activity.includes(:user, :trackable)
-            .where(activity_type: 'reviewed')
-            .order(created_at: :desc)
-            .limit(20)
-            .select { |a| a.trackable&.review.present? }.first(3)
+    scope = dashboard_activity_scope.where(activity_type: 'reviewed')
+    unique_dashboard_activities(scope, limit: 3, reviews_only: true)
   end
 
   def db_status
