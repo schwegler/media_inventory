@@ -53,7 +53,7 @@
   <% end %>
 
   <% unless hotwire_native_app? %>
-  <header class="app-header" data-controller="mobile-menu">
+  <header class="app-header combined-header" data-controller="mobile-menu">
     <nav class="app-nav">
       <div class="nav-brand">
         <%= link_to root_path, class: 'brand-link' do %>
@@ -63,6 +63,8 @@
         <a class="brand-companion" href="https://tacobout.online/">from taco ’bout it</a>
       </div>
 
+        <div class="combined-search"><%= render 'shared/header_search' %></div>
+        <button class="combined-search-toggle btn btn-ghost" type="button" data-action="mobile-menu#openSearch" aria-label="Search the library" aria-controls="mobile-navigation" aria-expanded="false" data-mobile-menu-target="button"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m16 16 4 4"/></svg></button>
       <div class="nav-user-section desktop-nav">
         <a class="blog-nav-link" href="https://tacobout.online/">Blog</a>
         <% if logged_in? %>
@@ -81,7 +83,7 @@
           </div>
 
           <div class="nav-dropdown" data-controller="dropdown">
-            <button class="nav-user-info sleek-btn usr-btn dropdown-toggle" type="button" data-action="click->dropdown#toggle" data-dropdown-target="button" aria-haspopup="true" aria-expanded="false">
+            <button class="nav-user-info sleek-btn usr-btn dropdown-toggle" type="button" aria-label="Account menu" data-action="click->dropdown#toggle" data-dropdown-target="button" aria-haspopup="true" aria-expanded="false">
               <%= user_avatar_tag(current_user, size: 24) %>
               <span class="nav-username" title="<%= current_user.name %>"><%= current_user.name.upcase %></span>
               <svg class="dropdown-chevron" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" focusable="false">
@@ -129,34 +131,6 @@
         </svg>
       </button>
     </nav>
-    <nav class="library-nav desktop-nav" aria-label="Library">
-      <% if content_for?(:item_detail) %>
-        <button class="compact-menu-btn btn btn-ghost" type="button" data-action="mobile-menu#toggle" data-mobile-menu-target="button" aria-label="Open account and navigation menu" aria-controls="mobile-navigation" aria-expanded="false">Menu</button>
-      <% end %>
-      <ul class="nav-links">
-        <li><%= link_to "Movies", movies_path, aria: { current: controller_name == "movies" ? "page" : nil } %></li>
-        <li><%= link_to "Albums", albums_path, aria: { current: controller_name == "albums" ? "page" : nil } %></li>
-        <li><%= link_to "Comics", comics_path, aria: { current: controller_name == "comics" ? "page" : nil } %></li>
-        <li><%= link_to "TV shows", tv_shows_path, aria: { current: controller_name == "tv_shows" ? "page" : nil } %></li>
-        <li><%= link_to "Games", video_games_path, aria: { current: controller_name == "video_games" ? "page" : nil } %></li>
-        <li><%= link_to "Books", books_path, aria: { current: controller_name == "books" ? "page" : nil } %></li>
-        <% if logged_in? %>
-          <li><%= link_to "Members", users_path, aria: { current: controller_name == "users" ? "page" : nil } %></li>
-        <% end %>
-
-      </ul>
-
-          <form action="<%= search_path %>" method="get" class="global-search-form" data-turbo-action="advance">
-            <input type="search" name="q" class="global-search-input" placeholder="Search your next favorite" aria-label="Search the library" value="<%= params[:q] %>" autocomplete="off">
-            <button type="submit" class="global-search-btn" aria-label="Submit search">
-              <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
-            </button>
-          </form>
-    </nav>
-
     <div id="mobile-navigation" class="mobile-nav-panel" data-mobile-menu-target="menu">
       <div class="mobile-nav-search">
         <form action="<%= search_path %>" method="get" class="global-search-form" data-turbo-action="advance">

@@ -10,7 +10,7 @@ body.item-detail { position: relative; isolation: isolate; }
 .item-detail .show-hero-backdrop, .item-detail .show-hero-gradient { display: none; }
 .item-detail .native-tools { position: relative; background: var(--canvas); }
 .item-page-artwork-image { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; opacity: .65; }
-.item-detail .app-header {
+.app-header.combined-header {
   position: sticky; top: 0; z-index: 1000; background: transparent;
   backdrop-filter: none; -webkit-backdrop-filter: none;
   &::before {
@@ -19,7 +19,7 @@ body.item-detail { position: relative; isolation: isolate; }
   }
 }
 @supports ((backdrop-filter: blur(16px)) or (-webkit-backdrop-filter: blur(16px))) {
-  .item-detail .app-header::before, .item-detail .native-tools {
+  .app-header.combined-header::before, .item-detail .native-tools {
     background: color-mix(in srgb, var(--canvas) 68%, transparent);
     backdrop-filter: blur(16px) saturate(180%);
     -webkit-backdrop-filter: blur(16px) saturate(180%);
@@ -27,33 +27,46 @@ body.item-detail { position: relative; isolation: isolate; }
 }
 :root[data-effects='reduced'] {
   .item-page-artwork { display: none; }
-  .item-detail .app-header::before, .item-detail .native-tools { background: var(--canvas); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .app-header.combined-header::before, .item-detail .native-tools { background: var(--canvas); backdrop-filter: none; -webkit-backdrop-filter: none; }
 }
 @media (prefers-reduced-transparency: reduce) {
   .item-page-artwork { display: none; }
-  .item-detail .app-header::before, .item-detail .native-tools { background: var(--canvas); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .app-header.combined-header::before, .item-detail .native-tools { background: var(--canvas); backdrop-filter: none; -webkit-backdrop-filter: none; }
 }
 
-// The first row scrolls away naturally; only discovery/navigation stays pinned.
-// Keeping the header's flow height avoids scroll jumps from toggling display.
-.item-detail .app-header { padding-bottom: 12px; }
-.compact-menu-btn { display: none; }
-@media (min-width: 1051px) {
-  .item-detail .app-header { top: -80px; }
-  .item-detail .app-nav { height: 80px; }
-  .item-detail .library-nav { min-height: 64px; gap: 16px; padding-block: 5px; }
-  .item-detail .library-nav .nav-links { gap: 18px; }
-  .item-detail .library-nav .global-search-form { flex: 0 1 365px; min-width: 180px; padding-block: 4px; }
-  .item-detail .compact-menu-btn { display: inline-flex; flex-shrink: 0; order: 3; }
-  .item-detail .mobile-nav-panel.active {
-    display: flex; left: auto; right: max(20px, calc((100% - 1320px) / 2));
-    width: min(440px, calc(100% - 40px)); max-height: calc(100dvh - 90px);
-    border: 1px solid var(--border); border-radius: 12px;
-  }
-  // Keyboard focus brings the complete first row back into view.
-  .item-detail .app-header:has(.app-nav :focus-visible) { top: 0; }
+// A single floating discovery bar, with symmetric space around its surface.
+.combined-search, .combined-search-toggle { display: none; }
+.combined-header .combined-search-toggle { display: none; }
+.app-header.combined-header {
+  top: 12px; width: calc(100% - 40px); max-width: 1320px; margin: 12px auto 42px;
+  &::before { border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 4px 16px rgba(var(--rgb-inverse), .08); }
 }
-@media (max-width: 1050px) {
-  .item-detail .app-header .app-nav { min-height: 64px; }
-  .item-detail .mobile-nav-panel { max-height: calc(100dvh - 76px); }
+.app-header.combined-header .app-nav {
+  width: 100%; min-height: 64px; padding: 8px 12px; gap: 12px;
+}
+.combined-header .brand-companion, .combined-header .app-nav .blog-nav-link { display: none; }
+.combined-header .combined-search { display: block; flex: 1; min-width: 0; }
+.combined-header .combined-search .global-search-form { width: 100%; padding-block: 0; }
+.combined-header .app-nav .nav-user-section { display: flex; gap: 8px; }
+.combined-header .app-nav .mobile-menu-btn { display: block; flex-shrink: 0; }
+.combined-header .mobile-nav-panel.active {
+  display: flex; left: auto; right: 0; top: calc(100% + 12px);
+  width: min(440px, 100%); max-height: calc(100dvh - 100px);
+  border: 1px solid var(--border); border-radius: 12px;
+}
+@media (max-width: 1280px) {
+  .combined-header .app-nav .nav-username { display: none; }
+  .combined-header .nav-user-info { width: 44px; padding: 0; }
+  .combined-header .nav-user-info .dropdown-chevron { display: none; }
+  .combined-header .btn-log { width: 44px; padding: 0; }
+  .combined-header .btn-log > span, .combined-header .btn-log > svg { display: none; }
+  .combined-header .btn-log::before { content: "+"; font-size: 24px; }
+}
+@media (max-width: 720px) {
+  .app-header.combined-header .app-nav { gap: 6px; padding-inline: 8px; }
+  .app-header.combined-header .brand-text { font-size: 24px; }
+  .combined-header .brand-logo { width: 32px; height: 25px; margin-right: 4px; }
+  .combined-header .combined-search, .combined-header .nav-notifications,
+  .combined-header .nav-user-section .nav-dropdown:has(.nav-user-info) { display: none; }
+  .combined-header .combined-search-toggle { display: inline-flex; margin-left: auto; padding: 0; }
 }
