@@ -33,47 +33,22 @@ RSpec.describe UsersController, type: :controller do
   end
 
   describe 'GET #show' do
-    context 'when not logged in' do
-      it 'redirects to login' do
-        get :show, params: { id: user.id }
-        expect(response).to redirect_to(login_url)
-      end
+    let!(:profile_user) do
+      User.create!(name: 'Profile User', email: 'profile-controller@example.com', password: 'password123')
     end
 
-    context 'when logged in' do
-      before do
-        allow(controller).to receive(:logged_in?).and_return(true)
-        allow(controller).to receive(:current_user).and_return(user)
-      end
+    it 'serves a public profile without login' do
+      get :show, params: { id: profile_user.id }
+      expect(controller.instance_variable_get(:@user)).to eq(profile_user)
+      expect(controller.instance_variable_get(:@profile_owner)).to be(false)
+      expect(response).to have_http_status(:success)
+    end
 
-      it 'assigns @user and returns success' do
-        allow(User).to receive(:find).with(user.id.to_s).and_return(user)
-
-        # Mocking associations for the show action
-        activities = double('activities')
-        allow(user).to receive(:activities).and_return(activities)
-        allow(activities).to receive(:order).and_return(activities)
-        allow(activities).to receive(:includes).and_return(activities)
-        allow(activities).to receive(:limit).and_return(activities)
-        allow(activities).to receive(:to_a).and_return([])
-
-        likes = double('likes')
-        allow(user).to receive(:likes).and_return(likes)
-        allow(likes).to receive(:order).and_return(likes)
-        allow(likes).to receive(:includes).and_return(likes)
-        allow(likes).to receive(:to_a).and_return([])
-
-        allow(user).to receive(:posts).and_return([])
-
-        library_items = double('library_items')
-        allow(user).to receive(:library_items).and_return(library_items)
-        allow(library_items).to receive(:where).and_return(library_items)
-        allow(library_items).to receive(:order).and_return([])
-
-        get :show, params: { id: user.id }
-        expect(controller.instance_variable_get(:@user)).to eq(user)
-        expect(response).to have_http_status(:success)
-      end
+    it 'serves the owner view when logged in' do
+      allow(controller).to receive(:current_user).and_return(profile_user)
+      get :show, params: { id: profile_user.id }
+      expect(controller.instance_variable_get(:@profile_owner)).to be(true)
+      expect(response).to have_http_status(:success)
     end
   end
 
