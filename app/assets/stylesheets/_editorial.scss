@@ -12,9 +12,12 @@
   .app-header { position: relative; padding: 0; margin: 0 0 42px; background: var(--bg-dark); box-shadow: none; backdrop-filter: none; border: 0; }
   .app-header .app-nav, .library-nav { max-width: 1320px; margin: auto; width: calc(100% - 40px); padding: 0; }
   .app-header .app-nav { min-height: 80px; gap: 24px; }
-  .nav-brand { display: flex; align-items: baseline; min-width: 0; }
+  .nav-brand { min-width: 0; white-space: nowrap; line-height: 1; }
+  .nav-brand .brand-link { display: inline; }
+  .nav-brand .brand-logo { vertical-align: baseline; margin-right: 8px; }
+  .nav-brand .brand-text { display: inline; }
   .app-header .brand-text { line-height: 1; color: var(--text-main); font-size: 32px; font-weight: 700; letter-spacing: -1.5px; }
-  .brand-companion { border-left: 1px solid var(--border-medium); margin-left: 24px; padding-left: 16px; color: var(--text-muted); font-size: 14px; white-space: nowrap; }
+  .brand-companion { display: inline-block; vertical-align: baseline; line-height: 1; border-left: 1px solid var(--border-medium); margin-left: 24px; padding-left: 16px; color: var(--text-muted); font-size: 14px; white-space: nowrap; }
   .blog-nav-link { font-size: 14px; color: var(--text-muted); white-space: nowrap; }
   .library-nav { min-height: 74px; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 8px 16px; background: var(--inset); border-radius: 12px; }
   header nav ul.nav-links { gap: 28px; justify-content: flex-start; flex-wrap: nowrap; }
