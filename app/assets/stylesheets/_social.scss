@@ -589,16 +589,14 @@
       color: var(--text-main);
     }
 
-    .brand-logo {
-      transform: rotate(8deg) scale(1.05);
-    }
   }
 }
 
 .brand-logo {
-  width: 26px;
-  height: 26px;
-  transition: transform 0.3s ease;
+  width: 44px;
+  height: 34px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .brand-text {

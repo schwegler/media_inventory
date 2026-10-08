@@ -25,7 +25,7 @@
   <meta name="twitter:description" content="<%= yield(:meta_description).presence || "Track and share your movies, albums, comics, and more on Trove." %>">
   <meta name="twitter:image" content="<%= public_preview_image_url(yield(:meta_image)) %>">
 
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <%= favicon_link_tag "tacobout-logo.png", type: "image/png" %>
   <%= stylesheet_link_tag "application", "data-turbo-track": Rails.env.production? ? "reload" : "" %>
   <%= javascript_importmap_tags %>
   <%= csrf_meta_tags %>
@@ -52,6 +52,7 @@
     <nav class="app-nav">
       <div class="nav-brand">
         <%= link_to root_path, class: 'brand-link' do %>
+          <%= image_tag 'tacobout-logo.png', class: 'brand-logo', width: 44, height: 34, alt: '' %>
           <span class="brand-text">Trove</span>
         <% end %>
         <a class="brand-companion" href="https://tacobout.online/">from taco ’bout it</a>
@@ -244,7 +245,7 @@
   <div class="container">
     <div class="footer-content">
       <div class="footer-copyright">
-        <div class="footer-brand"><strong>Trove</strong><span>A library companion to taco ’bout it.</span></div>
+        <div class="footer-brand"><div class="footer-wordmark"><%= image_tag 'tacobout-logo.png', width: 38, height: 30, alt: '', class: 'footer-logo', loading: 'lazy' %><strong>Trove</strong></div><span>A library companion to taco ’bout it.</span></div>
       </div>
       <a class="blog-link" href="https://tacobout.online/">Visit the blog <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></a>
     </div>
