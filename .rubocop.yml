@@ -28,3 +28,8 @@ Metrics/CyclomaticComplexity:
 
 Metrics/PerceivedComplexity:
   Max: 12
+
+# One fixed adapter registry keeps provider URL construction auditable together.
+Metrics/ClassLength:
+  Exclude:
+    - 'app/services/metadata_provider.rb'

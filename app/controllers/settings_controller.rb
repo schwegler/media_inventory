@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class SettingsController < ApplicationController
+  include AppearanceSettings
+
   before_action :logged_in_user
   before_action :set_user
 

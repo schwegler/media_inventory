@@ -1,0 +1,31 @@
+<% content_for(:title, 'Appearance') %>
+<div class="settings-container">
+  <%= render 'sidebar' %>
+  <section class="settings-content" data-controller="appearance">
+    <h1 class="settings-title">Make Trove yours</h1>
+    <p>Your reading room, your way. These preferences follow your account across devices.</p>
+    <%= form_with model: @user, url: settings_appearance_path, method: :patch, class: 'settings-form' do |f| %>
+      <%= render 'shared/error_messages', object: f.object %>
+      <fieldset>
+        <legend>Your experience</legend>
+        <div class="form-group"><%= f.label :theme, 'Appearance' %><%= f.select :theme, [['System', 'os'], ['Light', 'light'], ['Dark', 'dark']], {}, class: 'form-control' %></div>
+        <div class="form-group"><%= f.label :accent_theme, 'Accent' %><%= f.select :accent_theme, [['Editorial violet', 'violet'], ['Graphite ink', 'ink'], ['Garden moss', 'moss']], {}, class: 'form-control' %></div>
+        <div class="form-group"><%= f.label :content_density, 'Content density' %><%= f.select :content_density, [['Comfortable', 'comfortable'], ['Compact', 'compact']], {}, class: 'form-control' %></div>
+        <div class="form-group"><%= f.label :media_layout, 'Media display' %><%= f.select :media_layout, [['Cover gallery', 'covers'], ['Editorial rows', 'rows']], {}, class: 'form-control' %></div>
+        <div class="check-field"><%= f.check_box :reduce_effects %><%= f.label :reduce_effects, 'Reduce decorative effects and motion' %></div>
+      </fieldset>
+      <fieldset>
+        <legend>Your profile</legend>
+        <p>Visible to people visiting your profile. Your profile theme stays within your profile.</p>
+        <div class="form-group"><%= f.label :profile_accent, 'Profile accent' %><%= f.select :profile_accent, [['Editorial violet', 'violet'], ['Graphite ink', 'ink'], ['Garden moss', 'moss']], {}, class: 'form-control', data: { action: 'change->appearance#preview', appearance_target: 'accent' } %></div>
+        <div class="form-group"><%= f.label :profile_header, 'Header treatment' %><%= f.select :profile_header, [['Linen', 'linen'], ['Solid', 'solid'], ['Minimal', 'minimal']], {}, class: 'form-control', data: { action: 'change->appearance#preview', appearance_target: 'header' } %></div>
+        <div class="profile-preview profile-page" data-appearance-target="preview" data-profile-accent="<%= @user.profile_accent %>" data-profile-header="<%= @user.profile_header %>" aria-label="Profile theme preview">
+          <div class="banner-placeholder"></div>
+          <div class="profile-preview-body"><%= user_avatar_tag(@user, size: 48) %><div><strong><%= @user.name %></strong><p>A collection of things you love.</p></div></div>
+        </div>
+        <p class="form-help">Upload a banner and edit your bio in <%= link_to 'Basic Information', settings_basic_info_path %>.</p>
+      </fieldset>
+      <div class="form-actions"><%= f.submit 'Save preferences', class: 'btn btn-primary', data: { turbo_submits_with: 'Saving…' } %><%= link_to 'View profile', @user, class: 'btn btn-secondary' %></div>
+    <% end %>
+  </section>
+</div>

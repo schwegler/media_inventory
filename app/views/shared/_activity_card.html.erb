@@ -1,10 +1,10 @@
 <% media_title = media_item.try(:title) || media_item.try(:name) || 'Media' %>
-<div class="card-2026">
+<div class="card-2026" data-media-kind="<%= media_item.class.name %>">
   <div class="card-2026-cover">
     <% if media_item.respond_to?(:cover_image) && media_item.cover_image.attached? %>
-      <%= image_tag media_item.cover_image, alt: "#{media_title} cover" %>
+      <%= image_tag media_item.cover_image, alt: "#{media_title} cover", loading: "lazy", decoding: "async" %>
     <% elsif media_item.respond_to?(:thumbnail_url) && media_item.thumbnail_url.present? %>
-      <img src="<%= media_item.thumbnail_url %>" alt="<%= media_title %> cover">
+      <img src="<%= media_item.thumbnail_url %>" alt="<%= media_title %> cover" loading="lazy" decoding="async">
     <% else %>
       <span class="fallback-emoji">
         <%= case media_item.class.name
@@ -31,10 +31,10 @@
           <span class="friend-stars"><%= render_stars(lib_item.rating) %></span>
         <% end %>
         <% if lib_item.respond_to?(:rating) && lib_item.rating.to_f >= 4.0 %>
-          <span class="heart-icon" style="color: #f43f5e; margin-left: 4px;">♥</span>
+          <span class="heart-icon" style="color: var(--destructive); margin-left: 4px;">♥</span>
         <% end %>
       </div>
-      <div class="activity-date" style="font-size: 0.8rem; color: #64748b; margin-top: 4px;">
+      <div class="activity-date" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">
         <%= activity.created_at.strftime("%b %d") %>
       </div>
     </div>

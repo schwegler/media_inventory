@@ -38,7 +38,7 @@
       <hr style="margin: 30px 0; border-color: #334155;">
 
       <h3>Bluesky Integration (Optional)</h3>
-      <p style="font-size: 0.9em; color: #94a3b8;">Automatically post your activity and reviews to Bluesky.</p>
+      <p style="font-size: 0.9em; color: var(--text-secondary);">Automatically post your activity and reviews to Bluesky.</p>
 
 
 
@@ -56,13 +56,13 @@
       <div class="form-group" style="margin-top: 15px;">
         <%= f.label :bsky_message_activity_template, "Activity Template" %>
         <%= f.text_field :bsky_message_activity_template, class: 'form-control', placeholder: 'Just added [title] to my library! #mediatracker' %>
-        <small style="color: #64748b; font-size: 0.75rem;">Placeholders: [title], [type]</small>
+        <small style="color: var(--text-secondary); font-size: 0.75rem;">Placeholders: [title], [type]</small>
       </div>
 
       <div class="form-group" style="margin-top: 15px;">
         <%= f.label :bsky_message_review_template, "Review Template" %>
         <%= f.text_field :bsky_message_review_template, class: 'form-control', placeholder: 'My review of [title]: [review] - [rating]★ #mediatracker' %>
-        <small style="color: #64748b; font-size: 0.75rem;">Placeholders: [title], [review], [rating]</small>
+        <small style="color: var(--text-secondary); font-size: 0.75rem;">Placeholders: [title], [review], [rating]</small>
       </div>
 
       <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.5rem; margin-top: 1.5rem; margin-bottom: 1.5rem;">
@@ -87,16 +87,16 @@
           <div class="form-group" style="margin-top: 15px;">
             <%= f.label :mastodon_message_activity_template, "Activity Template" %>
             <%= f.text_field :mastodon_message_activity_template, class: 'form-control', placeholder: 'Just added [title] to my library! #mediatracker' %>
-            <small style="color: #64748b; font-size: 0.75rem;">Placeholders: [title], [type]</small>
+            <small style="color: var(--text-secondary); font-size: 0.75rem;">Placeholders: [title], [type]</small>
           </div>
 
           <div class="form-group" style="margin-top: 15px;">
             <%= f.label :mastodon_message_review_template, "Review Template" %>
             <%= f.text_field :mastodon_message_review_template, class: 'form-control', placeholder: 'My review of [title]: [review] - [rating]★ #mediatracker' %>
-            <small style="color: #64748b; font-size: 0.75rem;">Placeholders: [title], [review], [rating]</small>
+            <small style="color: var(--text-secondary); font-size: 0.75rem;">Placeholders: [title], [review], [rating]</small>
           </div>
         <% else %>
-          <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem; line-height: 1.4;">
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.4;">
             Connect your Mastodon account to automatically post updates and reviews.
           </p>
           <div style="margin-bottom: 15px;">

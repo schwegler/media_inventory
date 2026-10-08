@@ -6,6 +6,7 @@ export default class extends Controller {
   connect() {
     this.isOpen = false
     this.render()
+    this.element.dataset.connected = "true"
     this.onKeydown = (event) => {
       if (event.key === "Escape" && this.isOpen) {
         this.close()

@@ -5,6 +5,7 @@ export default class extends Controller {
   static values = { activeSeason: Number }
 
   connect() {
+    this.element.dataset.connected = "true"
     const seasons = this.tabTargets.map(t => parseInt(t.dataset.season, 10))
     if (seasons.length > 0) {
       const initialSeason = seasons.includes(this.activeSeasonValue) ? this.activeSeasonValue : seasons[0]
@@ -59,6 +60,7 @@ export default class extends Controller {
     this.contentTargets.forEach((content) => {
       const isCurrent = parseInt(content.dataset.season, 10) === season
       content.classList.toggle("hidden", !isCurrent)
+      content.hidden = !isCurrent
     })
   }
 }

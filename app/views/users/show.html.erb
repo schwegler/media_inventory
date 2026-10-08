@@ -4,12 +4,14 @@
 <% content_for(:canonical_url, public_url) %>
 <% content_for(:og_type, 'profile') %>
 <% content_for(:meta_image, url_for(@user.avatar)) if @user.avatar.attached? %>
-<div class="library-profile" data-controller="tabs">
+<div class="library-profile profile-page" data-profile-accent="<%= @user.profile_accent %>" data-profile-header="<%= @user.profile_header %>">
   <% if current_user?(@user) && !@profile_owner %>
     <div class="profile-notice">You’re viewing your public profile. Private items are hidden. <%= link_to 'Back to your profile', user_path(@user) %></div>
   <% end %>
   <% if @user.header_banner.attached? %>
     <div class="library-profile-banner"><%= image_tag @user.header_banner, alt: '', class: 'banner-img' %></div>
+  <% else %>
+    <div class="library-profile-banner"><div class="banner-placeholder" aria-hidden="true"></div></div>
   <% end %>
   <header class="library-profile-heading">
     <%= user_avatar_tag(@user, size: 112) %>

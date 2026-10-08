@@ -42,6 +42,7 @@
 
   <!-- Right Column: Title, Metadata, Rating/Review, Comments -->
   <div class="show-right">
+    <%= render 'shared/metadata_refresh', item: @comic_issue.comic %>
     <div class="show-header-details">
       <%= render "shared/item_sharing", item: @comic_issue %>
       <h1 class="show-title"><%= @comic_issue.display_title %></h1>
@@ -58,7 +59,7 @@
           <div class="show-rating"><%= render_stars(@library_item.rating) %></div>
         <% end %>
         <% if stats[:avg_rating] %>
-          <div class="show-avg-rating" style="color: #94a3b8; font-size: 0.9em; font-weight: 500;">
+          <div class="show-avg-rating" style="color: var(--text-secondary); font-size: 0.9em; font-weight: 500;">
             <%= stats[:avg_rating] %> ★ avg
           </div>
         <% end %>
@@ -80,7 +81,7 @@
                             params: { comic_issue: { consumed: false, rating: nil, review: nil, consumed_at: nil }, back_to_issue: true },
                             class: "btn btn-danger" %>
             <% else %>
-              <span class="btn btn-secondary" style="background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.08); pointer-events: none;">Not Read</span>
+              <span class="btn btn-secondary" style="background: rgba(255,255,255,0.05); color: var(--text-secondary); border: 1px solid rgba(255,255,255,0.08); pointer-events: none;">Not Read</span>
             <% end %>
           </div>
         </div>

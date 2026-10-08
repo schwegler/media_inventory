@@ -1,0 +1,19 @@
+<% if logged_in? %>
+  <% refresh = MetadataRefresh.find_by(item: item) %>
+  <details id="metadata-health" class="metadata-repair" data-refresh-result="<%= flash[:metadata_result].present? %>" <%= "open" if flash[:metadata_result].present? %>>
+    <summary>Artwork &amp; metadata</summary>
+    <p>Missing artwork or new releases? Check the original source. Source artwork replaces external artwork URLs; uploaded covers, reviews, and library history stay safe.</p>
+    <% if refresh %>
+      <p class="form-help" role="status" tabindex="-1"><%= MetadataRefresh::MESSAGES.fetch(flash[:metadata_result].to_s, refresh.message) %>
+        <% if refresh.succeeded_at %><br>Last checked <%= time_ago_in_words(refresh.succeeded_at) %> ago.<% end %>
+        <% if refresh.provider %>Source: <%= refresh.provider %>.<% end %>
+      </p>
+    <% end %>
+    <% if item.api_id.present? %>
+      <%= button_to 'Refresh metadata', refresh_metadata_path(media_type: item.class.model_name.route_key, media_id: item.id), class: 'btn btn-secondary btn-sm', data: { turbo_submits_with: 'Refreshing…' }, form: { data: { controller: 'refresh', action: 'turbo:submit-start->refresh#start turbo:submit-end->refresh#finish' } } %>
+      <span role="status" aria-live="polite" class="refresh-status"></span>
+    <% else %>
+      <p class="form-help">No source ID is linked yet. <%= link_to 'Suggest an edit', new_polymorphic_path([item, :edit_suggestion]) %> to connect the correct source.</p>
+    <% end %>
+  </details>
+<% end %>

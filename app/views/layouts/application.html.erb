@@ -1,8 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="<%= logged_in? ? current_user.theme : 'os' %>">
+<html lang="en" data-theme="<%= logged_in? ? current_user.theme : 'os' %>"
+      data-accent="<%= logged_in? ? current_user.accent_theme : 'violet' %>"
+      data-density="<%= logged_in? ? current_user.content_density : 'comfortable' %>"
+      data-media-layout="<%= logged_in? ? current_user.media_layout : 'covers' %>"
+      data-effects="<%= logged_in? && current_user.reduce_effects? ? 'reduced' : 'full' %>">
 <head>
   <title><%= full_title(yield(:title)) %></title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="turbo-refresh-method" content="morph">
   <meta name="turbo-refresh-scroll" content="preserve">
 
@@ -40,7 +44,7 @@
     gtag('config', 'G-PPD2TWSZBW');
   </script>
 </head>
-<body <% if hotwire_native_app? %>data-native="true"<% end %>>
+<body data-controller="artwork form-errors" data-ui-preferences="<%= ui_preferences.to_json %>" <% if hotwire_native_app? %>data-native="true"<% end %>>
   <a href="#main-content" class="skip-link">Skip to content</a>
 
   <% unless hotwire_native_app? %>
@@ -57,7 +61,7 @@
         <a class="blog-nav-link" href="https://tacobout.online/">Blog</a>
         <% if logged_in? %>
           <div class="nav-notifications" style="margin-right: 15px; display: flex; align-items: center;">
-            <%= link_to notifications_path, class: "notification-bell", aria: { label: "Notifications" }, style: "position: relative; color: white; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.1);" do %>
+            <%= link_to notifications_path, class: "notification-bell", aria: { label: "Notifications" } do %>
               <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
@@ -207,11 +211,29 @@
   </header>
   <% end %>
 
-<main id="main-content" class="container">
+<% if hotwire_native_app? %>
+  <nav class="native-tools container" aria-label="Library tools">
+    <%= link_to 'Search', search_path %>
+    <%= link_to 'Browse', movies_path %>
+    <% if logged_in? %>
+      <%= link_to 'My library', current_user %>
+      <%= link_to 'Settings', settings_path %>
+    <% end %>
+    <details><summary>Categories</summary><div class="native-categories">
+      <% [['Movies', movies_path], ['Albums', albums_path], ['Comics', comics_path], ['TV shows', tv_shows_path], ['Games', video_games_path], ['Books', books_path]].each do |label, path| %>
+        <%= link_to label, path %>
+      <% end %>
+    </div></details>
+  </nav>
+<% end %>
+
+<main id="main-content" tabindex="-1" class="container">
   <div id="flash-messages">
     <% flash.each do |message_type, message| %>
-      <div class="alert alert-<%= message_type %>" data-controller="flash" data-flash-dismiss-after-value="5000">
-        <%= message %>
+      <% next if message_type.to_s == "metadata_result" %>
+      <div class="alert alert-<%= message_type %>" data-controller="flash" data-flash-dismiss-after-value="0" role="status" aria-live="polite">
+        <span><%= message %></span>
+        <button type="button" class="btn-unstyled flash-dismiss" data-action="flash#dismiss" aria-label="Dismiss message">×</button>
       </div>
     <% end %>
   </div>
