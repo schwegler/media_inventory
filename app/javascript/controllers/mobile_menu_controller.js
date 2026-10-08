@@ -10,7 +10,7 @@ export default class extends Controller {
     this.onKeydown = (event) => {
       if (event.key === "Escape" && this.isOpen) {
         this.close()
-        if (this.hasButtonTarget) this.buttonTarget.focus()
+        this.opener?.focus()
       }
     }
     this.onClick = (event) => {
@@ -28,7 +28,8 @@ export default class extends Controller {
     document.removeEventListener("turbo:before-cache", this.onBeforeCache)
   }
 
-  toggle() {
+  toggle(event) {
+    this.opener = event.currentTarget
     this.isOpen = !this.isOpen
     this.render()
   }
@@ -42,6 +43,6 @@ export default class extends Controller {
     this.menuTarget.classList.toggle("active", this.isOpen)
     if (this.hasIconTarget) this.iconTarget.classList.toggle("hidden", this.isOpen)
     if (this.hasCloseIconTarget) this.closeIconTarget.classList.toggle("hidden", !this.isOpen)
-    if (this.hasButtonTarget) this.buttonTarget.setAttribute("aria-expanded", String(this.isOpen))
+    this.buttonTargets.forEach(button => button.setAttribute("aria-expanded", String(this.isOpen)))
   }
 }
