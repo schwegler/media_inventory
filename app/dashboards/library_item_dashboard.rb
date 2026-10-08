@@ -33,9 +33,9 @@ class LibraryItemDashboard < Administrate::BaseDashboard
   # By default, it's limited to four items to reduce clutter on index pages.
   # Feel free to add, remove, or rearrange items.
   COLLECTION_ATTRIBUTES = %i[
+    user
     item
-    activities
-    comments
+    is_collected
     consumed
   ].freeze
 
@@ -93,6 +93,6 @@ class LibraryItemDashboard < Administrate::BaseDashboard
   # across all pages of the admin dashboard.
   #
   def display_resource(library_item)
-    "#{library_item.item_type} #{library_item.item_id}"
+    library_item.item.try(:title).presence || library_item.item.try(:name).presence || 'Deleted media'
   end
 end

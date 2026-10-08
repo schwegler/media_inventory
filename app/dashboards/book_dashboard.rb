@@ -18,12 +18,7 @@ class BookDashboard < Administrate::BaseDashboard
     updated_at: Field::DateTime
   }.freeze
 
-  COLLECTION_ATTRIBUTES = %i[
-    id
-    title
-    author
-    release_year
-  ].freeze
+  COLLECTION_ATTRIBUTES = %i[title api_id updated_at].freeze
 
   SHOW_PAGE_ATTRIBUTES = %i[
     id

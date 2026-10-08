@@ -1,0 +1,18 @@
+<% content_for :title, admin_resource_title %>
+<header class="page-header"><div><h1 id="page-title"><%= admin_resource_title %></h1><p><%= controller_name == 'edit_suggestions' ? 'Review community contributions and keep the catalog accurate.' : 'Find, inspect, and maintain your records.' %></p></div><div class="actions"><%= link_to "Add #{resource_class.model_name.human.downcase}", [:new, namespace, resource_name], class: 'button button--primary' if accessible_action?(new_resource, :new) %></div></header>
+<%= form_with url: url_for(action: :index), method: :get, class: 'resource-filters', role: 'search' do |f| %>
+  <div class="filter-search"><%= f.label :search, "Search #{admin_resource_title.downcase}" %><%= f.search_field :search, value: search_term, placeholder: 'Search records…' %></div>
+  <% if Admin::Catalog::TYPES.include?(resource_class) %><div><%= f.label :health, 'Catalog view' %><%= f.select :health, [['All records', '']] + Admin::Catalog.filters_for(resource_class).map { |value, label| [label, value] }, selected: params[:health] %></div><% end %>
+  <% if resource_class == EditSuggestion %><div><%= f.label :status, 'Review status' %><%= f.select :status, [['All suggestions', ''], ['Pending', 'pending'], ['Approved', 'approved'], ['Rejected', 'rejected']], selected: params[:status] %></div><% end %>
+  <% %i[tv_show_id comic_id].each do |key| %><%= f.hidden_field key, value: params[key] if params[key].present? %><% end %>
+  <%= f.submit 'Apply', class: 'button' %><%= link_to 'Reset', url_for(action: :index), class: 'button button--neutral' %>
+<% end %>
+<div class="list-summary"><span><%= number_with_delimiter(resources.total_count) %> <%= 'record'.pluralize(resources.total_count) %><%= ' · filtered view' if params[:health].present? || params[:status].present? || search_term.present? %></span><span>Most recently created first by default</span></div>
+<%= content_for(:before_main) %>
+<% if content_for?(:main) %><%= content_for(:main) %><% else %>
+  <section class="main-content__body main-content__body--flush">
+    <% if resources.any? %><%= render 'collection', collection_presenter: page, collection_field_name: resource_name, page: page, resources: resources, table_title: 'page-title' %><%= render 'pagination', resources: resources %>
+    <% else %><div class="empty-state"><h2>No records in this view</h2><p>Try another search or clear the filters. New records will appear here when they are added.</p><%= link_to 'Clear filters', url_for(action: :index), class: 'button' %></div><% end %>
+  </section>
+<% end %>
+<%= content_for(:after_main) %>

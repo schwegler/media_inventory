@@ -1,0 +1,3 @@
+<%= link_to params: sanitized_order_params(page, field_name).merge(presenter.order_params_for(attribute, key: field_name)) do %>
+  <%= label %><% if presenter.ordered_by?(attribute) %><span aria-hidden="true"><%= presenter.ordered_html_class(attribute).to_s.include?('asc') ? ' ↑' : ' ↓' %></span><span class="sr-only"> sorted <%= presenter.ordered_html_class(attribute) %></span><% end %>
+<% end %>

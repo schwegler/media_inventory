@@ -11,6 +11,7 @@ class ComicIssueDashboard < Administrate::BaseDashboard
   # on pages throughout the dashboard.
   ATTRIBUTE_TYPES = {
     id: Field::Number,
+    issue_number: Field::Number,
     comic: Field::BelongsTo,
     publisher: Field::String,
     release_date: Field::String,
@@ -25,12 +26,7 @@ class ComicIssueDashboard < Administrate::BaseDashboard
   #
   # By default, it's limited to four items to reduce clutter on index pages.
   # Feel free to add, remove, or rearrange items.
-  COLLECTION_ATTRIBUTES = %i[
-    title
-    comic
-    publisher
-    release_date
-  ].freeze
+  COLLECTION_ATTRIBUTES = %i[title comic issue_number updated_at].freeze
 
   # SHOW_PAGE_ATTRIBUTES
   # an array of attributes that will be displayed on the model's show page.
@@ -72,6 +68,6 @@ class ComicIssueDashboard < Administrate::BaseDashboard
   # across all pages of the admin dashboard.
   #
   def display_resource(comic_issue)
-    comic_issue.title
+    comic_issue.display_title
   end
 end

@@ -1,0 +1,23 @@
+<% media_collection = Admin::Catalog::TYPES.map { |model| model.model_name.singular }.include?(collection_presenter.resource_name.to_s) %>
+<% suggestion_collection = collection_presenter.resource_name.to_s == 'edit_suggestion' %>
+<div class="table-container"><table class="data-table" aria-labelledby="<%= table_title %>">
+  <thead><tr>
+    <% if media_collection %><th scope="col"><%= render 'admin/application/sort_heading', presenter: collection_presenter, page: page, field_name: collection_field_name, attribute: collection_presenter.resource_name.to_s == 'tv_episode' ? :name : :title, label: 'Media' %></th><th scope="col"><% if collection_presenter.attribute_types.key?(:api_id) %><%= render 'admin/application/sort_heading', presenter: collection_presenter, page: page, field_name: collection_field_name, attribute: :api_id, label: 'Metadata' %><% else %>Metadata<% end %></th><th scope="col">Catalog checks</th><th scope="col"><%= render 'admin/application/sort_heading', presenter: collection_presenter, page: page, field_name: collection_field_name, attribute: :updated_at, label: 'Last updated' %></th>
+    <% elsif suggestion_collection %><th scope="col">Proposed edit</th><th scope="col">Contributor</th><th scope="col">Status</th><th scope="col">Submitted</th>
+    <% else %><% collection_presenter.attribute_types.each do |name, type| %><th scope="col"><% if type.sortable? %><%= link_to name.to_s.humanize, params: sanitized_order_params(page, collection_field_name).merge(collection_presenter.order_params_for(name, key: collection_field_name)) %><% else %><%= name.to_s.humanize %><% end %></th><% end %><% end %>
+    <th scope="col">Actions</th>
+  </tr></thead>
+  <tbody>
+    <% resources.each do |record| %><tr>
+      <% if media_collection %>
+        <td data-label="Media"><div class="media-cell"><%= render 'admin/application/artwork', record: record %><div><%= admin_record_link(record) %><small><%= admin_media_context(record) %></small></div></div></td>
+        <td data-label="Metadata"><span class="mono"><%= record.try(:api_id).presence || 'No metadata ID' %></span><small><%= record.class.model_name.human %></small></td>
+        <td data-label="Catalog checks"><span class="badge <%= admin_has_artwork?(record) ? '' : 'badge--warning' %>"><%= admin_has_artwork?(record) ? 'Artwork saved' : 'Artwork missing' %></span><% if Admin::Catalog::MATCHABLE.include?(record.class) && record.api_id.blank? %><span class="badge badge--warning">ID missing</span><% end %></td>
+        <td data-label="Last updated"><time datetime="<%= record.updated_at.iso8601 %>"><%= l(record.updated_at.to_date, format: :long) %></time></td>
+      <% elsif suggestion_collection %>
+        <td data-label="Proposed edit"><%= admin_record_link(record.suggestable) %><small><%= admin_changes(record).keys.map(&:humanize).join(', ') %></small></td><td data-label="Contributor"><%= admin_record_link(record.user) %></td><td data-label="Status"><span class="badge <%= record.status == 'pending' ? 'badge--warning' : '' %>"><%= record.status.humanize %></span></td><td data-label="Submitted"><%= time_ago_in_words(record.created_at) %> ago</td>
+      <% else %><% collection_presenter.attributes_for(record).each do |attribute| %><td data-label="<%= attribute.name.to_s.humanize %>"><% if attribute.name.to_s == 'content' %><%= truncate(record.content, length: 180) %><% else %><%= render_field attribute %><% end %></td><% end %><% end %>
+      <td data-label="Actions"><div class="row-actions"><%= link_to suggestion_collection ? 'Review' : 'View', [namespace, record], class: 'button button--small' if accessible_action?(record, :show) %><%= link_to 'Edit', [:edit, namespace, record], class: 'button button--small button--neutral' if accessible_action?(record, :edit) %></div></td>
+    </tr><% end %>
+  </tbody>
+</table></div>

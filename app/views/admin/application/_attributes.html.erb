@@ -1,0 +1,6 @@
+<% page.attributes.each do |group, attributes| %>
+  <details class="record-details" <%= 'open' unless admin_media?(page.resource) %>>
+    <summary><%= group.presence || (admin_media?(page.resource) ? 'Full metadata and relationships' : 'Record details') %></summary>
+    <dl class="attribute-grid"><% attributes.each do |attribute| %><div class="attribute-pair"><dt id="<%= attribute.name %>"><%= page.resource.class.human_attribute_name(attribute.name) %></dt><dd class="attribute-data attribute-data--<%= attribute.html_class %>"><%= render_field attribute, page: page %></dd></div><% end %></dl>
+  </details>
+<% end %>

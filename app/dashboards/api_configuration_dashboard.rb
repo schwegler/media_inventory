@@ -11,13 +11,13 @@ class ApiConfigurationDashboard < Administrate::BaseDashboard
   # on pages throughout the dashboard.
   ATTRIBUTE_TYPES = {
     id: Field::Number,
-    access_token: Field::String,
+    access_token: CredentialField,
     base_url: Field::String,
     is_active: Field::Boolean,
     media_type: Field::Select.with_options(
       collection: %w[Movie TvShow VideoGame Comic Album]
     ),
-    options: Field::Text,
+    options: CredentialField,
     source_name: Field::Select.with_options(
       collection: %w[TMDB RAWG ComicVine itunes tvmaze]
     ),

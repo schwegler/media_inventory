@@ -1,0 +1,59 @@
+<% content_for :title, 'Command Center' %>
+<header class="page-header">
+  <div><h1>Command Center</h1><p>Your catalog, community, and next steps.</p></div>
+  <div class="actions"><%= link_to 'Review pending edits', admin_edit_suggestions_path(status: 'pending'), class: 'button button--primary' %><%= link_to 'Browse catalog', admin_movies_path, class: 'button' %></div>
+</header>
+<div class="metric-band">
+  <div class="metric"><span>Catalog records</span><strong><%= number_with_delimiter(@snapshot[:catalog].sum { |row| row['total'] }) %></strong><small>Across eight media types</small></div>
+  <div class="metric"><span>Members</span><strong><%= number_with_delimiter(@snapshot[:users]) %></strong><small><%= @snapshot[:new_users] %> joined this week</small></div>
+  <div class="metric"><span>Library additions · 7 days</span><strong><%= number_with_delimiter(@snapshot[:additions]) %></strong><small>Community collection activity</small></div>
+  <div class="metric"><span>Pending edits</span><strong><%= @snapshot[:pending] %></strong><small><%= @snapshot[:pending].zero? ? 'The queue is clear' : 'Ready for your review' %></small></div>
+</div>
+<div class="overview-grid">
+  <section class="panel attention-panel" aria-labelledby="attention-title">
+    <div class="section-header"><h2 id="attention-title">Needs attention</h2><span class="badge"><%= @snapshot[:pending].zero? ? 'Catalog checks' : 'Review queue open' %></span></div>
+    <% if @snapshot[:pending].positive? %><%= link_to admin_edit_suggestions_path(status: 'pending'), class: 'attention-row' do %><div><strong>Pending edits</strong><small>Community suggestions waiting for review</small></div><span class="attention-count"><%= @snapshot[:pending] %> →</span><% end %><% end %>
+    <% [['missing_artwork', 'Missing artwork', 'Records without a poster, cover, or thumbnail'], ['missing_id', 'Missing metadata IDs', 'Records without a saved external metadata identifier'], ['without_children', 'No episodes / issues', 'Shows and comics with no child records']].each do |key, label, description| %>
+      <% total = @snapshot[:catalog].sum { |row| row[key] } %>
+      <% next if total.zero? %>
+      <%= link_to admin_attention_path(health: key), class: 'attention-row' do %><div><strong><%= label %></strong><small><%= description %></small></div><span class="attention-count"><%= number_with_delimiter(total) %> →</span><% end %>
+    <% end %>
+    <% if @snapshot[:pending].zero? && @snapshot[:catalog].all? { |row| row.values_at('missing_artwork', 'missing_id', 'without_children').all?(&:zero?) } %><div class="empty-state"><strong>No items need attention</strong><p>The review queue is clear and catalog checks found no gaps.</p></div><% end %>
+    <p class="panel-note">Checks find missing artwork references, IDs, and child records. They do not verify remote image availability or expected episode / issue totals.</p>
+  </section>
+  <section class="panel" aria-labelledby="moderation-title">
+    <div class="section-header"><h2 id="moderation-title">Moderation</h2><%= link_to 'View queue →', admin_edit_suggestions_path(status: 'pending') %></div>
+    <% if @overview.pending.any? %>
+      <p class="subheading">Oldest pending edit</p>
+      <% oldest = @overview.pending.first %>
+      <div class="moderation-preview"><strong><%= admin_record_link(oldest.suggestable) %></strong><p>By <%= admin_record_link(oldest.user) %> · <%= time_ago_in_words(oldest.created_at) %> ago</p><% if oldest.created_at < 7.days.ago %><span class="badge badge--warning">Waiting over a week</span><% end %><%= link_to 'Review this edit', admin_edit_suggestion_path(oldest), class: 'button button--primary' %></div>
+    <% else %><div class="empty-state"><strong>All caught up</strong><p>New suggestions will appear here when contributors submit them.</p></div><% end %>
+    <h3>Recent decisions</h3>
+    <% @overview.recent_decisions.each do |suggestion| %><div class="compact-row"><%= admin_record_link(suggestion) %><span class="badge"><%= suggestion.status.humanize %></span></div><% end %>
+    <% if @overview.recent_decisions.empty? %><p class="muted">No moderation decisions yet.</p><% end %>
+  </section>
+  <section class="panel" aria-labelledby="health-title">
+    <div class="section-header"><h2 id="health-title">Media health</h2></div>
+    <div class="table-container"><table class="health-table"><caption class="sr-only">Catalog artwork and metadata coverage</caption><thead><tr><th scope="col">Type</th><th scope="col">Records</th><th scope="col">Artwork</th><th scope="col">Missing IDs</th></tr></thead><tbody>
+      <% @snapshot[:catalog].each do |row| %><% model = row['type'].constantize %><tr><th scope="row"><%= link_to model.model_name.human.pluralize, url_for(controller: "/admin/#{model.model_name.route_key}", action: :index) %></th><td><%= number_with_delimiter(row['total']) %></td><td><div class="coverage"><progress value="<%= artwork_percentage(row) %>" max="100" aria-label="<%= model.model_name.human %> artwork coverage"></progress><span><%= row['total'].zero? ? '—' : "#{artwork_percentage(row)}%" %></span></div></td><td><% if Admin::Catalog::MATCHABLE.include?(model) %><%= link_to row['missing_id'], url_for(controller: "/admin/#{model.model_name.route_key}", action: :index, health: 'missing_id') %><% else %>—<% end %></td></tr><% end %>
+    </tbody></table></div>
+  </section>
+  <section class="panel" aria-labelledby="activity-title">
+    <div class="section-header"><h2 id="activity-title">Recent activity</h2><%= link_to 'Activity →', admin_activities_path %></div>
+    <ol class="event-list"><% @overview.events.each do |event| %><li><%= link_to admin_event_text(event), [:admin, event] %><time datetime="<%= event.created_at.iso8601 %>"><%= time_ago_in_words(event.created_at) %> ago</time></li><% end %></ol>
+    <% if @overview.events.empty? %><div class="empty-state"><strong>A quiet start</strong><p>Accounts, collection activity, and community contributions will appear here.</p></div><% end %>
+  </section>
+  <section class="panel" aria-labelledby="integrations-title">
+    <div class="section-header"><h2 id="integrations-title">Integrations</h2><%= link_to 'Manage →', admin_api_configurations_path %></div>
+    <% @overview.integrations.each do |integration| %><div class="compact-row"><div><strong><%= integration[:name].presence || 'Unnamed integration' %></strong><small><%= integration[:type].to_s.underscore.humanize.presence || 'Unassigned media type' %></small></div><span class="badge <%= integration[:state].include?('needed') || integration[:state] == 'Incomplete configuration' ? 'badge--warning' : '' %>"><%= integration[:state] %></span></div><% end %>
+    <% if @overview.integrations.empty? %><p class="muted">No metadata API configurations saved. <%= link_to 'Set up integrations', admin_api_configurations_path %>.</p><% end %>
+    <p class="panel-note">Configuration state only. Public metadata sources also include MusicBrainz, Steam, Wikipedia, and iTunes books. No live connectivity checks run on this page.</p>
+  </section>
+  <section class="panel" aria-labelledby="community-title">
+    <div class="section-header"><h2 id="community-title">Community</h2><%= link_to 'Find users →', admin_users_path %></div>
+    <dl class="community-stats"><dt>Active collection contributors · 7 days</dt><dd><%= @snapshot[:contributors] %></dd><dt>Comments / likes / follows · 7 days</dt><dd><%= @snapshot.values_at(:comments, :likes, :follows).join(' / ') %></dd><dt>Mastodon / Bluesky credentials saved</dt><dd><%= @snapshot[:mastodon] %> / <%= @snapshot[:bluesky] %></dd><dt>Registered Mastodon OAuth apps</dt><dd><%= link_to @snapshot[:oauth_apps], admin_mastodon_oauth_applications_path %></dd></dl>
+    <p class="panel-note">Saved credentials do not confirm a working connection. ActivityPub publishes actor and outbox endpoints; inbound processing is not implemented.</p>
+    <h3>Background operations</h3><p class="muted">Adapter: <%= ActiveJob::Base.queue_adapter.class.name.demodulize.delete_suffix('Adapter') %>. This installation does not store job outcomes or import progress.</p>
+  </section>
+</div>
+<p class="data-freshness">Counts calculated <%= time_ago_in_words(@snapshot[:calculated_at]) %> ago · cached for up to one minute. Record lists are live.</p>

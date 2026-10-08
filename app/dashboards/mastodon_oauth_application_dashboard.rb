@@ -12,7 +12,7 @@ class MastodonOauthApplicationDashboard < Administrate::BaseDashboard
   ATTRIBUTE_TYPES = {
     id: Field::Number,
     client_id: Field::String,
-    client_secret: Field::String,
+    client_secret: CredentialField,
     server: Field::String,
     created_at: Field::DateTime,
     updated_at: Field::DateTime

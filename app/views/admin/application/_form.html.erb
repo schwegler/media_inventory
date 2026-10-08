@@ -1,0 +1,5 @@
+<%= form_with model: page.resource, url: [namespace, page.resource], scope: page.resource, local: true, class: 'admin-form' do |f| %>
+  <% if page.resource.errors.any? %><div class="admin-alert admin-alert--error" role="alert"><h2>Please check these details</h2><ul><% page.resource.errors.full_messages.each do |message| %><li><%= message %></li><% end %></ul></div><% end %>
+  <% page.attributes(controller.action_name).each do |title, attributes| %><fieldset><legend><%= title.presence || 'Record details' %></legend><% attributes.each do |attribute| %><div class="field-unit field-unit--<%= attribute.html_class %>"><%= render_field attribute, f: f %></div><% end %></fieldset><% end %>
+  <div class="form-actions"><%= f.submit 'Save record', class: 'button button--primary', data: { turbo_submits_with: 'Saving…' } %><%= link_to 'Cancel', page.resource.persisted? ? [namespace, page.resource] : url_for(action: :index), class: 'button' %></div>
+<% end %>

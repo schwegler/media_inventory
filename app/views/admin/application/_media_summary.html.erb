@@ -1,0 +1,9 @@
+<section class="media-summary" aria-label="Media overview">
+  <%= render 'admin/application/artwork', record: record, large: true %>
+  <div><h2><%= admin_media_context(record) %></h2><div class="actions"><span class="badge <%= admin_has_artwork?(record) ? '' : 'badge--warning' %>"><%= admin_has_artwork?(record) ? 'Artwork reference saved' : 'Artwork missing' %></span><% if record.respond_to?(:api_id) %><span class="badge"><%= record.api_id.present? ? "Metadata ID: #{record.api_id}" : 'No metadata match' %></span><% end %></div>
+  <% if record.respond_to?(:external_url) && record.external_url.present? %><p>External reference: <%= admin_provider_reference(record.external_url) %></p><% end %>
+  <p class="muted">Record updated <%= l(record.updated_at, format: :long) %>. Metadata refresh time and original source are not separately tracked.</p>
+  <% if record.respond_to?(:library_items) %><p><strong><%= number_with_delimiter(record.library_items.count) %></strong> library entries · <strong><%= record.comments.count %></strong> comments · <strong><%= record.likes.count %></strong> likes</p><% end %>
+  <% if record.is_a?(TvShow) %><%= link_to "Inspect #{record.tv_episodes.count} episodes →", admin_tv_episodes_path(tv_show_id: record.id), class: 'button' %><% elsif record.is_a?(Comic) %><%= link_to "Inspect #{record.comic_issues.count} issues →", admin_comic_issues_path(comic_id: record.id), class: 'button' %><% elsif record.is_a?(TvEpisode) %><%= admin_record_link(record.tv_show, class: 'button') %><% elsif record.is_a?(ComicIssue) %><%= admin_record_link(record.comic, class: 'button') %><% end %>
+  </div>
+</section>

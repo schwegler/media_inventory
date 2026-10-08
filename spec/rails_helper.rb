@@ -3,7 +3,9 @@
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 require 'spec_helper'
 ENV['RAILS_ENV'] ||= 'test'
-system('bin/rails dartsass:build') unless File.exist?(File.expand_path('../app/assets/builds/application.css', __dir__))
+unless %w[application admin].all? { |name| File.exist?(File.expand_path("../app/assets/builds/#{name}.css", __dir__)) }
+  system('bin/rails dartsass:build')
+end
 require File.expand_path('../config/environment', __dir__)
 require 'rspec/rails'
 require 'webmock/rspec'

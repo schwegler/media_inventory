@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_08_170000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_08_193000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -62,6 +62,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_170000) do
     t.string "thumbnail_url"
     t.string "title"
     t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_albums_on_created_at"
   end
 
   create_table "api_configurations", force: :cascade do |t|
@@ -85,6 +86,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_170000) do
     t.string "thumbnail_url"
     t.string "title"
     t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_books_on_created_at"
   end
 
   create_table "comic_issues", force: :cascade do |t|
@@ -104,6 +106,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_170000) do
     t.datetime "updated_at", null: false
     t.index ["comic_id", "provider_id"], name: "index_comic_issues_on_comic_id_and_provider_id", unique: true
     t.index ["comic_id"], name: "index_comic_issues_on_comic_id"
+    t.index ["created_at"], name: "index_comic_issues_on_created_at"
   end
 
   create_table "comics", force: :cascade do |t|
@@ -117,6 +120,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_170000) do
     t.string "title"
     t.datetime "updated_at", null: false
     t.string "writer"
+    t.index ["created_at"], name: "index_comics_on_created_at"
   end
 
   create_table "comments", force: :cascade do |t|
@@ -128,6 +132,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_170000) do
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
     t.index ["commentable_type", "commentable_id"], name: "index_comments_on_commentable"
+    t.index ["created_at"], name: "index_comments_on_created_at"
     t.index ["parent_id"], name: "index_comments_on_parent_id"
     t.index ["user_id"], name: "index_comments_on_user_id"
   end
@@ -141,6 +146,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_170000) do
     t.string "suggestable_type", null: false
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
+    t.index ["status", "created_at"], name: "index_edit_suggestions_on_status_and_created_at"
     t.index ["suggestable_type", "suggestable_id"], name: "index_edit_suggestions_on_suggestable"
     t.index ["user_id"], name: "index_edit_suggestions_on_user_id"
   end
@@ -162,6 +168,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_170000) do
     t.text "review"
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
+    t.index ["created_at"], name: "index_library_items_on_created_at"
     t.index ["item_type", "item_id"], name: "index_library_items_on_item"
     t.index ["user_id"], name: "index_library_items_on_user_id"
   end
@@ -172,6 +179,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_170000) do
     t.string "likeable_type", null: false
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
+    t.index ["created_at"], name: "index_likes_on_created_at"
     t.index ["likeable_type", "likeable_id"], name: "index_likes_on_likeable"
     t.index ["user_id", "likeable_type", "likeable_id"], name: "index_likes_on_user_id_and_likeable_type_and_likeable_id", unique: true
     t.index ["user_id"], name: "index_likes_on_user_id"
@@ -208,6 +216,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_170000) do
     t.string "thumbnail_url"
     t.string "title"
     t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_movies_on_created_at"
   end
 
   create_table "notifications", force: :cascade do |t|
@@ -237,6 +246,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_170000) do
     t.integer "followed_id"
     t.integer "follower_id"
     t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_relationships_on_created_at"
     t.index ["followed_id"], name: "index_relationships_on_followed_id"
     t.index ["follower_id", "followed_id"], name: "index_relationships_on_follower_id_and_followed_id", unique: true
     t.index ["follower_id"], name: "index_relationships_on_follower_id"
@@ -256,6 +266,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_170000) do
     t.datetime "updated_at", null: false
     t.boolean "watched", default: false, null: false
     t.date "watched_at"
+    t.index ["created_at"], name: "index_tv_episodes_on_created_at"
     t.index ["tv_show_id"], name: "index_tv_episodes_on_tv_show_id"
   end
 
@@ -267,6 +278,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_170000) do
     t.string "thumbnail_url"
     t.string "title"
     t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_tv_shows_on_created_at"
   end
 
   create_table "users", force: :cascade do |t|
@@ -317,6 +329,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_170000) do
     t.string "theme", default: "os", null: false
     t.datetime "updated_at", null: false
     t.string "username"
+    t.index ["created_at"], name: "index_users_on_created_at"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["username"], name: "index_users_on_username", unique: true
   end
@@ -332,6 +345,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_170000) do
     t.string "thumbnail_url"
     t.string "title", null: false
     t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_video_games_on_created_at"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"

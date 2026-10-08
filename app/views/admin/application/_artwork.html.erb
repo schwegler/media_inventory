@@ -1,0 +1,6 @@
+<div class="media-artwork <%= local_assigns[:large] ? 'media-artwork--large' : '' %>">
+  <span aria-hidden="true"><%= admin_label(record).to_s.first.upcase %></span>
+  <% if (artwork = admin_artwork(record)) %>
+    <%= image_tag artwork, alt: '', loading: 'lazy', data: { admin_artwork: true }, referrerpolicy: 'no-referrer' %>
+  <% end %>
+</div>

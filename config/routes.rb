@@ -73,7 +73,9 @@ SampleApp::Application.routes.draw do
       end
     end
 
-    root to: 'activities#index'
+    get 'search', to: 'search#index'
+    get 'attention', to: 'dashboard#attention'
+    root to: 'dashboard#index'
   end
   post '/metadata/:media_type/:media_id/refresh', to: 'metadata_refreshes#create', as: 'refresh_metadata'
   root 'landing#index'
