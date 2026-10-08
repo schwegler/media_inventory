@@ -71,13 +71,15 @@ class SettingsController < ApplicationController
   end
 
   def disconnect_mastodon
-    @user.update!(mastodon_server: nil, mastodon_access_token: nil, mastodon_refresh_token: nil, mastodon_uid: nil)
+    @user.update!(mastodon_server: nil, mastodon_access_token: nil, mastodon_refresh_token: nil, mastodon_uid: nil,
+                  mastodon_post_activity: false, mastodon_post_reviews: false)
     flash[:success] = 'Mastodon account disconnected'
     redirect_to settings_social_path
   end
 
   def disconnect_bluesky
-    @user.update!(bsky_did: nil, bsky_access_token: nil, bsky_refresh_token: nil)
+    @user.update!(bsky_did: nil, bsky_access_token: nil, bsky_refresh_token: nil, bsky_handle: nil,
+                  bsky_post_activity: false, bsky_post_reviews: false)
     flash[:success] = 'Bluesky account disconnected'
     redirect_to settings_social_path
   end

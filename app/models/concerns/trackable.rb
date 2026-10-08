@@ -68,50 +68,8 @@ module Trackable
       user: user,
       activity_type: activity_type
     )
-    post_to_bluesky_if_enabled(activity_type)
-    post_to_mastodon_if_enabled(activity_type)
-  end
-
-  def post_to_bluesky_if_enabled(activity_type)
-    return unless respond_to?(:user) && user.present?
-
-    return unless user.bsky_access_token.present?
-    return unless should_post_to_bsky?(activity_type)
-
-    msg = build_social_message(activity_type, :bsky)
-    Thread.new do
-      client = BlueskyClient.new(user)
-      client.post(msg, title: respond_to?(:title) ? title.to_s : 'Media Tracker')
-    rescue StandardError => e
-      Rails.logger.error "CRITICAL BSKY THREAD ERROR: #{e.class} - #{e.message}\n#{e.backtrace.first(10).join("\n")}"
-    end
-  end
-
-  def bsky_configured?
-    respond_to?(:user) && user.present? && user.bsky_access_token.present?
-  end
-
-  def should_post_to_bsky?(activity_type)
-    activity_type == 'reviewed' ? user.bsky_post_reviews? : user.bsky_post_activity?
-  end
-
-  def post_to_mastodon_if_enabled(activity_type)
-    return unless mastodon_configured?
-    return unless should_post_to_mastodon?(activity_type)
-
-    msg = build_social_message(activity_type, :mastodon)
-    Thread.new do
-      client = MastodonClient.new(user)
-      client.post(msg)
-    end
-  end
-
-  def mastodon_configured?
-    respond_to?(:user) && user.present? && user.mastodon_access_token.present? && user.mastodon_server.present?
-  end
-
-  def should_post_to_mastodon?(activity_type)
-    activity_type == 'reviewed' ? user.mastodon_post_reviews? : user.mastodon_post_activity?
+    # Active Job defers enqueueing until the transaction commits.
+    SocialPostJob.perform_later(self, activity_type)
   end
 
   def build_social_message(activity_type, platform)
