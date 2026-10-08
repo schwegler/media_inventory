@@ -1,125 +1,60 @@
 <div class="settings-container">
   <%= render 'sidebar' %>
-
   <div class="settings-content">
-    <h1 class="settings-title">Social Settings</h1>
+    <h1 class="settings-title">Social connections</h1>
+    <p class="text-muted">Connect your accounts, choose what to share, and make each update your own.</p>
+    <p class="social-privacy-note">Automatic posts share public additions and reviews only. Private entries, watchlist changes, and consumption updates stay in Trove. You can also share any catalog page with its sharing buttons.</p>
 
-    <%= form_with(model: @user, url: settings_update_social_path, local: true, class: "settings-form") do |f| %>
+    <% if @user.errors.any? %>
+      <div role="alert"><%= @user.errors.full_messages.to_sentence %></div>
+    <% end %>
 
-      <div class="settings-section">
-        <h3 class="section-subtitle">🦋 Bluesky Integration</h3>
-        <% if @user.bsky_access_token.present? %>
-          <div style="padding: 1rem; background: rgba(8, 145, 178, 0.1); border-left: 4px solid #0891b2; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
-            <p style="margin: 0;">✅ Connected via OAuth (<strong><%= @user.bsky_handle || 'Bluesky' %></strong>)</p>
-            <%= link_to "Disconnect", settings_disconnect_bluesky_path, data: { turbo_method: :delete }, class: "btn btn-outline", style: "border-color: #ef4444; color: #ef4444; font-size: 0.8rem; padding: 4px 8px; text-decoration: none;" %>
-          </div>
-        <% else %>
-          <div style="padding: 1rem; background: rgba(148, 163, 184, 0.1); border-left: 4px solid #94a3b8; margin-bottom: 1rem;">
-            <p style="margin: 0; color: #94a3b8;">Not connected. Use the Connect button below.</p>
-          </div>
-        <% end %>
-
-        <div style="margin-top: 15px; display: flex; gap: 20px; flex-wrap: wrap;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <%= f.check_box :bsky_post_activity %>
-            <%= f.label :bsky_post_activity, "Auto-post new additions", style: "margin-bottom: 0;" %>
-          </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <%= f.check_box :bsky_post_reviews %>
-            <%= f.label :bsky_post_reviews, "Auto-post reviews", style: "margin-bottom: 0;" %>
-          </div>
-        </div>
-
-        <div class="form-group" style="margin-top: 15px;">
-          <%= f.label :bsky_message_activity_template, "Activity Template" %>
-          <%= f.text_field :bsky_message_activity_template, class: 'form-control', placeholder: 'Just added [title] to my library! [link] #mediatracker' %>
-          <small class="text-muted" style="font-size: 0.75rem;">Placeholders: [title], [type], [link]</small>
-        </div>
-
-        <div class="form-group" style="margin-top: 15px;">
-          <%= f.label :bsky_message_review_template, "Review Template" %>
-          <%= f.text_field :bsky_message_review_template, class: 'form-control', placeholder: 'My review of [title]: [review] - [rating]★ [link] #mediatracker' %>
-          <small class="text-muted" style="font-size: 0.75rem;">Placeholders: [title], [review], [rating], [link]</small>
-        </div>
-      </div>
-
-      <% if @user.mastodon_access_token.present? %>
-        <hr class="settings-divider">
-
-        <div class="settings-section">
-          <h3 class="section-subtitle">🐘 Mastodon Integration</h3>
-          
-          <div style="padding: 1rem; background: rgba(86, 58, 204, 0.1); border-left: 4px solid #563acc; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
-            <p style="margin: 0;">✅ Connected to <strong><%= @user.mastodon_server %></strong></p>
-            <%= link_to "Disconnect", settings_disconnect_mastodon_path, data: { turbo_method: :delete }, class: "btn btn-outline", style: "border-color: #ef4444; color: #ef4444; font-size: 0.8rem; padding: 4px 8px; text-decoration: none;" %>
-          </div>
-          
-          <div style="margin-top: 15px; display: flex; gap: 20px; flex-wrap: wrap;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <%= f.check_box :mastodon_post_activity %>
-              <%= f.label :mastodon_post_activity, "Auto-post new additions", style: "margin-bottom: 0;" %>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <%= f.check_box :mastodon_post_reviews %>
-              <%= f.label :mastodon_post_reviews, "Auto-post reviews", style: "margin-bottom: 0;" %>
-            </div>
-          </div>
-
-          <div class="form-group" style="margin-top: 15px;">
-            <%= f.label :mastodon_message_activity_template, "Activity Template" %>
-            <%= f.text_field :mastodon_message_activity_template, class: 'form-control', placeholder: 'Just added [title] to my library! [link] #mediatracker' %>
-            <small class="text-muted" style="font-size: 0.75rem;">Placeholders: [title], [type], [link]</small>
-          </div>
-
-          <div class="form-group" style="margin-top: 15px;">
-            <%= f.label :mastodon_message_review_template, "Review Template" %>
-            <%= f.text_field :mastodon_message_review_template, class: 'form-control', placeholder: 'My review of [title]: [review] - [rating]★ [link] #mediatracker' %>
-            <small class="text-muted" style="font-size: 0.75rem;">Placeholders: [title], [review], [rating], [link]</small>
-          </div>
-        </div>
+    <div class="social-connections">
+      <% [[:bsky, 'Bluesky'], [:mastodon, 'Mastodon']].each do |platform, name| %>
+        <% connected = @user.public_send("#{platform}_access_token").present? %>
+        <section class="settings-section social-connection" aria-labelledby="<%= platform %>-heading">
+          <h2 id="<%= platform %>-heading" class="section-subtitle"><%= name %></h2>
+          <% if connected %>
+            <p class="social-connection-status">Connected · <strong><%= platform == :bsky ? @user.bsky_handle.presence || 'Bluesky account' : @user.mastodon_server %></strong></p>
+            <%= button_to "Disconnect #{name}", platform == :bsky ? settings_disconnect_bluesky_path : settings_disconnect_mastodon_path, method: :delete, class: "btn btn-outline", data: { turbo_confirm: "Disconnect #{name}? Automatic posting to this account will be turned off." } %>
+          <% else %>
+            <p class="text-muted">Not connected</p>
+            <%= form_tag platform == :bsky ? '/auth/atproto' : '/auth/mastodon', method: :post, data: { turbo: false } do %>
+              <% field = platform == :bsky ? :handle : :mastodon_server %>
+              <div class="form-group">
+                <%= label_tag field, platform == :bsky ? 'Bluesky handle' : 'Mastodon server' %>
+                <%= text_field_tag field, nil, class: 'form-control', placeholder: platform == :bsky ? 'username.bsky.social' : 'mastodon.social', required: true, autocapitalize: 'none', spellcheck: false %>
+                <small class="text-muted">You’ll authorize Trove on <%= name %>. Your password stays with your provider.</small>
+              </div>
+              <%= submit_tag "Connect #{name}", class: 'btn btn-primary' %>
+            <% end %>
+          <% end %>
+        </section>
       <% end %>
+    </div>
 
-      <div class="form-actions" style="margin-top: 20px;">
-        <%= f.submit "Update Social Settings", class: "btn btn-primary" %>
-      </div>
-    <% end %>
-
-    <% unless @user.mastodon_access_token.present? %>
-      <hr class="settings-divider">
-
-      <div class="settings-section">
-        <h3 class="section-subtitle">🐘 Mastodon Integration</h3>
-        
-        <p class="text-muted" style="margin-bottom: 1rem; line-height: 1.4;">
-          Connect your Mastodon account to automatically post updates and reviews.
-        </p>
-        <%= form_tag "/auth/mastodon", method: :post, data: { turbo: false } do %>
-          <div style="margin-bottom: 15px;">
-            <%= label_tag :mastodon_server, "Mastodon Server URL" %>
-            <%= text_field_tag :mastodon_server, nil, class: 'form-control', placeholder: 'e.g. mastodon.social' %>
+    <%= form_with(model: @user, url: settings_update_social_path, local: true, class: 'settings-form') do |f| %>
+      <% [[:bsky, 'Bluesky', 300], [:mastodon, 'Mastodon', 500]].each do |platform, name, limit| %>
+        <% connected = @user.public_send("#{platform}_access_token").present? %>
+        <section class="settings-section social-preferences">
+          <h2 class="section-subtitle"><%= name %> posting preferences</h2>
+          <% unless connected %><p class="text-muted">Connect <%= name %> to enable automatic posting. You can prepare templates below.</p><% end %>
+          <div class="social-toggles">
+            <div><%= f.check_box "#{platform}_post_activity", disabled: !connected %><%= f.label "#{platform}_post_activity", 'Auto-post public additions' %></div>
+            <div><%= f.check_box "#{platform}_post_reviews", disabled: !connected %><%= f.label "#{platform}_post_reviews", 'Auto-post public reviews' %></div>
           </div>
-          <%= submit_tag "Connect Mastodon", class: "btn btn-primary", style: "background: #563acc; border-color: #7c3aed;" %>
-        <% end %>
-      </div>
-    <% end %>
-
-    <% unless @user.bsky_access_token.present? %>
-      <hr class="settings-divider">
-
-      <div class="settings-section">
-        <h3 class="section-subtitle">🦋 Connect Bluesky (OAuth)</h3>
-        
-        <p class="text-muted" style="margin-bottom: 1rem; line-height: 1.4;">
-          Connect your Bluesky account securely using OAuth.
-        </p>
-        <%= form_tag "/auth/atproto", method: :post, data: { turbo: false } do %>
-          <div style="margin-bottom: 15px;">
-            <%= label_tag :handle, "Bluesky Handle" %>
-            <%= text_field_tag :handle, nil, class: 'form-control', placeholder: 'e.g. username.bsky.social' %>
-          </div>
-          <%= submit_tag "Connect Bluesky", class: "btn btn-primary", style: "background: #0891b2; border-color: #0e7490;" %>
-        <% end %>
-      </div>
+          <% [:activity, :review].each do |kind| %>
+            <% default = kind == :activity ? 'Just added [title] to my library! [link] #mediatracker' : 'My review of [title]: [review] - [rating]★ [link] #mediatracker' %>
+            <div class="form-group social-template" data-controller="social-preview" data-social-preview-default-value="<%= default %>" data-social-preview-limit-value="<%= limit %>">
+              <%= f.label "#{platform}_message_#{kind}_template", "#{kind.to_s.capitalize} template" %>
+              <%= f.text_area "#{platform}_message_#{kind}_template", class: 'form-control', rows: 3, placeholder: default, data: { social_preview_target: 'input', action: 'input->social-preview#update' } %>
+              <small class="text-muted">Use [title], [type], [link], [review], or [rating]. Leave blank for the default.</small>
+              <div class="social-template-preview"><strong>Sample preview</strong><p data-social-preview-target="output"></p><small data-social-preview-target="count" aria-live="polite"></small></div>
+            </div>
+          <% end %>
+        </section>
+      <% end %>
+      <div class="form-actions"><%= f.submit 'Save social preferences', class: 'btn btn-primary' %></div>
     <% end %>
   </div>
 </div>

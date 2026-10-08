@@ -1,11 +1,14 @@
 <% public_url = canonical_item_url(item) %>
 <% content_for(:canonical_url, public_url) %>
 <% content_for(:meta_image, item_preview_image_url(item), flush: true) %>
-<div class="item-sharing" data-controller="link-share" data-link-share-url-value="<%= public_url %>">
+<div class="item-sharing" data-controller="link-share" data-link-share-url-value="<%= public_url %>" data-link-share-title-value="<%= item_share_title(item) %>">
   <button type="button" class="sleek-btn sleek-btn-secondary" data-action="link-share#copy">
     <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
     Copy link
   </button>
+  <button type="button" class="sleek-btn sleek-btn-secondary" data-link-share-target="native" data-action="link-share#share" hidden>Share…</button>
+  <%= link_to "Bluesky", social_compose_url(:bluesky, item), class: "sleek-btn sleek-btn-secondary", target: "_blank", rel: "noopener noreferrer", aria: { label: "Share on Bluesky (opens a new tab)" } %>
+  <%= link_to "Mastodon", social_compose_url(:mastodon, item), class: "sleek-btn sleek-btn-secondary", target: "_blank", rel: "noopener noreferrer", aria: { label: "Share on Mastodon (opens a new tab)" } %>
   <span role="status" aria-live="polite" data-link-share-target="status"></span>
   <input type="url" value="<%= public_url %>" readonly hidden aria-label="Public item link" data-link-share-target="fallback">
 </div>

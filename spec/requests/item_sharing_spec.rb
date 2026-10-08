@@ -71,4 +71,14 @@ RSpec.describe 'Public item sharing', type: :request do
       expect(metadata['image']).to start_with('https://')
     end
   end
+  it 'offers encoded social compose links and a native share button' do
+    movie = Movie.create!(title: 'A & B #1')
+    get movie_path(movie)
+    document = Nokogiri::HTML(response.body)
+    link = document.at_css('a[href^="https://bsky.app/intent/compose"]')
+    text = URI.decode_www_form(URI(link['href']).query).to_h.fetch('text')
+    expect(text).to eq("A & B #1 https://trove.schweg.xyz/movies/#{movie.id}")
+    expect(link['rel']).to include('noopener')
+    expect(document.at_css('[data-action="link-share#share"]')).to be_present
+  end
 end
