@@ -10,15 +10,28 @@ RSpec.describe 'Presentation and keyboard access', type: :system do
     movie = Movie.create!(title: 'Compact header')
     visit movie_path(movie)
     expect(page).to have_css('[data-controller="mobile-menu"][data-connected="true"]')
+    expect(page).to have_css('[data-controller="floating-header"][data-connected="true"]')
+    expect(page).not_to have_css('.combined-header')
+    expect(page).to have_css('.library-nav', visible: true)
     page.execute_script('window.scrollTo(0, 400)')
+    expect(page).to have_css('.combined-header')
     pinned_bottom = page.evaluate_script('document.querySelector(".app-header").getBoundingClientRect().bottom')
     expect(pinned_bottom).to be <= 80
-    click_button 'Open account and navigation menu'
+    click_button 'Toggle navigation'
     expect(page).to have_link('Settings', visible: true)
     page.driver.browser.action.send_keys(:escape).perform
     focused_label = page.evaluate_script('document.activeElement.getAttribute("aria-label")')
-    expect(focused_label).to eq('Open account and navigation menu')
-    expect(page).to have_css('.compact-menu-btn[aria-expanded="false"]')
+    expect(focused_label).to eq('Toggle navigation')
+    expect(page).to have_css('.mobile-menu-btn[aria-expanded="false"]')
+    page.execute_script('window.scrollTo(0, 0)')
+    expect(page).not_to have_css('.combined-header')
+    expect(page).to have_css('.library-nav', visible: true)
+    page.execute_script('window.scrollTo(0, 400)')
+    page.current_window.resize_to(390, 844)
+    click_button 'Search the library'
+    expect(page.evaluate_script('document.activeElement.classList.contains("global-search-input")')).to be true
+    page.driver.browser.action.send_keys(:escape).perform
+    expect(page.evaluate_script('document.activeElement.getAttribute("aria-label")')).to eq('Search the library')
   end
 
   it 'supports narrow navigation, restores menu focus, and previews and persists profile themes' do
@@ -28,7 +41,7 @@ RSpec.describe 'Presentation and keyboard access', type: :system do
     expect(page).to have_css('[data-controller="mobile-menu"][data-connected="true"]')
     click_button 'Toggle navigation'
     expect(page).to have_link('Settings', visible: true)
-    page.find('[data-mobile-menu-target="button"]').send_keys(:escape)
+    page.find('.mobile-menu-btn').send_keys(:escape)
     expect(page).to have_css('[data-mobile-menu-target="button"][aria-expanded="false"]')
     expect(page.evaluate_script('document.activeElement.getAttribute("data-mobile-menu-target")')).to eq('button')
     visit settings_appearance_path

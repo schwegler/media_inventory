@@ -53,7 +53,8 @@
   <% end %>
 
   <% unless hotwire_native_app? %>
-  <header class="app-header" data-controller="mobile-menu">
+  <div class="header-shell" data-controller="floating-header">
+  <header class="app-header" data-controller="mobile-menu" data-floating-header-target="header">
     <nav class="app-nav">
       <div class="nav-brand">
         <%= link_to root_path, class: 'brand-link' do %>
@@ -63,6 +64,8 @@
         <a class="brand-companion" href="https://tacobout.online/">from taco ’bout it</a>
       </div>
 
+        <div class="combined-search"><%= render 'shared/header_search' %></div>
+        <button class="combined-search-toggle btn btn-ghost" type="button" data-action="mobile-menu#openSearch" aria-label="Search the library" aria-controls="mobile-navigation" aria-expanded="false" data-mobile-menu-target="button"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m16 16 4 4"/></svg></button>
       <div class="nav-user-section desktop-nav">
         <a class="blog-nav-link" href="https://tacobout.online/">Blog</a>
         <% if logged_in? %>
@@ -81,7 +84,7 @@
           </div>
 
           <div class="nav-dropdown" data-controller="dropdown">
-            <button class="nav-user-info sleek-btn usr-btn dropdown-toggle" type="button" data-action="click->dropdown#toggle" data-dropdown-target="button" aria-haspopup="true" aria-expanded="false">
+            <button class="nav-user-info sleek-btn usr-btn dropdown-toggle" type="button" aria-label="Account menu" data-action="click->dropdown#toggle" data-dropdown-target="button" aria-haspopup="true" aria-expanded="false">
               <%= user_avatar_tag(current_user, size: 24) %>
               <span class="nav-username" title="<%= current_user.name %>"><%= current_user.name.upcase %></span>
               <svg class="dropdown-chevron" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" focusable="false">
@@ -130,9 +133,6 @@
       </button>
     </nav>
     <nav class="library-nav desktop-nav" aria-label="Library">
-      <% if content_for?(:item_detail) %>
-        <button class="compact-menu-btn btn btn-ghost" type="button" data-action="mobile-menu#toggle" data-mobile-menu-target="button" aria-label="Open account and navigation menu" aria-controls="mobile-navigation" aria-expanded="false">Menu</button>
-      <% end %>
       <ul class="nav-links">
         <li><%= link_to "Movies", movies_path, aria: { current: controller_name == "movies" ? "page" : nil } %></li>
         <li><%= link_to "Albums", albums_path, aria: { current: controller_name == "albums" ? "page" : nil } %></li>
@@ -218,6 +218,7 @@
       </div>
     </div>
   </header>
+  </div>
   <% end %>
 
 <% if hotwire_native_app? %>

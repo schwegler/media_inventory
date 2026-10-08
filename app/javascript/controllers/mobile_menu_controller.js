@@ -34,6 +34,13 @@ export default class extends Controller {
     this.render()
   }
 
+  openSearch(event) {
+    this.opener = event.currentTarget
+    this.isOpen = true
+    this.render()
+    this.menuTarget.querySelector("input")?.focus()
+  }
+
   close() {
     this.isOpen = false
     this.render()
