@@ -1,6 +1,20 @@
 # frozen_string_literal: true
 
 module ItemSharingHelper
+  def item_share_title(item)
+    item.respond_to?(:title) ? item.title.to_s : item.name.to_s
+  end
+
+  def social_compose_url(platform, item)
+    text = "#{item_share_title(item)} #{canonical_item_url(item)}"
+    case platform
+    when :bluesky
+      "https://bsky.app/intent/compose?#{URI.encode_www_form(text: text)}"
+    when :mastodon
+      "https://mastodonshare.com/?#{URI.encode_www_form(text: text)}"
+    end
+  end
+
   def canonical_item_url(item)
     "#{public_trove_origin}#{polymorphic_path(item)}"
   end

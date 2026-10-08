@@ -44,4 +44,32 @@ RSpec.describe 'Settings', type: :request do
       expect(response).to redirect_to(root_url)
     end
   end
+  it 'shows both connection forms and editable template previews' do
+    get settings_social_path
+    expect(response).to have_http_status(:ok)
+    document = Nokogiri::HTML(response.body)
+    expect(document.css('form[action="/auth/atproto"]').length).to eq(1)
+    expect(document.css('form[action="/auth/mastodon"]').length).to eq(1)
+    expect(document.css('[data-controller="social-preview"]').length).to eq(4)
+    expect(response.body).to include('Private entries')
+  end
+
+  it 'saves social templates and preferences without accepting credentials' do
+    patch settings_update_social_path, params: { user: { bsky_message_activity_template: '[title] [link]',
+                                                         bsky_post_activity: true, bsky_access_token: 'injected' } }
+    expect(user.reload.bsky_message_activity_template).to eq('[title] [link]')
+    expect(user.bsky_access_token).to be_nil
+    expect(response).to redirect_to(settings_social_path)
+  end
+
+  it 'clears the Bluesky identity and posting preferences when disconnected' do
+    user.update!(bsky_access_token: 'token', bsky_handle: 'reader.bsky.social', bsky_post_activity: true,
+                 bsky_post_reviews: true)
+    delete settings_disconnect_bluesky_path
+    user.reload
+    expect(user.bsky_handle).to be_nil
+    expect(user.bsky_access_token).to be_nil
+    expect(user.bsky_post_activity).to be false
+    expect(user.bsky_post_reviews).to be false
+  end
 end
