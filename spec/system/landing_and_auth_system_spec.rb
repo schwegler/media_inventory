@@ -70,6 +70,7 @@ RSpec.describe 'Landing and Authentication', type: :system do
     end
     # Wait for the Turbo logout response before issuing another navigation.
     expect(page).to have_link('Log in', exact: true)
+    expect(page).to have_text('Community Activity')
     visit root_path
     expect(page).to have_text('Community Activity')
   end

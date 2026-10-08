@@ -5,8 +5,10 @@
 <%= turbo_stream.replace "flash-messages" do %>
   <div id="flash-messages">
     <% flash.each do |message_type, message| %>
-      <div class="alert alert-<%= message_type %>" data-controller="flash" data-flash-dismiss-after-value="5000">
-        <%= message %>
+      <% next if message_type.to_s == "metadata_result" %>
+      <div class="alert alert-<%= message_type %>" data-controller="flash" data-flash-dismiss-after-value="0" role="status" aria-live="polite">
+        <span><%= message %></span>
+        <button type="button" class="btn-unstyled flash-dismiss" data-action="flash#dismiss" aria-label="Dismiss message">×</button>
       </div>
     <% end %>
   </div>

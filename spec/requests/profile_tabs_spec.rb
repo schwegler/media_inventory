@@ -16,7 +16,10 @@ RSpec.describe 'Profile Tabs', type: :request do
       expect(response.body).to include('Collection')
       expect(response.body).to include('Backlog')
       expect(response.body).to include('Likes')
-      expect(response.body).to include('data-controller="tabs"')
+      # Profile sections now use server-rendered navigation with readable URLs.
+      document = Nokogiri::HTML(response.body)
+      expect(document.at_css('.library-profile-tabs a[aria-current="page"]').text).to eq('Overview')
+      expect(document.at_css('.library-profile-tabs a[href$="tab=collection"]').text).to eq('Collection')
     end
   end
 end

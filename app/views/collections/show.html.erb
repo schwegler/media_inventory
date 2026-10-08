@@ -7,7 +7,7 @@
 <% else %>
   <div class="collection-search-container">
     <form action="<%= collection_path(@user) %>" method="get" class="local-search-form" data-turbo-action="advance">
-      <input type="text" name="q" class="local-search-input" placeholder="Search <%= @user.name %>'s collection..." value="<%= @query %>" autocomplete="off">
+      <input type="search" name="q" aria-label="Search this collection" class="local-search-input" placeholder="Search <%= @user.name %>'s collection..." value="<%= @query %>" autocomplete="off">
       <button type="submit" class="local-search-btn" aria-label="Submit search">
         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8"></circle>
@@ -17,96 +17,20 @@
     </form>
   </div>
 
-  <% has_any_items = @albums.any? || @comics.any? || @movies.any? || @tv_shows.any? || @video_games.any? %>
-  
-  <% if @query.present? && !has_any_items %>
-    <div class="empty-state">
-      <p>No items found matching "<%= @query %>" in <%= @user.name %>'s collection.</p>
-    </div>
+  <% sections = { 'Albums' => @albums, 'Comics' => @comics, 'Movies' => @movies, 'TV Shows' => @tv_shows, 'Video Games' => @video_games, 'Books' => @books } %>
+  <% if sections.values.all?(&:empty?) %>
+    <div class="empty-state"><p><%= @query.present? ? "No items found matching \"#{@query}\" in #{@user.name}'s collection." : 'This collection is waiting for its first favorite.' %></p></div>
   <% else %>
-    <% if @albums.any? %>
-      <div class="collection-section">
-        <h2>Albums</h2>
-        <ul class="media-grid">
-          <% @albums.each do |album| %>
-            <li class="media-card">
-              <div class="card-icon">💿</div>
-              <div class="card-content">
-                <h3><%= link_to album.title, album.item %></h3>
-                <span class="card-meta">Artist: <%= album.artist %></span>
-              </div>
-            </li>
+    <% sections.each do |title, entries| %>
+      <% next if entries.empty? %>
+      <section class="collection-section">
+        <h2><%= title %></h2>
+        <div class="media-grid-2026">
+          <% entries.each do |entry| %>
+            <% if entry.item %><%= render 'shared/media_card', media_item: entry.item %><% end %>
           <% end %>
-        </ul>
-      </div>
-    <% end %>
-
-    <% if @comics.any? %>
-      <div class="collection-section">
-        <h2>Comics</h2>
-        <ul class="media-grid">
-          <% @comics.each do |comic| %>
-            <li class="media-card">
-              <div class="card-icon">📚</div>
-              <div class="card-content">
-                <h3><%= link_to comic.title, comic.item %></h3>
-                <span class="card-meta">Writer: <%= comic.writer %></span>
-              </div>
-            </li>
-          <% end %>
-        </ul>
-      </div>
-    <% end %>
-
-    <% if @movies.any? %>
-      <div class="collection-section">
-        <h2>Movies</h2>
-        <ul class="media-grid">
-          <% @movies.each do |movie| %>
-            <li class="media-card">
-              <div class="card-icon">🎬</div>
-              <div class="card-content">
-                <h3><%= link_to movie.title, movie.item %></h3>
-                <span class="card-meta">Director: <%= movie.director %></span>
-              </div>
-            </li>
-          <% end %>
-        </ul>
-      </div>
-    <% end %>
-
-    <% if @tv_shows.any? %>
-      <div class="collection-section">
-        <h2>TV Shows</h2>
-        <ul class="media-grid">
-          <% @tv_shows.each do |tv_show| %>
-            <li class="media-card">
-              <div class="card-icon">📺</div>
-              <div class="card-content">
-                <h3><%= link_to tv_show.title, tv_show.item %></h3>
-                <span class="card-meta">Network: <%= tv_show.network %></span>
-              </div>
-            </li>
-          <% end %>
-        </ul>
-      </div>
-    <% end %>
-
-    <% if @video_games.any? %>
-      <div class="collection-section">
-        <h2>Video Games</h2>
-        <ul class="media-grid">
-          <% @video_games.each do |game| %>
-            <li class="media-card">
-              <div class="card-icon">🎮</div>
-              <div class="card-content">
-                <h3><%= link_to game.title, game.item %></h3>
-                <span class="card-meta">Developer: <%= game.developer %></span>
-              </div>
-            </li>
-          <% end %>
-        </ul>
-      </div>
+        </div>
+      </section>
     <% end %>
   <% end %>
 <% end %>

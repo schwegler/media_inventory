@@ -1,223 +1,120 @@
-<% content_for(:title, @user.name) %>
-<% content_for(:meta_description, @user.bio.presence || "View #{@user.name}'s profile on Trove.") %>
-<% if @user.avatar&.attached? %>
-  <% content_for(:meta_image, url_for(@user.avatar)) %>
-<% elsif @user.avatar_url.present? %>
-  <% content_for(:meta_image, @user.avatar_url) %>
-<% end %>
-<% content_for(:og_type, "profile") %>
-
-<div class="profile-page">
-  <div class="profile-header">
-    <div class="header-banner">
-      <% if @user.header_banner.attached? %>
-        <%= image_tag @user.header_banner, class: "banner-img" %>
+<% content_for(:title, "#{@user.name}'s library") %>
+<% content_for(:meta_description, @user.bio.presence || "Explore #{@user.name}'s public collection and recent activity on Trove.") %>
+<% public_url = canonical_item_url(@user) %>
+<% content_for(:canonical_url, public_url) %>
+<% content_for(:og_type, 'profile') %>
+<% content_for(:meta_image, url_for(@user.avatar)) if @user.avatar.attached? %>
+<div class="library-profile profile-page" data-profile-accent="<%= @user.profile_accent %>" data-profile-header="<%= @user.profile_header %>">
+  <% if current_user?(@user) && !@profile_owner %>
+    <div class="profile-notice">You’re viewing your public profile. Private items are hidden. <%= link_to 'Back to your profile', user_path(@user) %></div>
+  <% end %>
+  <% if @user.header_banner.attached? %>
+    <div class="library-profile-banner"><%= image_tag @user.header_banner, alt: '', class: 'banner-img' %></div>
+  <% else %>
+    <div class="library-profile-banner"><div class="banner-placeholder" aria-hidden="true"></div></div>
+  <% end %>
+  <header class="library-profile-heading">
+    <%= user_avatar_tag(@user, size: 112) %>
+    <div class="library-profile-identity">
+      <h1><%= @user.name %>’s library</h1>
+      <% if @user.display_handle.present? %><p class="library-profile-handle"><%= @user.display_handle %></p><% end %>
+      <% if @user.bio.present? %><p class="library-profile-bio"><%= @user.bio %></p><% end %>
+      <p class="library-profile-member">Member since <%= @user.created_at.strftime('%B %Y') %></p>
+    </div>
+    <div class="library-profile-actions">
+      <% if @profile_owner %>
+        <%= link_to 'Edit profile', settings_path, class: 'sleek-btn sleek-btn-primary' %>
+        <%= link_to 'Public preview', user_path(@user, preview: 'public'), class: 'sleek-btn sleek-btn-secondary' %>
+      <% elsif logged_in? && !current_user?(@user) %>
+        <%= render 'follow_form', user: @user %>
+      <% elsif !logged_in? %>
+        <%= link_to 'Log in to follow', login_path, class: 'sleek-btn sleek-btn-primary' %>
+      <% end %>
+      <div class="profile-share" data-controller="link-share" data-link-share-url-value="<%= public_url %>">
+        <button type="button" class="sleek-btn sleek-btn-secondary" data-action="link-share#copy">Share profile</button>
+        <span role="status" data-link-share-target="status"></span>
+        <input readonly hidden value="<%= public_url %>" aria-label="Public profile link" data-link-share-target="fallback">
+      </div>
+    </div>
+  </header>
+  <div class="library-profile-layout">
+    <section class="library-profile-main" aria-label="Library">
+      <div class="library-profile-stats">
+        <%= link_to profile_tab_path('collection') do %><span>Collection</span><strong><%= @collection_count %></strong><% end %>
+        <%= link_to profile_tab_path('backlog') do %><span>Backlog</span><strong><%= @backlog_count %></strong><% end %>
+        <%= link_to following_user_path(@user) do %><span>Following</span><strong><%= @user.following.count %></strong><% end %>
+        <%= link_to followers_user_path(@user) do %><span>Followers</span><strong><%= @user.followers.count %></strong><% end %>
+      </div>
+      <nav class="library-profile-tabs" aria-label="Profile sections">
+        <% { 'overview' => 'Overview', 'collection' => 'Collection', 'backlog' => 'Backlog', 'posts' => 'Activity', 'likes' => 'Likes' }.each do |key, label| %>
+          <%= link_to label, profile_tab_path(key), class: (@profile_tab == key ? 'active' : nil), aria: { current: @profile_tab == key ? 'page' : nil } %>
+        <% end %>
+      </nav>
+      <% if @profile_tab == 'overview' %>
+        <section class="profile-section">
+          <div class="profile-section-heading"><h2>Recently collected</h2><%= link_to 'View all', profile_tab_path('collection') %></div>
+          <%= render 'profile_shelf', items: @recent_collection, empty_title: 'A library waiting to happen.', empty_description: @profile_owner ? 'Find something you love and add it to your collection.' : 'No public collection items yet.' %>
+        </section>
+        <section class="profile-section">
+          <div class="profile-section-heading"><h2>Recent activity</h2><%= link_to 'View all', profile_tab_path('posts') %></div>
+          <%= render 'profile_feed', feed: @combined_feed.first(5) %>
+        </section>
+      <% elsif %w[collection backlog].include?(@profile_tab) %>
+        <section class="profile-section">
+          <div class="profile-section-heading"><h2><%= @profile_tab.capitalize %></h2><span><%= @profile_owner ? 'Your library, including private items' : 'Public items only' %></span></div>
+          <%= form_with url: user_path(@user), method: :get, class: 'profile-filter' do |f| %>
+            <%= hidden_field_tag :tab, @profile_tab %>
+            <%= hidden_field_tag :preview, 'public' if params[:preview] == 'public' %>
+            <%= label_tag :type, 'Media type' %>
+            <%= select_tag :type, options_for_select(ProfilesHelper::PROFILE_MEDIA_TYPES.map { |key, label| [label, key] }, params[:type]), include_blank: 'All media' %>
+            <%= f.submit 'Filter', class: 'sleek-btn sleek-btn-secondary' %>
+          <% end %>
+          <%= render 'profile_shelf', items: @profile_tab == 'collection' ? @collection_items : @backlog_items, empty_title: 'Nothing here yet.', empty_description: params[:type].present? ? 'Try another media type or choose All media.' : (@profile_owner ? 'Browse Trove to start building this shelf.' : 'No public items on this shelf yet.') %>
+        </section>
+      <% elsif @profile_tab == 'posts' %>
+        <section class="profile-section"><div class="profile-section-heading"><h2>Activity</h2></div>
+          <% if @profile_owner %>
+            <%= form_with model: Post.new, class: 'profile-composer' do |f| %>
+              <%= f.label :content, 'Share something with your followers' %>
+              <%= f.text_area :content, placeholder: 'What have you been enjoying?', required: true, rows: 3 %>
+              <p>Posts are public.</p><%= f.submit 'Post', class: 'sleek-btn sleek-btn-primary' %>
+            <% end %>
+          <% end %>
+          <%= render 'profile_feed', feed: @combined_feed %>
+        </section>
       <% else %>
-        <div class="banner-placeholder"></div>
+        <section class="profile-section"><div class="profile-section-heading"><h2>Likes</h2></div>
+          <% @likes.each do |like| %>
+            <% target = like.likeable; next unless target %>
+            <div class="profile-like-row">Liked a <%= like.likeable_type.titleize %>
+              <% if target.respond_to?(:title) %><%= link_to target.title, target.is_a?(LibraryItem) ? target.item : target %><% end %>
+            </div>
+          <% end %>
+          <% if @likes.empty? %><div class="profile-empty"><h3>No likes to show yet.</h3><p><%= @profile_owner ? 'Your liked items will appear here.' : 'Public library likes will appear here.' %></p></div><% end %>
+        </section>
       <% end %>
-    </div>
-
-    <div class="profile-info-bar">
-      <div class="avatar-container">
-        <%= user_avatar_tag(@user, size: 120) %>
-      </div>
-
-      <div class="profile-main-meta">
-        <h1 class="profile-display-name"><%= @user.name %></h1>
-        <% if @user.display_handle.present? %>
-          <div class="profile-handle-container" data-controller="clipboard" data-clipboard-text-value="<%= @user.display_handle %>">
-            <p class="profile-handle" style="margin: 0;"><%= @user.display_handle %></p>
-            <button type="button" class="btn-unstyled copy-handle-btn" data-action="click->clipboard#copy" aria-label="Copy handle">
-              <svg data-clipboard-target="copyIcon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              <svg data-clipboard-target="checkIcon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </button>
-          </div>
+    </section>
+    <aside class="library-profile-sidebar">
+      <h2>About this library</h2>
+      <p><%= @user.bio.presence || "A collection of what #{@user.name} loves, and what’s next." %></p>
+      <p class="profile-visibility"><%= @profile_owner ? 'Only you can see private items. Use Public preview to see what visitors see.' : 'You’re exploring the public side of this library.' %></p>
+      <% if @profile_owner && @user.birthday.present? %><p class="profile-visibility">Birthday: <%= @user.birthday.strftime('%B %d, %Y') %> · Only shown to you</p><% end %>
+      <section class="profile-mix"><h3>Library mix</h3>
+        <% @library_mix.sort_by { |_, count| -count }.each do |type, count| %>
+          <%= link_to profile_tab_path('collection', type: type) do %><span><%= ProfilesHelper::PROFILE_MEDIA_TYPES[type] || type.titleize %></span><strong><%= count %></strong><% end %>
         <% end %>
-      </div>
-
-      <div class="profile-stats">
-        <div class="stat-item">
-          <span class="stat-count"><%= @collection_items.count %></span>
-          <span class="stat-label">Collection</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-count"><%= @backlog_items.count %></span>
-          <span class="stat-label">Backlog</span>
-        </div>
-        <%= link_to following_user_path(@user), class: "stat-item" do %>
-          <span class="stat-count"><%= @user.following.count %></span>
-          <span class="stat-label">Following</span>
-        <% end %>
-        <%= link_to followers_user_path(@user), class: "stat-item" do %>
-          <span class="stat-count"><%= @user.followers.count %></span>
-          <span class="stat-label">Followers</span>
-        <% end %>
-      </div>
-
-      <div class="profile-actions">
-        <% if current_user?(@user) %>
-          <%= link_to 'Edit Profile', settings_path, class: 'btn sleek-btn usr-btn' %>
-        <% elsif logged_in? %>
-          <%= render 'follow_form', user: @user %>
-        <% end %>
-      </div>
-    </div>
-  </div>
-
-  <div class="profile-body">
-    <aside class="profile-sidebar">
-      <% if @user.bio.present? %>
-        <div class="bio-section card">
-          <h3>About</h3>
-          <p><%= @user.bio %></p>
-        </div>
-      <% end %>
-
-      <% if @user.birthday.present? %>
-        <div class="info-section card">
-          <div class="info-item">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg>
-            <span>Born <%= @user.birthday.strftime("%B %d, %Y") %></span>
-          </div>
-        </div>
+        <% if @library_mix.empty? %><p>No public items yet.</p><% end %>
+      </section>
+      <% if logged_in? && !current_user?(@user) %>
+        <section class="profile-shared"><h3>In common</h3><p><%= pluralize(@shared_items.size, 'collected item') %> in both your libraries.</p>
+          <% @shared_items.first(4).each do |entry| %><%= link_to entry.item.title, entry.item if entry.item %><% end %>
+          <% if @shared_items.empty? %><p>Explore their collection to find your next favorite.</p><% end %>
+        </section>
+      <% elsif !logged_in? %>
+        <section class="profile-join"><h3>Make room for your next favorite.</h3><p>Track what you love. Save what’s next. All in one place.</p><%= link_to 'Join Trove', signup_path, class: 'sleek-btn sleek-btn-primary' %><p>Already have an account? <%= link_to 'Log in', login_path %></p></section>
+      <% else %>
+        <%= link_to 'Explore the library', movies_path, class: 'sleek-btn sleek-btn-secondary' %>
       <% end %>
     </aside>
-
-    <main class="profile-content" data-controller="tabs">
-      <nav class="profile-tabs">
-        <button class="tab-btn active" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="posts">Activity</button>
-        <button class="tab-btn" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="collection">Collection</button>
-        <button class="tab-btn" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="backlog">Backlog</button>
-        <button class="tab-btn" data-action="click->tabs#switch" data-tabs-target="tab" data-tab-name="likes">Likes</button>
-      </nav>
-
-      <div class="tab-content" data-tabs-target="content" data-tab-name="posts">
-        <% if current_user?(@user) %>
-          <div class="post-creation-box card" style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 8px;">
-            <%= form_with model: Post.new, url: posts_path, local: true do |f| %>
-              <%= f.text_area :content, placeholder: "What's on your mind?", required: true, class: "post-input" %>
-              <div style="display: flex; justify-content: flex-end;">
-                <%= f.submit "Post", class: "btn btn-primary" %>
-              </div>
-            <% end %>
-          </div>
-        <% end %>
-
-        <div class="activities-feed">
-          <% if @combined_feed.any? %>
-            <% @combined_feed.each do |item| %>
-              <% if item.is_a?(Post) %>
-                <div class="post-card card" style="margin-bottom: 15px; padding: 15px; border-radius: 8px; cursor: pointer;" onclick="window.location='<%= post_path(item) %>'">
-                  <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                    <%= link_to user_path(item.user), style: "z-index: 1;" do %>
-                      <%= user_avatar_tag(item.user, size: 40) %>
-                    <% end %>
-                    <div style="display: flex; flex-direction: column; justify-content: center;">
-                      <div style="display: flex; align-items: baseline; gap: 5px;">
-                        <%= link_to user_path(item.user), style: "text-decoration: none; color: inherit; z-index: 1;" do %>
-                          <strong style="font-size: 1rem;"><%= item.user.name.presence || item.user.display_handle %></strong>
-                        <% end %>
-                        <span style="color: #94a3b8; font-size: 0.85rem;"><%= item.user.display_handle %></span>
-                        <span style="color: #94a3b8; font-size: 0.85rem;">· <%= time_ago_in_words(item.created_at) %></span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div class="post-content" style="margin-bottom: 15px; padding: .5rem; font-size: 1rem; line-height: 1.4;">
-                    <%= format_content_with_mentions(item.content) %>
-                  </div>
-                  
-                  <div class="post-actions tweet-actions" style="gap: 20px; color: #94a3b8;">
-                    <div class="btn-reply btn-unstyled tweet-action-btn" onclick="event.stopPropagation();">
-                      <%= link_to post_path(item), style: "color: inherit; text-decoration: none; display: flex; align-items: center; gap: 6px;" do %>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#818cf8';" onmouseout="this.style.color='currentColor';">
-                          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
-                        </svg>
-                        <%# Optimize to use .size instead of .count to avoid SQL COUNT queries on loaded associations %>
-                        <span style="font-size: 0.9rem;"><%= item.comments.size > 0 ? item.comments.size : '' %></span>
-                      <% end %>
-                    </div>
-
-                    <div style="display: flex; align-items: center; gap: 6px; z-index: 1;" onclick="event.stopPropagation();">
-                      <%= render 'likes/like_button', item: item, tweet_style: true %>
-                    </div>
-                  </div>
-                </div>
-              <% else %>
-                <%= render item %>
-              <% end %>
-            <% end %>
-          <% else %>
-            <p class="empty-state">No recent activity.</p>
-          <% end %>
-        </div>
-      </div>
-
-      <div class="tab-content hidden" data-tabs-target="content" data-tab-name="collection">
-        <%= turbo_frame_tag "collection_frame" do %>
-          <div class="media-filter-bar" style="margin-bottom: 20px;">
-            <form action="<%= user_path(@user) %>" method="get" data-controller="filter" data-turbo-frame="collection_frame" data-turbo-action="advance">
-              <input type="hidden" name="tab" value="collection">
-              <select name="type" data-action="change->filter#submit" class="filter-select">
-                <option value="">All Media</option>
-                <option value="Movie" <%= 'selected' if params[:type] == 'Movie' %>>Movies</option>
-                <option value="TvShow" <%= 'selected' if params[:type] == 'TvShow' %>>TV Shows</option>
-                <option value="Album" <%= 'selected' if params[:type] == 'Album' %>>Albums</option>
-                <option value="Comic" <%= 'selected' if params[:type] == 'Comic' %>>Comics</option>
-                <option value="Book" <%= 'selected' if params[:type] == 'Book' %>>Books</option>
-                <option value="VideoGame" <%= 'selected' if params[:type] == 'VideoGame' %>>Games</option>
-              </select>
-            </form>
-          </div>
-          <div class="media-grid">
-             <% if @collection_items.any? %>
-                 <% @collection_items.each do |lib_item| %>
-                   <% item = lib_item.item %>
-                   <% next unless item %>
-                   <%= render partial: 'shared/media_card', locals: { media_item: item } %>
-                 <% end %>
-             <% else %>
-               <p class="empty-state">No items in collection.</p>
-             <% end %>
-          </div>
-        <% end %>
-      </div>
-
-      <div class="tab-content hidden" data-tabs-target="content" data-tab-name="backlog">
-        <div class="media-grid">
-           <% if @backlog_items.any? %>
-               <% @backlog_items.each do |lib_item| %>
-                 <% item = lib_item.item %>
-                 <% next unless item %>
-                 <%= render partial: 'shared/media_card', locals: { media_item: item } %>
-               <% end %>
-           <% else %>
-             <p class="empty-state">Backlog is empty.</p>
-           <% end %>
-        </div>
-      </div>
-
-      <div class="tab-content hidden" data-tabs-target="content" data-tab-name="likes">
-        <div class="likes-feed">
-          <% if @likes.any? %>
-            <% @likes.each do |like| %>
-              <div class="like-item card">
-                <span>Liked a <%= like.likeable_type.titleize %></span>
-                <% if like.likeable.respond_to?(:title) %>
-                  <strong><%= like.likeable.title %></strong>
-                <% end %>
-              </div>
-            <% end %>
-          <% else %>
-            <p class="empty-state">No likes yet.</p>
-          <% end %>
-        </div>
-      </div>
-    </main>
   </div>
 </div>

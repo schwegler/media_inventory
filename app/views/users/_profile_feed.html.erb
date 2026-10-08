@@ -1,0 +1,24 @@
+<div class="activities-feed">
+  <% if feed.any? %>
+    <% feed.each do |item| %>
+      <% if item.is_a?(Post) %>
+        <article class="profile-post">
+          <div class="profile-post-heading">
+            <%= user_avatar_tag(item.user, size: 36) %>
+            <strong><%= link_to item.user.name, item.user %></strong>
+            <span><%= time_ago_in_words(item.created_at) %> ago</span>
+          </div>
+          <div class="profile-post-content"><%= format_content_with_mentions(item.content) %></div>
+          <div class="profile-post-actions">
+            <%= link_to "Discussion#{item.comments.any? ? " (#{item.comments.size})" : ''}", post_path(item) %>
+            <% if logged_in? %><%= render 'likes/like_button', item: item, tweet_style: true %><% end %>
+          </div>
+        </article>
+      <% else %>
+        <%= render item %>
+      <% end %>
+    <% end %>
+  <% else %>
+    <div class="profile-empty"><h3>No recent activity.</h3><p><%= @profile_owner ? 'Add to your library or share a post to get started.' : 'Public updates will appear here.' %></p></div>
+  <% end %>
+</div>

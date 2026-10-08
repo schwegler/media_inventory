@@ -31,7 +31,7 @@
                 <%= notification.action %>
               <% end %>
             </p>
-            <span style="font-size: 0.8rem; color: #94a3b8;"><%= time_ago_in_words(notification.created_at) %> ago</span>
+            <span style="font-size: 0.8rem; color: var(--text-secondary);"><%= time_ago_in_words(notification.created_at) %> ago</span>
             
             <% if notification.notifiable.is_a?(Comment) %>
               <div style="margin-top: 8px; padding: 8px; background: rgba(0,0,0,0.2); border-left: 3px solid #818cf8; font-size: 0.85rem; color: #cbd5e1;">

@@ -1,16 +1,18 @@
 # Media Inventory App with Hotwire & Native Client Support
 
-Welcome to the **Media Inventory Application**, a modern Ruby on Rails 8.1 web platform designed to catalog personal media collections. The application features a premium dark-slate aesthetic, modular database entities, and supports three clients (Web, iOS, and Desktop) consuming the same HTML monolith.
+Welcome to the **Media Inventory Application**, a modern Ruby on Rails 8.1 web platform designed to catalog personal media collections. The application features an editorial media-centered interface, modular database entities, and supports three clients (Web, iOS, and Desktop) consuming the same server-rendered HTML.
 
 ---
 
 ## 🚀 Key Features
 
-*   **Aesthetic Dark Makeover:** Premium dark-slate theme (`#0b0f19`) featuring:
-    *   Google Fonts integration (**Outfit** for headings, **Plus Jakarta Sans** for body/UI).
-    *   Glassmorphic navbar and card containers with frosted border transitions.
-    *   Responsive card grids for catalog items utilizing category-specific emojis (🎬, 💿, 📚, 📺, 🤼).
-    *   **Stretched Links Pattern:** CSS overlays that expand click targets across the entire card boundary while preserving standard Rails anchors for test compatibility.
+*   **Editorial design and personal appearance:**
+    *   Local **Space Grotesk** headings and **Instrument Sans** body/UI fonts, related to tacobout.online.
+    *   Semantic light/dark/system themes, curated violet/ink/moss accents, comfortable/compact density, cover/row layouts, and reduced decorative effects.
+    *   Scoped public-profile accents and header treatments, with a live settings preview.
+    *   Responsive media grids, deliberate link/button treatments, keyboard focus restoration, and graceful broken-artwork fallbacks.
+*   **Safe metadata repair:** Authenticated users can request source-backed refreshes from supported media detail pages. Requests are throttled, child records reconcile in place, and personal history/reviews remain intact.
+    *   See [the design and metadata maintenance guide](docs/product-refinement.md) for tokens, supported providers, safeguards, and limits.
 *   **Password Authentication & Frictionless Onboarding:**
     *   **Standard Auth:** Secure email + password signup and login flows for standard web browser clients (implemented via `has_secure_password` / `bcrypt`).
     *   **Frictionless Native Onboarding:** On first launch of the iOS or Tauri Desktop app, the backend automatically provisions a local guest account (`Device User`). A signed, permanent cookie (`device_user_id`) keeps the client logged in across app restarts, bypassing signup/login friction.

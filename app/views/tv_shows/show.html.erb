@@ -59,7 +59,7 @@
             <div class="show-rating"><%= render_stars(@tv_show.rating) %></div>
           <% end %>
           <% if stats[:avg_rating] %>
-            <div class="show-avg-rating" style="color: #94a3b8; font-size: 0.9em; font-weight: 500;">
+            <div class="show-avg-rating" style="color: var(--text-secondary); font-size: 0.9em; font-weight: 500;">
               <%= stats[:avg_rating] %> ★ avg
             </div>
           <% end %>
@@ -68,6 +68,7 @@
     </div>
 
     <%= render 'shared/media_actions_and_stream', item: @tv_show %>
+    <%= render 'shared/metadata_refresh', item: @tv_show %>
 
     <% if @tv_show.review.present? %>
       <div class="show-review">
@@ -82,7 +83,7 @@
         sorted_seasons = episodes_by_season.keys.sort
       %>
       <div class="show-episodes-section" style="margin-top: 2.5rem; margin-bottom: 2.5rem;" data-controller="season-tabs">
-        <h2 style="font-size: 1.25rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; padding-bottom: 8px; margin-bottom: 12px;">
+        <h2 style="font-size: 1.25rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.05em; padding-bottom: 8px; margin-bottom: 12px;">
           Episodes in this Series
         </h2>
 
@@ -121,6 +122,10 @@
           <% end %>
         </div>
       </div>
+    <% end %>
+
+    <% if @tv_show.tv_episodes.empty? %>
+      <div class="home-empty-state"><h2>No episodes yet</h2><p>The source may not have supplied them yet. Use Artwork &amp; metadata above to check for new releases.</p></div>
     <% end %>
 
     <div class="show-community">

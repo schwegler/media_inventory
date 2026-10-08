@@ -3,6 +3,7 @@
 class Comic < ApplicationRecord
   include LibraryItemFormAttributes
 
+  has_one :metadata_refresh, as: :item, dependent: :destroy
   has_one_attached :cover_image
   has_many :comic_issues, dependent: :destroy
   has_many :likes, as: :likeable, dependent: :destroy
@@ -14,9 +15,12 @@ class Comic < ApplicationRecord
 
   after_commit :sync_issues_from_api, on: %i[create update]
 
+  attr_accessor :refreshing_metadata
+
   private
 
   def sync_issues_from_api
+    return if refreshing_metadata
     return if api_id.blank?
     return unless saved_change_to_api_id? || comic_issues.empty?
 
@@ -68,17 +72,6 @@ class Comic < ApplicationRecord
   end
 
   def create_comic_issues(issues_data)
-    comic_issues.delete_all
-    issues_data.each do |issue|
-      cover_url = issue.dig('image', 'original_url') || issue.dig('image', 'medium_url')
-
-      comic_issues.create!(
-        title: issue['name'],
-        issue_number: issue['issue_number']&.to_i,
-        release_date: issue['cover_date'],
-        summary: issue['description'] || issue['deck'],
-        thumbnail_url: cover_url
-      )
-    end
+    MetadataChildren.issues(self, issues_data)
   end
 end

@@ -38,6 +38,7 @@ RSpec.describe 'collections/show.html.erb', type: :view do
       assign(:movies, [movie])
       assign(:tv_shows, [])
       assign(:video_games, [])
+      assign(:books, [])
       render
     end
 

@@ -17,6 +17,12 @@ class User < ApplicationRecord
                        allow_nil: true
   validates :theme, inclusion: { in: %w[light dark os] }
 
+  ACCENTS = %w[violet ink moss].freeze
+  validates :accent_theme, :profile_accent, inclusion: { in: ACCENTS }
+  validates :content_density, inclusion: { in: %w[comfortable compact] }
+  validates :media_layout, inclusion: { in: %w[covers rows] }
+  validates :profile_header, inclusion: { in: %w[linen solid minimal] }
+
   has_one_attached :avatar
   has_one_attached :header_banner
 
@@ -81,6 +87,16 @@ class User < ApplicationRecord
     else
       ''
     end
+  end
+
+  def to_param
+    username.present? && username !~ /\A\d+\z/ ? username : super
+  end
+
+  def self.find_by_profile_param!(value)
+    return find(value) if value.to_s.match?(/\A\d+\z/)
+
+    where('LOWER(username) = ?', value.to_s.downcase).first!
   end
 
   before_create :generate_activitypub_keys

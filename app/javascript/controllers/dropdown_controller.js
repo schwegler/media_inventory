@@ -34,6 +34,7 @@ export default class extends Controller {
 
   show() {
     this.menuTarget.style.display = "block"
+    this.menuTarget.querySelector('[role="menuitem"]')?.focus()
     if (this.hasButtonTarget) {
       this.buttonTarget.setAttribute("aria-expanded", "true")
     }
@@ -53,6 +54,25 @@ export default class extends Controller {
   }
 
   keydown(event) {
+    const visible = this.menuTarget.style.display === "block"
+    if (event.target === this.buttonTarget && ["ArrowDown", "ArrowUp"].includes(event.key) && !visible) {
+      event.preventDefault()
+      this.show()
+      if (event.key === "ArrowUp") this.menuTarget.querySelector('[role="menuitem"]:last-child')?.focus()
+      return
+    }
+    if (visible && event.key === "Tab") {
+      this.hide()
+      this.buttonTarget.focus()
+      return
+    }
+    if (this.menuTarget.style.display === "block" && ["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+      event.preventDefault()
+      const items = [...this.menuTarget.querySelectorAll('[role="menuitem"]')]
+      const index = items.indexOf(document.activeElement)
+      const next = event.key === "Home" ? 0 : event.key === "End" ? items.length - 1 : (index + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length
+      items[next]?.focus()
+    }
     if (event.key === "Escape" && this.hasMenuTarget) {
       const isVisible = this.menuTarget.style.display === "block"
       if (isVisible) {

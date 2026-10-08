@@ -1,0 +1,23 @@
+<% if items.any? %>
+  <div class="profile-media-grid">
+    <% items.each do |entry| %>
+      <% item = entry.item; next unless item %>
+      <article class="profile-media-entry">
+        <%= link_to item, class: 'profile-cover', aria: { label: item.title } do %>
+          <% if item.respond_to?(:cover_image) && item.cover_image.attached? %>
+            <%= image_tag item.cover_image, alt: '', loading: 'lazy' %>
+          <% elsif item.respond_to?(:thumbnail_url) && item.thumbnail_url.present? %>
+            <%= image_tag item.thumbnail_url, alt: '', loading: 'lazy' %>
+          <% else %>
+            <span class="profile-cover-title"><%= item.title %></span>
+          <% end %>
+        <% end %>
+        <p class="profile-entry-type"><%= entry.item_type.titleize %><%= ' · Private' unless entry.is_public? %></p>
+        <h3><%= link_to item.title, item %></h3>
+        <% if item.respond_to?(:release_year) && item.release_year.present? %><p class="profile-entry-year"><%= item.release_year %></p><% end %>
+      </article>
+    <% end %>
+  </div>
+<% else %>
+  <div class="profile-empty"><h3><%= empty_title %></h3><p><%= empty_description %></p><%= link_to 'Explore Trove', movies_path %></div>
+<% end %>
