@@ -3,6 +3,8 @@
 class VideoGame < ApplicationRecord
   include LibraryItemFormAttributes
 
+  include StoredMediaCover
+
   has_one :metadata_refresh, as: :item, dependent: :destroy
   has_one_attached :cover_image
   has_many :likes, as: :likeable, dependent: :destroy
@@ -27,8 +29,8 @@ class VideoGame < ApplicationRecord
     end
 
     if api_id.start_with?('rawg_')
-      api_key = ApiConfiguration.find_by(source_name: 'RAWG', is_active: true)&.access_token
-      unless api_key
+      api_key = MediaSources::Registry.token('RAWG', 'VideoGame')
+      if api_key.blank?
         Rails.logger.warn 'RAWG API key not configured.'
         return
       end
@@ -36,26 +38,28 @@ class VideoGame < ApplicationRecord
       update_from_rawg_data(fetch_rawg_data(api_key))
     end
   rescue StandardError => e
-    Rails.logger.error "Failed to sync Video Game details: #{e.message}"
+    Rails.logger.error "Failed to sync Video Game details: #{e.class}"
   end
 
   def sync_steam_details
+    return unless MediaSources::Registry.enabled?('Steam', 'VideoGame')
+
     require 'net/http'
     require 'json'
     steam_id = api_id.sub('steam_', '')
     url = URI("https://store.steampowered.com/api/appdetails?appids=#{steam_id}")
-    response = Net::HTTP.get(url)
+    response = MediaSources::Http.get(url)
     data = JSON.parse(response).dig(steam_id, 'data') || {}
 
     date_str = data.dig('release_date', 'date')
-    parsed_year = date_str ? date_str.split(',').last&.strip : nil
+    parsed_year = date_str.to_s[/\b(?:19|20)\d{2}\b/]
 
-    update_columns(
+    update!(
       title: data['name'] || title,
       release_year: parsed_year || release_year,
       developer: data['developers']&.first || developer,
       publisher: data['publishers']&.first || publisher,
-      thumbnail_url: "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/#{steam_id}/library_600x900.jpg"
+      thumbnail_url: data['header_image'].presence || data['capsule_image'].presence || thumbnail_url
     )
   end
 
@@ -64,11 +68,11 @@ class VideoGame < ApplicationRecord
     require 'json'
     rawg_id = api_id.sub('rawg_', '')
     url = URI("https://api.rawg.io/api/games/#{rawg_id}?key=#{api_key}")
-    JSON.parse(Net::HTTP.get(url))
+    JSON.parse(MediaSources::Http.get(url))
   end
 
   def update_from_rawg_data(data)
-    update_columns(
+    update!(
       title: data['name'] || title,
       release_year: data['released']&.split('-')&.first || release_year,
       developer: data['developers']&.first&.dig('name') || developer,

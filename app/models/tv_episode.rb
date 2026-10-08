@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 class TvEpisode < ApplicationRecord
+  include StoredMediaCover
+
+  has_one_attached :cover_image
+
   belongs_to :tv_show
   has_many :likes, as: :likeable, dependent: :destroy
   has_many :comments, as: :commentable, dependent: :destroy
@@ -32,18 +36,18 @@ class TvEpisode < ApplicationRecord
   # Called opportunistically when marking an episode as watched or reviewed.
   def attempt_thumbnail_update!
     return if thumbnail_url.present?
-    return unless tv_show&.api_id.present? && !tv_show.api_id.to_s.start_with?('tmdb_')
+    return unless tv_show&.api_id.to_s.match?(/\A\d+\z/)
 
     require 'net/http'
     require 'json'
 
     url = URI("https://api.tvmaze.com/shows/#{tv_show.api_id}/episodebynumber?season=#{season}&number=#{episode}")
-    response = Net::HTTP.get(url)
+    response = MediaSources::Http.get(url)
     data = JSON.parse(response)
     image_url = data.dig('image', 'original') || data.dig('image', 'medium')
     update!(thumbnail_url: image_url) if image_url.present?
   rescue StandardError => e
-    Rails.logger.error "Failed to update TV episode thumbnail: #{e.message}"
+    Rails.logger.error "Failed to update TV episode thumbnail: #{e.class}"
   end
 
   # Dirty tracking helper methods to prevent NoMethodErrors from Trackable concern

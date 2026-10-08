@@ -2,8 +2,8 @@
 <%= turbo_frame_tag "tv_episode_#{ep.id}" do %>
   <div class="episode-item">
     <div class="episode-content-row">
-      <% if ep.thumbnail_url.present? %>
-        <img src="<%= ep.thumbnail_url %>" alt="<%= ep.name %>" class="episode-thumbnail">
+      <% if ep.stored_cover_url.present? %>
+        <img src="<%= ep.stored_cover_url %>" alt="<%= ep.name %>" class="episode-thumbnail">
       <% end %>
       <div class="episode-info">
         <div class="episode-header">

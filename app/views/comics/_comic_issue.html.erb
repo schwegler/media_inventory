@@ -2,8 +2,8 @@
 <%= turbo_frame_tag "comic_issue_#{issue.id}" do %>
   <div class="episode-item">
     <div class="episode-content-row">
-      <% if issue.thumbnail_url.present? %>
-        <img src="<%= issue.thumbnail_url %>" alt="<%= issue.title %>" class="episode-thumbnail">
+      <% if issue.stored_cover_url.present? %>
+        <img src="<%= issue.stored_cover_url %>" alt="<%= issue.title %>" class="episode-thumbnail">
       <% end %>
       <div class="episode-info">
         <div class="episode-header">

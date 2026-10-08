@@ -15,12 +15,15 @@ RSpec.describe 'shared/_activity_card.html.erb', type: :view do
   let(:library_item) { LibraryItem.create!(user: user, item: movie, rating: 5.0) }
   let(:activity) { Activity.create!(user: user, trackable: library_item, activity_type: 'reviewed') }
 
-  it 'renders thumbnail image with descriptive alt text when thumbnail_url is present' do
+  it 'renders thumbnail image with descriptive alt text from app storage' do
     movie.update!(thumbnail_url: 'https://example.com/matrix.jpg')
+    movie.cover_image.attach(io: File.open(Rails.root.join('public/favicon.svg')), filename: 'cover.svg',
+                             content_type: 'image/svg+xml')
 
     render partial: 'shared/activity_card', locals: { media_item: movie, activity: activity, lib_item: library_item }
 
     expect(rendered).to have_css('img[alt="The Matrix cover"]')
-    expect(rendered).to have_css('img[src="https://example.com/matrix.jpg"]')
+    expect(rendered).to have_css('img[src*="/rails/active_storage/"]')
+    expect(rendered).not_to include('https://example.com/')
   end
 end

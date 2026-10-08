@@ -2,8 +2,8 @@
   backdrop_url = nil
   if @book.cover_image.attached?
     backdrop_url = url_for(@book.cover_image)
-  elsif @book.thumbnail_url.present?
-    backdrop_url = @book.thumbnail_url
+  elsif @book.stored_cover_url.present?
+    backdrop_url = @book.stored_cover_url
   end
 %>
 <% content_for(:title, @book.title) %>
@@ -27,8 +27,8 @@
       <div class="show-poster">
         <% if @book.cover_image.attached? %>
           <%= image_tag @book.cover_image, alt: "#{@book.title} Cover" %>
-        <% elsif @book.thumbnail_url.present? %>
-          <img src="<%= @book.thumbnail_url %>" alt="<%= @book.title %> Cover">
+        <% elsif @book.stored_cover_url.present? %>
+          <img src="<%= @book.stored_cover_url %>" alt="<%= @book.title %> Cover">
         <% else %>
           <div class="poster-fallback"><span class="fallback-emoji">📘</span></div>
         <% end %>

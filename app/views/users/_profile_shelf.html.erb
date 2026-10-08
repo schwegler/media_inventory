@@ -6,9 +6,7 @@
         <%= link_to item, class: 'profile-cover', aria: { label: item.title } do %>
           <% if item.respond_to?(:cover_image) && item.cover_image.attached? %>
             <%= image_tag item.cover_image, alt: '', loading: 'lazy' %>
-          <% elsif item.respond_to?(:thumbnail_url) && item.thumbnail_url.present? %>
-            <%= image_tag item.thumbnail_url, alt: '', loading: 'lazy' %>
-          <% else %>
+                <% else %>
             <span class="profile-cover-title"><%= item.title %></span>
           <% end %>
         <% end %>

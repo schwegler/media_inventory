@@ -46,6 +46,15 @@ RSpec.describe MetadataProvider do
     end
   end
 
+  it 'refreshes namespaced iTunes identifiers returned by catalog search' do
+    [Book, Album, Movie].each do |klass|
+      item = catalog_item(klass, 'itunes_42')
+      json_response('https://itunes.apple.com/lookup', { results: [{ artistName: 'Creator' }] }, id: '42')
+      fields, = described_class.new(item).call
+      expect(fields.values).to include('Creator')
+    end
+  end
+
   it 'respects MusicBrainz release-group provenance' do
     id = 'abcdefab-1234-1234-1234-abcdef123456'
     item = catalog_item(Album, id, external_url: "https://musicbrainz.org/release-group/#{id}")
@@ -59,10 +68,12 @@ RSpec.describe MetadataProvider do
 
   it 'refreshes Steam and RAWG through fixed endpoints' do
     steam = catalog_item(VideoGame, 'steam_42')
+    steam_data = { developers: ['Creator'], header_image: 'https://shared.fastly.steamstatic.com/real.jpg' }
     json_response('https://store.steampowered.com/api/appdetails',
-                  { '42' => { success: true, data: { developers: ['Creator'] } } }, appids: '42')
+                  { '42' => { success: true, data: steam_data } }, appids: '42')
     fields, = described_class.new(steam).call
     expect(fields[:developer]).to eq('Creator')
+    expect(fields[:thumbnail_url]).to eq('https://shared.fastly.steamstatic.com/real.jpg')
     rawg = catalog_item(VideoGame, 'rawg_12')
     ApiConfiguration.create!(source_name: 'RAWG', is_active: true, access_token: 'test')
     json_response('https://api.rawg.io/api/games/12', { background_image: 'https://images.example/game.jpg' }, key: 'test')

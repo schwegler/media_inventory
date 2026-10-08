@@ -33,8 +33,6 @@ module ItemSharingHelper
     if item.respond_to?(:cover_image) && item.cover_image.attached?
       origin = URI.parse(public_trove_origin)
       rails_blob_url(item.cover_image, host: origin.host, protocol: 'https', port: origin.port)
-    elsif item.respond_to?(:thumbnail_url) && item.thumbnail_url.present?
-      public_preview_image_url(item.thumbnail_url)
     elsif item.is_a?(TvEpisode)
       item_preview_image_url(item.tv_show)
     elsif item.is_a?(ComicIssue)

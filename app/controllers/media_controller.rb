@@ -78,12 +78,12 @@ class MediaController < ApplicationController
   end
 
   def fetch_local_movies(query)
-    Movie.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |m|
+    Movie.with_attached_cover_image.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |m|
       {
         title: m.title,
         director: m.director,
         release_year: m.release_year,
-        thumbnail_url: m.cover_image.attached? ? url_for(m.cover_image) : m.thumbnail_url,
+        thumbnail_url: m.stored_cover_url,
         api_id: m.api_id,
         external_url: m.external_url,
         is_local: true
@@ -99,13 +99,13 @@ class MediaController < ApplicationController
   end
 
   def fetch_local_albums(query)
-    Album.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |a|
+    Album.with_attached_cover_image.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |a|
       {
         title: a.title,
         artist: a.artist,
         genre: a.genre,
         release_year: a.release_year,
-        thumbnail_url: a.cover_image.attached? ? url_for(a.cover_image) : a.thumbnail_url,
+        thumbnail_url: a.stored_cover_url,
         api_id: a.api_id,
         external_url: a.external_url,
         is_local: true
@@ -121,14 +121,14 @@ class MediaController < ApplicationController
   end
 
   def fetch_local_comics(query)
-    Comic.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |c|
+    Comic.with_attached_cover_image.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |c|
       {
         title: c.title,
         writer: c.writer,
         artist: c.artist,
         publisher: c.publisher,
         issue_number: c.issue_number,
-        thumbnail_url: c.cover_image.attached? ? url_for(c.cover_image) : c.thumbnail_url,
+        thumbnail_url: c.stored_cover_url,
         api_id: c.api_id,
         external_url: c.external_url,
         is_local: true
@@ -144,11 +144,11 @@ class MediaController < ApplicationController
   end
 
   def fetch_local_tv_shows(query)
-    TvShow.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |t|
+    TvShow.with_attached_cover_image.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |t|
       {
         title: t.title,
         network: t.network,
-        thumbnail_url: t.cover_image.attached? ? url_for(t.cover_image) : t.thumbnail_url,
+        thumbnail_url: t.stored_cover_url,
         api_id: t.api_id,
         external_url: t.external_url,
         is_local: true
@@ -164,14 +164,14 @@ class MediaController < ApplicationController
   end
 
   def fetch_local_video_games(query)
-    VideoGame.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(3).map do |vg|
+    VideoGame.with_attached_cover_image.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(3).map do |vg|
       {
         title: vg.title,
         developer: vg.developer,
         publisher: vg.publisher,
         platform: vg.platform,
         release_year: vg.release_year,
-        thumbnail_url: vg.cover_image.attached? ? url_for(vg.cover_image) : vg.thumbnail_url,
+        thumbnail_url: vg.stored_cover_url,
         api_id: vg.api_id,
         external_url: vg.external_url,
         is_local: true
@@ -187,13 +187,13 @@ class MediaController < ApplicationController
   end
 
   def fetch_local_books(query)
-    Book.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |b|
+    Book.with_attached_cover_image.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |b|
       {
         title: b.title,
         author: b.author,
         publisher: b.publisher,
         release_year: b.release_year,
-        thumbnail_url: b.cover_image.attached? ? url_for(b.cover_image) : b.thumbnail_url,
+        thumbnail_url: b.stored_cover_url,
         api_id: b.api_id,
         external_url: b.external_url,
         is_local: true

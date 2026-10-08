@@ -184,7 +184,7 @@ class LetterboxdImportJob < ApplicationJob
     search_query = year ? "#{title} #{year} film" : "#{title} film"
     search_url = "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=#{CGI.escape(search_query)}&format=json&origin=*"
     uri = URI(search_url)
-    response = Net::HTTP.get(uri)
+    response = MediaSources::Http.get(uri)
     data = JSON.parse(response)
     search_results = data.dig('query', 'search') || []
 
@@ -193,7 +193,7 @@ class LetterboxdImportJob < ApplicationJob
 
     page_title = result['title']
     summary_url = "https://en.wikipedia.org/api/rest_v1/page/summary/#{CGI.escape(page_title.gsub(' ', '_'))}"
-    sum_response = Net::HTTP.get(URI(summary_url))
+    sum_response = MediaSources::Http.get(URI(summary_url))
     sum_data = begin
       JSON.parse(sum_response)
     rescue StandardError
@@ -201,7 +201,7 @@ class LetterboxdImportJob < ApplicationJob
     end
 
     {
-      thumbnail_url: sum_data.dig('originalimage', 'source'),
+      thumbnail_url: sum_data.dig('thumbnail', 'source') || sum_data.dig('originalimage', 'source'),
       api_id: "wiki_#{sum_data['pageid'] || page_title}",
       external_url: sum_data.dig('content_urls', 'desktop', 'page'),
       director: nil # Wikipedia API doesn't easily return structured director info in the summary

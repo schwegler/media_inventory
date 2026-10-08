@@ -3,6 +3,8 @@
 class TvShow < ApplicationRecord
   include LibraryItemFormAttributes
 
+  include StoredMediaCover
+
   has_one :metadata_refresh, as: :item, dependent: :destroy
   has_one_attached :cover_image
   has_many :tv_episodes, dependent: :destroy
@@ -21,7 +23,9 @@ class TvShow < ApplicationRecord
 
   def sync_episodes_from_api
     return if refreshing_metadata
-    return if api_id.blank? || api_id.to_s.start_with?('tmdb_')
+    return unless MediaSources::Registry.enabled?('tvmaze', 'TvShow')
+
+    return if api_id.blank? || !api_id.to_s.match?(/\A\d+\z/)
     return unless saved_change_to_api_id? || tv_episodes.empty?
 
     episodes_data = fetch_episodes_from_api
@@ -32,10 +36,10 @@ class TvShow < ApplicationRecord
     require 'net/http'
     require 'json'
     url = URI("https://api.tvmaze.com/shows/#{api_id}/episodes")
-    response = Net::HTTP.get(url)
+    response = MediaSources::Http.get(url)
     JSON.parse(response)
   rescue StandardError => e
-    Rails.logger.error "Failed to sync TV show episodes: #{e.message}"
+    Rails.logger.error "Failed to sync TV show episodes: #{e.class}"
     nil
   end
 

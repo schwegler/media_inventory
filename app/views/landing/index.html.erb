@@ -59,8 +59,8 @@
               <div class="review-poster">
                 <% if media.respond_to?(:cover_image) && media.cover_image.attached? %>
                   <%= image_tag media.cover_image, alt: media.title, class: 'poster-img' %>
-                <% elsif media.respond_to?(:thumbnail_url) && media.thumbnail_url.present? %>
-                  <img src="<%= media.thumbnail_url %>" alt="<%= media.title %>" class="poster-img">
+                <% elsif media.respond_to?(:stored_cover_url) && media.stored_cover_url.present? %>
+                  <img src="<%= media.stored_cover_url %>" alt="<%= media.title %>" class="poster-img">
                 <% else %>
                   <div class="poster-fallback">
                     <span class="fallback-emoji">
@@ -153,8 +153,8 @@
               <% media = trackable.is_a?(LibraryItem) ? trackable.item : trackable %>
               <div class="activity-card">
                 <div class="activity-thumbnail">
-                  <% if media.respond_to?(:thumbnail_url) && media.thumbnail_url.present? %>
-                    <img src="<%= media.thumbnail_url %>" alt="Cover">
+                  <% if media.respond_to?(:stored_cover_url) && media.stored_cover_url.present? %>
+                    <img src="<%= media.stored_cover_url %>" alt="Cover">
                   <% else %>
                     <span class="fallback-icon">
                       <%= case media&.class&.name

@@ -2,8 +2,8 @@
   backdrop_url = nil
   if @movie.cover_image.attached?
     backdrop_url = url_for(@movie.cover_image)
-  elsif @movie.thumbnail_url.present?
-    backdrop_url = @movie.thumbnail_url
+  elsif @movie.stored_cover_url.present?
+    backdrop_url = @movie.stored_cover_url
   end
 %>
 <% content_for(:title, @movie.title) %>
@@ -27,8 +27,8 @@
       <div class="show-poster">
         <% if @movie.cover_image.attached? %>
           <%= image_tag @movie.cover_image, alt: "#{@movie.title} Cover" %>
-        <% elsif @movie.thumbnail_url.present? %>
-          <img src="<%= @movie.thumbnail_url %>" alt="<%= @movie.title %> Cover">
+        <% elsif @movie.stored_cover_url.present? %>
+          <img src="<%= @movie.stored_cover_url %>" alt="<%= @movie.title %> Cover">
         <% else %>
           <div class="poster-fallback"><span class="fallback-emoji">🎬</span></div>
         <% end %>
