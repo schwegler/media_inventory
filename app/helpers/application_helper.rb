@@ -26,7 +26,9 @@ module ApplicationHelper
         'flex-shrink: 0 !important;'
       ].join(' ')
       source = user.avatar.attached? ? user.avatar : user.avatar_url
-      image_tag source, alt: user.name, class: 'user-avatar', width: size, height: size,
+      image_tag source, data: { controller: 'avatar', action: 'error->avatar#fallback',
+                                avatar_initial_value: (user.name.presence || '?')[0].upcase },
+                        alt: user.name, class: 'user-avatar', width: size, height: size,
                         style: avatar_style
     else
       initial = (user.name.presence || user.email.presence || '?')[0].upcase

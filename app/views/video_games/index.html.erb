@@ -5,7 +5,10 @@
   <% end %>
 </div>
 
-<div class="media-grid-2026">
+<% if @video_games.empty? %>
+    <%= render 'shared/catalog_empty_state', media_name: 'games', singular_name: 'game', article: 'a', new_item_path: new_video_game_path %>
+  <% end %>
+  <div class="media-grid-2026">
   <% @video_games.each do |video_game| %>
     <%= render partial: 'shared/media_card', locals: { media_item: video_game } %>
   <% end %>

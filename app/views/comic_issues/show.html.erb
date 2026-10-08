@@ -1,3 +1,5 @@
+<% content_for(:title, @comic_issue.display_title) %>
+<% content_for(:meta_description, "Issue of #{@comic_issue.comic.title}") %>
 <%
   comic = @comic_issue.comic
   backdrop_url = nil
@@ -41,6 +43,7 @@
   <!-- Right Column: Title, Metadata, Rating/Review, Comments -->
   <div class="show-right">
     <div class="show-header-details">
+      <%= render "shared/item_sharing", item: @comic_issue %>
       <h1 class="show-title"><%= @comic_issue.display_title %></h1>
       <p class="show-meta-subtitle">
         Issue <%= @comic_issue.issue_number %> of <%= link_to comic.title, comic, class: 'meta-highlight' %>

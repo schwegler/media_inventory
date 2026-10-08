@@ -44,6 +44,7 @@
   <!-- Right Column: Title, Metadata, Reviews -->
   <div class="show-right">
     <div class="show-header-details">
+      <%= render "shared/item_sharing", item: @movie %>
       <h1 class="show-title"><%= @movie.title %></h1>
       <p class="show-meta-subtitle">
         Directed by <span class="meta-highlight"><%= @movie.director || 'Unknown' %></span> &bull; <%= @movie.release_year %>

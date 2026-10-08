@@ -1,15 +1,20 @@
 <% if logged_in? %>
   <div class="dashboard-welcome">
-    <h1>Welcome back, <span class="welcome-name"><%= current_user.name %></span>. Here’s what your friends have been watching…</h1>
+    <h1>Welcome back, <span class="welcome-name"><%= current_user.name %></span>.</h1>
+    <p>Your library, your next discovery, and what your friends are into.</p>
+    <div class="home-actions"><%= link_to "View your library", current_user, class: "sleek-btn sleek-btn-primary" %><%= link_to "Find something new", search_path, class: "blog-link" %></div>
   </div>
 
   <section class="dashboard-section">
     <div class="section-header">
-      <h2>NEW FROM FRIENDS</h2>
-      <%= link_to "ALL ACTIVITY", activities_path, class: "section-more-link" rescue "#" %>
+      <h2>New from friends</h2>
+      <%= link_to "Find people to follow", users_path, class: "section-more-link" %>
     </div>
     
     <div class="media-grid-2026">
+      <% if @new_from_friends.empty? %>
+        <div class="home-empty-state"><h3>Your next discovery starts here</h3><p>Follow people to see what they’re adding and reviewing.</p><%= link_to "Find people", users_path %></div>
+      <% end %>
       <% @new_from_friends.each do |activity| %>
         <% lib_item = activity.trackable %>
         <% next if lib_item.nil? %>
@@ -22,11 +27,14 @@
 
   <section class="dashboard-section">
     <div class="section-header">
-      <h2>POPULAR WITH FRIENDS</h2>
-      <span class="section-more-link">MORE</span>
+      <h2>Popular with friends</h2>
+
     </div>
 
     <div class="media-grid-2026">
+      <% if @popular_items.empty? %>
+        <div class="home-empty-state"><h3>Make room for a new favorite</h3><p>Explore the catalog and start building your library.</p><%= link_to "Explore movies", movies_path %></div>
+      <% end %>
       <% @popular_items.each do |item| %>
         <% media = item.is_a?(LibraryItem) ? item.item : item %>
         <%= render partial: 'shared/media_card', locals: { media_item: media } %>
@@ -36,8 +44,8 @@
 
   <section class="dashboard-section">
     <div class="section-header">
-      <h2>POPULAR REVIEWS WITH FRIENDS</h2>
-      <span class="section-more-link">MORE</span>
+      <h2>Popular reviews with friends</h2>
+
     </div>
 
     <div class="popular-reviews-layout">
@@ -90,8 +98,7 @@
                 <% if lib_item.respond_to?(:rating) && lib_item.rating.to_f >= 4.0 %>
                   <span class="heart-icon">🧡</span>
                 <% end %>
-                <% mock_comment_count = (activity.id * 3) % 12 + 1 %>
-                <span class="comments-count"><span class="chat-icon">💬</span> <%= mock_comment_count %></span>
+
               </div>
 
               <div class="review-content-text">
@@ -108,21 +115,36 @@
           </div>
         <% end %>
       <% else %>
-        <div class="details-card" style="text-align: center; padding: 2rem;">
+        <div class="home-empty-state">
+          <h3>Start the conversation</h3>
           <p>No popular reviews yet. Add some reviews to get started!</p>
+          <%= link_to "Explore the library", movies_path %>
         </div>
       <% end %>
     </div>
   </section>
 
 <% else %>
-  <%# Standard Landing Page for Non-Logged-In Users %>
-  <div class="page-header">
-    <h1>Community Activity</h1>
-  </div>
+  <section class="home-intro" aria-labelledby="home-title">
+    <div class="home-intro-main">
+      <h1 id="home-title">A home for<br>everything you’re into.</h1>
+      <p>Keep track of what you watch, read, and listen to. Build your library, write a review, and find your next favorite.</p>
+      <div class="home-actions">
+        <%= link_to "Create your library", signup_path, class: "sleek-btn sleek-btn-primary" %>
+        <%= link_to "Explore movies", movies_path, class: "blog-link" %>
+      </div>
+    </div>
+    <aside class="home-blog" aria-label="Our blog">
+      <h2>The library. The conversation.</h2>
+      <p>Trove keeps the collection.<br>taco ’bout it keeps the conversation going.</p>
+      <a class="blog-link" href="https://tacobout.online/">Read the blog <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></a>
+    </aside>
+  </section>
 
   <div class="dashboard-layout">
-    <div class="activity-feed-section">
+    <section class="activity-feed-section" aria-labelledby="community-title">
+      <h2 id="community-title">Community Activity</h2>
+      <p class="section-description">What people are adding, finishing, and talking about.</p>
       <% if @activities.any? %>
         <turbo-frame id="activity_feed">
           <div class="activity-feed">
@@ -185,21 +207,23 @@
           </div>
         </turbo-frame>
       <% else %>
-        <div class="details-card" style="text-align: center; padding: 3rem;">
-          <h3 style="margin-bottom: 10px;">No Recent Activity</h3>
-          <p>Start by adding or reviewing items in your collection!</p>
+        <div class="home-empty-state">
+          <h3>No Recent Activity</h3>
+          <p>A good collection starts with one thing you love.</p>
+          <%= link_to "Browse the library", movies_path %>
         </div>
       <% end %>
-    </div>
+    </section>
 
-    <div class="dashboard-sidebar">
+    <aside class="dashboard-sidebar">
       <div class="sidebar-widget">
-        <h3>Welcome to MediaTracker</h3>
-        <p>Log your movies, albums, books, tv progress, and more. Pull cover art automatically and see what others are tracking!</p>
+        <h2>Make it yours</h2>
+        <ol class="home-steps"><li>Find something you love</li><li>Add it to your library</li><li>Share what you think</li></ol>
       </div>
 
       <div class="sidebar-widget">
-        <h3>Active Trackers</h3>
+        <h2>Active Trackers</h2>
+        <% if @active_trackers.empty? %><p>Meet the people behind the collections.</p><% end %>
         <div class="sidebar-user-list">
           <% @active_trackers.each do |user| %>
             <div class="sidebar-user-item">
@@ -209,6 +233,6 @@
           <% end %>
         </div>
       </div>
-    </div>
+    </aside>
   </div>
 <% end %>

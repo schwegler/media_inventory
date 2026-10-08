@@ -17,7 +17,7 @@ RSpec.describe 'Landing and Authentication', type: :system do
     visit root_path
 
     expect(page).to have_text('Community Activity')
-    expect(page).to have_text('Welcome to MediaTracker')
+    expect(page).to have_text('Make it yours')
     expect(page).to have_text('Active Trackers')
     expect(page).to have_text('Active Tracker')
   end
@@ -33,7 +33,7 @@ RSpec.describe 'Landing and Authentication', type: :system do
       click_button 'Sign up'
     end
 
-    expect(page).to have_text('Welcome to MediaTracker!')
+    expect(page).to have_text('Welcome to Trove!')
     expect(page).to have_text('NEW USER')
   end
 
@@ -117,9 +117,9 @@ RSpec.describe 'Landing and Authentication', type: :system do
 
     # Verify dashboard loads successfully and displays the friend's activity
     expect(page).to have_text('Welcome back, Active Tracker')
-    expect(page).to have_text('NEW FROM FRIENDS')
-    expect(page).to have_text('POPULAR WITH FRIENDS')
-    expect(page).to have_text('POPULAR REVIEWS WITH FRIENDS')
+    expect(page).to have_text('New from friends')
+    expect(page).to have_text('Popular with friends')
+    expect(page).to have_text('Popular reviews with friends')
     expect(page).to have_text('Hilarious episode')
   end
 end

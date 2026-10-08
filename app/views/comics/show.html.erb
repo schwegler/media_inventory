@@ -46,6 +46,7 @@
 
   <!-- Right Column: Title, Metadata, Reviews -->
   <div class="show-right">
+    <%= render "shared/item_sharing", item: @comic %>
     <div class="show-header-details" style="display: flex; justify-content: space-between; align-items: flex-start;">
       <div>
         <h1 class="show-title"><%= @comic.title %> <%= "##{@comic.issue_number}" if @comic.issue_number.present? %></h1>
