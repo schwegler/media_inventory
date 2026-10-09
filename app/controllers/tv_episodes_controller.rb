@@ -11,6 +11,7 @@ class TvEpisodesController < ApplicationController
     @library_item = LibraryItem.find_by(user: current_user, item: @tv_episode)
   end
 
+  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
   def toggle_watched
     @tv_episode = TvEpisode.find(params[:id])
 
@@ -29,6 +30,11 @@ class TvEpisodesController < ApplicationController
         if params[:back_to_episode]
           format.html { redirect_to @tv_episode, notice: 'Episode updated.' }
           format.turbo_stream { redirect_to @tv_episode, notice: 'Episode updated.' }
+        elsif params[:in_progress]
+          @tv_show = @tv_episode.tv_show
+          @in_progress_item = InProgressTracker.item_for(current_user, @tv_show)
+          format.turbo_stream { render 'in_progress/update_tv_show' }
+          format.html { redirect_back fallback_location: @tv_show, notice: "Logged #{@tv_episode.name}." }
         else
           format.turbo_stream
           format.html { redirect_back fallback_location: @tv_episode.tv_show, notice: 'Episode updated.' }
@@ -40,6 +46,7 @@ class TvEpisodesController < ApplicationController
       end
     end
   end
+  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   private
 

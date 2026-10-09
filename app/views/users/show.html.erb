@@ -51,6 +51,19 @@
         <% end %>
       </nav>
       <% if @profile_tab == 'overview' %>
+        <% if @in_progress_items.any? %>
+          <section class="profile-section" id="in_progress_section">
+            <div class="profile-section-heading">
+              <h2>In progress</h2>
+              <span><%= @in_progress_items.size %> active <%= @in_progress_items.size == 1 ? 'series' : 'series' %></span>
+            </div>
+            <div class="in-progress-grid">
+              <% @in_progress_items.each do |item| %>
+                <%= render 'shared/in_progress_card', in_progress: item, profile_owner: @profile_owner %>
+              <% end %>
+            </div>
+          </section>
+        <% end %>
         <section class="profile-section">
           <div class="profile-section-heading"><h2>Recently collected</h2><%= link_to 'View all', profile_tab_path('collection') %></div>
           <%= render 'profile_shelf', items: @recent_collection, empty_title: 'A library waiting to happen.', empty_description: @profile_owner ? 'Find something you love and add it to your collection.' : 'No public collection items yet.' %>

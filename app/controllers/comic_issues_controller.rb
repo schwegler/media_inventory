@@ -11,6 +11,7 @@ class ComicIssuesController < ApplicationController
     @library_item = LibraryItem.find_by(user: current_user, item: @comic_issue)
   end
 
+  # rubocop:disable Metrics/MethodLength
   def toggle_read
     @comic_issue = ComicIssue.find(params[:id])
 
@@ -26,6 +27,11 @@ class ComicIssuesController < ApplicationController
         if params[:back_to_issue]
           format.html { redirect_to @comic_issue, notice: 'Issue updated.' }
           format.turbo_stream { redirect_to @comic_issue, notice: 'Issue updated.' }
+        elsif params[:in_progress]
+          @comic = @comic_issue.comic
+          @in_progress_item = InProgressTracker.item_for(current_user, @comic)
+          format.turbo_stream { render 'in_progress/update_comic' }
+          format.html { redirect_back fallback_location: @comic, notice: "Logged #{@comic_issue.display_title}." }
         else
           format.turbo_stream
           format.html { redirect_back fallback_location: @comic_issue.comic, notice: 'Issue updated.' }
@@ -37,6 +43,7 @@ class ComicIssuesController < ApplicationController
       end
     end
   end
+  # rubocop:enable Metrics/MethodLength
 
   private
 
