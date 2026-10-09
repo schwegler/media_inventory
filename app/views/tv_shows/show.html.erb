@@ -81,7 +81,9 @@
         episodes_by_season = @tv_show.tv_episodes.with_attached_cover_image.order(:season, :episode).group_by(&:season)
         sorted_seasons = episodes_by_season.keys.sort
       %>
-      <div class="show-episodes-section" style="margin-top: 2.5rem; margin-bottom: 2.5rem;" data-controller="season-tabs">
+      <div class="show-episodes-section" style="margin-top: 2.5rem; margin-bottom: 2.5rem;" data-controller="season-tabs"
+           data-season-tabs-show-id-value="<%= @tv_show.id %>"
+           data-action="turbo:morph@document->season-tabs#restore">
         <h2 style="font-size: 1.25rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.05em; padding-bottom: 8px; margin-bottom: 12px;">
           Episodes in this Series
         </h2>
@@ -89,7 +91,7 @@
         <div class="season-tabs-container">
           <div class="season-tabs-strip" role="tablist" aria-label="Seasons">
             <% sorted_seasons.each_with_index do |season, index| %>
-              <button class="season-tab <%= 'active-tab' if index == 0 %>" 
+              <button type="button" class="season-tab <%= 'active-tab' if index == 0 %>"
                       id="season-tab-<%= season %>"
                       role="tab"
                       aria-selected="<%= index == 0 ? 'true' : 'false' %>"
