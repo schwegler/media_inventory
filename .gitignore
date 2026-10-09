@@ -37,3 +37,13 @@ doc/
 
 # Ignore test coverage results
 /coverage/
+
+# Native client build artifacts
+/native/desktop/src-tauri/target/
+/native/desktop/src-tauri/gen/
+/native/ios/MediaInventory/.build/
+/native/ios/MediaInventory/.swiftpm/
+
+# Install JavaScript dependencies from the lockfile.
+**/node_modules/
+/.build/

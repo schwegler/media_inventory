@@ -19,7 +19,7 @@ class Book < ApplicationRecord
 
   private
 
-  # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+  # rubocop:disable-next Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
   def sync_details_from_api
     return unless MediaSources::Registry.enabled?('itunes', 'Book')
 
@@ -48,5 +48,4 @@ class Book < ApplicationRecord
   rescue StandardError => e
     Rails.logger.error "Failed to sync Book details: #{e.class}"
   end
-  # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 end

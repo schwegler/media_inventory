@@ -3,7 +3,7 @@
 require 'net/http'
 require 'json'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class MediaSearchService
   def self.call(query, type)
     new(query, type).call
@@ -473,4 +473,3 @@ class MediaSearchService
     []
   end
 end
-# rubocop:enable Metrics/ClassLength

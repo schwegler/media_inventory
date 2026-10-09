@@ -67,7 +67,7 @@ By default, running locally on your host machine will use **SQLite3** for simpli
 
 ### Prerequisites
 
-*   **Ruby:** Version `3.2.3` (defined in `.ruby-version` and `Gemfile`).
+*   **Ruby:** Version `3.4.9` (defined in `.ruby-version` and `Gemfile`).
 *   **Node.js & npm** (only required for Tauri desktop client).
 
 ### Setup and Running
@@ -155,3 +155,6 @@ To run the entire stack containerized using **PostgreSQL**:
     ```bash
     bundle exec rubocop
     ```
+## Dependency maintenance
+
+See [dependency maintenance](docs/dependency-maintenance.md) for runtime versions, refresh commands, and remaining upstream advisories.

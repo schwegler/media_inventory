@@ -1,5 +1,3 @@
-use tauri::Manager;
-
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! Welcome to Media Inventory.", name)

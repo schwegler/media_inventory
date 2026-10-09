@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe InventoryController, type: :controller do
-  # rubocop:disable Naming/PredicateMethod
+  # rubocop:disable-next Naming/PredicateMethod
   let(:dummy_model) do
     Class.new do
       include ActiveModel::Model
@@ -53,7 +53,6 @@ RSpec.describe InventoryController, type: :controller do
       end
     end
   end
-  # rubocop:enable Naming/PredicateMethod
 
   # We use testing base behavior via ComicsController to avoid routing issues with
   # AnonymousController routing

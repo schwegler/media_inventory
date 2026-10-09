@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class MediaController < ApplicationController
   before_action :logged_in_user, only: :copy
 
@@ -225,4 +225,3 @@ class MediaController < ApplicationController
     end
   end
 end
-# rubocop:enable Metrics/ClassLength

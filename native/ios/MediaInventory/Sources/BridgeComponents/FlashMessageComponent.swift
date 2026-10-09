@@ -5,20 +5,21 @@ import UIKit
 final class FlashMessageComponent: BridgeComponent {
     override class var name: String { "flash-message" }
 
+    private struct FlashMessageData: Decodable {
+        let title: String
+        let body: String?
+    }
+
     override func onReceive(message: Message) {
-        guard let data = message.data else { return }
+        guard let data: FlashMessageData = message.data(),
+              let viewController = delegate?.destination as? UIViewController else { return }
 
-        if let title = data["title"] as? String {
-            let alert = UIAlertController(
-                title: title,
-                message: data["body"] as? String,
-                preferredStyle: .alert
-            )
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-
-            DispatchQueue.main.async {
-                self.delegate?.present(alert, animated: true)
-            }
-        }
+        let alert = UIAlertController(
+            title: data.title,
+            message: data.body,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        viewController.present(alert, animated: true)
     }
 }

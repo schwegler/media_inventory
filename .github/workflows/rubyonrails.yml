@@ -10,18 +10,26 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:11-alpine
+        image: postgres:17-alpine
         ports:
           - "5432:5432"
         env:
           POSTGRES_DB: rails_test
           POSTGRES_USER: rails
           POSTGRES_PASSWORD: password
+        options: >-
+          --health-cmd="pg_isready -U rails -d rails_test"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
     env:
       RAILS_ENV: test
       DATABASE_URL: "postgres://rails:password@localhost:5432/rails_test"
@@ -40,7 +48,7 @@ jobs:
         run: bin/rails dartsass:build
       # Add or replace test runners here
       - name: Run tests
-        run: bin/rake
+        run: bundle exec rspec
 
   lint:
     runs-on: ubuntu-latest
@@ -60,3 +68,31 @@ jobs:
         run: bin/brakeman -q -w2
       - name: Lint Ruby files
         run: bin/rubocop --parallel
+
+  native:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+      - name: Install Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: native/desktop/package-lock.json
+      - name: Install desktop JavaScript dependencies
+        working-directory: native/desktop
+        run: npm ci
+      - name: Audit desktop JavaScript dependencies
+        working-directory: native/desktop
+        run: npm audit
+      - name: Install Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v2
+      - name: Check desktop compilation
+        working-directory: native/desktop/src-tauri
+        run: cargo check --locked
+      - name: Build iOS package for Simulator
+        run: >-
+          swift build --package-path native/ios/MediaInventory
+          --sdk "$(xcrun --sdk iphonesimulator --show-sdk-path)"
+          --triple "$(uname -m)-apple-ios18.0-simulator"

@@ -15,11 +15,10 @@ class TvEpisode < ApplicationRecord
     "#{show_title} S#{season}E#{episode}: #{name}"
   end
 
-  # rubocop:disable Naming/PredicatePrefix
+  # rubocop:disable-next Naming/PredicatePrefix
   def is_collected?
     tv_show&.is_collected? || false
   end
-  # rubocop:enable Naming/PredicatePrefix
 
   def in_watchlist?
     false

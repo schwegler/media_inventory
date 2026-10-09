@@ -82,6 +82,8 @@ export default class extends Controller {
   }
 
   search() {
+    if (!this.searchStageActive) return
+
     this.searchAbortController?.abort()
     this.currentQuery = this.searchQuery()
     this.debouncedFetch()
@@ -118,7 +120,7 @@ export default class extends Controller {
 
     // Ensure focus is moved to an interactive element in the new stage
     if (this.hasBackBtnTarget) {
-      setTimeout(() => this.backBtnTarget.focus(), 50)
+      this.backBtnTarget.focus()
     }
   }
 
@@ -149,7 +151,7 @@ export default class extends Controller {
 
     // Focus search input when returning to search stage
     if (this.hasTitleInputTarget) {
-      setTimeout(() => this.titleInputTarget.focus(), 50)
+      this.titleInputTarget.focus()
     }
   }
 
@@ -178,7 +180,7 @@ export default class extends Controller {
       })
       if (!response.ok) throw new Error(`Search failed: ${response.status}`)
       allResults = await response.json()
-      if (this.currentQuery !== query) return
+      if (!this.searchStageActive || this.currentQuery !== query) return
 
       // 3. Render Combined Options
       if (allResults.length === 0) {

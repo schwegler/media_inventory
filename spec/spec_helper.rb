@@ -3,10 +3,10 @@
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 require 'simplecov'
 SimpleCov.start 'rails' do
-  add_filter '/spec/'
-  add_filter '/config/'
-  add_filter '/vendor/'
-  add_group 'Admin', 'app/admin'
+  skip '/spec/'
+  skip '/config/'
+  skip '/vendor/'
+  group 'Admin', 'app/admin'
 end
 
 ENV['RAILS_ENV'] ||= 'test'
@@ -46,8 +46,6 @@ RSpec.configure do |config|
   config.infer_base_class_for_anonymous_controllers = false
 
   config.infer_spec_type_from_file_location!
-
-  config.filter_run_excluding type: :system if ENV['GITHUB_ACTIONS']
 
   # Run specs in random order to surface order dependencies. If you find an
   # order dependency and want to debug it, you can fix the order by providing

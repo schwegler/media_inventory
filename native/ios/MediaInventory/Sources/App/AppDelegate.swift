@@ -5,7 +5,7 @@ import HotwireNative
 class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Configure Hotwire with path configuration
-        let localPathConfigURL = Bundle.main.url(forResource: "path-configuration", withExtension: "json")!
+        let localPathConfigURL = Bundle.module.url(forResource: "path-configuration", withExtension: "json")!
         Hotwire.loadPathConfiguration(from: [
             .file(localPathConfigURL),
             .server(Server.pathConfigurationURL)

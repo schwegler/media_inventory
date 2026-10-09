@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class InventoryController < ApplicationController
   # Centralize authentication filter for all mutating inventory actions
   before_action :logged_in_user, only: %i[new create edit update destroy]
@@ -21,7 +21,6 @@ class InventoryController < ApplicationController
 
   # rubocop:disable Metrics/MethodLength
   def create
-    Rails.logger.debug "DEBUG CREATE PARAMS: #{params.inspect}"
     global_params = resource_params.except(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
                                            :consumed_at, :is_public, :owned_physically, :owned_physically_format,
                                            :owned_digitally, :owned_digitally_format)
@@ -169,4 +168,3 @@ class InventoryController < ApplicationController
     raise NotImplementedError
   end
 end
-# rubocop:enable Metrics/ClassLength

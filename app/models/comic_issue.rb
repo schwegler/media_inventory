@@ -20,11 +20,10 @@ class ComicIssue < ApplicationRecord
     display_title
   end
 
-  # rubocop:disable Naming/PredicatePrefix
+  # rubocop:disable-next Naming/PredicatePrefix
   def is_collected?
     comic&.is_collected? || false
   end
-  # rubocop:enable Naming/PredicatePrefix
 
   def in_watchlist?
     false

@@ -12,6 +12,7 @@ Capybara.register_driver :selenium_chrome_headless_custom do |app|
   options.add_argument('--disable-gpu')
   options.add_argument('--disable-dev-shm-usage')
   options.add_argument('--window-size=1400,900')
+  options.add_argument('--force-prefers-reduced-motion')
 
   service = Selenium::WebDriver::Chrome::Service.new(path: ENV['SE_CHROMEDRIVER']) if ENV['SE_CHROMEDRIVER'].present?
   Capybara::Selenium::Driver.new(app, browser: :chrome, options: options, service: service)
@@ -58,16 +59,9 @@ module SystemTestHelpers
     if Capybara.current_driver == :rack_test
       click_button 'Add Manually'
     else
-      expect(page).to have_css('[data-connected="true"]')
-      # Force a blur to ensure input events have fired and state is synchronized
-      page.execute_script('document.activeElement.blur()')
-
-      # Wait for thumbnail search to fully settle to prevent any DOM shifts or
-      # background requests from clearing the form
-      sleep 1.5
-
-      selector = "button[data-action='click->thumbnail-fetcher#showManualForm']"
-      page.execute_script("document.querySelector(#{selector.inspect}).click()")
+      expect(page).to have_css('[data-controller~="thumbnail-fetcher"][data-connected="true"]')
+      click_button 'Add Manually'
+      expect(page).to have_css('[data-thumbnail-fetcher-target="detailsStage"]', visible: true)
     end
   end
 end

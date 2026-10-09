@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 source 'https://rubygems.org'
-ruby '3.2.3'
+ruby '3.4.9'
 
-gem 'rails', '~> 8.1.3'
+gem 'rails', '~> 8.1.4'
 
 # Use the Puma web server [https://github.com/puma/puma]
 gem 'puma', '>= 5.0'
@@ -17,9 +17,12 @@ gem 'turbo-rails'
 gem 'dartsass-rails'
 gem 'propshaft'
 
-# Constrain dependencies to avoid compilation issues with native extensions
-gem 'psych', '5.0.1'
-gem 'rdoc', '>= 6.5.1.1'
+# Keep default gems current for security fixes.
+gem 'psych'
+gem 'rdoc'
+
+# CSV is a bundled gem in Ruby 3.4; imports require it explicitly.
+gem 'csv'
 
 gem 'sqlite3', '~> 2.9', '>= 2.9.6'
 

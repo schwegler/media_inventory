@@ -3,9 +3,9 @@ import PackageDescription
 
 let package = Package(
     name: "MediaInventory",
-    platforms: [.iOS(.v18)],
+    platforms: [.iOS("18.0")],
     dependencies: [
-        .package(url: "https://github.com/hotwired/hotwire-native-ios", from: "1.0.0")
+        .package(url: "https://github.com/hotwired/hotwire-native-ios", from: "1.3.1")
     ],
     targets: [
         .target(
@@ -13,7 +13,9 @@ let package = Package(
             dependencies: [
                 .product(name: "HotwireNative", package: "hotwire-native-ios")
             ],
-            path: "Sources"
+            path: "Sources",
+            exclude: ["Resources/Info.plist"],
+            resources: [.copy("Configuration/path-configuration.json")]
         )
     ]
 )

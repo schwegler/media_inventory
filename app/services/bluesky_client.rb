@@ -4,7 +4,7 @@ require 'net/http'
 require 'json'
 require 'time'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class BlueskyClient
   def initialize(user)
     @user = user
@@ -33,7 +33,7 @@ class BlueskyClient
     end
   end
 
-  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+  # rubocop:disable-next Metrics/AbcSize, Metrics/MethodLength
   def post(text, title: 'Media Tracker')
     return false unless @user && @user.bsky_access_token.present?
 
@@ -108,7 +108,6 @@ class BlueskyClient
     Rails.logger.error e.backtrace.join("\n") if e.respond_to?(:backtrace)
     raise e
   end
-  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
   def profile
     return nil unless @user && @user.bsky_access_token.present?
@@ -137,4 +136,3 @@ class BlueskyClient
     nil
   end
 end
-# rubocop:enable Metrics/ClassLength
