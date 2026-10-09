@@ -61,6 +61,8 @@ class InventoryController < ApplicationController
 
   def show
     @resource = resource_class.find(params[:id])
+    return if redirect_to_canonical_url(@resource)
+
     if logged_in?
       @library_item = LibraryItem.find_by(user: current_user, item: @resource)
       if @library_item

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class ComicIssue < ApplicationRecord
+  include ReadableCatalogUrl
   include StoredMediaCover
 
   has_one_attached :cover_image
@@ -13,6 +14,10 @@ class ComicIssue < ApplicationRecord
     issue_str = issue_number.present? ? " ##{issue_number}" : ''
     title_str = title.present? ? ": #{title}" : ''
     "#{comic&.title}#{issue_str}#{title_str}"
+  end
+
+  def catalog_url_title
+    display_title
   end
 
   # rubocop:disable Naming/PredicatePrefix

@@ -11,7 +11,7 @@ RSpec.describe 'Public item sharing', type: :request do
   end
 
   [Movie, Album, Book, Comic, TvShow, VideoGame].each do |model|
-    it "renders stable public metadata and a numeric canonical URL for #{model.name}" do
+    it "renders stable public metadata and a readable canonical URL for #{model.name}" do
       item = model.create!(title: "Public #{model.name}", thumbnail_url: 'https://covers.example.org/public.png')
       item.cover_image.attach(io: File.open(Rails.root.join('public/favicon.svg')), filename: 'cover.svg',
                               content_type: 'image/svg+xml')
@@ -22,7 +22,7 @@ RSpec.describe 'Public item sharing', type: :request do
       expect(metadata['description']).to be_present
       expect(metadata['image']).to start_with('https://trove.schweg.xyz/media/covers/')
       expect(response.body).not_to include('https://covers.example.org/public.png')
-      expect(metadata['url']).to eq("https://trove.schweg.xyz/#{item.model_name.route_key}/#{item.id}")
+      expect(metadata['url']).to eq("https://trove.schweg.xyz#{polymorphic_path(item)}")
       expect(metadata.values.join).not_to include('DO NOT PUBLISH THIS NOTE')
       document = Nokogiri::HTML(response.body)
       expect(document.at_css('link[rel="canonical"]')['href']).to eq(metadata['url'])
@@ -70,7 +70,7 @@ RSpec.describe 'Public item sharing', type: :request do
       expect(response).to have_http_status(:ok)
       expect(metadata['title']).not_to eq('Trove')
       expect(metadata['description']).to include(item.is_a?(TvEpisode) ? show.title : comic.title)
-      expect(metadata['url']).to eq("https://trove.schweg.xyz/#{item.model_name.route_key}/#{item.id}")
+      expect(metadata['url']).to eq("https://trove.schweg.xyz#{polymorphic_path(item)}")
       expect(metadata['image']).to start_with('https://')
     end
   end
@@ -80,7 +80,7 @@ RSpec.describe 'Public item sharing', type: :request do
     document = Nokogiri::HTML(response.body)
     link = document.at_css('a[href^="https://bsky.app/intent/compose"]')
     text = URI.decode_www_form(URI(link['href']).query).to_h.fetch('text')
-    expect(text).to eq("A & B #1 https://trove.schweg.xyz/movies/#{movie.id}")
+    expect(text).to eq("A & B #1 https://trove.schweg.xyz/movies/#{movie.id}-a-b-1")
     expect(link['rel']).to include('noopener')
     expect(document.at_css('[data-action="link-share#share"]')).to be_present
   end

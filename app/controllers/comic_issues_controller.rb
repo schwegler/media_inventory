@@ -5,6 +5,7 @@ class ComicIssuesController < ApplicationController
 
   def show
     @comic_issue = ComicIssue.find(params[:id])
+    return if redirect_to_canonical_url(@comic_issue)
     return unless logged_in?
 
     @library_item = LibraryItem.find_by(user: current_user, item: @comic_issue)

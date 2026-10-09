@@ -21,7 +21,7 @@ export default class extends Controller {
     "titleInput", "secondaryInput", "previewImg", "placeholder", "statusText", "optionsGrid", "thumbnailUrl",
     "director", "artist", "writer", "publisher", "releaseYear", "genre", "network", "venue", "promotion", "date",
     "season", "episode", "issueNumber", "apiId", "externalUrl", "manualFormSection", "developer", "platform",
-    "searchStage", "detailsStage", "backBtn", "modalTitle", "selectedTitleDisplay", "author"
+    "searchStage", "detailsStage", "backBtn", "modalTitle", "selectedTitleDisplay", "author", "searchYear", "submitButton"
   ]
   static values = { mediaType: String }
 
@@ -44,21 +44,65 @@ export default class extends Controller {
     } else {
       this.goToSearch()
     }
+
+    this.formElement = this.element.querySelector("form")
+    this.searchKeydownHandler = (event) => this.handleSearchKeydown(event)
+    this.searchSubmitHandler = (event) => this.handleSearchSubmit(event)
+    this.formElement?.addEventListener("keydown", this.searchKeydownHandler)
+    this.formElement?.addEventListener("submit", this.searchSubmitHandler, true)
     this.element.dataset.connected = "true"
   }
 
   disconnect() {
     this.debouncedFetch.cancel()
     this.searchAbortController?.abort()
+    this.formElement?.removeEventListener("keydown", this.searchKeydownHandler)
+    this.formElement?.removeEventListener("submit", this.searchSubmitHandler, true)
+  }
+
+  handleSearchKeydown(event) {
+    if (!this.searchStageActive || event.key !== "Enter" || event.isComposing) return
+    if (!this.searchStageTarget.contains(event.target) || !event.target.matches("input")) return
+
+    event.preventDefault()
+    if (!event.repeat) this.searchNow()
+  }
+
+  handleSearchSubmit(event) {
+    if (!this.searchStageActive) return
+
+    event.preventDefault()
+    event.stopImmediatePropagation()
+    this.searchNow()
+  }
+
+  searchNow() {
+    this.debouncedFetch.cancel()
+    this.fetchThumbnails()
   }
 
   search() {
     this.searchAbortController?.abort()
-    this.currentQuery = this.titleInputTarget.value.trim()
+    this.currentQuery = this.searchQuery()
     this.debouncedFetch()
   }
 
+  searchQuery() {
+    let query = this.titleInputTarget.value.trim()
+    if (this.mediaTypeValue === "comic" && this.hasSearchYearTarget && this.searchYearTarget.value.trim()) {
+      query = query.replace(/\s+\(?\d{4}\)?$/, "")
+      query += ` (${this.searchYearTarget.value.trim()})`
+    } else if (this.mediaTypeValue !== "comic" && this.hasSecondaryInputTarget && this.secondaryInputTarget.value.trim()) {
+      query += " " + this.secondaryInputTarget.value.trim()
+    }
+    return query
+  }
+
   showDetailsStage(title, releaseYear) {
+    this.searchStageActive = false
+    this.submitButtonTargets.forEach(button => { button.disabled = false })
+    this.debouncedFetch.cancel()
+    this.searchAbortController?.abort()
     if (this.hasSearchStageTarget) this.searchStageTarget.classList.add("hidden")
     if (this.hasDetailsStageTarget) this.detailsStageTarget.classList.remove("hidden")
     if (this.hasBackBtnTarget) this.backBtnTarget.classList.remove("hidden")
@@ -85,6 +129,8 @@ export default class extends Controller {
   }
 
   goToSearch() {
+    this.searchStageActive = this.hasSearchStageTarget
+    if (this.searchStageActive) this.submitButtonTargets.forEach(button => { button.disabled = true })
     if (this.hasSearchStageTarget) this.searchStageTarget.classList.remove("hidden")
     if (this.hasDetailsStageTarget) this.detailsStageTarget.classList.add("hidden")
     if (this.hasBackBtnTarget) this.backBtnTarget.classList.add("hidden")
@@ -116,14 +162,10 @@ export default class extends Controller {
       return
     }
 
-    this.currentQuery = title
+    const query = this.searchQuery()
+    this.currentQuery = query
     this.statusTextTarget.textContent = "Searching local database and web..."
     this.optionsGridTarget.innerHTML = ""
-
-    let query = title
-    if (this.hasSecondaryInputTarget && this.secondaryInputTarget.value.trim()) {
-      query += " " + this.secondaryInputTarget.value.trim()
-    }
 
     try {
       const mediaType = this.mediaTypeValue
@@ -136,22 +178,26 @@ export default class extends Controller {
       })
       if (!response.ok) throw new Error(`Search failed: ${response.status}`)
       allResults = await response.json()
-      if (this.currentQuery !== title) return
+      if (this.currentQuery !== query) return
 
       // 3. Render Combined Options
       if (allResults.length === 0) {
-        this.statusTextTarget.textContent = "No covers found. Standard category icon will be used."
+        this.statusTextTarget.textContent = mediaType === "comic"
+          ? "No matching series found. Try another start year, remove the year, or add manually."
+          : "No covers found. Standard category icon will be used."
         return
       }
 
-      this.statusTextTarget.textContent = "Select a result below:"
+      this.statusTextTarget.textContent = mediaType === "comic"
+        ? `${allResults.length} matching series. Select the run you want:`
+        : "Select a result below:"
+      this.optionsGridTarget.classList.toggle("comic-series-results", mediaType === "comic")
 
       allResults.forEach((option) => {
         const imgBtn = document.createElement("div")
         imgBtn.className = "thumbnail-option-card"
         imgBtn.setAttribute("tabindex", "0")
         imgBtn.setAttribute("role", "button")
-        imgBtn.setAttribute("aria-label", `Select ${option.title}`)
         
         const badgeClass = option.is_local ? "local" : "web"
         const badgeText = option.is_local ? "Local" : "Web"
@@ -166,6 +212,8 @@ export default class extends Controller {
         
         const yearInfo = option.release_year ? ` (${option.release_year})` : ""
         const tooltipText = `${option.title}${yearInfo} ${subtitle ? `- ${subtitle}` : ""}`
+        imgBtn.setAttribute("aria-label", `Select ${option.title}${yearInfo}`)
+        imgBtn.title = tooltipText
         const wrapper = document.createElement("div")
         wrapper.className = "thumbnail-option-img-wrap"
         const image = document.createElement("img")
@@ -179,7 +227,18 @@ export default class extends Controller {
         badge.textContent = option.source || badgeText
         const label = document.createElement("div")
         label.className = "option-label"
-        label.textContent = tooltipText
+        if (mediaType === "comic") {
+          const seriesTitle = document.createElement("strong")
+          seriesTitle.textContent = option.title.replace(/\s*\(\d{4}\)$/, "")
+          const year = document.createElement("span")
+          year.className = "option-series-year"
+          year.textContent = option.release_year ? `Started ${option.release_year}` : "Start year unknown"
+          const details = document.createElement("span")
+          details.textContent = [option.publisher, option.issue_count ? `${option.issue_count} issues` : null, subtitle].filter(Boolean).join(" · ")
+          label.append(seriesTitle, year, details)
+        } else {
+          label.textContent = tooltipText
+        }
         wrapper.append(image, badge)
         imgBtn.append(wrapper, label)
 

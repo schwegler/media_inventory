@@ -94,7 +94,7 @@
                     </div>
                     <div class="toggle-field">
                       <%= f.check_box :consumed, data: { consumed_toggle_target: "checkbox", action: "change->consumed-toggle#toggle" } %>
-                      <%= f.label :consumed, "Listened?" %>
+                      <%= f.label :consumed, "Listened to?" %>
                     </div>
                   </div>
 
@@ -105,7 +105,7 @@
                     </div>
 
                     <div class="details-field-group" data-consumed-toggle-target="dateRow" style="display: none;">
-                      <%= f.label :consumed_at, "Date Listened" %>
+                      <%= f.label :consumed_at, "Listening date" %>
                       <%= f.date_field :consumed_at, value: Time.current.to_date %>
                     </div>
                   </div>
@@ -120,7 +120,7 @@
                     <%= f.label :is_public, "Make Review Public?" %>
                   </div>
 
-                  <%= f.submit "Create Album", class: "btn btn-primary btn-save-log" %>
+                  <%= f.submit "Create Album", class: "btn btn-primary btn-save-log", disabled: true, data: { thumbnail_fetcher_target: "submitButton" } %>
                 </div>
               </div>
             </div>
@@ -130,4 +130,3 @@
     </div>
   </div>
 <% end %>
-

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class TvEpisode < ApplicationRecord
+  include ReadableCatalogUrl
   include StoredMediaCover
 
   has_one_attached :cover_image

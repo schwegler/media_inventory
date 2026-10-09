@@ -8,7 +8,9 @@ class CollectionsController < ApplicationController
   # to a constant 5 queries (1 per media type). When search query is present, enables safe database-level
   # filtering on media titles without triggering SQL "no such column: title" errors.
   def show
-    @user = User.find(params[:user_id])
+    @user = User.find_by_profile_param!(params[:user_id])
+    return if redirect_to_canonical_url(@user, param: :user_id, path: collection_path(@user))
+
     @query = params[:q]
 
     if @user.confirmed_at.present?

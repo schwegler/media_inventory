@@ -34,6 +34,8 @@ class EditSuggestionsController < ApplicationController
                      VideoGame.find_by(id: params[:video_game_id])
                    elsif params[:album_id]
                      Album.find_by(id: params[:album_id])
+                   elsif params[:book_id]
+                     Book.find_by(id: params[:book_id])
                    end
   end
 

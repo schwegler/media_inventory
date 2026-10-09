@@ -147,14 +147,14 @@ SampleApp::Application.routes.draw do
   patch '/tv_episodes/:id/toggle_watched', to: 'tv_episodes#toggle_watched', as: 'toggle_watched_tv_episode'
   get '/tv_episodes/:id/toggle_watched', to: redirect { |params, _request|
     episode = TvEpisode.find_by(id: params[:id])
-    episode ? "/tv_shows/#{episode.tv_show_id}" : '/tv_shows'
+    episode ? "/tv_shows/#{episode.tv_show.to_param}" : '/tv_shows'
   }
 
   resources :comic_issues, only: %i[show]
   patch '/comic_issues/:id/toggle_read', to: 'comic_issues#toggle_read', as: 'toggle_read_comic_issue'
   get '/comic_issues/:id/toggle_read', to: redirect { |params, _request|
     issue = ComicIssue.find_by(id: params[:id])
-    issue ? "/comics/#{issue.comic_id}" : '/comics'
+    issue ? "/comics/#{issue.comic.to_param}" : '/comics'
   }
 
   # OmniAuth routes

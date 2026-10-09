@@ -8,6 +8,15 @@ class Activity < ApplicationRecord
 
   validates :activity_type, presence: true, inclusion: { in: %w[added reviewed watchlist consumed] }
 
+  def display_type
+    terms = MediaLanguage.for(trackable)
+    case activity_type
+    when 'consumed' then terms[:past]
+    when 'watchlist' then terms[:list]
+    else activity_type
+    end
+  end
+
   # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/MethodLength, Metrics/PerceivedComplexity
   def description
     user_name = user&.name || 'Someone'
@@ -61,25 +70,19 @@ class Activity < ApplicationRecord
         "#{user_name} added movie '#{item_title}' to their watchlist"
       when 'Album'
         artist = media_item.respond_to?(:artist) ? " by #{media_item.artist}" : ''
-        "#{user_name} added album '#{item_title}'#{artist} to their watchlist"
+        "#{user_name} added album '#{item_title}'#{artist} to their listening queue"
       when 'Comic'
         issue = media_item.respond_to?(:issue_number) ? " issue ##{media_item.issue_number}" : ''
-        "#{user_name} added comic '#{item_title}'#{issue} to their watchlist"
+        "#{user_name} added comic '#{item_title}'#{issue} to their reading list"
       when 'TvShow'
         "#{user_name} added TV show '#{item_title}' to their watchlist"
       when 'VideoGame'
         "#{user_name} added video game '#{item_title}' to their backlog"
       else
-        "#{user_name} added '#{item_title}' to their watchlist"
+        "#{user_name} added '#{item_title}' to their #{MediaLanguage.for(media_item)[:list]}"
       end
     when 'consumed'
-      verb = case type_name
-             when 'Movie', 'TvShow', 'TvEpisode' then 'watched'
-             when 'VideoGame' then 'played'
-             when 'Album' then 'listened to'
-             when 'Comic' then 'read'
-             else 'consumed'
-             end
+      verb = MediaLanguage.for(media_item)[:past]
       date_str = trackable&.consumed_at.present? ? " on #{trackable.consumed_at.strftime('%B %d, %Y')}" : ''
       case type_name
       when 'Movie'

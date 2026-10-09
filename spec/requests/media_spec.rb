@@ -92,6 +92,16 @@ RSpec.describe 'Media Autocomplete', type: :request do
         expect(json.first['writer']).to eq('Alan Moore')
         expect(json.first['publisher']).to eq('DC')
       end
+
+      it 'finds a local run by start year without requiring parentheses in the query' do
+        Comic.create!(title: 'Uncanny X-Men (2016)', publisher: 'Marvel')
+        Comic.create!(title: 'Uncanny X-Men (2024)', publisher: 'Marvel')
+
+        get '/media/autocomplete', params: { q: 'uncanny x-men 2024', type: 'comic' }
+        expect(response.parsed_body).to contain_exactly(
+          hash_including('title' => 'Uncanny X-Men (2024)', 'release_year' => '2024', 'is_local' => true)
+        )
+      end
     end
 
     context 'with tv shows' do

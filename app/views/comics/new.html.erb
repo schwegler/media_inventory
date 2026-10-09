@@ -10,7 +10,7 @@
       </div>
       <div class="modal-body">
         <div>
-          <%= form_with model: @comic, class: "standard-form", data: { turbo_frame: "_top" }, onsubmit: "console.log('FORM SUBMITTED');" do |f| %>
+          <%= form_with model: @comic, class: "standard-form", data: { turbo_frame: "_top" } do |f| %>
             <% if @comic.errors.any? || @library_item&.errors&.any? %>
               <div id="error_explanation">
                 <h2><%= pluralize(@comic.errors.count, "error") %> prohibited this comic from being saved:</h2>
@@ -32,9 +32,14 @@
                 <%= f.label :title %>
                 <%= f.text_field :title, data: { thumbnail_fetcher_target: "titleInput", action: "input->thumbnail-fetcher#search" } %>
               </div>
+              <div class="comic-search-year">
+                <label for="comic_search_year">Series start year (optional)</label>
+                <input type="number" id="comic_search_year" min="1900" max="2099" placeholder="e.g. 2024" data-thumbnail-fetcher-target="searchYear" data-action="input->thumbnail-fetcher#search" aria-describedby="comic-search-hint">
+                <p id="comic-search-hint" class="fetcher-status-text">Use the year the series began to find a specific run. You can also search “Uncanny X-Men (2024)”.</p>
+              </div>
 
               <div class="thumbnail-fetcher-container">
-                <label>Select Cover</label>
+                <label>Select Series</label>
                 <div class="thumbnail-options-box">
                   <span class="fetcher-status-text" data-thumbnail-fetcher-target="statusText">Type title to fetch covers...</span>
                   <div class="thumbnail-options-grid" data-thumbnail-fetcher-target="optionsGrid"></div>
@@ -127,7 +132,7 @@
                     <%= f.label :is_public, "Make Review Public?" %>
                   </div>
 
-                  <%= f.submit "Create Comic", class: "btn btn-primary btn-save-log", onclick: "console.log('BUTTON CLICKED');" %>
+                  <%= f.submit "Create Comic", class: "btn btn-primary btn-save-log", disabled: true, data: { thumbnail_fetcher_target: "submitButton" } %>
                 </div>
               </div>
             </div>
@@ -137,4 +142,3 @@
     </div>
   </div>
 <% end %>
-

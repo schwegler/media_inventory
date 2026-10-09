@@ -12,7 +12,8 @@
     <div class="form-group"><%= f.label :review %><%= f.text_area :review, rows: 5, class: 'form-control' %></div>
     <div class="form-group"><%= f.label :rating %><%= f.select :rating, [['Unrated', '']] + (1..10).map { |n| ["#{n / 2.0} ★", (n / 2.0).to_s] }, {}, class: 'form-control' %></div>
     <% %w[is_collected in_watchlist consumed is_public].each do |field| %>
-      <div class="check-field"><%= f.check_box field %><%= f.label field, field == 'is_public' ? 'Make review public' : field.humanize %></div>
+      <% label = { 'is_collected' => 'In collection', 'in_watchlist' => "In #{MediaLanguage.for(@resource)[:list]}", 'consumed' => MediaLanguage.for(@resource)[:past].capitalize, 'is_public' => 'Make review public' }.fetch(field) %>
+      <div class="check-field"><%= f.check_box field %><%= f.label field, label %></div>
     <% end %>
     <div class="form-actions"><%= f.submit 'Save changes', class: 'btn btn-primary' %><%= link_to 'Cancel', @resource, class: 'btn btn-secondary' %></div>
   <% end %>

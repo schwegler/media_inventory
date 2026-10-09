@@ -124,7 +124,7 @@
                     <%= f.label :is_public, "Make Review Public?" %>
                   </div>
 
-                  <%= f.submit "Create Book", class: "btn btn-primary btn-save-log" %>
+                  <%= f.submit "Create Book", class: "btn btn-primary btn-save-log", disabled: true, data: { thumbnail_fetcher_target: "submitButton" } %>
                 </div>
               </div>
             </div>

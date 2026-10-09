@@ -110,7 +110,7 @@
                     <%= f.label :is_public, "Make Review Public?" %>
                   </div>
 
-                  <%= f.submit "Create TV Show", class: "btn btn-primary btn-save-log" %>
+                  <%= f.submit "Create TV Show", class: "btn btn-primary btn-save-log", disabled: true, data: { thumbnail_fetcher_target: "submitButton" } %>
                 </div>
               </div>
             </div>
@@ -120,4 +120,3 @@
     </div>
   </div>
 <% end %>
-

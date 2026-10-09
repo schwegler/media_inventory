@@ -22,7 +22,7 @@ RSpec.describe 'Media source picker', type: :system do
     expect(page).to have_css('.thumbnail-option-card', text: 'Portal 2')
     expect(page).to have_css('.option-badge', text: /steam/i)
     find('.thumbnail-option-card', text: 'Portal 2').click
-    expect(page).to have_field('video_game[title]', with: 'Portal 2', visible: :all)
+    expect(page).to have_field('video_game[title]', with: 'Portal 2 (2011)', visible: :all)
     perform_enqueued_jobs do
       click_button 'Create Video Game'
       expect(page).to have_text('Video game was successfully logged.')
@@ -30,7 +30,7 @@ RSpec.describe 'Media source picker', type: :system do
     expect(page).to have_text('Portal 2')
     expect(page).to have_css('img[src*="/media/covers/"]')
     expect(page).not_to have_css('img[src="https://shared.fastly.steamstatic.com/portal-test.png"]')
-    saved_game = VideoGame.find_by!(title: 'Portal 2')
+    saved_game = VideoGame.find_by!(api_id: 'steam_620')
     expect(saved_game.cover_image).to be_attached
     expect(saved_game.release_year).to eq(2011)
     expect(page.title).to include('Portal 2')

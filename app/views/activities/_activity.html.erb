@@ -34,7 +34,7 @@
     <div class="activity-footer">
       <div style="display: flex; gap: 12px; align-items: center;">
         <span class="activity-badge badge-<%= activity.activity_type %>">
-          <%= activity.activity_type %>
+          <%= activity.display_type %>
         </span>
         <span class="activity-time">
           <%= time_ago_in_words(activity.created_at) %> ago
