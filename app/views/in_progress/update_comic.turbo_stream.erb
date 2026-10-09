@@ -1,0 +1,7 @@
+<% if @in_progress_item.present? %>
+  <%= turbo_stream.replace @in_progress_item.dom_id do %>
+    <%= render 'shared/in_progress_card', in_progress: @in_progress_item, profile_owner: true %>
+  <% end %>
+<% else %>
+  <%= turbo_stream.remove "in_progress_comic_#{@comic.id}" %>
+<% end %>

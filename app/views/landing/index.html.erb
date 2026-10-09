@@ -5,6 +5,20 @@
     <div class="home-actions"><%= link_to "View your library", current_user, class: "sleek-btn sleek-btn-primary" %><%= link_to "Find something new", search_path, class: "blog-link" %></div>
   </div>
 
+  <% if @in_progress_items.any? %>
+    <section class="dashboard-section" id="in_progress_dashboard_section">
+      <div class="section-header">
+        <h2>Continue watching &amp; reading</h2>
+        <%= link_to "View library", current_user, class: "section-more-link" %>
+      </div>
+      <div class="in-progress-grid">
+        <% @in_progress_items.each do |item| %>
+          <%= render 'shared/in_progress_card', in_progress: item, profile_owner: true %>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+
   <section class="dashboard-section">
     <div class="section-header">
       <h2>New from friends</h2>

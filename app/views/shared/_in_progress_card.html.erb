@@ -1,0 +1,121 @@
+<%# Local variables: in_progress, profile_owner (optional) %>
+<%
+  profile_owner = local_assigns.fetch(:profile_owner, logged_in? && current_user?(@user || in_progress.library_item&.user))
+  series = in_progress.series
+  next_item = in_progress.next_item
+  is_tv = in_progress.tv_show?
+  completed = in_progress.completed_count
+  total = in_progress.total_count
+  percent = in_progress.percent
+
+  series_title = series.title
+  series_path = polymorphic_path(series)
+  series_cover = series.stored_cover_url
+
+  if is_tv
+    tag_label = "TV Show"
+    fallback_icon = "📺"
+    next_label = "S#{next_item.season}E#{next_item.episode}"
+    next_title = next_item.name.presence || "Episode #{next_item.episode}"
+    next_path = tv_episode_path(next_item)
+    next_thumb = next_item.stored_cover_url.presence || series_cover
+    next_meta = next_item.air_date.present? ? "Aired #{next_item.air_date}" : nil
+    log_url = toggle_watched_tv_episode_path(next_item)
+    param_key = :tv_episode
+    action_verb = "Watch"
+    units_label = "episodes"
+  else
+    tag_label = "Comic"
+    fallback_icon = "📚"
+    next_label = next_item.issue_number.present? ? "##{next_item.issue_number}" : "Issue"
+    next_title = next_item.title.presence || (next_item.issue_number.present? ? "Issue ##{next_item.issue_number}" : "Next issue")
+    next_path = comic_issue_path(next_item)
+    next_thumb = next_item.stored_cover_url.presence || series_cover
+    next_meta = next_item.release_date.present? ? "Released #{next_item.release_date}" : nil
+    log_url = toggle_read_comic_issue_path(next_item)
+    param_key = :comic_issue
+    action_verb = "Read"
+    units_label = "issues"
+  end
+%>
+
+<article id="<%= in_progress.dom_id %>" class="in-progress-card" data-media-type="<%= in_progress.media_type %>">
+  <div class="in-progress-header">
+    <div class="in-progress-cover">
+      <% if series_cover.present? %>
+        <img src="<%= series_cover %>" alt="" loading="lazy">
+      <% else %>
+        <span class="fallback-emoji"><%= fallback_icon %></span>
+      <% end %>
+    </div>
+
+    <div class="in-progress-series-info">
+      <span class="in-progress-series-tag"><%= tag_label %></span>
+      <h3 class="in-progress-series-title">
+        <%= link_to series_title, series_path %>
+      </h3>
+
+      <div class="in-progress-progress">
+        <div class="in-progress-progress-header">
+          <span class="in-progress-progress-counts"><%= completed %> / <%= total %> <%= units_label %></span>
+          <span class="in-progress-progress-percent"><%= percent %>%</span>
+        </div>
+        <div class="in-progress-progress-bar" role="progressbar" aria-valuenow="<%= percent %>" aria-valuemin="0" aria-valuemax="100" aria-label="<%= series_title %> progress">
+          <div class="in-progress-progress-fill" style="width: <%= [percent, 100].min %>%;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="in-progress-next">
+    <div class="in-progress-next-header">
+      <span class="in-progress-next-badge">Up Next</span>
+      <% if next_meta.present? %>
+        <span class="in-progress-next-meta"><%= next_meta %></span>
+      <% end %>
+    </div>
+
+    <div class="in-progress-next-row">
+      <% if next_thumb.present? %>
+        <div class="in-progress-next-thumb">
+          <img src="<%= next_thumb %>" alt="" loading="lazy">
+        </div>
+      <% end %>
+
+      <div class="in-progress-next-details">
+        <div class="in-progress-next-title">
+          <span class="in-progress-next-num"><%= next_label %></span>
+          <%= link_to next_title, next_path, class: 'in-progress-next-link', title: next_title %>
+        </div>
+
+        <% if profile_owner %>
+          <%= form_with url: log_url, method: :patch, class: 'in-progress-log-form' do |f| %>
+            <%= f.hidden_field "#{param_key}[consumed]", value: true %>
+            <%= f.hidden_field "#{param_key}[consumed_at]", value: Date.current %>
+            <%= hidden_field_tag :in_progress, true %>
+
+            <div class="in-progress-form-actions">
+              <%= f.select "#{param_key}[rating]", [
+                ["★ Rating", ""],
+                ["½ ★", "0.5"],
+                ["★", "1.0"],
+                ["★½", "1.5"],
+                ["★★", "2.0"],
+                ["★★½", "2.5"],
+                ["★★★", "3.0"],
+                ["★★★½", "3.5"],
+                ["★★★★", "4.0"],
+                ["★★★★½", "4.5"],
+                ["★★★★★", "5.0"]
+              ], {}, { class: 'in-progress-rating-select', aria: { label: "Rating" } } %>
+
+              <%= f.button type: :submit, class: 'sleek-btn sleek-btn-primary in-progress-log-btn' do %>
+                ✓ <%= action_verb %>
+              <% end %>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</article>

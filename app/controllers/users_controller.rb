@@ -43,6 +43,7 @@ class UsersController < ApplicationController
     @collection_items = preload_library_items(fetch_library_items(is_collected: true))
     @backlog_items = preload_library_items(fetch_library_items(in_backlog: true))
     @recent_collection = preload_library_items(@visible_library.where(is_collected: true).order(created_at: :desc).limit(6))
+    @in_progress_items = InProgressTracker.items_for(@user, public_only: !@profile_owner)
     load_shared_items
   end
 
