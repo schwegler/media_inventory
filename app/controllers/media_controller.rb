@@ -192,6 +192,7 @@ class MediaController < ApplicationController
         thumbnail_url: vg.stored_cover_url,
         cover_source_url: vg.cover_image.attached? ? url_for(vg.cover_image) : vg.thumbnail_url,
         api_id: vg.api_id,
+        catalog_id: vg.id,
         catalog_selection: vg.signed_id(purpose: 'game-catalog-selection', expires_in: 30.minutes),
         external_url: vg.external_url,
         is_local: true

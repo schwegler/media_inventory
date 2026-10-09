@@ -12,7 +12,8 @@ class GameSearchQuery
     ranked = results.filter_map do |result|
       next if result[:title].blank?
 
-      key = result[:api_id].presence || [result[:source], result[:title], result[:release_year]]
+      key = result[:api_id].presence || result[:catalog_id].presence || [result[:source], result[:title],
+                                                                         result[:release_year]]
       next if seen[key]
 
       seen[key] = true

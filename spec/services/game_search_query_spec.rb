@@ -20,4 +20,9 @@ RSpec.describe GameSearchQuery do
                { title: 'Portal 2', api_id: 'steam_620' }]
     expect(described_class.new('Portal 2').rank(results)).to contain_exactly(include(is_local: true))
   end
+  it 'keeps distinct manual catalog entries even when title and release year agree' do
+    results = [{ title: 'Same title', release_year: 2006, catalog_id: 1, is_local: true },
+               { title: 'Same title', release_year: 2006, catalog_id: 2, is_local: true }]
+    expect(described_class.new('Same title').rank(results).map { |row| row[:catalog_id] }).to eq([1, 2])
+  end
 end

@@ -82,7 +82,7 @@ export default class extends Controller {
   }
 
   search() {
-    this.clearGameIdentity()
+    this.clearGameSelection()
     this.searchAbortController?.abort()
     this.currentQuery = this.searchQuery()
     this.statusTextTarget.textContent = this.currentQuery ? "Searching…" : "Type title to fetch covers..."
@@ -127,7 +127,7 @@ export default class extends Controller {
   }
 
   showManualForm() {
-    this.clearGameIdentity()
+    this.clearGameSelection()
     const title = this.titleInputTarget.value.trim() || "New Item"
     const releaseYearVal = this.releaseYearTargets.length > 0 ? this.releaseYearTarget.value : null
     this.showDetailsStage(title, releaseYearVal)
@@ -302,11 +302,17 @@ export default class extends Controller {
     }
   }
 
-  clearGameIdentity() {
+  clearGameSelection() {
     if (this.mediaTypeValue !== "video_game") return
     if (this.hasCatalogSelectionTarget) this.catalogSelectionTarget.value = ""
     if (this.hasApiIdTarget) this.apiIdTarget.value = ""
     if (this.hasExternalUrlTarget) this.externalUrlTarget.value = ""
+    for (const name of ["developer", "publisher", "platform", "releaseYear", "gameType", "thumbnailUrl"]) {
+      const target = this.targets.find(name)
+      if (target) target.value = name === "gameType" ? "unknown" : ""
+    }
+    if (this.hasPreviewImgTarget) this.previewImgTarget.style.display = "none"
+    if (this.hasPlaceholderTarget) this.placeholderTarget.style.display = "block"
   }
 
   selectOption(option, isManualClick = false) {
