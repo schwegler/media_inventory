@@ -73,4 +73,19 @@ RSpec.describe 'Personal game library', type: :request do
     get video_games_path, params: { library: 'mine' }
     expect(response).to redirect_to(login_path)
   end
+  it 'renders JSON-rich catalog records once when multiple copies and runs match' do
+    portal.update!(metadata_details: { genres: ['Puzzle'], platforms: [{ name: 'PC' }] })
+    portal_library.game_copies.create!(platform: 'Linux', storefront: 'Steam')
+    2.times { portal_library.game_playthroughs.create!(status: 'currently_playing') }
+    portal_library.update!(game_tags: ['puzzle'])
+    entries = GameLibraryQuery.new({ play_status: 'currently_playing', storefront: 'Steam', tag: 'puzzle', sort: 'title' },
+                                   user: user).call
+    expect(entries.map(&:id)).to eq([portal.id])
+    expect(entries.first.metadata_details).to include('genres' => ['Puzzle'])
+    catalog = GameLibraryQuery.new({ sort: 'title' }).call
+    expect(catalog.map(&:id)).to eq([halo.id, private_game.id, portal.id])
+    get video_games_path, params: { library: 'mine', play_status: 'currently_playing', tag: 'puzzle' }
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('Portal')
+  end
 end

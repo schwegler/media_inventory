@@ -33,7 +33,9 @@ class GameLibraryQuery
     scope = metadata_filters(scope)
     scope = scope.select('video_games.*', 'LOWER(video_games.title) AS sort_title')
     sorts = @user ? SORTS.merge(PERSONAL_SORTS) : SORTS
-    scope.distinct.order(Arel.sql(sorts.fetch(@filters['sort'], sorts['added'])), 'video_games.id ASC')
+    # Copy/run filters use subqueries and activity joins are grouped per library,
+    # so they do not multiply rows. DISTINCT also cannot compare PostgreSQL json.
+    scope.order(Arel.sql(sorts.fetch(@filters['sort'], sorts['added'])), 'video_games.id ASC')
   end
 
   private

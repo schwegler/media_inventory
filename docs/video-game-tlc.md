@@ -82,13 +82,13 @@ If imports remain pending after a process restart, the existing async queue may 
 
 ## Remaining mission scope
 
-The full modernization remains larger than this slice. Concrete next dependencies are: permitted/credentialed IGDB and MobyGames adapters; Wikidata cross-provider identity review and alternate-title relationships; complete platform/release/edition/franchise/DLC graph; cross-process durable jobs, quotas and persistent provider metrics; achievement account authentication and hidden/rarity handling; signed/verified Steam identity connections and incremental background sync; acquisition trend/genre distribution reports; advanced showcase/profile layout customization; interactive unmatched-ID import reconciliation and recovery history; automated per-file licensing eligibility; full WCAG audit and non-Chromium testing; PostgreSQL integration verification.
+The full modernization remains larger than this slice. Concrete next dependencies are: permitted/credentialed IGDB and MobyGames adapters; Wikidata cross-provider identity review and alternate-title relationships; complete platform/release/edition/franchise/DLC graph; cross-process durable jobs, quotas and persistent provider metrics; achievement account authentication and hidden/rarity handling; signed/verified Steam identity connections and incremental background sync; acquisition trend/genre distribution reports; advanced showcase/profile layout customization; interactive unmatched-ID import reconciliation and recovery history; automated per-file licensing eligibility; full WCAG audit and non-Chromium testing; PostgreSQL production-upgrade verification.
 
 These are unimplemented features or unverified capabilities, not silently successful integrations. Nintendo/Xbox purchases can be tracked manually now; no account-library synchronization is claimed. Existing catalog data remains usable without providers.
 
 ## Verification evidence
 
-The five additive migrations were rolled back and reapplied in an isolated SQLite database. Existing user, game and library IDs, review text and physical-ownership flags survived. PostgreSQL has not been run in this environment.
+The five additive migrations were rolled back and reapplied in an isolated SQLite database. Existing user, game and library IDs, review text and physical-ownership flags survived. That original verification used SQLite; PostgreSQL CI verification is recorded in the follow-up below.
 
 Chromium was exercised through Python Playwright because the Browser plugin was unavailable. Desktop 1365 × 900 and mobile 390 × 844 checks covered searching for Vampire Survivors, rendering actual locally served WebP pixels, keyboard selection, saving ownership/playthrough details, logging a one-hour session and saving a private journal entry. Mobile had no horizontal overflow; the successful flow produced no browser console errors. Screenshots and scripts are retained under `/workspace/work/`. This is a focused smoke check, not a full accessibility certification.
 
@@ -147,3 +147,13 @@ Steam owned-library reads now use a capability-specific adapter with the shared 
 Local autocomplete ranking also uses canonical catalog IDs for provider-less games, preserving separate same-title/same-year entries instead of hiding one result.
 
 Changing a selected game's search title or choosing manual entry now also clears its old developer, publisher, platform, release year, content type and cover preview. Screenshot review caught the previous stale-metadata behavior; a persistent browser regression test now covers this transition. The final focused run passed **41 examples** (including browser selection/reset and existing media-source-picker flows). The full serial run passed **570 examples, 0 failures, 9 existing pending**, seed 26259, before the final reset-specific regression test was added. RuboCop inspected 424 files clean before that test, and the final modified files passed afterward. Rails eager loading passed; Brakeman retains the same two baseline weak-confidence warnings. Parallel test runs initially contended for SQLite; final verification was run serially.
+
+## Follow-up: PostgreSQL CI and decoder setup
+
+The reported CI run had 29 failures from two causes: the GitHub runner lacked ImageMagick's `convert`, and library queries selected `DISTINCT video_games.*` over PostgreSQL `json` columns, which have no equality operator. Artwork failures cascaded into missing blobs, redirects and alternate-provider assertions; they were not evidence of Steam throttling.
+
+The test workflow now installs ImageMagick and explicitly verifies WebP read/write support before running tests. Production's Dockerfile already includes ImageMagick. Library queries no longer request unnecessary DISTINCT: copy/playthrough filters use membership subqueries and activity aggregates are grouped per library, avoiding row multiplication. JSON-rich records retain their original types and stored data. A new behavior regression verifies metadata preservation and one result despite multiple matching copies/playthroughs, for personal and public queries. No data migration is required.
+
+All 52 focused reported-failure/regression examples passed on SQLite with the original CI seed 22113. PostgreSQL validation uses a separate disposable PostgreSQL 11 container, matching the workflow, with schema loading and the same `GITHUB_ACTIONS=true bin/rake` path and seed.
+
+PostgreSQL 11 CI-equivalent verification passed: **532 examples, 0 failures, 9 existing pending**, seed 22113; system examples were excluded exactly as in GitHub Actions. RuboCop inspected 425 files without offenses; Brakeman reported the same two baseline weak-confidence warnings. The GitHub-hosted rerun remains separate from this local verification.

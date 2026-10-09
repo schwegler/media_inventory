@@ -28,7 +28,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
-      # Add or replace dependency steps here
+      - name: Install artwork decoder
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y imagemagick
+          convert -version
+          convert -list format | grep -E 'WEBP.*rw'
       - name: Install Ruby and gems
         uses: ruby/setup-ruby@v1
         with:
