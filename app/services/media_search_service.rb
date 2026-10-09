@@ -23,7 +23,7 @@ class MediaSearchService
     @deadline = started_at + 12
     @enrichment_deadline = started_at + 20
     MediaSources::Registry::CACHE.fetch(
-      ['media-search-v4', @type, @query.downcase.strip,
+      ['media-search-v5', @type, @query.downcase.strip,
        ApiConfiguration.order(:id).pluck(:source_name, :media_type, :is_active, :updated_at)], expires_in: 15.minutes
     ) do
       results = (SOURCES.fetch(@type) + [['InternetArchive', :fetch_internet_archive]]).flat_map do |source, method|
@@ -194,16 +194,28 @@ class MediaSearchService
     api_key = MediaSources::Registry.token('ComicVine', 'Comic')
     return [] if api_key.blank?
 
-    url = build_comicvine_url(query, api_key)
-    res = MediaSources::Http.get(url, deadline: @deadline)
+    search = ComicSearchQuery.new(query)
+    results = []
+    offset = 0
+    loop do
+      url = build_comicvine_url(query, api_key, offset: offset)
+      data = JSON.parse(MediaSources::Http.get(url, deadline: @deadline))
+      page = parse_comicvine_results(data)
+      results.concat(page)
+      break unless search.year && page.any?
 
-    parse_comicvine_results(JSON.parse(res))
+      offset += page.size
+      total = data['number_of_total_results'].to_i
+      break if total.zero? || offset >= total
+      break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= @deadline
+    end
+    results
   rescue StandardError => e
     Rails.logger.error "ComicVine search failed: #{e.class}"
-    []
+    results || []
   end
 
-  def build_comicvine_url(query, api_key)
+  def build_comicvine_url(query, api_key, offset: 0)
     search = ComicSearchQuery.new(query)
     url = URI("https://comicvine.gamespot.com/api/#{search.year ? 'volumes' : 'search'}/")
     params = { api_key: api_key, format: 'json', limit: 100,
@@ -212,6 +224,7 @@ class MediaSearchService
       # ComicVine ignores start_year filters; filter the returned years locally.
       params[:filter] = "name:#{search.title.tr(':,', ' ')}"
       params[:sort] = 'date_added:desc'
+      params[:offset] = offset if offset.positive?
     else
       params.merge!(query: search.title, resources: 'volume')
     end

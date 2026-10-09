@@ -98,6 +98,23 @@ RSpec.describe MediaSearchService do
       end
     end
 
+    it 'finds X-Men (2024) beyond the first page of related volumes' do
+      first_page = Array.new(100) do |index|
+        { id: index, name: "X-Men Collection #{index}", start_year: '2025' }
+      end
+      stub_request(:get, %r{comicvine.gamespot.com/api/volumes/}).with(
+        query: hash_including('filter' => 'name:X-Men')
+      ).to_return(body: { results: first_page, number_of_total_results: 101 }.to_json)
+      stub_request(:get, %r{comicvine.gamespot.com/api/volumes/}).with(
+        query: hash_including('filter' => 'name:X-Men', 'offset' => '100')
+      ).to_return(body: { results: [{ id: 158_814, name: 'X-Men', start_year: '2024' }],
+                          number_of_total_results: 101 }.to_json)
+
+      expect(described_class.call('X-Men (2024)', 'comic')).to contain_exactly(
+        hash_including(title: 'X-Men', release_year: '2024', api_id: '158814')
+      )
+    end
+
     it 'does not substitute another run when the requested year is missing' do
       stub_request(:get, %r{comicvine.gamespot.com/api/volumes/}).to_return(body: { results: volumes }.to_json)
       expect(described_class.call('uncanny x-men (2023)', 'comic')).to eq([])
