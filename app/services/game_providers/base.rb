@@ -32,7 +32,7 @@ module GameProviders
       uri = URI(url)
       uri.query = URI.encode_www_form(query) if query.any?
       key = ['game-provider-response', name, Digest::SHA256.hexdigest(uri.to_s)]
-      cached = cache.read(key) unless @fresh
+      cached = cached_response(key)
       return cached if cached
       raise Unavailable if cache.read([key, 'failed']) || health[:state] == 'circuit_open'
 
@@ -40,12 +40,20 @@ module GameProviders
       data = JSON.parse(request_body(uri))
       raise Unavailable unless data.is_a?(Hash)
 
-      cache.write(key, data, expires_in: 6.hours)
+      cache_response(key, data)
       record_success
       data
     rescue MediaSources::Http::Error, JSON::ParserError, Timeout::Error, SocketError, OpenSSL::SSL::SSLError => e
       record_failure(key, e)
       raise(e.is_a?(MediaSources::Http::Error) && e.message == 'HTTP 429' ? RateLimited : Unavailable)
+    end
+
+    def cached_response(key)
+      MediaSources::Registry::CACHE.read(key) if !@fresh && cache_response?
+    end
+
+    def cache_response(key, data)
+      MediaSources::Registry::CACHE.write(key, data, expires_in: 6.hours) if cache_response?
     end
 
     def record_success
@@ -76,6 +84,10 @@ module GameProviders
         sleep(0.05 + (rand * 0.1))
         retry
       end
+    end
+
+    def cache_response?
+      true
     end
 
     def request_headers

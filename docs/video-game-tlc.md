@@ -139,3 +139,9 @@ Artwork migration passed an isolated up/down/up check. Rails eager loading passe
 Logging a provider result now resolves known external-ID mappings before creating a game. Conflicting primary/mapped/local identities are rejected for catalog review. Explicit local autocomplete selections carry a signed 30-minute token, including games without provider IDs. Tampered, expired or deleted selections fail without mutating the library. Shared canonical metadata and existing personal history remain intact. Manual same-title entries create distinct catalog records rather than silently combining releases; users can choose an existing local result to reuse it. Changing the search title or choosing Add Manually clears stale provider and catalog selections.
 
 Focused identity and shared inventory regression checks passed (26 examples after correcting the test time-helper setup). Mobile Chromium verified a real local selection followed by Back, title change and manual entry: the signed selection and provider ID reset, with no browser errors or page overflow.
+
+## Follow-up: bounded Steam public-library reads
+
+Steam owned-library reads now use a capability-specific adapter with the shared provider request budget, transient retry, circuit/negative-cache controls and admin health state. The adapter advertises only owned games and aggregate playtime, and retains no raw positive library-response cache. Explicit syncs still enforce the five-minute per-user cooldown and validate complete responses before any reconciliation. A private/partial response never removes existing copies. This remains an operator-key read of an authorized public Steam ID, not a verified account connection or achievement service. Focused identity/provider/import checks passed (14 examples).
+
+Local autocomplete ranking also uses canonical catalog IDs for provider-less games, preserving separate same-title/same-year entries instead of hiding one result.

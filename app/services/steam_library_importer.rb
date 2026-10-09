@@ -25,7 +25,8 @@ class SteamLibraryImporter
       @state.update!(**counts, state: 'ready', succeeded_at: Time.current)
     end
     'ready'
-  rescue Unavailable, MediaSources::Http::Error, JSON::ParserError, Timeout::Error, SocketError, OpenSSL::SSL::SSLError => e
+  rescue Unavailable, GameProviders::Base::Unavailable, MediaSources::Http::Error, JSON::ParserError, Timeout::Error,
+         SocketError, OpenSSL::SSL::SSLError => e
     @state.update!(state: 'failed', failure_reason: e.class.name) if @state.persisted?
     'failed'
   end
@@ -33,13 +34,7 @@ class SteamLibraryImporter
   private
 
   def owned_games
-    token = MediaSources::Registry.token('SteamWebAPI', 'VideoGame')
-    raise Unavailable if token.blank?
-
-    uri = URI('https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/')
-    uri.query = URI.encode_www_form(key: token, steamid: @steam_id, include_appinfo: 1,
-                                    include_played_free_games: 1, format: 'json')
-    data = JSON.parse(MediaSources::Http.get(uri))['response']
+    data = GameProviders::SteamWebApi.new(fresh: true).owned_games(@steam_id)
     valid = data.is_a?(Hash) && data['games'].is_a?(Array) &&
             data['game_count'] == data['games'].size && data['games'].size <= 5000
     raise Unavailable unless valid
