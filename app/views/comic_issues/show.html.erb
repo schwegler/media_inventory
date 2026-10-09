@@ -96,6 +96,11 @@
               </div>
             </div>
 
+            <div class="inline-checkbox-group">
+              <%= f.check_box :is_public, checked: @library_item&.is_public? %>
+              <%= f.label :is_public, "Make review public" %>
+            </div>
+
             <div>
               <%= f.text_area :review, value: @library_item&.review, placeholder: "Add read review for this issue...", rows: 3, class: "form-control quick-review-textarea" %>
             </div>

@@ -58,6 +58,11 @@
           <%= form.hidden_field :consumed, value: true %>
           <%= form.hidden_field :consumed_at, value: Time.current.to_date %>
 
+          <div class="inline-checkbox-group">
+            <%= form.check_box :is_public, checked: ep_lib&.is_public?, id: "public-episode-#{ep.id}" %>
+            <%= form.label :is_public, "Make review public", for: "public-episode-#{ep.id}" %>
+          </div>
+
           <div class="episode-form-inputs">
             <%= form.text_field :review, value: ep_lib&.review, aria: { label: "Episode review" }, placeholder: ep_lib&.consumed? ? "Edit review..." : "Review this episode...", class: "episode-input-review" %>
 
