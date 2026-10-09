@@ -1,0 +1,14 @@
+<article class="card-2026 game-library-card">
+  <div class="card-2026-cover">
+    <%= image_tag game_library_cover(game, library), alt: "#{game.title} cover", loading: 'lazy', decoding: 'async' %>
+  </div>
+  <div class="card-2026-content">
+    <h2 class="card-2026-title"><%= link_to game.title, game %></h2>
+    <p class="card-2026-meta"><%= [game.release_year, game.game_type.humanize, game.developer.presence].compact.join(' · ') %></p>
+    <% if library %>
+      <p class="game-library-status"><%= library.game_playthroughs.map { |run| run.status.humanize }.uniq.join(' · ').presence || 'No playthrough recorded' %></p>
+      <p class="card-2026-meta"><%= library.game_copies.map { |copy| "#{copy.platform} (#{copy.ownership_status.humanize.downcase})" }.uniq.join(' · ').presence || 'No explicit copy records' %></p>
+      <p class="card-2026-meta">Recorded: <%= game_playtime(game[:recorded_minutes]) %><% if library.rating.present? %> · My rating: <%= library.rating %> / 5<% end %></p>
+    <% end %>
+  </div>
+</article>

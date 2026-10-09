@@ -1,0 +1,14 @@
+<section aria-label="My gaming statistics" class="game-library-statistics">
+  <% [['Games in library', :unique_games], ['Owned copies', :owned_copies], ['Subscription access', :subscription_access], ['Backlog', :backlog], ['Playing / replaying', :currently_playing], ['Completed / beaten', :completed], ['Wishlist', :wishlist]].each do |label, key| %>
+    <div><strong><%= @game_statistics[key] %></strong><span><%= label %></span></div>
+  <% end %>
+  <div><strong><%= game_playtime(@game_statistics[:recorded_minutes]) %></strong><span>Recorded sessions</span></div>
+  <div><strong><%= game_playtime(@game_statistics[:imported_minutes]) %></strong><span>Imported lifetime time</span></div>
+</section>
+<details class="game-library-disclosure"><summary>Statistics definitions and breakdowns</summary>
+  <p>Statistics cover your entire game library, before filters. Owned copies include explicit owned physical and digital copies. Subscription and cloud access are not permanent ownership. Legacy collection flags are preserved and excluded from copy totals until you add ownership records.</p>
+  <p>A game counts once in each gameplay category when any playthrough has that status. Completed includes completed, beaten and fully completed. Completion rate is unique completed games divided by unique games with a started-status playthrough (excluding backlog and replay planned): <%= @game_statistics[:completion_rate] ? "#{@game_statistics[:completion_rate]}%" : 'No started games yet' %>.</p>
+  <p>Recorded time comes from actual session timestamps. Imported lifetime time is reported by your providers; it may overlap recorded sessions and is never added to them.</p>
+  <% if @game_statistics[:by_platform].any? %><p>Owned access records by platform: <%= @game_statistics[:by_platform].map { |platform, count| "#{platform}: #{count}" }.join(' · ') %>. Includes subscriptions and cloud access; counts copies, not unique titles.</p><% end %>
+  <% if @game_statistics[:completed_by_year].any? %><p>Completed games by year: <%= @game_statistics[:completed_by_year].sort.map { |year, count| "#{year}: #{count}" }.join(' · ') %>. One game per year; dated completion records only.</p><% end %>
+</details>

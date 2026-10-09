@@ -14,27 +14,30 @@ class VideoGamesController < InventoryController
   end
 
   def index
-    scope = VideoGame.with_attached_cover_image
-    if params[:library] == 'mine' && logged_in?
-      scope = scope.joins(:library_items).where(library_items: { user_id: current_user.id }).distinct
-    end
-    if params[:q].present?
-      scope = scope.where('LOWER(video_games.title) LIKE ?', "%#{VideoGame.sanitize_sql_like(params[:q].downcase)}%")
-    end
-    scope = scope.where(game_type: params[:game_type]) if %w[game dlc soundtrack unknown].include?(params[:game_type])
-    sort = { 'title' => { title: :asc }, 'release' => { release_year: :desc }, 'added' => { created_at: :desc } }
-    @game_statistics = personal_statistics if logged_in? && params[:library] == 'mine'
-    @video_games = scope.order(sort.fetch(params[:sort], sort['added'])).page(params[:page])
+    @personal_library = params[:library] == 'mine' || params[:view].present?
+    return redirect_to login_path unless logged_in? || !@personal_library
+
+    response.headers['Cache-Control'] = 'private, no-store' if @personal_library
+
+    @saved_view = current_user.game_library_views.find(params[:view]) if params[:view].present?
+    @filters = (@saved_view&.filters || {}).merge(GameLibraryQuery.normalize(params))
+    @layout = %w[grid list table].include?(@filters['layout']) ? @filters['layout'] : 'grid'
+    @video_games = GameLibraryQuery.new(@filters, user: @personal_library ? current_user : nil).call.page(params[:page])
+    prepare_library if @personal_library
   end
 
   private
 
-  def personal_statistics
+  def prepare_library
+    @game_statistics = GameLibraryStatistics.call(current_user)
     libraries = current_user.library_items.where(item_type: 'VideoGame')
+    @libraries = libraries.where(item_id: @video_games.map(&:id))
+                          .includes(:game_copies, :game_playthroughs, game_cover_image_attachment: :blob)
+                          .index_by(&:item_id)
     copies = GameCopy.where(library_item_id: libraries.select(:id))
-    { unique_games: libraries.distinct.count(:item_id),
-      owned_copies: copies.where(ownership_status: 'owned', access_method: %w[physical digital]).count,
-      subscription_access: copies.where(access_method: 'subscription').count }
+    @platforms = copies.distinct.order(:platform).pluck(:platform)
+    @storefronts = copies.where.not(storefront: [nil, '']).distinct.order(:storefront).pluck(:storefront)
+    @saved_views = current_user.game_library_views.order(:name)
   end
 
   def after_library_saved

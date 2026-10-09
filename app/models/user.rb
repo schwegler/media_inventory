@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class User < ApplicationRecord
+  has_many :game_library_views, dependent: :destroy
   has_secure_password
 
   before_validation { self.email = nil if email.blank? }

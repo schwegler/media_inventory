@@ -1,0 +1,9 @@
+<details class="game-library-disclosure"><summary>Import game data</summary>
+  <%= link_to 'Import JSON / CSV', new_game_import_path, class: 'btn btn-secondary' %>
+  <p>You can also import a public Steam library. This reads owned games and lifetime playtime; it does not authenticate your Steam account or create session history.</p>
+  <%= form_with url: sync_steam_games_path, class: 'standard-form', namespace: 'steam_import' do |f| %>
+    <%= f.label :steam_id, 'My SteamID64' %><%= f.text_field :steam_id, required: true, pattern: '[0-9]{17}' %>
+    <%= f.check_box :authorized, required: true %><%= f.label :authorized, 'I authorize importing this Steam library into my account' %>
+    <%= f.submit 'Import Steam library', class: 'btn btn-secondary' %>
+  <% end %>
+</details>

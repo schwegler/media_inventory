@@ -243,3 +243,30 @@
 .game-tracking summary { cursor: pointer; padding: 12px 0; }
 @media (max-width: 480px) { .game-search-results { grid-template-columns: 1fr; } }
 .show-poster .game-cover-art { object-fit: contain; }
+// Personal game library: compact responsive controls and optional table scrolling.
+.game-library-nav { display: flex; flex-wrap: wrap; gap: .75rem; margin: 1rem 0; }
+.game-library-nav a { padding: .5rem .75rem; border: 1px solid $card-border; border-radius: .5rem; }
+.game-library-nav a[aria-current="page"] { font-weight: 700; text-decoration: underline; }
+.game-filter-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+.game-filter-row > div { min-width: 0; }
+.game-library-filters details, .game-library-disclosure { margin: 1rem 0; }
+.game-library-filters summary, .game-library-disclosure summary { cursor: pointer; padding: .5rem 0; }
+.game-library-statistics { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: .75rem; }
+.game-library-statistics > div { padding: 1rem; border: 1px solid $card-border; border-radius: .75rem; }
+.game-library-statistics strong, .game-library-statistics span { display: block; }
+.game-library-statistics strong { font-size: 1.5rem; }
+.game-library-statistics span { font-size: .85rem; margin-top: .25rem; }
+.game-library-list { display: grid; gap: .75rem; }
+.game-library-list .game-library-card { display: grid; grid-template-columns: 80px 1fr; }
+.game-library-list .card-2026-cover { height: 120px; aspect-ratio: auto; }
+.game-library-card .card-2026-cover img { object-fit: contain; }
+.game-library-card .game-library-status { font-size: .85rem; font-weight: 600; }
+.game-library-card .card-2026-content { min-width: 0; overflow-wrap: anywhere; }
+.game-library-table-wrap { overflow-x: auto; max-width: 100%; margin: 1rem 0; }
+.game-library-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.game-library-table caption { text-align: left; font-weight: 700; margin-bottom: .75rem; }
+.game-library-table th, .game-library-table td { text-align: left; vertical-align: top; padding: .75rem; border-bottom: 1px solid $card-border; min-width: 100px; }
+.game-library-table th:first-child { min-width: 180px; }
+
+form.standard-form.game-library-filters { max-width: none; margin: 1rem 0; }
+.game-library-filters input[type="search"] { width: 100%; min-height: 44px; padding: .75rem; box-sizing: border-box; border: 1px solid $card-border; border-radius: $radius-md; background: $bg-dark; color: $text-main; }

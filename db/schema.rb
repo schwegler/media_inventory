@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_09_174000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_09_181000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -206,6 +206,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_174000) do
     t.boolean "spoiler", default: false, null: false
     t.datetime "updated_at", null: false
     t.index ["library_item_id"], name: "index_game_journal_entries_on_library_item_id"
+  end
+
+  create_table "game_library_views", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.json "filters", default: {}, null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["user_id", "name"], name: "index_game_library_views_on_user_id_and_name", unique: true
+    t.index ["user_id"], name: "index_game_library_views_on_user_id"
   end
 
   create_table "game_playthroughs", force: :cascade do |t|
@@ -476,6 +486,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_174000) do
   add_foreign_key "game_copies", "library_items"
   add_foreign_key "game_external_ids", "video_games"
   add_foreign_key "game_journal_entries", "library_items"
+  add_foreign_key "game_library_views", "users"
   add_foreign_key "game_playthroughs", "library_items"
   add_foreign_key "game_sessions", "game_playthroughs"
   add_foreign_key "library_items", "users"

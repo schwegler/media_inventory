@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 SampleApp::Application.routes.draw do
+  resources :game_library_views, only: %i[create destroy]
   get 'game_import/new', to: 'game_imports#new', as: :new_game_import
   post 'game_import/preview', to: 'game_imports#preview', as: :preview_game_import
   post 'game_import', to: 'game_imports#create', as: :game_import

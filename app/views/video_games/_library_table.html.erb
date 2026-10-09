@@ -1,0 +1,18 @@
+<div class="game-library-table-wrap" role="region" aria-label="Game collection table" tabindex="0">
+  <table class="game-library-table">
+    <caption><%= @personal_library ? 'My game library' : 'Game catalog' %></caption>
+    <thead><tr><th scope="col">Game</th><th scope="col">Release</th><th scope="col">Type</th><th scope="col">Developer</th>
+      <% if @personal_library %><th scope="col">My copies</th><th scope="col">Play status</th><th scope="col">My rating</th><th scope="col">Recorded time</th><th scope="col">Last played</th><% end %>
+    </tr></thead>
+    <tbody><% @video_games.each do |game| %><% library = @libraries&.[](game.id) %>
+      <tr><th scope="row"><%= link_to game.title, game %></th><td><%= game.release_year %></td><td><%= game.game_type.humanize %></td><td><%= game.developer %></td>
+        <% if @personal_library %>
+          <td><%= library.game_copies.map { |copy| [copy.platform, copy.storefront, copy.access_method.humanize, copy.ownership_status.humanize].compact_blank.join(' / ') }.join(' · ') %></td>
+          <td><%= library.game_playthroughs.map { |run| run.status.humanize }.uniq.join(' · ') %></td>
+          <td><%= library.rating.presence || 'Unrated' %></td><td><%= game_playtime(game[:recorded_minutes]) %></td>
+          <td><%= game[:last_played_at].present? ? Time.zone.parse(game[:last_played_at].to_s).to_date : 'No sessions' %></td>
+        <% end %>
+      </tr>
+    <% end %></tbody>
+  </table>
+</div>

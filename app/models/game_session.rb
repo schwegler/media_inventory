@@ -5,6 +5,14 @@ class GameSession < ApplicationRecord
   validates :started_at, :ended_at, presence: true
   validate :valid_duration
 
+  def self.duration_sql
+    if connection.adapter_name == 'PostgreSQL'
+      'EXTRACT(EPOCH FROM (game_sessions.ended_at - game_sessions.started_at))'
+    else
+      '(julianday(game_sessions.ended_at) - julianday(game_sessions.started_at)) * 86400.0'
+    end
+  end
+
   def duration_minutes
     ((ended_at - started_at) / 60).round(1) if started_at && ended_at
   end
