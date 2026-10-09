@@ -66,7 +66,7 @@ module GameProviders
       attempts = 0
       begin
         attempts += 1
-        MediaSources::Http.get(uri, deadline: @deadline)
+        MediaSources::Http.get(uri, deadline: @deadline, options: { headers: request_headers })
       rescue MediaSources::Http::Error, Timeout::Error, SocketError => e
         transient = !e.is_a?(MediaSources::Http::Error) || e.message.match?(/\AHTTP 5\d\d\z/)
         remaining = @deadline.nil? || @deadline - Process.clock_gettime(Process::CLOCK_MONOTONIC) > 1
@@ -76,6 +76,10 @@ module GameProviders
         sleep(0.05 + (rand * 0.1))
         retry
       end
+    end
+
+    def request_headers
+      {}
     end
 
     def claim_request!

@@ -2,6 +2,7 @@
 
 SampleApp::Application.routes.draw do
   resources :game_library_views, only: %i[create destroy]
+  get 'users/:user_id/games', to: 'game_shelves#show', as: :game_shelf
   get 'game_import/new', to: 'game_imports#new', as: :new_game_import
   post 'game_import/preview', to: 'game_imports#preview', as: :preview_game_import
   post 'game_import', to: 'game_imports#create', as: :game_import
@@ -11,6 +12,8 @@ SampleApp::Application.routes.draw do
   post 'video_games/:video_game_id/cover', to: 'game_artwork#cover', as: :game_cover
   post 'video_games/:video_game_id/tracking', to: 'game_tracking#create', as: :game_tracking
   patch 'video_games/:video_game_id/tracking/:id', to: 'game_tracking#update', as: :game_progress
+  delete 'video_games/:video_game_id/tracking/:id', to: 'game_tracking#destroy', as: :delete_game_tracking
+  patch 'video_games/:video_game_id/preferences', to: 'game_tracking#preferences', as: :game_preferences
   post 'video_games/:video_game_id/artwork/repair', to: 'game_artwork#repair', as: :repair_game_artwork
   get 'video_games/:video_game_id/export', to: 'game_tracking#export', as: :export_game
   get 'media/covers/:type/:id', to: 'media_covers#show', as: :media_cover, constraints: { id: /\d+/ }

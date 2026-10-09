@@ -16,18 +16,14 @@
       <%= f.submit 'Save my cover', class: 'btn btn-primary' %>
     <% end %>
   </details>
+  <%= render 'game_organization', library: library %>
   <h3>My copies</h3>
   <% library.game_copies.each do |copy| %>
-    <p><%= copy.platform %> · <%= copy.storefront %> · <%= copy.edition %> · <%= copy.ownership_status.humanize %> · <%= copy.access_method.humanize %><% if copy.imported_playtime_minutes %> · Steam lifetime: <%= copy.imported_playtime_minutes %> minutes (not recorded sessions)<% end %></p>
+    <p><%= copy.platform %> · <%= copy.storefront %> · <%= copy.edition %> · <%= copy.ownership_status.humanize %> · <%= copy.access_method.humanize %><% if copy.imported_playtime_minutes %> · Imported lifetime: <%= copy.imported_playtime_minutes %> minutes (not recorded sessions)<% end %></p>
     <details><summary>Edit this copy</summary>
       <%= form_with url: game_progress_path(video_game_id: library.item_id, id: copy.id), method: :patch, scope: :copy, namespace: "copy_#{copy.id}", class: 'standard-form' do |f| %>
-        <%= hidden_field_tag :kind, 'copy' %>
-        <%= f.label :platform %><%= f.text_field :platform, value: copy.platform, required: true %>
-        <%= f.label :storefront %><%= f.text_field :storefront, value: copy.storefront %>
-        <%= f.label :edition %><%= f.text_field :edition, value: copy.edition %>
-        <%= f.label :ownership_status %><%= f.select :ownership_status, %w[owned wishlist previously_owned].map { |v| [v.humanize, v] }, selected: copy.ownership_status %>
-        <%= f.label :access_method %><%= f.select :access_method, %w[physical digital subscription cloud].map { |v| [v.humanize, v] }, selected: copy.access_method %>
-        <%= f.label :notes %><%= f.text_area :notes, value: copy.notes %>
+        <%= hidden_field_tag :kind, 'copy', id: nil %>
+        <%= render 'copy_fields', f: f, copy: copy %>
         <%= f.submit 'Update copy', class: 'btn btn-primary' %>
       <% end %>
     </details>
@@ -35,18 +31,8 @@
   <details>
     <summary>Add an owned copy or wishlist entry</summary>
     <%= form_with url: game_tracking_path(video_game_id: library.item_id), scope: :copy, class: 'standard-form' do |f| %>
-      <%= hidden_field_tag :kind, 'copy' %>
-      <%= f.label :platform, 'Hardware platform' %><%= f.text_field :platform, required: true, placeholder: 'Windows PC, Nintendo Switch 2, Xbox Series X…' %>
-      <%= f.label :storefront %><%= f.text_field :storefront, placeholder: 'Steam, GOG, retail…' %>
-      <%= f.label :edition %><%= f.text_field :edition %>
-      <%= f.label :ownership_status %><%= f.select :ownership_status, %w[owned wishlist previously_owned].map { |v| [v.humanize, v] } %>
-      <%= f.label :access_method %><%= f.select :access_method, %w[physical digital subscription cloud].map { |v| [v.humanize, v] } %>
-      <details><summary>Purchase details</summary>
-        <%= f.label :purchase_date %><%= f.date_field :purchase_date %>
-        <%= f.label :purchase_price %><%= f.number_field :purchase_price, min: 0, step: '0.01' %>
-        <%= f.label :currency, 'Currency (ISO code)' %><%= f.text_field :currency, maxlength: 3, placeholder: 'USD' %>
-        <%= f.label :notes %><%= f.text_area :notes %>
-      </details>
+      <%= hidden_field_tag :kind, 'copy', id: nil %>
+      <%= render 'copy_fields', f: f, copy: nil %>
       <%= f.submit 'Save copy', class: 'btn btn-primary' %>
     <% end %>
   </details>
@@ -57,27 +43,30 @@
       <p>Recorded time: <%= playthrough.game_sessions.sum { |session| session.duration_minutes } %> minutes</p>
       <%= form_with url: game_progress_path(video_game_id: library.item_id, id: playthrough.id), method: :patch, scope: :playthrough, namespace: "playthrough_#{playthrough.id}", class: 'standard-form' do |f| %>
         <%= f.label :status %><%= f.select :status, GamePlaythrough::STATUSES.map { |v| [v.humanize, v] }, selected: playthrough.status %>
+        <%= f.label :platform %><%= f.text_field :platform, value: playthrough.platform %>
+        <%= f.label :difficulty %><%= f.text_field :difficulty, value: playthrough.difficulty %>
+        <%= f.label :route, 'Ending or route' %><%= f.text_field :route, value: playthrough.route %>
+        <%= f.label :started_on %><%= f.date_field :started_on, value: playthrough.started_on %>
+        <%= f.label :completed_on %><%= f.date_field :completed_on, value: playthrough.completed_on %>
         <%= f.label :progress, 'Progress (%)' %><%= f.number_field :progress, value: playthrough.progress, min: 0, max: 100 %>
         <%= f.label :notes %><%= f.text_area :notes, value: playthrough.notes %>
         <%= f.submit 'Update progress', class: 'btn btn-primary' %>
       <% end %>
       <% playthrough.game_sessions.order(started_at: :desc).each do |session| %>
-        <p><%= session.started_at.to_fs(:short) %> · <%= session.duration_minutes %> min · <%= session.notes %></p>
+        <p><%= session.started_at.to_fs(:short) %> · <%= session.duration_minutes %> min · <%= session.notes %> · <%= session.milestones %><% if session.progress %> · Progress: <%= session.progress %>%<% end %></p>
+        <%= render 'session_edit', library: library, session: session %>
       <% end %>
       <h4>Record a session</h4>
       <%= form_with url: game_tracking_path(video_game_id: library.item_id), scope: :session, namespace: "session_#{playthrough.id}", class: 'standard-form' do |f| %>
-        <%= hidden_field_tag :kind, 'session' %><%= hidden_field_tag :playthrough_id, playthrough.id %>
-        <%= f.label :started_at, 'Started (application time zone)' %><%= f.datetime_local_field :started_at, required: true %>
-        <%= f.label :ended_at, 'Ended (application time zone)' %><%= f.datetime_local_field :ended_at, required: true %>
-        <%= f.label :notes %><%= f.text_area :notes %>
-        <%= f.label :milestones, 'Manual milestones' %><%= f.text_area :milestones %>
+        <%= hidden_field_tag :kind, 'session', id: nil %><%= hidden_field_tag :playthrough_id, playthrough.id, id: nil %>
+        <%= render 'session_fields', f: f, session: nil %>
         <%= f.submit 'Save session', class: 'btn btn-primary' %>
       <% end %>
     </details>
   <% end %>
   <details><summary>Start a playthrough</summary>
     <%= form_with url: game_tracking_path(video_game_id: library.item_id), scope: :playthrough, class: 'standard-form' do |f| %>
-      <%= hidden_field_tag :kind, 'playthrough' %>
+      <%= hidden_field_tag :kind, 'playthrough', id: nil %>
       <%= f.label :platform %><%= f.text_field :platform %>
       <%= f.label :status %><%= f.select :status, GamePlaythrough::STATUSES.map { |v| [v.humanize, v] } %>
       <%= f.label :started_on %><%= f.date_field :started_on %>
@@ -86,12 +75,13 @@
       <%= f.submit 'Start playthrough', class: 'btn btn-primary' %>
     <% end %>
   </details>
+  <%= render 'milestones', library: library %>
   <h3>Private journal</h3>
   <% library.game_journal_entries.order(created_at: :desc).each do |entry| %>
-    <details><summary><%= entry.created_at.to_date %><%= ' · Spoilers' if entry.spoiler? %></summary><%= simple_format(entry.body) %></details>
+    <details><summary><%= entry.created_at.to_date %><%= ' · Spoilers' if entry.spoiler? %></summary><%= simple_format(entry.body) %><%= render 'journal_edit', library: library, entry: entry %></details>
   <% end %>
   <%= form_with url: game_tracking_path(video_game_id: library.item_id), scope: :journal, class: 'standard-form' do |f| %>
-    <%= hidden_field_tag :kind, 'journal' %>
+    <%= hidden_field_tag :kind, 'journal', id: nil %>
     <%= f.label :body, 'Private notes' %><%= f.text_area :body, required: true %>
     <%= f.check_box :spoiler %><%= f.label :spoiler, 'Contains spoilers' %>
     <%= f.submit 'Save journal entry', class: 'btn btn-primary' %>

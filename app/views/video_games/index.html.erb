@@ -17,6 +17,8 @@
       <%= link_to label, video_games_path(library: 'mine', play_status: value) %>
     <% end %>
     <%= link_to 'Wishlist', video_games_path(library: 'mine', ownership_status: 'wishlist') %>
+    <%= link_to 'Favorites', video_games_path(library: 'mine', favorite: '1') %>
+    <%= link_to 'My public game shelf', game_shelf_path(current_user) %>
     <% @saved_views.each do |view| %>
       <%= link_to view.name, video_games_path(library: 'mine', view: view.id), aria: { current: @saved_view == view ? 'page' : nil } %>
     <% end %>

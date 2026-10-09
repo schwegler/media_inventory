@@ -7,14 +7,7 @@ class GameTrackingController < ApplicationController
   before_action :load_library
 
   def create
-    record = case params[:kind]
-             when 'copy' then @library.game_copies.new(copy_params)
-             when 'playthrough' then @library.game_playthroughs.new(playthrough_params)
-             when 'journal' then @library.game_journal_entries.new(params.require(:journal).permit(:body, :spoiler))
-             when 'session'
-               @library.game_playthroughs.find(params[:playthrough_id]).game_sessions.new(session_params)
-             else return head :bad_request
-             end
+    record = tracking_scope.new(tracking_params)
     if record.save
       redirect_to video_game_path(@library.item, anchor: 'my-game-tracking'), notice: 'Gaming record saved.',
                                                                               status: :see_other
@@ -25,13 +18,29 @@ class GameTrackingController < ApplicationController
   end
 
   def update
-    record = params[:kind] == 'copy' ? @library.game_copies.find(params[:id]) : @library.game_playthroughs.find(params[:id])
-    fields = params[:kind] == 'copy' ? copy_params : playthrough_params
+    record = tracking_scope.find(params[:id])
+    fields = tracking_params
     if record.update(fields)
-      redirect_to video_game_path(@library.item, anchor: 'my-game-tracking'), notice: 'Progress updated.',
+      redirect_to video_game_path(@library.item, anchor: 'my-game-tracking'), notice: 'Gaming record updated.',
                                                                               status: :see_other
     else
       redirect_to video_game_path(@library.item), alert: record.errors.full_messages.join(', '), status: :see_other
+    end
+  end
+
+  def destroy
+    tracking_scope.find(params[:id]).destroy!
+    redirect_to video_game_path(@library.item, anchor: 'my-game-tracking'), notice: 'Gaming record removed.',
+                                                                            status: :see_other
+  end
+
+  def preferences
+    fields = params.require(:preferences).permit(:game_favorite, :game_activity_public, :tags)
+    tags = fields.delete(:tags).to_s.split(',').map(&:strip).reject(&:blank?).uniq
+    if @library.update(fields.merge(game_tags: tags))
+      redirect_to video_game_path(@library.item), notice: 'Game organization updated.', status: :see_other
+    else
+      redirect_to video_game_path(@library.item), alert: @library.errors.full_messages.join(', '), status: :see_other
     end
   end
 
@@ -50,17 +59,27 @@ class GameTrackingController < ApplicationController
     @library = current_user.library_items.where(item_type: 'VideoGame').find_by!(item_id: params[:video_game_id])
   end
 
-  def copy_params
-    params.require(:copy).permit(:platform, :storefront, :edition, :ownership_status, :access_method,
-                                 :purchase_date, :purchase_price, :currency, :notes)
+  def tracking_scope
+    case params[:kind]
+    when 'copy' then @library.game_copies
+    when 'playthrough', nil then @library.game_playthroughs
+    when 'journal' then @library.game_journal_entries
+    when 'milestone' then @library.game_milestones
+    when 'session'
+      return @library.game_playthroughs.find(params[:playthrough_id]).game_sessions if action_name == 'create'
+
+      GameSession.where(game_playthrough_id: @library.game_playthroughs.select(:id))
+    else raise ActionController::BadRequest, 'Unsupported gaming record'
+    end
   end
 
-  def playthrough_params
-    params.require(:playthrough).permit(:platform, :status, :difficulty, :route, :progress, :started_on, :completed_on,
-                                        :notes)
-  end
-
-  def session_params
-    params.require(:session).permit(:started_at, :ended_at, :notes, :milestones)
+  def tracking_params
+    case params[:kind]
+    when 'copy' then params.require(:copy).permit(*GameCollectionImport::COPY_FIELDS)
+    when 'journal' then params.require(:journal).permit(:body, :spoiler)
+    when 'milestone' then params.require(:milestone).permit(*GameCollectionImport::MILESTONE_FIELDS)
+    when 'session' then params.require(:session).permit(*GameCollectionImport::SESSION_FIELDS)
+    else params.require(:playthrough).permit(*GameCollectionImport::PLAY_FIELDS)
+    end
   end
 end

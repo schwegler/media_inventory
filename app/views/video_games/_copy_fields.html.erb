@@ -1,0 +1,15 @@
+<%= f.label :platform, 'Hardware platform' %><%= f.text_field :platform, value: copy&.platform, required: true, placeholder: 'Windows PC, Nintendo Switch 2, Xbox Series X…' %>
+<%= f.label :storefront %><%= f.text_field :storefront, value: copy&.storefront, placeholder: 'Steam, GOG, retail…' %>
+<%= f.label :edition %><%= f.text_field :edition, value: copy&.edition %>
+<%= f.label :ownership_status %><%= f.select :ownership_status, %w[owned wishlist previously_owned].map { |v| [v.humanize, v] }, selected: copy&.ownership_status %>
+<%= f.label :access_method %><%= f.select :access_method, %w[physical digital subscription cloud].map { |v| [v.humanize, v] }, selected: copy&.access_method %>
+<details><summary>Purchase and physical-copy details</summary>
+  <%= f.label :purchase_date %><%= f.date_field :purchase_date, value: copy&.purchase_date %>
+  <%= f.label :purchase_price %><%= f.number_field :purchase_price, value: copy&.purchase_price, min: 0, step: '0.01' %>
+  <%= f.label :currency, 'Currency (ISO code)' %><%= f.text_field :currency, value: copy&.currency, maxlength: 3, placeholder: 'USD' %>
+  <%= f.label :acquisition_source, 'Acquired from' %><%= f.text_field :acquisition_source, value: copy&.acquisition_source, maxlength: 200 %>
+  <%= f.check_box :gifted, checked: copy&.gifted? %><%= f.label :gifted, 'Received as a gift' %>
+  <%= f.label :condition, 'Physical condition' %><%= f.text_field :condition, value: copy&.condition, maxlength: 200, placeholder: 'Complete in box, loose cartridge…' %>
+  <%= f.label :region %><%= f.text_field :region, value: copy&.region, maxlength: 200 %>
+  <%= f.label :notes, 'Private purchase notes' %><%= f.text_area :notes, value: copy&.notes %>
+</details>

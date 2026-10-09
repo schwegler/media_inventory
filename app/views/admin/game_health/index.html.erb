@@ -2,6 +2,7 @@
 <header class="page-header"><h1>Game integration health</h1><%= link_to 'Command Center', admin_root_path %></header>
 <p>Missing attached covers: <%= @missing %> · Shared cover assets: <%= @assets %> · References: <%= @references %> · Stored originals: <%= number_to_human_size(@bytes) %></p>
 <p>Import states: <%= @counts.map { |state, count| "#{state}: #{count}" }.join(' · ') %></p>
+<p>Metadata enrichment: <%= @enrichment.map { |state, count| "#{state}: #{count}" }.join(' · ') %> · Never enriched: <%= @never_enriched %></p>
 <p>These counts describe persisted imports and attachments. They do not imply a successful live provider probe or verified disk health.</p>
 <section class="panel"><h2>Provider configuration</h2>
 <% @providers.each do |source, enabled, credential, health| %><p><strong><%= source %></strong>: <%= enabled && credential ? 'Configured' : 'Disabled or missing credential' %> · Observed: <%= health[:state] %></p><% end %>

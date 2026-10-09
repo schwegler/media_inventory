@@ -3,6 +3,9 @@
 class GameSession < ApplicationRecord
   belongs_to :game_playthrough
   validates :started_at, :ended_at, presence: true
+  validates :enjoyment, numericality: { only_integer: true, in: 1..5 }, allow_nil: true
+  validates :progress, numericality: { only_integer: true, in: 0..100 }, allow_nil: true
+  validates :mood, length: { maximum: 80 }
   validate :valid_duration
 
   def self.duration_sql

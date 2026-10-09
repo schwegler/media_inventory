@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_09_181000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_09_182500) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -172,9 +172,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_181000) do
 
   create_table "game_copies", force: :cascade do |t|
     t.string "access_method", default: "digital", null: false
+    t.string "acquisition_source"
+    t.string "condition"
     t.datetime "created_at", null: false
     t.string "currency"
     t.string "edition"
+    t.boolean "gifted", default: false, null: false
     t.integer "imported_playtime_minutes"
     t.integer "library_item_id", null: false
     t.text "notes"
@@ -182,6 +185,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_181000) do
     t.string "platform", null: false
     t.date "purchase_date"
     t.decimal "purchase_price", precision: 12, scale: 2
+    t.string "region"
     t.string "steam_app_id"
     t.string "storefront"
     t.datetime "updated_at", null: false
@@ -218,6 +222,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_181000) do
     t.index ["user_id"], name: "index_game_library_views_on_user_id"
   end
 
+  create_table "game_milestones", force: :cascade do |t|
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.integer "game_playthrough_id"
+    t.integer "library_item_id", null: false
+    t.boolean "spoiler", default: false, null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["game_playthrough_id"], name: "index_game_milestones_on_game_playthrough_id"
+    t.index ["library_item_id"], name: "index_game_milestones_on_library_item_id"
+  end
+
   create_table "game_playthroughs", force: :cascade do |t|
     t.date "completed_on"
     t.datetime "created_at", null: false
@@ -236,9 +253,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_181000) do
   create_table "game_sessions", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "ended_at", null: false
+    t.integer "enjoyment"
     t.integer "game_playthrough_id", null: false
     t.text "milestones"
+    t.string "mood"
     t.text "notes"
+    t.integer "progress"
     t.datetime "started_at", null: false
     t.datetime "updated_at", null: false
     t.index ["game_playthrough_id"], name: "index_game_sessions_on_game_playthrough_id"
@@ -248,6 +268,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_181000) do
     t.boolean "consumed"
     t.date "consumed_at"
     t.datetime "created_at", null: false
+    t.boolean "game_activity_public", default: false, null: false
+    t.boolean "game_favorite", default: false, null: false
+    t.json "game_tags", default: [], null: false
     t.boolean "in_backlog"
     t.boolean "is_collected"
     t.boolean "is_public"
@@ -487,6 +510,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_181000) do
   add_foreign_key "game_external_ids", "video_games"
   add_foreign_key "game_journal_entries", "library_items"
   add_foreign_key "game_library_views", "users"
+  add_foreign_key "game_milestones", "game_playthroughs"
+  add_foreign_key "game_milestones", "library_items"
   add_foreign_key "game_playthroughs", "library_items"
   add_foreign_key "game_sessions", "game_playthroughs"
   add_foreign_key "library_items", "users"

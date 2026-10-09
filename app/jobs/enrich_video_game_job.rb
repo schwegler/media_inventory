@@ -18,9 +18,12 @@ class EnrichVideoGameJob < ApplicationJob
       end
       game.save! if game.changed?
       refresh = MetadataRefresh.create_or_find_by!(item: game)
-      refresh.update!(provider: adapter.provider, provider_values: refresh.provider_values.merge(values))
+      refresh.update!(provider: adapter.provider, provider_values: refresh.provider_values.merge(values),
+                      state: values.any? ? 'success' : 'unchanged', requested_at: Time.current,
+                      succeeded_at: Time.current)
     end
   rescue MetadataProvider::Unavailable, MetadataProvider::RateLimited, MetadataProvider::Unsupported
     Rails.logger.info "Game enrichment unavailable for VideoGame##{game.id}"
+    MetadataRefresh.create_or_find_by!(item: game).update!(state: 'unavailable', requested_at: Time.current)
   end
 end

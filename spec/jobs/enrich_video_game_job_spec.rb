@@ -14,3 +14,13 @@ RSpec.describe EnrichVideoGameJob do
                                            thumbnail_url: '/rails/active_storage/blobs/proxy/selected/cover.webp')
   end
 end
+
+RSpec.describe 'Game enrichment failure observability' do
+  it 'persists unavailable state without changing catalog or personal records' do
+    game = VideoGame.create!(title: 'Keep this game')
+    allow_any_instance_of(MetadataProvider).to receive(:call).and_raise(MetadataProvider::Unavailable)
+    EnrichVideoGameJob.perform_now(game)
+    expect(game.metadata_refresh.reload.state).to eq('unavailable')
+    expect(game.reload.title).to eq('Keep this game')
+  end
+end

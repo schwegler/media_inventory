@@ -7,6 +7,8 @@ class GameCopy < ApplicationRecord
   validates :access_method, inclusion: { in: %w[physical digital subscription cloud] }
   validates :purchase_price, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
   validates :currency, format: { with: /\A[A-Z]{3}\z/ }, allow_blank: true
+  validates :acquisition_source, :condition, :region, length: { maximum: 200 }
+  validates :imported_playtime_minutes, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
   validate :game_library
 
   private

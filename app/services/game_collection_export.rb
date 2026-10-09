@@ -11,7 +11,7 @@ class GameCollectionExport
       playthroughs: library.game_playthroughs.includes(:game_sessions).map do |entry|
         entry.attributes.merge('sessions' => entry.game_sessions.map(&:attributes))
       end,
-      journal: library.game_journal_entries.map(&:attributes)
+      journal: library.game_journal_entries.map(&:attributes), milestones: library.game_milestones.map(&:attributes)
     }.to_json
   end
 

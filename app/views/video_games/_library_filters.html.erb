@@ -16,6 +16,8 @@
       <div><%= f.label :developer %><%= f.text_field :developer, value: @filters['developer'] %></div>
       <div><%= f.label :publisher %><%= f.text_field :publisher, value: @filters['publisher'] %></div>
       <% if @personal_library %>
+        <div><%= f.label :tag, 'My tag' %><%= f.text_field :tag, value: @filters['tag'], maxlength: 40 %></div>
+        <div><%= f.label :favorite, 'Favorites' %><%= f.select :favorite, [['All games', ''], ['Favorites only', '1']], selected: @filters['favorite'] %></div>
         <div><%= f.label :platform, 'My platform' %><%= f.select :platform, @platforms, { include_blank: 'All platforms', selected: @filters['platform'] } %></div>
         <div><%= f.label :storefront %><%= f.select :storefront, @storefronts, { include_blank: 'All storefronts', selected: @filters['storefront'] } %></div>
         <div><%= f.label :ownership_status, 'Ownership' %><%= f.select :ownership_status, [['All', ''], ['Owned', 'owned'], ['Wishlist', 'wishlist'], ['Previously owned', 'previously_owned']], selected: @filters['ownership_status'] %></div>

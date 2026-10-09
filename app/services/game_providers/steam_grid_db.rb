@@ -22,23 +22,20 @@ module GameProviders
     def artwork(steam_id)
       return [] unless enabled? && steam_id.to_s.match?(/\A\d+\z/)
 
-      config = ApiConfiguration.find_by!(source_name: name, media_type: 'VideoGame', is_active: true)
-      uri = URI("https://www.steamgriddb.com/api/v2/grids/steam/#{steam_id}")
-      uri.query = URI.encode_www_form(dimensions: '600x900', types: 'static')
-      key = ['steam-grid-artwork', steam_id]
-      MediaSources::Registry::CACHE.fetch(key, expires_in: 6.hours) do
-        claim_request!
-        options = { headers: { 'Authorization' => "Bearer #{config.access_token}" } }
-        data = JSON.parse(MediaSources::Http.get(uri, deadline: @deadline, options: options))
-        raise Unavailable unless data['success'] == true && data['data'].is_a?(Array)
+      data = json("https://www.steamgriddb.com/api/v2/grids/steam/#{steam_id}", dimensions: '600x900', types: 'static')
+      raise Unavailable unless data['success'] == true && data['data'].is_a?(Array)
 
-        format_candidates(data['data'])
-      end
+      format_candidates(data['data'])
     rescue MediaSources::Http::Error, JSON::ParserError, Timeout::Error, SocketError, OpenSSL::SSL::SSLError, Unavailable
       []
     end
 
     private
+
+    def request_headers
+      config = ApiConfiguration.find_by!(source_name: name, media_type: 'VideoGame', is_active: true)
+      { 'Authorization' => "Bearer #{config.access_token}" }
+    end
 
     def format_candidates(rows)
       rows.select { |row| row.is_a?(Hash) && row['width'].to_i == 600 && row['height'].to_i == 900 }

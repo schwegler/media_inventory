@@ -41,3 +41,36 @@ RSpec.describe GameCollectionImport do
     expect { described_class.preview('x' * (described_class::MAX_BYTES + 1)) }.to raise_error(described_class::Invalid)
   end
 end
+
+RSpec.describe 'Portable game import identity and personal fields' do
+  let(:user) { User.create!(name: 'Player', email: 'player@example.com', password: 'password123') }
+  let(:game) { VideoGame.create!(title: 'Portal', api_id: 'steam_400') }
+  it 'resolves a known external identifier instead of trusting another catalogs numeric ID' do
+    other_game = VideoGame.create!(title: 'An unrelated game')
+    data = { version: 1, game: { id: other_game.id, title: 'Portal', api_id: 'steam_400' },
+             external_ids: [{ provider: 'steam', external_id: '400' }],
+             collection: { rating: '4.5', review: 'Imported review', game_favorite: true,
+                           game_tags: ['Puzzle'], game_activity_public: true },
+             milestones: [{ title: 'Finish campaign' }] }
+    game
+    preview = GameCollectionImport.preview(data.to_json)
+    library = GameCollectionImport.apply(user, preview)
+    expect(library.item).to eq(game)
+    expect(library).to have_attributes(rating: '4.5', review: 'Imported review', game_tags: ['Puzzle'],
+                                       game_favorite: true, game_activity_public: false)
+    expect(library.game_milestones.pluck(:title)).to eq(['Finish campaign'])
+    exported = JSON.parse(GameCollectionExport.json(library))
+    expect(exported['milestones'].first['title']).to eq('Finish campaign')
+  end
+  it 'rejects conflicting provider identities and mismatched internal IDs before writing' do
+    game
+    second = VideoGame.create!(title: 'Another game', api_id: 'rawg_22')
+    data = { version: 1, game: { id: game.id, title: game.title }, external_ids: [
+      { provider: 'steam', external_id: '400' }, { provider: 'rawg', external_id: '22' }
+    ] }
+    expect { GameCollectionImport.preview(data.to_json) }.to raise_error(GameCollectionImport::Invalid, /Conflicting/)
+    expect { GameCollectionImport.preview({ version: 1, game: { id: second.id, title: game.title } }.to_json) }
+      .to raise_error(GameCollectionImport::Invalid, /disagree/)
+    expect(LibraryItem.count).to eq(0)
+  end
+end

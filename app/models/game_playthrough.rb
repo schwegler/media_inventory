@@ -4,6 +4,7 @@ class GamePlaythrough < ApplicationRecord
   STATUSES = %w[backlog currently_playing paused completed beaten fully_completed dropped replay_planned replaying].freeze
   belongs_to :library_item
   has_many :game_sessions, dependent: :destroy
+  has_many :game_milestones, dependent: :nullify
   validates :status, inclusion: { in: STATUSES }
   validates :progress, numericality: { only_integer: true, in: 0..100 }
   validate :valid_dates_and_game
