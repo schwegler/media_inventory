@@ -1,6 +1,9 @@
 <aside class="settings-sidebar">
   <nav aria-label="Settings">
-    <%= link_to 'Appearance', settings_appearance_path, class: "settings-nav-item #{'active' if action_name.include?('appearance')}", aria: { current: action_name.include?('appearance') ? 'page' : nil } %>
+    <%= link_to settings_appearance_path, class: "settings-nav-item #{'active' if action_name.include?('appearance')}", aria: { current: action_name.include?('appearance') ? 'page' : nil } do %>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"></path></svg>
+      <span>Appearance</span>
+    <% end %>
     <%= link_to settings_basic_info_path, class: "settings-nav-item #{'active' if action_name == 'basic_info'}", aria: { current: action_name == 'basic_info' ? 'page' : nil } do %>
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
       <span>Basic Information</span>
