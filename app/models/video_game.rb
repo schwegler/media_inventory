@@ -4,7 +4,7 @@ class VideoGame < ApplicationRecord
   include ReadableCatalogUrl
   include LibraryItemFormAttributes
 
-  attr_accessor :copy_platform, :storefront, :edition, :access_method, :ownership_status, :play_status
+  attr_accessor :catalog_selection, :copy_platform, :storefront, :edition, :access_method, :ownership_status, :play_status
 
   include StoredMediaCover
 

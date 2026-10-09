@@ -31,11 +31,7 @@ class InventoryController < ApplicationController
     # Handle the transition from watchlist to backlog
     library_params[:in_backlog] = library_params.delete(:in_watchlist) if library_params.key?(:in_watchlist)
 
-    @resource = if global_params[:api_id].present?
-                  resource_class.find_or_initialize_by(api_id: global_params[:api_id])
-                else
-                  resource_class.find_or_initialize_by(title: global_params[:title])
-                end
+    @resource = resolve_catalog_resource(global_params)
 
     # Logging a shared game must not overwrite another user's curated catalog.
     @resource.assign_attributes(global_params) unless @resource.is_a?(VideoGame) && @resource.persisted?
@@ -156,6 +152,11 @@ class InventoryController < ApplicationController
   end
 
   private
+
+  def resolve_catalog_resource(attributes)
+    key = attributes[:api_id].present? ? :api_id : :title
+    resource_class.find_or_initialize_by(key => attributes[key])
+  end
 
   def enqueue_initial_metadata
     return if @resource.is_a?(VideoGame)

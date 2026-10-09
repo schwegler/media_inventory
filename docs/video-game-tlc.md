@@ -133,3 +133,9 @@ Images are validated, normalized, content-deduplicated and quota-checked. Respon
 Full suite: **560 examples, 0 failures, 9 existing pending examples**, seed 56426. Focused tests cover real WebP decoding, aspect ratio/transparency, content deduplication, failure preservation, private upload ownership, signed recovery and safe cleanup. Chromium desktop/mobile checks exercised real Steam supplemental downloads, private upload/removal and local responsive image selection without console errors or page overflow. Credentialed SteamGridDB calls remain fixture-tested rather than live-tested. Brakeman retains the same two baseline weak-confidence warnings.
 
 Artwork migration passed an isolated up/down/up check. Rails eager loading passed; RuboCop inspected 421 files without offenses. Final artwork-focused checks passed (8 examples), including explicit failed-rendition retry without duplicate jobs.
+
+## Follow-up: canonical identity during logging
+
+Logging a provider result now resolves known external-ID mappings before creating a game. Conflicting primary/mapped/local identities are rejected for catalog review. Explicit local autocomplete selections carry a signed 30-minute token, including games without provider IDs. Tampered, expired or deleted selections fail without mutating the library. Shared canonical metadata and existing personal history remain intact. Manual same-title entries create distinct catalog records rather than silently combining releases; users can choose an existing local result to reuse it. Changing the search title or choosing Add Manually clears stale provider and catalog selections.
+
+Focused identity and shared inventory regression checks passed (26 examples after correcting the test time-helper setup). Mobile Chromium verified a real local selection followed by Back, title change and manual entry: the signed selection and provider ID reset, with no browser errors or page overflow.

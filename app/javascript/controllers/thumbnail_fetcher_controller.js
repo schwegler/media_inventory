@@ -20,7 +20,7 @@ export default class extends Controller {
   static targets = [
     "titleInput", "secondaryInput", "previewImg", "placeholder", "statusText", "optionsGrid", "thumbnailUrl",
     "director", "artist", "writer", "publisher", "releaseYear", "genre", "network", "venue", "promotion", "date",
-    "season", "episode", "issueNumber", "apiId", "externalUrl", "manualFormSection", "developer", "platform",
+    "season", "episode", "issueNumber", "apiId", "catalogSelection", "externalUrl", "manualFormSection", "developer", "platform",
     "searchStage", "detailsStage", "backBtn", "modalTitle", "selectedTitleDisplay", "gameType", "author", "searchYear", "submitButton"
   ]
   static values = { mediaType: String }
@@ -82,6 +82,7 @@ export default class extends Controller {
   }
 
   search() {
+    this.clearGameIdentity()
     this.searchAbortController?.abort()
     this.currentQuery = this.searchQuery()
     this.statusTextTarget.textContent = this.currentQuery ? "Searching…" : "Type title to fetch covers..."
@@ -126,6 +127,7 @@ export default class extends Controller {
   }
 
   showManualForm() {
+    this.clearGameIdentity()
     const title = this.titleInputTarget.value.trim() || "New Item"
     const releaseYearVal = this.releaseYearTargets.length > 0 ? this.releaseYearTarget.value : null
     this.showDetailsStage(title, releaseYearVal)
@@ -300,6 +302,13 @@ export default class extends Controller {
     }
   }
 
+  clearGameIdentity() {
+    if (this.mediaTypeValue !== "video_game") return
+    if (this.hasCatalogSelectionTarget) this.catalogSelectionTarget.value = ""
+    if (this.hasApiIdTarget) this.apiIdTarget.value = ""
+    if (this.hasExternalUrlTarget) this.externalUrlTarget.value = ""
+  }
+
   selectOption(option, isManualClick = false) {
     // 1. Update cover art URL and previews
     this.thumbnailUrlTarget.value = option.cover_source_url || option.thumbnail_url || ""
@@ -333,6 +342,7 @@ export default class extends Controller {
       if (this.hasEpisodeTarget) this.episodeTarget.value = option.episode || ""
       if (this.hasIssueNumberTarget) this.issueNumberTarget.value = option.issue_number || ""
       if (this.hasApiIdTarget) this.apiIdTarget.value = option.api_id || ""
+      if (this.hasCatalogSelectionTarget) this.catalogSelectionTarget.value = option.catalog_selection || ""
       if (this.hasExternalUrlTarget) this.externalUrlTarget.value = option.external_url || ""
 
       // 4. Transition to details view!

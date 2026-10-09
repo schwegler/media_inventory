@@ -3,6 +3,14 @@
 class VideoGamesController < InventoryController
   before_action :logged_in_user, only: %i[new create edit update destroy sync_steam]
 
+  def create
+    super
+  rescue GameCatalogIdentity::Invalid => e
+    @video_game = VideoGame.new(resource_params.except(:catalog_selection))
+    @video_game.errors.add(:base, e.message)
+    render :new, status: :unprocessable_content
+  end
+
   def sync_steam
     return head :unprocessable_content unless params[:authorized] == '1' && params[:steam_id].to_s.match?(/\A\d{17}\z/)
 
@@ -37,6 +45,11 @@ class VideoGamesController < InventoryController
 
   private
 
+  def resolve_catalog_resource(attributes)
+    token = attributes.delete(:catalog_selection)
+    GameCatalogIdentity.resolve(attributes, token)
+  end
+
   def prepare_library
     @game_statistics = GameLibraryStatistics.call(current_user)
     libraries = current_user.library_items.where(item_type: 'VideoGame')
@@ -65,7 +78,7 @@ class VideoGamesController < InventoryController
 
   def resource_params
     params.require(:video_game).permit(
-      :copy_platform, :storefront, :edition, :access_method, :ownership_status, :play_status,
+      :catalog_selection, :copy_platform, :storefront, :edition, :access_method, :ownership_status, :play_status,
       :title, :game_type, :developer, :publisher, :platform, :release_year, :rating, :is_public, :thumbnail_url,
       :in_watchlist,
       :is_collected, :consumed, :consumed_at, :review, :cover_image, :api_id, :external_url,

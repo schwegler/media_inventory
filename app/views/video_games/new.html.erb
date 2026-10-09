@@ -23,6 +23,7 @@
             <% end %>
 
             <%= f.hidden_field :game_type, data: { thumbnail_fetcher_target: "gameType" } %>
+            <%= f.hidden_field :catalog_selection, data: { thumbnail_fetcher_target: "catalogSelection" } %>
             <%= f.hidden_field :api_id, data: { thumbnail_fetcher_target: "apiId" } %>
             <%= f.hidden_field :external_url, data: { thumbnail_fetcher_target: "externalUrl" } %>
             <%= f.hidden_field :thumbnail_url, data: { thumbnail_fetcher_target: "thumbnailUrl" } %>
