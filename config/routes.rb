@@ -117,7 +117,7 @@ SampleApp::Application.routes.draw do
     resources :edit_suggestions, only: %i[new create]
   end
 
-  get '/settings', to: 'settings#basic_info', as: 'settings'
+  get '/settings', to: 'settings#appearance', as: 'settings'
   scope :settings, as: 'settings' do
     get 'appearance', to: 'settings#appearance'
     patch 'appearance', to: 'settings#update_appearance'
