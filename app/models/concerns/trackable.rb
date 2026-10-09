@@ -58,7 +58,11 @@ module Trackable
                               saved_change_to_rating? &&
                               rating_previously_was_blank?
 
-      create_activity('reviewed') if review_became_present || rating_became_present
+      review_became_public = respond_to?(:saved_change_to_is_public?) &&
+                             saved_change_to_is_public? && is_public? &&
+                             (review.present? || rating.present?)
+
+      create_activity('reviewed') if review_became_present || rating_became_present || review_became_public
     end
   end
   # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity

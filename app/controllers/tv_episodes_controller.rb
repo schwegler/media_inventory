@@ -44,6 +44,6 @@ class TvEpisodesController < ApplicationController
   private
 
   def tv_episode_params
-    params.require(:tv_episode).permit(:consumed, :consumed_at, :rating, :review)
+    params.require(:tv_episode).permit(:consumed, :consumed_at, :rating, :review, :is_public)
   end
 end

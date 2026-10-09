@@ -22,6 +22,16 @@ RSpec.describe 'TvEpisodes', type: :request do
   end
 
   describe 'PATCH /tv_episodes/:id/toggle_watched' do
+    it 'persists public review visibility and queues publishing an existing review' do
+      entry = LibraryItem.create!(user: user, item: tv_episode, review: 'Good episode', is_public: false)
+      allow(SocialPostJob).to receive(:perform_later)
+
+      patch toggle_watched_tv_episode_path(tv_episode), params: { tv_episode: { is_public: '1' } }
+
+      expect(entry.reload).to be_is_public
+      expect(SocialPostJob).to have_received(:perform_later).with(entry, 'reviewed')
+    end
+
     it 'updates watched status successfully' do
       patch toggle_watched_tv_episode_path(tv_episode), params: { tv_episode: { consumed: true } }
       expect(response).to redirect_to(tv_show)

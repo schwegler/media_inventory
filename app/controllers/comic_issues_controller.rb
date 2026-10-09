@@ -41,6 +41,6 @@ class ComicIssuesController < ApplicationController
   private
 
   def comic_issue_params
-    params.require(:comic_issue).permit(:consumed, :consumed_at, :rating, :review)
+    params.require(:comic_issue).permit(:consumed, :consumed_at, :rating, :review, :is_public)
   end
 end
