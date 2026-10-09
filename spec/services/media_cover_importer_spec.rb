@@ -54,6 +54,26 @@ RSpec.describe MediaCoverImporter do
     expect(WebMock).not_to have_requested(:get, legacy)
   end
 
+  it 'repairs legacy Steam CDN covers with query strings' do
+    legacy = 'https://steamcdn-a.akamaihd.net/steam/apps/620/library_600x900.jpg?t=123'
+    header = 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/620/header.jpg'
+    item.update!(thumbnail_url: legacy)
+    stub_request(:get, /appdetails/).to_return(body: { '620' => { data: { header_image: header } } }.to_json)
+    stub_request(:get, header).to_return(body: png)
+    described_class.call(item, legacy)
+    expect(item.reload.cover_image).to be_attached
+    expect(WebMock).not_to have_requested(:get, legacy)
+  end
+
+  it 'imports RAWG artwork from its separate image host' do
+    source = 'https://media.rawg.io/media/games/cover.jpg'
+    item.update!(thumbnail_url: source)
+    stub_request(:get, source).to_return(body: png)
+    described_class.call(item, source)
+    expect(item.reload.cover_image).to be_attached
+    expect(WebMock).to have_requested(:get, source).once
+  end
+
   it 'rejects oversized responses before storing a blob' do
     stub_request(:get, url).to_return(body: png, headers: { 'Content-Length' => (described_class::MAX_BYTES + 1).to_s })
     described_class.call(item, url)

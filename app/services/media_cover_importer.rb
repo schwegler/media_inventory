@@ -107,8 +107,10 @@ class MediaCoverImporter
       uri.port = 443
       url = uri.to_s
     end
-    match = url.match(%r{\Ahttps://[^/]*steamstatic\.com/(?:store_item_assets/)?steam/apps/(\d+)/library_600x900\.jpg\z})
-    return url unless match
+    uri = MediaSources::Http.validated_uri(url)
+    steam_host = uri.host.end_with?('.steamstatic.com') || uri.host == 'steamcdn-a.akamaihd.net'
+    match = uri.path.match(%r{\A/(?:store_item_assets/)?steam/apps/(\d+)/library_600x900\.jpg\z})
+    return url unless steam_host && match
 
     data = JSON.parse(MediaSources::Http.get("https://store.steampowered.com/api/appdetails?appids=#{match[1]}",
                                              deadline: deadline))

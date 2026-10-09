@@ -8,7 +8,7 @@ module MediaSources
   # Both metadata and cover downloads use fixed public provider domains. Redirects
   # pass the same checks; submitted form URLs cannot reach internal services.
   class Http
-    HOSTS = %w[api.themoviedb.org image.tmdb.org api.rawg.io store.steampowered.com
+    HOSTS = %w[api.themoviedb.org image.tmdb.org api.rawg.io media.rawg.io store.steampowered.com
                steamstatic.com steamcdn-a.akamaihd.net itunes.apple.com mzstatic.com
                api.tvmaze.com static.tvmaze.com musicbrainz.org coverartarchive.org
                archive.org comicvine.gamespot.com

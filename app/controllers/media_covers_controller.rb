@@ -13,7 +13,7 @@ class MediaCoversController < ApplicationController
     recover_cover(item) unless available?(item)
     if available?(item)
       expires_in 5.minutes, public: true
-      redirect_to rails_blob_path(item.cover_image, only_path: true)
+      redirect_to rails_storage_proxy_path(item.cover_image, only_path: true)
     else
       response.headers['Cache-Control'] = 'no-store'
       send_file Rails.root.join('public/favicon.svg'), type: 'image/svg+xml', disposition: 'inline'
