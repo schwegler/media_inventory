@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class Comic < ApplicationRecord
+  include ReadableCatalogUrl
   include LibraryItemFormAttributes
 
   include StoredMediaCover

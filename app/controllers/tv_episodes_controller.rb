@@ -5,6 +5,7 @@ class TvEpisodesController < ApplicationController
 
   def show
     @tv_episode = TvEpisode.find(params[:id])
+    return if redirect_to_canonical_url(@tv_episode)
     return unless logged_in?
 
     @library_item = LibraryItem.find_by(user: current_user, item: @tv_episode)

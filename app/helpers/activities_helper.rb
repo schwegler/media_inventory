@@ -81,22 +81,22 @@ module ActivitiesHelper
       "#{user_link} added movie '#{trackable_link}' to their watchlist"
     when 'Album'
       artist = item.artist.present? ? " by #{html_escape(item.artist)}" : ''
-      "#{user_link} added album '#{trackable_link}'#{artist} to their watchlist"
+      "#{user_link} added album '#{trackable_link}'#{artist} to their listening queue"
     when 'Comic'
       issue = item.issue_number.present? ? " issue ##{item.issue_number}" : ''
-      "#{user_link} added comic '#{trackable_link}'#{issue} to their watchlist"
+      "#{user_link} added comic '#{trackable_link}'#{issue} to their reading list"
     when 'TvShow'
       "#{user_link} added TV show '#{trackable_link}' to their watchlist"
     when 'VideoGame'
       "#{user_link} added video game '#{trackable_link}' to their backlog"
     else
-      "#{user_link} added '#{trackable_link}' to their watchlist"
+      "#{user_link} added '#{trackable_link}' to their #{MediaLanguage.for(item)[:list]}"
     end
   end
 
   def consumed_description(user_link, trackable, trackable_link)
     item = trackable.is_a?(LibraryItem) ? trackable.item : trackable
-    verb = consumed_verb(item.class.name)
+    verb = MediaLanguage.for(item)[:past]
     date_str = trackable.consumed_at.present? ? " on #{trackable.consumed_at.strftime('%B %d, %Y')}" : ''
     case item.class.name
     when 'Movie'
@@ -115,16 +115,6 @@ module ActivitiesHelper
       "#{user_link} #{verb} video game '#{trackable_link}'#{date_str}"
     else
       "#{user_link} #{verb} '#{trackable_link}'#{date_str}"
-    end
-  end
-
-  def consumed_verb(klass_name)
-    case klass_name
-    when 'Movie', 'TvShow', 'TvEpisode' then 'watched'
-    when 'VideoGame' then 'played'
-    when 'Album' then 'listened to'
-    when 'Comic' then 'read'
-    else 'consumed'
     end
   end
 end

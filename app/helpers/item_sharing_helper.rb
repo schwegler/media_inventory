@@ -19,6 +19,10 @@ module ItemSharingHelper
     "#{public_trove_origin}#{polymorphic_path(item)}"
   end
 
+  def canonical_collection_url(user)
+    "#{public_trove_origin}#{collection_path(user)}"
+  end
+
   def public_preview_image_url(candidate)
     uri = URI.parse(candidate.to_s)
     return "#{public_trove_origin}#{uri}" if uri.relative? && uri.path.start_with?('/') && !uri.host

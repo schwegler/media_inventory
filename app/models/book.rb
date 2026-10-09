@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class Book < ApplicationRecord
+  include ReadableCatalogUrl
   include LibraryItemFormAttributes
 
   include StoredMediaCover

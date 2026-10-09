@@ -9,7 +9,7 @@ export default class extends Controller {
   update() {
     const samples = {
       title: "The Grand Budapest Hotel", type: "added", rating: "4",
-      review: "A beautifully told story.", link: "https://trove.schweg.xyz/movies/123"
+      review: "A beautifully told story.", link: "https://trove.schweg.xyz/movies/123-example-movie"
     }
     const template = this.inputTarget.value.trim() || this.defaultValue
     const text = template.replace(/\[(title|type|rating|review|link)\]/g, (_, key) => samples[key])

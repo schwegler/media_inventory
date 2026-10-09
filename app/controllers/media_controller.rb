@@ -119,16 +119,21 @@ class MediaController < ApplicationController
     local_results = fetch_local_comics(query)
     web_results = MediaSearchService.call(query, 'comic')
 
-    filter_unique_results(local_results + web_results)
+    ComicSearchQuery.new(query).rank(filter_unique_results(local_results + web_results))
   end
 
   def fetch_local_comics(query)
-    Comic.with_attached_cover_image.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |c|
+    search = ComicSearchQuery.new(query)
+    title_pattern = "%#{Comic.sanitize_sql_like(search.title.downcase)}%"
+    comics = Comic.with_attached_cover_image.where('LOWER(title) LIKE ?', title_pattern)
+    comics = comics.where('title LIKE ?', "% (#{search.year})") if search.year
+    comics.order(title: :asc).limit(100).map do |c|
       {
         title: c.title,
         writer: c.writer,
         artist: c.artist,
         publisher: c.publisher,
+        release_year: c.title[/\((\d{4})\)\z/, 1],
         issue_number: c.issue_number,
         thumbnail_url: c.stored_cover_url,
         cover_source_url: c.cover_image.attached? ? url_for(c.cover_image) : c.thumbnail_url,

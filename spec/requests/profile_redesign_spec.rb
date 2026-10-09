@@ -35,6 +35,11 @@ RSpec.describe 'Profile redesign', type: :request do
   it 'serves readable and legacy numeric URLs, case-insensitively, with a stable canonical link' do
     [user_path(owner), "/users/#{owner.id}", '/users/LIBRARY_OWNER'].each do |url|
       get url
+      unless url == user_path(owner)
+        expect(response).to have_http_status(:moved_permanently)
+        expect(response).to redirect_to(user_path(owner))
+        follow_redirect!
+      end
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('https://trove.schweg.xyz/users/library_owner')
     end

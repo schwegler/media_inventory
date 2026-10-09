@@ -82,6 +82,8 @@ RSpec.describe 'Presentation and keyboard access', type: :system do
     movie = Movie.create!(title: 'Broken artwork', thumbnail_url: 'https://images.example.test/dead.jpg')
     LibraryItem.create!(user: user, item: movie, is_collected: true)
     visit movie_path(movie)
+    # Stored covers return a valid placeholder; simulate a browser image failure explicitly.
+    page.execute_script('document.querySelector(".show-poster img").src = "/missing-artwork.svg"')
     expect(page).to have_css('img[data-failed="true"]', visible: :hidden)
     expect(page).to have_content('Artwork unavailable')
     visit user_path(user)

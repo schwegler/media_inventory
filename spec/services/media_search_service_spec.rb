@@ -63,6 +63,47 @@ RSpec.describe MediaSearchService do
     expect(WebMock).not_to have_requested(:get, /store.steampowered.com/)
   end
 
+  context 'when finding a comic series run' do
+    before do
+      ApiConfiguration.create!(source_name: 'ComicVine', media_type: 'Comic', is_active: true, access_token: 'test')
+      allow_any_instance_of(MetadataProvider).to receive(:call).and_return([{}, {}])
+    end
+
+    let(:volumes) do
+      [1963, 1981, 2009, 2012, 2013, 2016, 2024].map do |year|
+        { id: year, name: 'Uncanny X-Men', start_year: year.to_s, publisher: { name: 'Marvel' },
+          count_of_issues: 36, image: { original_url: "https://example.com/#{year}.jpg" } }
+      end
+    end
+
+    it 'finds runs beyond the first five results and puts the newest exact title first' do
+      stub_request(:get, %r{comicvine.gamespot.com/api/search/}).with(
+        query: hash_including('query' => 'uncanny x-men', 'limit' => '100', 'resources' => 'volume')
+      ).to_return(body: { results: volumes }.to_json)
+
+      results = described_class.call('uncanny x-men', 'comic')
+      expect(results.first).to include(release_year: '2024', publisher: 'Marvel', issue_count: 36)
+      expect(results.size).to eq(7)
+    end
+
+    ['uncanny x-men (2024)', 'uncanny x-men 2024'].each do |query|
+      it "targets the start year for #{query.inspect}" do
+        stub_request(:get, %r{comicvine.gamespot.com/api/volumes/}).with(
+          query: hash_including('filter' => 'name:uncanny x-men', 'sort' => 'date_added:desc', 'limit' => '100')
+        ).to_return(body: { results: volumes }.to_json)
+
+        expect(described_class.call(query, 'comic')).to contain_exactly(
+          hash_including(title: 'Uncanny X-Men', release_year: '2024', api_id: '2024')
+        )
+      end
+    end
+
+    it 'does not substitute another run when the requested year is missing' do
+      stub_request(:get, %r{comicvine.gamespot.com/api/volumes/}).to_return(body: { results: volumes }.to_json)
+      expect(described_class.call('uncanny x-men (2023)', 'comic')).to eq([])
+    end
+  end
+
   it 'falls back after an upstream error' do
     stub_request(:get, /storesearch/).to_return(status: 503)
     stub_request(:get, /en.wikipedia.org/).to_return(body: { query: { pages: {

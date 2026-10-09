@@ -1,16 +1,17 @@
 <%# Local variables: item %>
 <%
 media_type = item.class.name
+terms = MediaLanguage.for(item)
+consumed_add_label = "✓ Mark as #{terms[:past]}"
+consumed_remove_label = "✓ Mark as #{terms[:negative]}"
+consumed_past_participle = terms[:past]
 
 case media_type
 when 'Album'
   watchlist_add_label = "⏳ Add to Queue"
   watchlist_remove_label = "⏳ Remove from Queue"
   watchlist_copy_label = "⏳ Add to My Queue"
-  consumed_add_label = "✓ Mark Listened"
-  consumed_remove_label = "✓ Mark Unlistened"
-  consumed_past_participle = "listened"
-  review_placeholder = "Add listening review..."
+  review_placeholder = "Review this album..."
   submit_review_label = "Save Review & Listening Status"
   apple_label = " View on Apple Music"
   physical_formats = ["CD", "Vinyl", "Cassette"]
@@ -19,10 +20,7 @@ when 'Comic'
   watchlist_add_label = "⏳ Add to Reading List"
   watchlist_remove_label = "⏳ Remove from Reading List"
   watchlist_copy_label = "⏳ Add to My Reading List"
-  consumed_add_label = "✓ Mark Read"
-  consumed_remove_label = "✓ Mark Unread"
-  consumed_past_participle = "read"
-  review_placeholder = "Add reading review..."
+  review_placeholder = "Review this comic..."
   submit_review_label = "Save Review & Reading Status"
   apple_label = " View on Apple Books"
   physical_formats = ["Single Issue", "Trade Paperback", "Hardcover", "Omnibus"]
@@ -31,10 +29,7 @@ when 'Book'
   watchlist_add_label = "⏳ Add to Reading List"
   watchlist_remove_label = "⏳ Remove from Reading List"
   watchlist_copy_label = "⏳ Add to My Reading List"
-  consumed_add_label = "✓ Mark Read"
-  consumed_remove_label = "✓ Mark Unread"
-  consumed_past_participle = "read"
-  review_placeholder = "Add reading review..."
+  review_placeholder = "Review this book..."
   submit_review_label = "Save Review & Reading Status"
   apple_label = " View on Apple Books"
   physical_formats = ["Paperback", "Hardcover", "Mass Market Paperback", "Other"]
@@ -43,10 +38,7 @@ when 'VideoGame'
   watchlist_add_label = "⏳ Add to Backlog"
   watchlist_remove_label = "⏳ Remove from Backlog"
   watchlist_copy_label = "⏳ Add to My Backlog"
-  consumed_add_label = "✓ Mark Played"
-  consumed_remove_label = "✓ Mark Unplayed"
-  consumed_past_participle = "played"
-  review_placeholder = "Add playing review..."
+  review_placeholder = "Review this game..."
   submit_review_label = "Save Review & Playing Status"
   apple_label = "🎮 View on Apple Arcade"
   physical_formats = ["PS5", "PS4", "Xbox Series X", "Switch", "PC", "Other"]
@@ -55,10 +47,7 @@ else # Movie, TvShow, etc.
   watchlist_add_label = "⏳ Add to Watchlist"
   watchlist_remove_label = "⏳ Remove from Watchlist"
   watchlist_copy_label = "⏳ Add to My Watchlist"
-  consumed_add_label = "✓ Mark Watched"
-  consumed_remove_label = "✓ Mark Unwatched"
-  consumed_past_participle = "watched"
-  review_placeholder = "Add watch review..."
+  review_placeholder = "Review this title..."
   submit_review_label = "Save Review & Watching Status"
   apple_label = " View on Apple TV"
   physical_formats = ["DVD", "Blu-ray", "4K UHD", "VHS", "Other"]
@@ -147,7 +136,7 @@ end
           
           <div class="inline-checkbox-group">
             <%= f.check_box :consumed, id: "inline-consumed-checkbox-#{item.id}" %>
-            <%= f.label :consumed, "Marked as #{consumed_past_participle.capitalize}", for: "inline-consumed-checkbox-#{item.id}", class: "inline-checkbox-label" %>
+            <%= f.label :consumed, consumed_past_participle.capitalize, for: "inline-consumed-checkbox-#{item.id}", class: "inline-checkbox-label" %>
           </div>
 
           <div class="inline-checkbox-group">

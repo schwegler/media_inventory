@@ -23,7 +23,7 @@ class MediaSearchService
     @deadline = started_at + 12
     @enrichment_deadline = started_at + 20
     MediaSources::Registry::CACHE.fetch(
-      ['media-search-v3', @type, @query.downcase.strip,
+      ['media-search-v4', @type, @query.downcase.strip,
        ApiConfiguration.order(:id).pluck(:source_name, :media_type, :is_active, :updated_at)], expires_in: 15.minutes
     ) do
       results = (SOURCES.fetch(@type) + [['InternetArchive', :fetch_internet_archive]]).flat_map do |source, method|
@@ -31,6 +31,7 @@ class MediaSearchService
 
         send(method, @query).map { |result| result.merge(source: source) }
       end
+      results = ComicSearchQuery.new(@query).rank(results).first(20) if @type == 'comic'
       @deadline = @enrichment_deadline
       filter_unique_results(results.map { |result| enrich_result(result) }).first(20)
     end
@@ -203,10 +204,18 @@ class MediaSearchService
   end
 
   def build_comicvine_url(query, api_key)
-    url = URI('https://comicvine.gamespot.com/api/search/')
-    url.query = URI.encode_www_form(
-      api_key: api_key, format: 'json', query: query, resources: 'volume', limit: 5
-    )
+    search = ComicSearchQuery.new(query)
+    url = URI("https://comicvine.gamespot.com/api/#{search.year ? 'volumes' : 'search'}/")
+    params = { api_key: api_key, format: 'json', limit: 100,
+               field_list: 'id,name,start_year,publisher,image,site_detail_url,count_of_issues' }
+    if search.year
+      # ComicVine ignores start_year filters; filter the returned years locally.
+      params[:filter] = "name:#{search.title.tr(':,', ' ')}"
+      params[:sort] = 'date_added:desc'
+    else
+      params.merge!(query: search.title, resources: 'volume')
+    end
+    url.query = URI.encode_www_form(params)
     url
   end
 
@@ -218,6 +227,7 @@ class MediaSearchService
         title: item['name'],
         publisher: item.dig('publisher', 'name'),
         release_year: item['start_year'],
+        issue_count: item['count_of_issues'],
         thumbnail_url: item.dig('image', 'original_url') || item.dig('image', 'medium_url'),
         api_id: item['id']&.to_s,
         external_url: item['site_detail_url'],

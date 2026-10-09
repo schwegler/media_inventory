@@ -207,3 +207,23 @@
     box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
   }
 }
+
+.comic-search-year {
+  margin-top: 1rem;
+  input { max-width: 180px; }
+  p { margin: .5rem 0 0; }
+}
+
+.comic-series-results {
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+
+  .thumbnail-option-img-wrap { height: 160px; }
+  .option-label {
+    font-size: .8rem;
+    padding: .65rem;
+    text-align: left;
+    strong, span { display: block; }
+    span { margin-top: .35rem; }
+    .option-series-year { font-weight: 700; color: var(--accent); }
+  }
+}

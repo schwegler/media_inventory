@@ -17,6 +17,8 @@ class UsersController < ApplicationController
 
   def show
     @user = User.find_by_profile_param!(params[:id])
+    return if redirect_to_canonical_url(@user)
+
     prepare_profile_library
     @activities = @user.activities.order(created_at: :desc)
     @likes = @user.likes.order(created_at: :desc)
