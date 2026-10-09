@@ -1,0 +1,89 @@
+<section class="show-community game-tracking" id="my-game-tracking" aria-labelledby="tracking-title">
+  <h2 id="tracking-title">My gaming record</h2>
+  <p>Purchase details, sessions, and journals are private. Recorded session time excludes imported lifetime totals.</p>
+  <%= link_to 'Export my game data (JSON)', export_game_path(video_game_id: library.item_id), class: 'btn btn-secondary' %>
+  <%= link_to 'Export owned copies (CSV)', export_game_path(video_game_id: library.item_id, format: 'csv'), class: 'btn btn-secondary' %>
+  <%= button_to 'Repair missing artwork', repair_game_artwork_path(video_game_id: library.item_id), class: 'btn btn-secondary' %>
+  <%= button_to 'Find alternate cover', alternate_game_artwork_path(video_game_id: library.item_id), class: 'btn btn-secondary' %>
+  <% Array(MediaSources::Registry::CACHE.read(['game-alternate-choices', library.id])).each do |choice| %>
+    <div class="game-alternate-choice"><%= image_tag choice[:url], alt: "Alternate cover from #{choice[:source]}", width: 120, loading: 'lazy' %>
+      <%= button_to "Use #{choice[:source]} cover", select_game_artwork_path(video_game_id: library.item_id), params: { token: choice[:token] }, class: 'btn btn-secondary' %>
+    </div>
+  <% end %>
+  <details><summary>Choose my own cover</summary>
+    <%= form_with url: game_cover_path(video_game_id: library.item_id), scope: :cover, class: 'standard-form' do |f| %>
+      <%= f.label :image, 'Personal cover (up to 5 MB)' %><%= f.file_field :image, accept: 'image/png,image/jpeg,image/webp,image/gif', required: true %>
+      <%= f.submit 'Save my cover', class: 'btn btn-primary' %>
+    <% end %>
+  </details>
+  <%= render 'game_organization', library: library %>
+  <h3>My copies</h3>
+  <% library.game_copies.each do |copy| %>
+    <p><%= copy.platform %> · <%= copy.storefront %> · <%= copy.edition %> · <%= copy.ownership_status.humanize %> · <%= copy.access_method.humanize %><% if copy.imported_playtime_minutes %> · Imported lifetime: <%= copy.imported_playtime_minutes %> minutes (not recorded sessions)<% end %></p>
+    <details><summary>Edit this copy</summary>
+      <%= form_with url: game_progress_path(video_game_id: library.item_id, id: copy.id), method: :patch, scope: :copy, namespace: "copy_#{copy.id}", class: 'standard-form' do |f| %>
+        <%= hidden_field_tag :kind, 'copy', id: nil %>
+        <%= render 'copy_fields', f: f, copy: copy %>
+        <%= f.submit 'Update copy', class: 'btn btn-primary' %>
+      <% end %>
+    </details>
+  <% end %>
+  <details>
+    <summary>Add an owned copy or wishlist entry</summary>
+    <%= form_with url: game_tracking_path(video_game_id: library.item_id), scope: :copy, class: 'standard-form' do |f| %>
+      <%= hidden_field_tag :kind, 'copy', id: nil %>
+      <%= render 'copy_fields', f: f, copy: nil %>
+      <%= f.submit 'Save copy', class: 'btn btn-primary' %>
+    <% end %>
+  </details>
+  <h3>Playthroughs</h3>
+  <% library.game_playthroughs.includes(:game_sessions).each do |playthrough| %>
+    <details>
+      <summary><%= playthrough.platform.presence || 'Playthrough' %> · <%= playthrough.status.humanize %> · <%= playthrough.progress %>%</summary>
+      <p>Recorded time: <%= playthrough.game_sessions.sum { |session| session.duration_minutes } %> minutes</p>
+      <%= form_with url: game_progress_path(video_game_id: library.item_id, id: playthrough.id), method: :patch, scope: :playthrough, namespace: "playthrough_#{playthrough.id}", class: 'standard-form' do |f| %>
+        <%= f.label :status %><%= f.select :status, GamePlaythrough::STATUSES.map { |v| [v.humanize, v] }, selected: playthrough.status %>
+        <%= f.label :platform %><%= f.text_field :platform, value: playthrough.platform %>
+        <%= f.label :difficulty %><%= f.text_field :difficulty, value: playthrough.difficulty %>
+        <%= f.label :route, 'Ending or route' %><%= f.text_field :route, value: playthrough.route %>
+        <%= f.label :started_on %><%= f.date_field :started_on, value: playthrough.started_on %>
+        <%= f.label :completed_on %><%= f.date_field :completed_on, value: playthrough.completed_on %>
+        <%= f.label :progress, 'Progress (%)' %><%= f.number_field :progress, value: playthrough.progress, min: 0, max: 100 %>
+        <%= f.label :notes %><%= f.text_area :notes, value: playthrough.notes %>
+        <%= f.submit 'Update progress', class: 'btn btn-primary' %>
+      <% end %>
+      <% playthrough.game_sessions.order(started_at: :desc).each do |session| %>
+        <p><%= session.started_at.to_fs(:short) %> · <%= session.duration_minutes %> min · <%= session.notes %> · <%= session.milestones %><% if session.progress %> · Progress: <%= session.progress %>%<% end %></p>
+        <%= render 'session_edit', library: library, session: session %>
+      <% end %>
+      <h4>Record a session</h4>
+      <%= form_with url: game_tracking_path(video_game_id: library.item_id), scope: :session, namespace: "session_#{playthrough.id}", class: 'standard-form' do |f| %>
+        <%= hidden_field_tag :kind, 'session', id: nil %><%= hidden_field_tag :playthrough_id, playthrough.id, id: nil %>
+        <%= render 'session_fields', f: f, session: nil %>
+        <%= f.submit 'Save session', class: 'btn btn-primary' %>
+      <% end %>
+    </details>
+  <% end %>
+  <details><summary>Start a playthrough</summary>
+    <%= form_with url: game_tracking_path(video_game_id: library.item_id), scope: :playthrough, class: 'standard-form' do |f| %>
+      <%= hidden_field_tag :kind, 'playthrough', id: nil %>
+      <%= f.label :platform %><%= f.text_field :platform %>
+      <%= f.label :status %><%= f.select :status, GamePlaythrough::STATUSES.map { |v| [v.humanize, v] } %>
+      <%= f.label :started_on %><%= f.date_field :started_on %>
+      <%= f.label :difficulty %><%= f.text_field :difficulty %>
+      <%= f.label :route, 'Ending or route' %><%= f.text_field :route %>
+      <%= f.submit 'Start playthrough', class: 'btn btn-primary' %>
+    <% end %>
+  </details>
+  <%= render 'milestones', library: library %>
+  <h3>Private journal</h3>
+  <% library.game_journal_entries.order(created_at: :desc).each do |entry| %>
+    <details><summary><%= entry.created_at.to_date %><%= ' · Spoilers' if entry.spoiler? %></summary><%= simple_format(entry.body) %><%= render 'journal_edit', library: library, entry: entry %></details>
+  <% end %>
+  <%= form_with url: game_tracking_path(video_game_id: library.item_id), scope: :journal, class: 'standard-form' do |f| %>
+    <%= hidden_field_tag :kind, 'journal', id: nil %>
+    <%= f.label :body, 'Private notes' %><%= f.text_area :body, required: true %>
+    <%= f.check_box :spoiler %><%= f.label :spoiler, 'Contains spoilers' %>
+    <%= f.submit 'Save journal entry', class: 'btn btn-primary' %>
+  <% end %>
+</section>

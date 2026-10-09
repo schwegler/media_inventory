@@ -19,7 +19,8 @@ class ApiConfigurationDashboard < Administrate::BaseDashboard
     ),
     options: CredentialField,
     source_name: Field::Select.with_options(
-      collection: %w[TMDB RAWG ComicVine itunes tvmaze]
+      collection: %w[TMDB RAWG Steam SteamWebAPI SteamGridDB Wikipedia InternetArchive OpenLibrary MusicBrainz ComicVine
+                     itunes tvmaze]
     ),
     created_at: Field::DateTime,
     updated_at: Field::DateTime

@@ -31,13 +31,10 @@ class InventoryController < ApplicationController
     # Handle the transition from watchlist to backlog
     library_params[:in_backlog] = library_params.delete(:in_watchlist) if library_params.key?(:in_watchlist)
 
-    @resource = if global_params[:api_id].present?
-                  resource_class.find_or_initialize_by(api_id: global_params[:api_id])
-                else
-                  resource_class.find_or_initialize_by(title: global_params[:title])
-                end
+    @resource = resolve_catalog_resource(global_params)
 
-    @resource.assign_attributes(global_params)
+    # Logging a shared game must not overwrite another user's curated catalog.
+    @resource.assign_attributes(global_params) unless @resource.is_a?(VideoGame) && @resource.persisted?
     instance_variable_set("@#{resource_name}", @resource)
 
     ActiveRecord::Base.transaction do
@@ -45,6 +42,7 @@ class InventoryController < ApplicationController
         @library_item = LibraryItem.find_or_initialize_by(user: current_user, item: @resource)
         @library_item.assign_attributes(library_params)
         @library_item.save!
+        after_library_saved
         enqueue_initial_metadata
 
         respond_to do |format|
@@ -123,6 +121,7 @@ class InventoryController < ApplicationController
     ActiveRecord::Base.transaction do
       @resource.update!(global_params) if global_params.to_h.any?
       @library_item.update!(library_params)
+      after_library_saved
     end
 
     respond_to do |format|
@@ -154,7 +153,14 @@ class InventoryController < ApplicationController
 
   private
 
+  def resolve_catalog_resource(attributes)
+    key = attributes[:api_id].present? ? :api_id : :title
+    resource_class.find_or_initialize_by(key => attributes[key])
+  end
+
   def enqueue_initial_metadata
+    return if @resource.is_a?(VideoGame)
+
     MetadataRefresher.new(@resource, current_user).enqueue if @resource.api_id.present?
   end
 
@@ -181,6 +187,8 @@ class InventoryController < ApplicationController
   def failure_status
     :unprocessable_content
   end
+
+  def after_library_saved; end
 
   def resource_params
     raise NotImplementedError

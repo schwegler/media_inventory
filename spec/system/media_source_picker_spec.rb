@@ -6,7 +6,7 @@ RSpec.describe 'Media source picker', type: :system do
   include ActiveJob::TestHelper
 
   it 'selects Steam artwork, saves it in app storage, and renders that local cover' do
-    png = Base64.decode64('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aO1sAAAAASUVORK5CYII=')
+    png = File.binread(Rails.root.join('spec/fixtures/files/valid-cover.png'))
     image_url = 'https://shared.fastly.steamstatic.com/portal-test.png'
     stub_request(:get,
                  /storesearch/).to_return(body: { items: [{ id: 620, name: 'Portal 2', tiny_image: image_url }] }.to_json)
@@ -39,7 +39,7 @@ RSpec.describe 'Media source picker', type: :system do
   it 'loads a legacy movie cover on mobile without a background import or manual backfill' do
     page.current_window.resize_to(390, 844)
     source = 'https://covers.openlibrary.org/b/id/123-M.jpg'
-    png = Base64.decode64('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aO1sAAAAASUVORK5CYII=')
+    png = File.binread(Rails.root.join('spec/fixtures/files/valid-cover.png'))
     stub_request(:get, source).to_return(body: png, headers: { 'Content-Type' => 'image/png' })
     movie = Movie.create!(title: 'Legacy movie cover')
     movie.update_columns(thumbnail_url: source)

@@ -22,6 +22,30 @@ RSpec.describe MediaSources::Http do
   end
 end
 
+RSpec.describe MediaSources::Http do
+  it 'rejects private, credential-bearing, unapproved and insecure image URLs' do
+    ['http://media.rawg.io/cover.jpg', 'https://127.0.0.1/image', 'https://localhost/image',
+     'https://steamstatic.com.evil.example/image', 'https://user:pass@media.rawg.io/image',
+     'https://media.rawg.io:8443/image'].each do |url|
+      expect { described_class.get(url) }.to raise_error(described_class::Error)
+    end
+  end
+  it 'does not forward provider authorization through a cross-host redirect' do
+    target = 'https://cdn2.steamgriddb.com/grid/test.png'
+    stub_request(:get, 'https://www.steamgriddb.com/api/v2/test').with(headers: { 'Authorization' => 'Bearer test' })
+                                                                 .to_return(status: 302, headers: { 'Location' => target })
+    stub_request(:get, 'https://cdn2.steamgriddb.com/grid/test.png').with { |request| !request.headers.key?('Authorization') }
+                                                                    .to_return(body: 'image')
+    expect(described_class.get('https://www.steamgriddb.com/api/v2/test',
+                               options: { headers: { 'Authorization' => 'Bearer test' } })).to eq('image')
+  end
+  it 'rejects redirects outside trusted providers' do
+    stub_request(:get, 'https://media.rawg.io/test').to_return(status: 302,
+                                                               headers: { 'Location' => 'https://127.0.0.1/private' })
+    expect { described_class.get('https://media.rawg.io/test') }.to raise_error(described_class::Error)
+  end
+end
+
 RSpec.describe 'Provider response caching' do
   let(:url) { 'https://api.tvmaze.com/shows/42' }
 

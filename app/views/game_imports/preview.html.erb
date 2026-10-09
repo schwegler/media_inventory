@@ -1,0 +1,7 @@
+<h1>Review game import</h1>
+<p>Canonical game: <%= VideoGame.find(@data.dig('game', 'id')).title %></p>
+<p><%= Array(@data['copies']).size %> copies · <%= Array(@data['playthroughs']).size %> playthroughs · <%= Array(@data['journal']).size %> journal entries.</p>
+<p>Identical records are skipped. Existing records are preserved. Ratings, reviews and organization fields are restored only for a newly created library entry. Imports never enable public gameplay sharing. Changes are applied in a single database transaction.</p>
+<pre><%= JSON.pretty_generate(@data) %></pre>
+<%= form_with url: game_import_path do |f| %><%= f.hidden_field :token, value: @token %><%= f.submit 'Apply import', class: 'btn btn-primary' %><% end %>
+<%= link_to 'Cancel', video_games_path(library: 'mine') %>

@@ -4,6 +4,8 @@ class VideoGame < ApplicationRecord
   include ReadableCatalogUrl
   include LibraryItemFormAttributes
 
+  attr_accessor :catalog_selection, :copy_platform, :storefront, :edition, :access_method, :ownership_status, :play_status
+
   include StoredMediaCover
 
   has_one :metadata_refresh, as: :item, dependent: :destroy
@@ -11,74 +13,38 @@ class VideoGame < ApplicationRecord
   has_many :likes, as: :likeable, dependent: :destroy
   has_many :comments, as: :commentable, dependent: :destroy
   has_many :edit_suggestions, as: :suggestable, dependent: :destroy
+  has_many :game_external_ids, dependent: :destroy
+  has_many :game_artworks, dependent: :destroy
+  has_one :game_artwork_batch, dependent: :destroy
   has_many :library_items, as: :item, dependent: :destroy
 
   validates :title, presence: true
+  validates :play_status, inclusion: { in: GamePlaythrough::STATUSES }, allow_blank: true
+  validates :access_method, inclusion: { in: %w[physical digital subscription cloud] }, allow_blank: true
+  validates :ownership_status, inclusion: { in: %w[owned wishlist previously_owned] }, allow_blank: true
+  validates :game_type,
+            inclusion: { in: %w[unknown game dlc soundtrack music bundle demo mod episode video series advertising
+                                hardware] }
 
+  after_commit :register_external_id, on: %i[create update]
   after_commit :sync_details_from_api, on: %i[create update]
 
   private
 
+  def register_external_id
+    match = api_id.to_s.match(/\A(steam|rawg)_(\d+)\z/)
+    return unless match
+
+    identity = GameExternalId.find_or_initialize_by(provider: match[1], external_id: match[2])
+    identity.video_game = self if identity.new_record?
+    identity.save!
+  rescue ActiveRecord::RecordNotUnique
+    Rails.logger.warn "Game identity conflict for VideoGame##{id}"
+  end
+
   def sync_details_from_api
-    return if api_id.blank?
-    return unless saved_change_to_api_id?
+    return if api_id.blank? || !saved_change_to_api_id?
 
-    # Handle Steam IDs
-    if api_id.start_with?('steam_') || api_id.match?(/^\d+$/)
-      sync_steam_details
-      return
-    end
-
-    if api_id.start_with?('rawg_')
-      api_key = MediaSources::Registry.token('RAWG', 'VideoGame')
-      if api_key.blank?
-        Rails.logger.warn 'RAWG API key not configured.'
-        return
-      end
-
-      update_from_rawg_data(fetch_rawg_data(api_key))
-    end
-  rescue StandardError => e
-    Rails.logger.error "Failed to sync Video Game details: #{e.class}"
-  end
-
-  def sync_steam_details
-    return unless MediaSources::Registry.enabled?('Steam', 'VideoGame')
-
-    require 'net/http'
-    require 'json'
-    steam_id = api_id.sub('steam_', '')
-    url = URI("https://store.steampowered.com/api/appdetails?appids=#{steam_id}")
-    response = MediaSources::Http.get(url)
-    data = JSON.parse(response).dig(steam_id, 'data') || {}
-
-    date_str = data.dig('release_date', 'date')
-    parsed_year = date_str.to_s[/\b(?:19|20)\d{2}\b/]
-
-    update!(
-      title: data['name'] || title,
-      release_year: parsed_year || release_year,
-      developer: data['developers']&.first || developer,
-      publisher: data['publishers']&.first || publisher,
-      thumbnail_url: data['header_image'].presence || data['capsule_image'].presence || thumbnail_url
-    )
-  end
-
-  def fetch_rawg_data(api_key)
-    require 'net/http'
-    require 'json'
-    rawg_id = api_id.sub('rawg_', '')
-    url = URI("https://api.rawg.io/api/games/#{rawg_id}?key=#{api_key}")
-    JSON.parse(MediaSources::Http.get(url))
-  end
-
-  def update_from_rawg_data(data)
-    update!(
-      title: data['name'] || title,
-      release_year: data['released']&.split('-')&.first || release_year,
-      developer: data['developers']&.first&.dig('name') || developer,
-      publisher: data['publishers']&.first&.dig('name') || publisher,
-      thumbnail_url: data['background_image'] || thumbnail_url
-    )
+    EnrichVideoGameJob.perform_later(self)
   end
 end

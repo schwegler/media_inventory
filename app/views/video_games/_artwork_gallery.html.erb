@@ -1,0 +1,35 @@
+<section class="show-community" aria-labelledby="game-artwork-title">
+  <h2 id="game-artwork-title">Game artwork</h2>
+  <% if library %>
+    <%= button_to 'Fetch supplemental artwork', fetch_game_artwork_path(video_game_id: game.id), class: 'btn btn-secondary' %>
+    <% if game.game_artwork_batch %><p role="status">Acquisition: <%= game.game_artwork_batch.state.humanize %><%= " · #{game.game_artwork_batch.failure_reason}" if game.game_artwork_batch.failure_reason.present? %></p><% end %>
+  <% end %>
+  <% if @artworks.empty? %><p>No supplemental artwork is stored yet.</p><% end %>
+  <div class="game-artwork-gallery">
+    <% @artworks.each do |art| %><% next unless art.image.attached? %>
+      <figure class="game-artwork-asset" data-artwork-kind="<%= art.kind %>">
+        <%= game_artwork_image(art.image, alt: "#{game.title} #{art.kind.humanize.downcase}", loading: 'lazy', decoding: 'async', sizes: '(max-width: 600px) calc(100vw - 64px), 600px') %>
+        <figcaption><%= art.kind.humanize %> · <%= art.provider %><%= " · #{art.author}" if art.author.present? %><%= " · #{art.platform}" if art.platform.present? %><%= " · #{art.edition}" if art.edition.present? %><%= ' · Private' if art.library_item_id %>
+          <% if art.attribution_url.present? %><%= link_to 'Artwork credit', art.attribution_url, rel: 'noopener noreferrer' %><% end %>
+        </figcaption>
+        <% if library %>
+          <% token = Rails.application.message_verifier('game-cover-choice').generate({ library_id: library.id, blob_id: art.image.blob_id }, expires_in: 10.minutes) %>
+          <%= button_to 'Use as my cover', select_game_artwork_path(video_game_id: game.id), params: { token: token }, class: 'btn btn-secondary' %>
+          <% if art.library_item_id == library.id %><%= button_to 'Remove my artwork', delete_game_artwork_path(video_game_id: game.id, id: art.id), method: :delete, data: { turbo_confirm: 'Remove this private artwork?' }, class: 'btn btn-secondary' %><% end %>
+        <% end %>
+      </figure>
+    <% end %>
+  </div>
+  <% if library %>
+    <details><summary>Add private artwork</summary>
+      <%= form_with url: upload_game_artwork_path(video_game_id: game.id), scope: :artwork, namespace: 'private_artwork', class: 'standard-form' do |f| %>
+        <%= f.label :kind, 'Artwork category' %><%= f.select :kind, GameArtwork::KINDS.map { |kind| [kind.humanize, kind] } %>
+        <%= f.label :image, 'Artwork image (up to 5 MB)' %><%= f.file_field :image, required: true, accept: 'image/png,image/jpeg,image/webp,image/gif' %>
+        <%= f.label :platform, 'Platform (optional)' %><%= f.text_field :platform, maxlength: 200 %>
+        <%= f.label :edition, 'Edition (optional)' %><%= f.text_field :edition, maxlength: 200 %>
+        <p>Your uploads remain private. Images are normalized without stretching; transparent logos retain transparency. Up to 20 private assets per game.</p>
+        <%= f.submit 'Save private artwork', class: 'btn btn-primary' %>
+      <% end %>
+    </details>
+  <% end %>
+</section>

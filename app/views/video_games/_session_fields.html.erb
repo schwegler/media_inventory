@@ -1,0 +1,9 @@
+<%= f.label :started_at, 'Started (application time zone)' %><%= f.datetime_local_field :started_at, value: session&.started_at&.strftime('%Y-%m-%dT%H:%M'), required: true %>
+<%= f.label :ended_at, 'Ended (application time zone)' %><%= f.datetime_local_field :ended_at, value: session&.ended_at&.strftime('%Y-%m-%dT%H:%M'), required: true %>
+<%= f.label :notes %><%= f.text_area :notes, value: session&.notes %>
+<%= f.label :milestones, 'Session milestones or achievements earned (manual notes)' %><%= f.text_area :milestones, value: session&.milestones %>
+<details><summary>Progress and enjoyment</summary>
+  <%= f.label :progress, 'Progress at end (%)' %><%= f.number_field :progress, value: session&.progress, min: 0, max: 100 %>
+  <%= f.label :enjoyment, 'Enjoyment (1–5)' %><%= f.number_field :enjoyment, value: session&.enjoyment, min: 1, max: 5 %>
+  <%= f.label :mood %><%= f.text_field :mood, value: session&.mood, maxlength: 80 %>
+</details>

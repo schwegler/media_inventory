@@ -46,6 +46,7 @@
         <%= link_to followers_user_path(@user) do %><span>Followers</span><strong><%= @user.followers.size %></strong><% end %>
       </div>
       <nav class="library-profile-tabs" aria-label="Profile sections">
+        <%= link_to 'Game shelf', game_shelf_path(@user) %>
         <% { 'overview' => 'Overview', 'collection' => 'Collection', 'backlog' => 'Backlog', 'posts' => 'Activity', 'likes' => 'Likes' }.each do |key, label| %>
           <%= link_to label, profile_tab_path(key), class: (@profile_tab == key ? 'active' : nil), aria: { current: @profile_tab == key ? 'page' : nil } %>
         <% end %>

@@ -29,7 +29,7 @@ class MetadataRefresher
   def call(claimed: false)
     return 'cooldown' unless claimed || claim?
 
-    @adapter = MetadataProvider.new(@item, revalidate: true)
+    @adapter = MetadataProvider.new(@item, revalidate: true, fresh: true)
     fields, rows = Timeout.timeout(45) { @adapter.call }
     changed = reconcile(fields, rows)
     state = changed.positive? ? 'success' : 'unchanged'

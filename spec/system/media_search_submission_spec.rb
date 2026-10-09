@@ -13,7 +13,7 @@ RSpec.describe 'Media search submission', type: :system do
       fill_in 'Title', with: "Unmatched #{model.name} search"
       find_field('Title').send_keys(:enter)
 
-      expect(page).to have_text(/No (covers|matching series) found/)
+      expect(page).to have_text(/No (covers|matches|matching series) found/)
       expect(page).to have_current_path(new_polymorphic_path(model))
       expect(page).to have_button('Add Manually')
       expect(model.count).to eq(initial_count)

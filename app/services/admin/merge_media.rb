@@ -45,7 +45,20 @@ module Admin
       case @source
       when TvShow then move_children(TvEpisode, :tv_show_id, %w[season episode])
       when Comic then move_children(ComicIssue, :comic_id, %w[issue_number])
+      when VideoGame then transfer_game_identity!
       end
+    end
+
+    def transfer_game_identity!
+      overlap = @source.library_items.where(user_id: @target.library_items.select(:user_id)).exists?
+      raise Conflict, 'Both games have library records for the same member. Review personal history before merging.' if
+        overlap
+
+      @source.game_external_ids.update_all(video_game_id: @target.id)
+      @source.game_artworks.update_all(video_game_id: @target.id)
+      return if @target.cover_image.attached? || !@source.cover_image.attached?
+
+      @target.cover_image.attach(@source.cover_image.blob)
     end
 
     def move_children(model, foreign_key, identifiers)

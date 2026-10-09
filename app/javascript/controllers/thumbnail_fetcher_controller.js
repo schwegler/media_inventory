@@ -20,8 +20,8 @@ export default class extends Controller {
   static targets = [
     "titleInput", "secondaryInput", "previewImg", "placeholder", "statusText", "optionsGrid", "thumbnailUrl",
     "director", "artist", "writer", "publisher", "releaseYear", "genre", "network", "venue", "promotion", "date",
-    "season", "episode", "issueNumber", "apiId", "externalUrl", "manualFormSection", "developer", "platform",
-    "searchStage", "detailsStage", "backBtn", "modalTitle", "selectedTitleDisplay", "author", "searchYear", "submitButton"
+    "season", "episode", "issueNumber", "apiId", "catalogSelection", "externalUrl", "manualFormSection", "developer", "platform",
+    "searchStage", "detailsStage", "backBtn", "modalTitle", "selectedTitleDisplay", "gameType", "author", "searchYear", "submitButton"
   ]
   static values = { mediaType: String }
 
@@ -82,6 +82,7 @@ export default class extends Controller {
   }
 
   search() {
+    this.clearGameSelection()
     this.searchAbortController?.abort()
     this.currentQuery = this.searchQuery()
     this.statusTextTarget.textContent = this.currentQuery ? "Searching…" : "Type title to fetch covers..."
@@ -120,11 +121,13 @@ export default class extends Controller {
 
     // Ensure focus is moved to an interactive element in the new stage
     if (this.hasBackBtnTarget) {
-      setTimeout(() => this.backBtnTarget.focus(), 50)
+      const editingDetails = this.hasDetailsStageTarget && this.detailsStageTarget.contains(document.activeElement)
+      if (!editingDetails) this.backBtnTarget.focus()
     }
   }
 
   showManualForm() {
+    this.clearGameSelection()
     const title = this.titleInputTarget.value.trim() || "New Item"
     const releaseYearVal = this.releaseYearTargets.length > 0 ? this.releaseYearTarget.value : null
     this.showDetailsStage(title, releaseYearVal)
@@ -151,7 +154,7 @@ export default class extends Controller {
 
     // Focus search input when returning to search stage
     if (this.hasTitleInputTarget) {
-      setTimeout(() => this.titleInputTarget.focus(), 50)
+      this.titleInputTarget.focus()
     }
   }
 
@@ -194,7 +197,7 @@ export default class extends Controller {
       if (allResults.length === 0) {
         this.statusTextTarget.textContent = mediaType === "comic"
           ? "No matching series found. Try another start year, remove the year, or add manually."
-          : "No covers found. Standard category icon will be used."
+          : "No matches found. Try another title or add manually."
         return
       }
 
@@ -202,6 +205,7 @@ export default class extends Controller {
         ? `${allResults.length} matching series. Select the run you want:`
         : "Select a result below:"
       this.optionsGridTarget.classList.toggle("comic-series-results", mediaType === "comic")
+      this.optionsGridTarget.classList.toggle("game-search-results", mediaType === "video_game")
 
       allResults.forEach((option) => {
         const imgBtn = document.createElement("div")
@@ -227,17 +231,25 @@ export default class extends Controller {
         const wrapper = document.createElement("div")
         wrapper.className = "thumbnail-option-img-wrap"
         const image = document.createElement("img")
-        image.src = option.thumbnail_url || "/favicon.svg"
+        image.src = option.thumbnail_url || (mediaType === "video_game" ? "/missing-game-cover.svg" : "/favicon.svg")
         image.alt = option.title
         image.loading = "lazy"
         image.referrerPolicy = "no-referrer"
-        image.addEventListener("error", () => { image.src = "/favicon.svg" }, { once: true })
+        image.addEventListener("error", () => { image.src = mediaType === "video_game" ? "/missing-game-cover.svg" : "/favicon.svg" }, { once: true })
         const badge = document.createElement("span")
         badge.className = `option-badge ${badgeClass}`
         badge.textContent = option.source || badgeText
         const label = document.createElement("div")
         label.className = "option-label"
-        if (mediaType === "comic") {
+        if (mediaType === "video_game") {
+          const title = document.createElement("strong")
+          title.textContent = option.title
+          const details = document.createElement("span")
+          details.textContent = [option.release_year || "Year unknown", option.platform, option.game_type || "Type unknown"].filter(Boolean).join(" · ")
+          const coverStatus = document.createElement("span")
+          coverStatus.textContent = option.artwork_status === "missing" ? "Cover unavailable" : option.artwork_source ? `Art: ${option.artwork_source}` : ""
+          label.append(title, details, coverStatus)
+        } else if (mediaType === "comic") {
           const seriesTitle = document.createElement("strong")
           seriesTitle.textContent = option.title.replace(/\s*\(\d{4}\)$/, "")
           const year = document.createElement("span")
@@ -290,10 +302,23 @@ export default class extends Controller {
     }
   }
 
+  clearGameSelection() {
+    if (this.mediaTypeValue !== "video_game") return
+    if (this.hasCatalogSelectionTarget) this.catalogSelectionTarget.value = ""
+    if (this.hasApiIdTarget) this.apiIdTarget.value = ""
+    if (this.hasExternalUrlTarget) this.externalUrlTarget.value = ""
+    for (const name of ["developer", "publisher", "platform", "releaseYear", "gameType", "thumbnailUrl"]) {
+      const target = this.targets.find(name)
+      if (target) target.value = name === "gameType" ? "unknown" : ""
+    }
+    if (this.hasPreviewImgTarget) this.previewImgTarget.style.display = "none"
+    if (this.hasPlaceholderTarget) this.placeholderTarget.style.display = "block"
+  }
+
   selectOption(option, isManualClick = false) {
     // 1. Update cover art URL and previews
     this.thumbnailUrlTarget.value = option.cover_source_url || option.thumbnail_url || ""
-    this.previewImgTarget.src = option.thumbnail_url || "/favicon.svg"
+    this.previewImgTarget.src = option.thumbnail_url || (this.mediaTypeValue === "video_game" ? "/missing-game-cover.svg" : "/favicon.svg")
     this.previewImgTarget.style.display = "block"
     this.placeholderTarget.style.display = "none"
 
@@ -301,7 +326,7 @@ export default class extends Controller {
       // 2. Auto-populate text fields only on direct selection
       if (this.hasTitleInputTarget) {
         let finalTitle = option.title
-        if (option.release_year && !finalTitle.includes(`(${option.release_year})`)) {
+        if (this.mediaTypeValue !== "video_game" && option.release_year && !finalTitle.includes(`(${option.release_year})`)) {
           finalTitle = `${finalTitle} (${option.release_year})`
         }
         this.titleInputTarget.value = finalTitle
@@ -316,12 +341,14 @@ export default class extends Controller {
       if (this.releaseYearTargets.length > 0) this.releaseYearTarget.value = option.release_year || ""
       if (this.hasGenreTarget) this.genreTarget.value = option.genre || ""
       if (this.hasNetworkTarget) this.networkTarget.value = option.network || ""
+      if (this.hasGameTypeTarget) this.gameTypeTarget.value = option.game_type || "unknown"
       if (this.hasDeveloperTarget) this.developerTarget.value = option.developer || ""
       if (this.hasPlatformTarget) this.platformTarget.value = option.platform || ""
       if (this.hasSeasonTarget) this.seasonTarget.value = option.season || ""
       if (this.hasEpisodeTarget) this.episodeTarget.value = option.episode || ""
       if (this.hasIssueNumberTarget) this.issueNumberTarget.value = option.issue_number || ""
       if (this.hasApiIdTarget) this.apiIdTarget.value = option.api_id || ""
+      if (this.hasCatalogSelectionTarget) this.catalogSelectionTarget.value = option.catalog_selection || ""
       if (this.hasExternalUrlTarget) this.externalUrlTarget.value = option.external_url || ""
 
       // 4. Transition to details view!

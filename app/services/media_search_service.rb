@@ -41,14 +41,16 @@ class MediaSearchService
       ['media-search-v6', @type, @query.downcase.strip,
        ApiConfiguration.order(:id).pluck(:source_name, :media_type, :is_active, :updated_at)], expires_in: 15.minutes
     ) do
-      results = (SOURCES.fetch(@type) + [['InternetArchive', :fetch_internet_archive]]).flat_map do |source, method|
-        next [] unless MediaSources::Registry.enabled?(source, @type.camelize)
-
-        send(method, @query).map { |result| result.merge(source: source) }
-      end
+      results = search_sources
       results = ComicSearchQuery.new(@query).rank(results).first(20) if @type == 'comic'
-      # Detail enrichment happens after selection, never for every autocomplete result.
-      filter_unique_results(results).first(20)
+      # Games need bounded detail lookup to distinguish DLC and resolve real cover candidates.
+      # Other media retain the background-after-selection enrichment path.
+      results = rank_results(results)
+      if @type == 'video_game'
+        @deadline = started_at + 18
+        results = results.each_with_index.map { |result, index| index < 5 ? enrich_result(result) : result }
+      end
+      rank_results(results)
     end
   end
 
@@ -66,6 +68,40 @@ class MediaSearchService
   }.freeze
 
   private
+
+  def search_sources
+    sources = SOURCES.fetch(@type)
+    if @type == 'video_game'
+      priorities = ENV.fetch('GAME_METADATA_PROVIDER_PRIORITY', 'Steam,RAWG,Wikipedia').split(',')
+      sources = sources.sort_by { |source, _method| priorities.index(source) || 99 }
+    end
+    (sources + [['InternetArchive', :fetch_internet_archive]]).flat_map do |source, method|
+      next [] unless MediaSources::Registry.enabled?(source, @type.camelize)
+
+      send(method, @query).map { |result| result.merge(source: source) }
+    end
+  end
+
+  def rank_results(results)
+    return GameSearchQuery.new(@query).rank(results).first(20) if @type == 'video_game'
+
+    filter_unique_results(results).first(20)
+  end
+
+  def enrich_result(result)
+    return result if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= @deadline
+    return result unless %w[TMDB ComicVine RAWG Steam MusicBrainz].include?(result[:source])
+
+    item = @type.camelize.constantize.new
+    result.each { |field, value| item.public_send("#{field}=", value) if item.has_attribute?(field) }
+    fields, = MetadataProvider.new(item, include_children: false, deadline: @deadline).call
+    result.merge(fields.compact_blank) do |field, original, detail|
+      @type == 'video_game' && %i[thumbnail_url game_type].include?(field) ? detail : original.presence || detail
+    end
+  rescue MetadataProvider::Unavailable, MetadataProvider::RateLimited, MetadataProvider::Unsupported,
+         JSON::ParserError, Timeout::Error, SocketError, KeyError
+    result
+  end
 
   def filter_unique_results(all_results)
     seen = {}
@@ -97,7 +133,7 @@ class MediaSearchService
 
     return [] unless data['results']
 
-    results = data['results'].slice(0, 5).map do |item|
+    data['results'].slice(0, 5).map do |item|
       director = '' # Details are fetched only after selection.
       {
         title: item['title'],
@@ -109,7 +145,6 @@ class MediaSearchService
         is_local: false
       }
     end
-    results.select { |r| r[:thumbnail_url] }
   rescue StandardError => e
     Rails.logger.error "TMDB Movie search failed: #{e.class}"
     []
@@ -122,7 +157,7 @@ class MediaSearchService
 
     return [] unless data['results']
 
-    results = data['results'].map do |item|
+    data['results'].map do |item|
       {
         title: item['trackName'],
         director: item['artistName'],
@@ -133,7 +168,6 @@ class MediaSearchService
         is_local: false
       }
     end
-    results.select { |r| r[:thumbnail_url] }
   rescue StandardError => e
     Rails.logger.error "iTunes Movie search failed: #{e.class}"
     []
@@ -148,7 +182,7 @@ class MediaSearchService
 
     return [] unless data['results']
 
-    results = data['results'].map do |item|
+    data['results'].map do |item|
       {
         title: item['collectionName'],
         artist: item['artistName'],
@@ -160,7 +194,6 @@ class MediaSearchService
         is_local: false
       }
     end
-    results.select { |r| r[:thumbnail_url] }
   rescue StandardError => e
     Rails.logger.error "iTunes Album search failed: #{e.class}"
     []
@@ -263,7 +296,7 @@ class MediaSearchService
 
     return [] unless data['results']
 
-    results = data['results'].slice(0, 5).map do |item|
+    data['results'].slice(0, 5).map do |item|
       {
         title: item['name'],
         network: '',
@@ -274,7 +307,6 @@ class MediaSearchService
         is_local: false
       }
     end
-    results.select { |r| r[:thumbnail_url] }
   rescue StandardError => e
     Rails.logger.error "TMDB TV search failed: #{e.class}"
     []
@@ -285,10 +317,9 @@ class MediaSearchService
     response = MediaSources::Http.cached_get(url, expires_in: 15.minutes, deadline: @deadline)
     data = JSON.parse(response)
 
-    results = data.slice(0, 5).map do |item|
+    data.slice(0, 5).map do |item|
       map_tvmaze_show(item['show'])
     end
-    results.select { |r| r[:thumbnail_url] }
   rescue StandardError => e
     Rails.logger.error "TVMaze search failed: #{e.class}"
     []
@@ -315,50 +346,14 @@ class MediaSearchService
   # --- Video Games ---
 
   def fetch_steam_video_games(query)
-    uri = URI('https://store.steampowered.com/api/storesearch/')
-    uri.query = URI.encode_www_form(term: query, l: 'english', cc: 'US')
-    data = JSON.parse(MediaSources::Http.cached_get(uri, expires_in: 15.minutes, deadline: @deadline))
-    Array(data['items']).first(5).map do |item|
-      {
-        title: item['name'],
-        platform: (item['platforms'] || {}).select { |_key, supported| supported }.keys.join(', '),
-        thumbnail_url: item['tiny_image'],
-        api_id: "steam_#{item['id']}",
-        external_url: "https://store.steampowered.com/app/#{item['id']}",
-        is_local: false
-      }
-    end
-  rescue StandardError => e
-    Rails.logger.warn "Steam search failed: #{e.class}"
+    GameProviders::Steam.new(deadline: @deadline).search(query)
+  rescue GameProviders::Base::Unavailable
     []
   end
 
   def fetch_rawg_video_games(query)
-    api_key = MediaSources::Registry.token('RAWG', 'VideoGame')
-    return [] if api_key.blank?
-
-    url = URI("https://api.rawg.io/api/games?search=#{CGI.escape(query)}&key=#{api_key}")
-    response = MediaSources::Http.cached_get(url, expires_in: 15.minutes, deadline: @deadline)
-    data = JSON.parse(response)
-
-    return [] unless data['results']
-
-    results = data['results'].slice(0, 5).map do |item|
-      {
-        title: item['name'],
-        developer: '',
-        publisher: '',
-        platform: item['platforms']&.map { |p| p.dig('platform', 'name') }&.join(', '),
-        release_year: item['released']&.split('-')&.first,
-        thumbnail_url: item['background_image'],
-        api_id: "rawg_#{item['id']}",
-        external_url: "https://rawg.io/games/#{item['slug']}",
-        is_local: false
-      }
-    end
-    results.select { |r| r[:thumbnail_url] }
-  rescue StandardError => e
-    Rails.logger.error "RAWG search failed: #{e.class}"
+    GameProviders::Rawg.new(deadline: @deadline).search(query)
+  rescue GameProviders::Base::Unavailable
     []
   end
 
@@ -458,7 +453,7 @@ class MediaSearchService
 
     return [] unless data['results']
 
-    results = data['results'].map do |item|
+    data['results'].map do |item|
       {
         title: item['trackName'],
         author: item['artistName'],
@@ -470,7 +465,6 @@ class MediaSearchService
         is_local: false
       }
     end
-    results.select { |r| r[:thumbnail_url] }
   rescue StandardError => e
     Rails.logger.error "iTunes Books search failed: #{e.class}"
     []

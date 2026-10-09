@@ -1,0 +1,31 @@
+<%= form_with url: video_games_path, method: :get, class: 'standard-form game-library-filters', namespace: 'game_filter' do |f| %>
+  <%= f.hidden_field :library, value: @personal_library ? 'mine' : 'all' %>
+  <div class="game-filter-row">
+    <div><%= f.label :q, 'Search collection' %><%= f.search_field :q, value: @filters['q'] %></div>
+    <div><%= f.label :layout, 'Display' %><%= f.select :layout, [['Cover grid', 'grid'], ['Compact list', 'list'], ['Detailed table', 'table']], selected: @layout %></div>
+    <div><%= f.label :sort, 'Sort by' %>
+      <% sorts = [['Recently added', 'added'], ['Title', 'title'], ['Release year', 'release']] %>
+      <% sorts += [['Last played', 'last_played'], ['My rating', 'rating'], ['Recorded playtime', 'playtime'], ['Completion date', 'completed']] if @personal_library %>
+      <%= f.select :sort, sorts, selected: @filters['sort'] %></div>
+  </div>
+  <details <%= 'open' if (@filters.keys - %w[q sort layout]).any? %>><summary>More filters</summary>
+    <div class="game-filter-row">
+      <div><%= f.label :game_type, 'Content type' %><%= f.select :game_type, [['All', ''], ['Base games', 'game'], ['DLC', 'dlc'], ['Soundtracks', 'soundtrack'], ['Bundles', 'bundle'], ['Unknown', 'unknown']], selected: @filters['game_type'] %></div>
+      <div><%= f.label :release_year, 'Release year' %><%= f.number_field :release_year, value: @filters['release_year'], min: 1900, max: 2200 %></div>
+      <div><%= f.label :genre, 'Genre' %><%= f.text_field :genre, value: @filters['genre'], placeholder: 'Exact genre label' %></div>
+      <div><%= f.label :developer %><%= f.text_field :developer, value: @filters['developer'] %></div>
+      <div><%= f.label :publisher %><%= f.text_field :publisher, value: @filters['publisher'] %></div>
+      <% if @personal_library %>
+        <div><%= f.label :tag, 'My tag' %><%= f.text_field :tag, value: @filters['tag'], maxlength: 40 %></div>
+        <div><%= f.label :favorite, 'Favorites' %><%= f.select :favorite, [['All games', ''], ['Favorites only', '1']], selected: @filters['favorite'] %></div>
+        <div><%= f.label :platform, 'My platform' %><%= f.select :platform, @platforms, { include_blank: 'All platforms', selected: @filters['platform'] } %></div>
+        <div><%= f.label :storefront %><%= f.select :storefront, @storefronts, { include_blank: 'All storefronts', selected: @filters['storefront'] } %></div>
+        <div><%= f.label :ownership_status, 'Ownership' %><%= f.select :ownership_status, [['All', ''], ['Owned', 'owned'], ['Wishlist', 'wishlist'], ['Previously owned', 'previously_owned']], selected: @filters['ownership_status'] %></div>
+        <div><%= f.label :access_method, 'Access' %><%= f.select :access_method, [['All', ''], ['Physical', 'physical'], ['Digital', 'digital'], ['Subscription', 'subscription'], ['Cloud', 'cloud']], selected: @filters['access_method'] %></div>
+        <div><%= f.label :play_status, 'Play status' %><%= f.select :play_status, GamePlaythrough::STATUSES.map { |status| [status.humanize, status] }, { include_blank: 'All statuses', selected: @filters['play_status'] } %></div>
+        <div><%= f.label :rating, 'My rating' %><%= f.select :rating, (1..10).map { |n| [(n / 2.0).to_s, (n / 2.0).to_s] }, { include_blank: 'Any rating', selected: @filters['rating'] } %></div>
+      <% end %>
+    </div>
+  </details>
+  <%= f.submit 'Apply filters', class: 'btn btn-secondary' %>
+<% end %>

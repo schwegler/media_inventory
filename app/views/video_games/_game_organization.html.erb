@@ -1,0 +1,9 @@
+<details><summary>Favorites, tags and sharing</summary>
+  <%= form_with url: game_preferences_path(video_game_id: library.item_id), method: :patch, scope: :preferences, namespace: 'game_preferences', class: 'standard-form' do |f| %>
+    <%= f.check_box :game_favorite, checked: library.game_favorite? %><%= f.label :game_favorite, 'Favorite game' %>
+    <%= f.label :tags, 'My tags (comma-separated, up to 20)' %><%= f.text_field :tags, value: library.game_tags.join(', ') %>
+    <%= f.check_box :game_activity_public, checked: library.game_activity_public? %><%= f.label :game_activity_public, 'Show gameplay status, progress and favorites on my public game shelf' %>
+    <p>Public shelves also require this game's existing collection visibility to be public. Purchase information, journals, session notes and tags remain private.</p>
+    <%= f.submit 'Save organization', class: 'btn btn-primary' %>
+  <% end %>
+</details>

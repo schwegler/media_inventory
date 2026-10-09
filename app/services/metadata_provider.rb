@@ -9,10 +9,11 @@ class MetadataProvider
   class RateLimited < StandardError; end
   class Unsupported < StandardError; end
 
-  def initialize(item, include_children: true, deadline: nil, revalidate: false)
+  def initialize(item, include_children: true, deadline: nil, fresh: false, revalidate: false)
     @revalidate = revalidate
     @include_children = include_children
     @deadline = deadline
+    @fresh = fresh
     @item = item
     @id = item.api_id.to_s
     @partial = false
@@ -226,31 +227,21 @@ class MetadataProvider
   end
 
   def game
-    if @id.start_with?('rawg_')
-      @provider = 'RAWG'
-      active!('RAWG')
-      data = json("https://api.rawg.io/api/games/#{numeric_id('rawg_')}", key: key('RAWG'))
-      [{ developer: names(data['developers']), publisher: names(data['publishers']),
-         platform: names(Array(data['platforms']).filter_map { |entry| entry['platform'] }),
-         release_year: year(data['released']), thumbnail_url: data['background_image'] }, []]
-    else
-      steam
-    end
-  end
-
-  def steam
-    @provider = 'Steam'
-    active!('Steam')
-    id = numeric_id('steam_')
-    result = json('https://store.steampowered.com/api/appdetails', appids: id).fetch(id)
-    raise Unavailable unless result['success'] && result['data'].is_a?(Hash)
-
-    data = result['data']
-    artwork = data['header_image'].presence || data['capsule_image'].presence
-    [{ developer: Array(data['developers']).join(', ').presence, publisher: Array(data['publishers']).join(', ').presence,
-       platform: (data['platforms'] || {}).select { |_platform, supported| supported }.keys.join(', ').presence,
-       release_year: data.dig('release_date', 'date').to_s[/\b(19\d{2}|20\d{2})\b/],
-       thumbnail_url: artwork }, []]
+    adapter = if @id.start_with?('rawg_')
+                GameProviders::Rawg.new(deadline: @deadline,
+                                        fresh: @fresh)
+              else
+                GameProviders::Steam.new(
+                  deadline: @deadline, fresh: @fresh
+                )
+              end
+    @provider = adapter.name
+    prefix = @provider == 'RAWG' ? 'rawg_' : 'steam_'
+    [adapter.details(numeric_id(prefix)), []]
+  rescue GameProviders::Base::RateLimited
+    raise RateLimited
+  rescue GameProviders::Base::Unavailable
+    raise Unavailable
   end
 
   def year(value)

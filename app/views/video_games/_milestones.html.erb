@@ -1,0 +1,27 @@
+<h3>My completion milestones</h3>
+<% milestones = library.game_milestones.order(:created_at) %>
+<% if milestones.any? %>
+  <p><%= milestones.where.not(completed_at: nil).count %> / <%= milestones.count %> completed. These are your manual goals, separate from platform achievements.</p>
+<% end %>
+<% milestones.each do |milestone| %>
+  <details><summary><%= milestone.spoiler? ? 'Spoiler milestone' : milestone.title %> · <%= milestone.completed_at ? 'Completed' : 'Planned' %></summary>
+    <%= form_with url: game_progress_path(video_game_id: library.item_id, id: milestone.id), method: :patch, scope: :milestone, namespace: "milestone_#{milestone.id}", class: 'standard-form' do |f| %>
+      <%= hidden_field_tag :kind, 'milestone', id: nil %>
+      <%= f.label :title %><%= f.text_field :title, value: milestone.title, required: true, maxlength: 200 %>
+      <%= f.label :description %><%= f.text_area :description, value: milestone.description %>
+      <%= f.label :completed_at, 'Completed (application time zone, leave blank if planned)' %><%= f.datetime_local_field :completed_at, value: milestone.completed_at&.strftime('%Y-%m-%dT%H:%M') %>
+      <%= f.check_box :spoiler, checked: milestone.spoiler? %><%= f.label :spoiler, 'Contains spoilers' %>
+      <%= f.submit 'Update milestone', class: 'btn btn-primary' %>
+    <% end %>
+    <%= button_to 'Remove milestone', delete_game_tracking_path(video_game_id: library.item_id, id: milestone.id), method: :delete, params: { kind: 'milestone' }, data: { turbo_confirm: 'Remove this milestone?' }, class: 'btn btn-secondary' %>
+  </details>
+<% end %>
+<details><summary>Add a manual milestone</summary>
+  <%= form_with url: game_tracking_path(video_game_id: library.item_id), scope: :milestone, namespace: 'new_milestone', class: 'standard-form' do |f| %>
+    <%= hidden_field_tag :kind, 'milestone', id: nil %>
+    <%= f.label :title, 'Goal or achievement name' %><%= f.text_field :title, required: true, maxlength: 200 %>
+    <%= f.label :description %><%= f.text_area :description %>
+    <%= f.check_box :spoiler %><%= f.label :spoiler, 'Contains spoilers' %>
+    <%= f.submit 'Save milestone', class: 'btn btn-primary' %>
+  <% end %>
+</details>

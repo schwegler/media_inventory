@@ -1,19 +1,18 @@
 <%
-  backdrop_url = nil
-  if @video_game.stored_cover_url.present?
-    backdrop_url = @video_game.stored_cover_url
-  end
+  backdrop_url = @library_item&.game_cover_image&.attached? ? rails_storage_proxy_path(@library_item.game_cover_image) : @video_game.stored_cover_url
+  hero_art = @artworks.find { |art| art.kind == 'hero' && art.image.attached? } || @artworks.find { |art| art.kind == 'background' && art.image.attached? }
+  hero_url = hero_art ? rails_storage_proxy_path(hero_art.image) : backdrop_url
 %>
 <% content_for(:title, @video_game.title) %>
 <% content_for(:meta_description, "Video Game by #{@video_game.developer || 'Unknown Developer'} • #{@video_game.platform} • #{@video_game.release_year}") %>
 <% content_for(:meta_image, backdrop_url) if backdrop_url.present? %>
 
 <% content_for(:item_detail, 'true') %>
-<% content_for(:header_artwork, backdrop_url) if backdrop_url.present? %>
+<% content_for(:header_artwork, hero_url) if hero_url.present? %>
 
 <div class="show-hero">
-  <% if backdrop_url %>
-    <img class="show-hero-backdrop" src="<%= backdrop_url %>" alt="" />
+  <% if hero_url %>
+    <img class="show-hero-backdrop" src="<%= hero_url %>" alt="" />
   <% end %>
   <div class="show-hero-gradient"></div>
 </div>
@@ -23,8 +22,8 @@
   <div class="show-left">
     <div class="show-poster-card">
       <div class="show-poster">
-        <% if @video_game.stored_cover_url.present? %>
-          <%= image_tag @video_game.stored_cover_url, alt: "#{@video_game.title} Cover" %>
+        <% if backdrop_url.present? %>
+          <%= game_library_image(@video_game, @library_item, alt: "#{@video_game.title} Cover", class: "game-cover-art", sizes: "230px") %>
             <% else %>
           <div class="poster-fallback"><span class="fallback-emoji">🎮</span></div>
         <% end %>
@@ -61,8 +60,25 @@
       </div>
     </div>
 
-    <%= render 'shared/media_actions_and_stream', item: @video_game %>
+    <% if @video_game.synopsis.present? %><div class="show-community"><h2>About this game</h2><%= simple_format(@video_game.synopsis) %></div><% end %>
+    <% if @video_game.metadata_details.present? %><dl class="show-community">
+      <% { 'genres' => 'Genres', 'features' => 'Features', 'languages' => 'Languages', 'controller_support' => 'Controller support' }.each do |key, label| %>
+        <% value = @video_game.metadata_details[key] %><% next if value.blank? %><dt><%= label %></dt><dd><%= value.is_a?(Array) ? value.join(', ') : value %></dd>
+      <% end %>
+    </dl><% end %>
+    <%= render 'shared/media_actions_and_stream' , item: @video_game %>
     <%= render 'shared/metadata_refresh', item: @video_game %>
+    <div class="game-source-credits">
+      <% if @video_game.external_url.to_s.start_with?('https://') %><p>Metadata: <%= link_to(@video_game.api_id.to_s.start_with?('rawg_') ? 'RAWG' : 'Provider source', @video_game.external_url, rel: 'noopener noreferrer') %></p><% end %>
+      <% artwork_blob = @library_item&.game_cover_image&.attached? ? @library_item.game_cover_image.blob : (@video_game.cover_image.blob if @video_game.cover_image.attached?) %>
+      <% if artwork_blob %><% MediaArtworkSource.where(blob_id: artwork_blob.id).each do |source| %>
+        <% provenance = source.provenance || {} %><% next if provenance['provider'].blank? %>
+        <p>Artwork: <%= provenance['provider'] %><%= " · #{provenance['author']}" if provenance['author'].present? %>
+        <% if provenance['attribution_url'].to_s.start_with?('https://') %> · <%= link_to 'Artwork source', provenance['attribution_url'], rel: 'noopener noreferrer' %><% end %></p>
+      <% end %><% end %>
+    </div>
+    <%= render 'artwork_gallery', game: @video_game, library: @library_item %>
+    <%= render 'tracking', library: @library_item if @library_item %>
 
     <% if @video_game.review.present? %>
       <div class="show-review">

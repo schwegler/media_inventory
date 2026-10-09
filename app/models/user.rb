@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class User < ApplicationRecord
+  has_many :game_library_views, dependent: :destroy
   has_secure_password
 
   before_validation { self.email = nil if email.blank? }
@@ -26,6 +27,7 @@ class User < ApplicationRecord
   has_one_attached :avatar
   has_one_attached :header_banner
 
+  has_one :steam_library_sync, dependent: :destroy
   has_many :library_items, dependent: :destroy
 
   def albums

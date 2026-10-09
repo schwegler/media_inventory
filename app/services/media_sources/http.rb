@@ -9,7 +9,8 @@ module MediaSources
   # Both metadata and cover downloads use fixed public provider domains. Redirects
   # pass the same checks; submitted form URLs cannot reach internal services.
   class Http
-    HOSTS = %w[api.themoviedb.org image.tmdb.org api.rawg.io media.rawg.io store.steampowered.com
+    HOSTS = %w[api.themoviedb.org image.tmdb.org api.rawg.io media.rawg.io api.steampowered.com store.steampowered.com
+               steamgriddb.com
                steamstatic.com steamcdn-a.akamaihd.net itunes.apple.com mzstatic.com
                api.tvmaze.com static.tvmaze.com musicbrainz.org coverartarchive.org
                archive.org comicvine.gamespot.com
@@ -40,9 +41,11 @@ module MediaSources
       if response.is_a?(Net::HTTPRedirection) && !response.is_a?(Net::HTTPNotModified)
         raise Error, 'Too many redirects' unless settings[:redirects].positive? && response['location'].present?
 
-        return get(URI.join(uri, response['location']), max_bytes: settings[:max_bytes],
-                                                        redirects: settings[:redirects] - 1, deadline: settings[:deadline],
-                                                        options: { metadata: settings[:metadata] }, &consumer)
+        destination = URI.join(uri, response['location'])
+        forwarded_headers = destination.host == uri.host ? settings[:headers] : {}
+        return get(destination, max_bytes: settings[:max_bytes],
+                                redirects: settings[:redirects] - 1, deadline: settings[:deadline],
+                                options: { metadata: settings[:metadata], headers: forwarded_headers }, &consumer)
       end
 
       settings[:metadata]&.merge!(etag: response['etag'], status: response.code.to_i)

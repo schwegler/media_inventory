@@ -1,0 +1,7 @@
+<h1>Import game data</h1>
+<p>Import a JSON game export, or CSV copies with a canonical game_id column. Existing external-ID mappings resolve portable JSON exports; unknown or conflicting identities require review. Imports add records and preserve existing personal data. Maximum file size: 1 MB.</p>
+<%= form_with url: preview_game_import_path, multipart: true, class: 'standard-form' do |f| %>
+  <%= f.label :file, 'Game data file' %><%= f.file_field :file, required: true, accept: '.json,.csv' %>
+  <%= f.label :format %><%= f.select :format, [['JSON', 'json'], ['CSV copies', 'csv']] %>
+  <%= f.submit 'Validate and preview', class: 'btn btn-primary' %>
+<% end %>

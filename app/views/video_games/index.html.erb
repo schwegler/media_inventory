@@ -1,19 +1,52 @@
 <div class="page-header">
-  <h1>Video Games</h1>
+  <h1><%= @personal_library ? 'My game library' : 'Video Games' %></h1>
   <% if logged_in? %>
-    <%= link_to 'New Video Game', new_video_game_path, class: 'sleek-btn sleek-btn-primary' %>
+    <%= link_to 'Log a game', new_video_game_path, class: 'sleek-btn sleek-btn-primary' %>
   <% end %>
 </div>
-
+<nav class="game-library-nav" aria-label="Game collection">
+  <%= link_to 'Browse catalog', video_games_path, aria: { current: @personal_library ? nil : 'page' } %>
+  <% if logged_in? %>
+    <%= link_to 'My library', video_games_path(library: 'mine'), aria: { current: @personal_library ? 'page' : nil } %>
+  <% end %>
+</nav>
+<% if @personal_library %>
+  <%= render 'library_statistics' %>
+  <nav class="game-library-nav" aria-label="Quick collection filters">
+    <% [['Playing', 'currently_playing'], ['Backlog', 'backlog'], ['Completed', 'completed'], ['Replaying', 'replaying']].each do |label, value| %>
+      <%= link_to label, video_games_path(library: 'mine', play_status: value) %>
+    <% end %>
+    <%= link_to 'Wishlist', video_games_path(library: 'mine', ownership_status: 'wishlist') %>
+    <%= link_to 'Favorites', video_games_path(library: 'mine', favorite: '1') %>
+    <%= link_to 'My public game shelf', game_shelf_path(current_user) %>
+    <% @saved_views.each do |view| %>
+      <%= link_to view.name, video_games_path(library: 'mine', view: view.id), aria: { current: @saved_view == view ? 'page' : nil } %>
+    <% end %>
+  </nav>
+<% end %>
+<%= render 'library_filters' %>
+<% if @personal_library %>
+  <details class="game-library-disclosure"><summary>Save this collection view</summary>
+    <%= form_with url: game_library_views_path, class: 'standard-form', namespace: 'save_view' do |f| %>
+      <%= f.label :name, 'View name' %><%= f.text_field :name, required: true, maxlength: 60 %>
+      <% @filters.each do |key, value| %><%= hidden_field_tag "filters[#{key}]", value, id: nil %><% end %>
+      <%= f.submit 'Save view', class: 'btn btn-secondary' %>
+    <% end %>
+    <% if @saved_view %>
+      <%= button_to "Delete saved view: #{@saved_view.name}", game_library_view_path(@saved_view), method: :delete, class: 'btn btn-secondary' %>
+    <% end %>
+  </details>
+  <%= render 'library_imports' %>
+<% end %>
 <% if @video_games.empty? %>
-    <%= render 'shared/catalog_empty_state', media_name: 'games', singular_name: 'game', article: 'a', new_item_path: new_video_game_path %>
-  <% end %>
-  <div class="media-grid-2026">
-  <% @video_games.each do |video_game| %>
-    <%= render partial: 'shared/media_card', locals: { media_item: video_game } %>
-  <% end %>
-</div>
-
-<div class="pagination-wrapper">
-  <%= paginate @video_games %>
-</div>
+  <p role="status">No games match this view. <%= link_to 'Clear filters', video_games_path(library: @personal_library ? 'mine' : 'all') %> or <%= link_to 'log a game', new_video_game_path %>.</p>
+<% elsif @layout == 'table' %>
+  <%= render 'library_table' %>
+<% else %>
+  <div class="<%= @layout == 'list' ? 'game-library-list' : 'media-grid-2026' %>">
+    <% @video_games.each do |game| %>
+      <%= render 'library_card', game: game, library: @libraries&.[](game.id) %>
+    <% end %>
+  </div>
+<% end %>
+<div class="pagination-wrapper"><%= paginate @video_games %></div>

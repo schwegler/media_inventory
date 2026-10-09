@@ -7,7 +7,7 @@ RSpec.describe 'Stored catalog cover recovery', type: :request do
 
   let(:source) { 'https://covers.openlibrary.org/b/id/123-M.jpg' }
   let(:png) do
-    Base64.decode64('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aO1sAAAAASUVORK5CYII=')
+    File.binread(Rails.root.join('spec/fixtures/files/valid-cover.png'))
   end
 
   before do
@@ -46,8 +46,8 @@ RSpec.describe 'Stored catalog cover recovery', type: :request do
     travel 20.minutes do
       get destination
       expect(response).to have_http_status(:ok)
-      expect(response.media_type).to eq('image/png')
-      expect(response.body.b).to eq(png.b)
+      expect(response.media_type).to eq('image/webp')
+      expect(response.body.b).to eq(item.reload.cover_image.blob.download.b)
       expect(response).not_to be_redirect
     end
     expect(WebMock).to have_requested(:get, source).once
