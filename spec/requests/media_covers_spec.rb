@@ -3,6 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe 'Stored catalog cover recovery', type: :request do
+  include ActiveSupport::Testing::TimeHelpers
+
   let(:source) { 'https://covers.openlibrary.org/b/id/123-M.jpg' }
   let(:png) do
     Base64.decode64('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aO1sAAAAASUVORK5CYII=')
@@ -33,6 +35,21 @@ RSpec.describe 'Stored catalog cover recovery', type: :request do
       expect(response).to have_http_status(:found)
     end
     # Identical artwork is downloaded once across records, including repeat loads.
+    expect(WebMock).to have_requested(:get, source).once
+  end
+
+  it 'keeps cached cover destinations usable after disk signatures would have expired' do
+    item = legacy_item(Book)
+    get item.stored_cover_url
+    destination = URI(response.location).request_uri
+    expect(destination).to include('/blobs/proxy/')
+    travel 20.minutes do
+      get destination
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq('image/png')
+      expect(response.body.b).to eq(png.b)
+      expect(response).not_to be_redirect
+    end
     expect(WebMock).to have_requested(:get, source).once
   end
 

@@ -19,7 +19,7 @@ Steam search uses its returned `tiny_image`, without guessed portrait paths or p
 
 ## Storage and resource limits
 
-Only saved selections are imported, including episode and issue images. Search thumbnails are temporary remote previews. Saved views and public sharing metadata use stable app cover URLs. The image endpoint imports legacy covers on first use, then redirects to Active Storage; no manual backfill is required for images to appear. Unavailable sources return a local image placeholder with a one-minute retry cooldown. Page rendering never downloads remote images. `thumbnail_url` retains the source URL as provenance.
+Only saved selections are imported, including episode and issue images. Search thumbnails are temporary remote previews. Saved views and public sharing metadata use stable app cover URLs. The image endpoint imports legacy covers on first use, then redirects to the permanent Active Storage streaming proxy, avoiding expiring disk URLs in browser caches; no manual backfill is required for images to appear. Unavailable sources return a local image placeholder with a one-minute retry cooldown. Page rendering never downloads remote images. `thumbnail_url` retains the source URL as provenance.
 
 Downloads stream to temporary disk files with a 5 MiB cap, 15-second deadline, short connect/read timeouts, and at most three redirects. Actual file signatures must identify JPEG, PNG, WebP, or GIF; remote SVG and HTML are rejected. Fixed HTTPS provider domains are checked at every redirect, preventing submitted URLs from targeting arbitrary/internal servers. Unsupported hosts can be added to `MediaSources::Http::HOSTS` after review, or the user can upload a file directly.
 
