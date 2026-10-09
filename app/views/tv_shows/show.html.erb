@@ -1,8 +1,6 @@
 <%
   backdrop_url = nil
-  if @tv_show.cover_image.attached?
-    backdrop_url = url_for(@tv_show.cover_image)
-  elsif @tv_show.stored_cover_url.present?
+  if @tv_show.stored_cover_url.present?
     backdrop_url = @tv_show.stored_cover_url
   end
 %>
@@ -25,11 +23,9 @@
   <div class="show-left">
     <div class="show-poster-card">
       <div class="show-poster">
-        <% if @tv_show.cover_image.attached? %>
-          <%= image_tag @tv_show.cover_image, alt: "#{@tv_show.title} Cover" %>
-        <% elsif @tv_show.stored_cover_url.present? %>
-          <img src="<%= @tv_show.stored_cover_url %>" alt="<%= @tv_show.title %> Cover">
-        <% else %>
+        <% if @tv_show.stored_cover_url.present? %>
+          <%= image_tag @tv_show.stored_cover_url, alt: "#{@tv_show.title} Cover" %>
+            <% else %>
           <div class="poster-fallback"><span class="fallback-emoji">📺</span></div>
         <% end %>
       </div>

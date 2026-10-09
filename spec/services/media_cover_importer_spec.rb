@@ -17,7 +17,7 @@ RSpec.describe MediaCoverImporter do
   it 'stores selected images locally and reuses downloads for repeated imports' do
     described_class.call(item, url)
     expect(item.reload.cover_image).to be_attached
-    expect(item.stored_cover_url).to start_with('/rails/active_storage/')
+    expect(item.stored_cover_url).to start_with('/media/covers/')
     another = Book.create!(title: 'Another', thumbnail_url: url)
     described_class.call(another, url)
     expect(another.cover_image.blob_id).to eq(item.cover_image.blob_id)
@@ -58,12 +58,35 @@ RSpec.describe MediaCoverImporter do
     stub_request(:get, url).to_return(body: png, headers: { 'Content-Length' => (described_class::MAX_BYTES + 1).to_s })
     described_class.call(item, url)
     expect(item.reload.cover_image).not_to be_attached
-    expect(item.stored_cover_url).to be_nil
+    expect(item.stored_cover_url).to start_with('/media/covers/')
   end
 
   it 'rejects HTML masquerading as an image' do
     stub_request(:get, url).to_return(body: '<html>Error</html>', headers: { 'Content-Type' => 'image/jpeg' })
     described_class.call(item, url)
     expect(item.reload.cover_image).not_to be_attached
+  end
+
+  it 'limits background and HTTP recovery imports to two concurrent operations' do
+    active = 0
+    peak = 0
+    mutex = Mutex.new
+    entered = Queue.new
+    release = Queue.new
+    allow(described_class).to receive(:import) do
+      mutex.synchronize do
+        active += 1
+        peak = [peak, active].max
+      end
+      entered << true
+      release.pop
+      mutex.synchronize { active -= 1 }
+    end
+    threads = 6.times.map { |i| Thread.new { described_class.call(nil, "https://covers.openlibrary.org/#{i}") } }
+    2.times { entered.pop }
+    expect(entered.empty?).to be(true)
+    6.times { release << true }
+    threads.each(&:join)
+    expect(peak).to eq(2)
   end
 end

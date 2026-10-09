@@ -1,8 +1,6 @@
 <%
   backdrop_url = nil
-  if @comic.cover_image.attached?
-    backdrop_url = url_for(@comic.cover_image)
-  elsif @comic.stored_cover_url.present?
+  if @comic.stored_cover_url.present?
     backdrop_url = @comic.stored_cover_url
   end
 %>
@@ -25,11 +23,9 @@
   <div class="show-left">
     <div class="show-poster-card">
       <div class="show-poster">
-        <% if @comic.cover_image.attached? %>
-          <%= image_tag @comic.cover_image, alt: "#{@comic.title} Cover" %>
-        <% elsif @comic.stored_cover_url.present? %>
-          <img src="<%= @comic.stored_cover_url %>" alt="<%= @comic.title %> Cover">
-        <% else %>
+        <% if @comic.stored_cover_url.present? %>
+          <%= image_tag @comic.stored_cover_url, alt: "#{@comic.title} Cover" %>
+            <% else %>
           <div class="poster-fallback"><span class="fallback-emoji">📚</span></div>
         <% end %>
       </div>

@@ -84,6 +84,7 @@ class MediaController < ApplicationController
         director: m.director,
         release_year: m.release_year,
         thumbnail_url: m.stored_cover_url,
+        cover_source_url: m.cover_image.attached? ? url_for(m.cover_image) : m.thumbnail_url,
         api_id: m.api_id,
         external_url: m.external_url,
         is_local: true
@@ -106,6 +107,7 @@ class MediaController < ApplicationController
         genre: a.genre,
         release_year: a.release_year,
         thumbnail_url: a.stored_cover_url,
+        cover_source_url: a.cover_image.attached? ? url_for(a.cover_image) : a.thumbnail_url,
         api_id: a.api_id,
         external_url: a.external_url,
         is_local: true
@@ -129,6 +131,7 @@ class MediaController < ApplicationController
         publisher: c.publisher,
         issue_number: c.issue_number,
         thumbnail_url: c.stored_cover_url,
+        cover_source_url: c.cover_image.attached? ? url_for(c.cover_image) : c.thumbnail_url,
         api_id: c.api_id,
         external_url: c.external_url,
         is_local: true
@@ -149,6 +152,7 @@ class MediaController < ApplicationController
         title: t.title,
         network: t.network,
         thumbnail_url: t.stored_cover_url,
+        cover_source_url: t.cover_image.attached? ? url_for(t.cover_image) : t.thumbnail_url,
         api_id: t.api_id,
         external_url: t.external_url,
         is_local: true
@@ -172,6 +176,7 @@ class MediaController < ApplicationController
         platform: vg.platform,
         release_year: vg.release_year,
         thumbnail_url: vg.stored_cover_url,
+        cover_source_url: vg.cover_image.attached? ? url_for(vg.cover_image) : vg.thumbnail_url,
         api_id: vg.api_id,
         external_url: vg.external_url,
         is_local: true
@@ -194,6 +199,7 @@ class MediaController < ApplicationController
         publisher: b.publisher,
         release_year: b.release_year,
         thumbnail_url: b.stored_cover_url,
+        cover_source_url: b.cover_image.attached? ? url_for(b.cover_image) : b.thumbnail_url,
         api_id: b.api_id,
         external_url: b.external_url,
         is_local: true

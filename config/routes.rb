@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 SampleApp::Application.routes.draw do
+  get 'media/covers/:type/:id', to: 'media_covers#show', as: :media_cover, constraints: { id: /\d+/ }
   resources :posts, only: %i[create destroy show]
   resources :notifications, only: %i[index] do
     collection do
