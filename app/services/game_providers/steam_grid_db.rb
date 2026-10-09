@@ -30,6 +30,22 @@ module GameProviders
       []
     end
 
+    def supplemental_artwork(steam_id)
+      return [] unless enabled? && steam_id.to_s.match?(/\A\d+\z/)
+
+      { 'heroes' => 'hero', 'logos' => 'logo', 'icons' => 'icon' }.filter_map do |category, kind|
+        data = json("https://www.steamgriddb.com/api/v2/#{category}/steam/#{steam_id}", types: 'static', limit: 1)
+        row = data['success'] && data['data'].is_a?(Array) && data['data'].first
+        next unless row.is_a?(Hash) && row['url'].present?
+
+        { url: row['url'], provider: name, provider_id: row['id'].to_s, artwork_type: kind,
+          matched_by: 'steam_app_id', author: row.dig('author', 'name'),
+          attribution_url: "https://www.steamgriddb.com/#{kind}/#{row['id']}", storage_eligible: true }
+      rescue Unavailable
+        nil
+      end
+    end
+
     private
 
     def request_headers

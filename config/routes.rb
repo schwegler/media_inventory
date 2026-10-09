@@ -2,12 +2,16 @@
 
 SampleApp::Application.routes.draw do
   resources :game_library_views, only: %i[create destroy]
+  get 'media/artwork/renditions/:token', to: 'media_artwork_renditions#show', as: :artwork_rendition
   get 'users/:user_id/games', to: 'game_shelves#show', as: :game_shelf
   get 'game_import/new', to: 'game_imports#new', as: :new_game_import
   post 'game_import/preview', to: 'game_imports#preview', as: :preview_game_import
   post 'game_import', to: 'game_imports#create', as: :game_import
   post 'video_games/sync_steam', to: 'video_games#sync_steam', as: :sync_steam_games
   post 'video_games/:video_game_id/artwork/alternates', to: 'game_artwork#alternates', as: :alternate_game_artwork
+  post 'video_games/:video_game_id/artwork/fetch', to: 'game_artwork#fetch_supplemental', as: :fetch_game_artwork
+  post 'video_games/:video_game_id/artwork/upload', to: 'game_artwork#upload_supplemental', as: :upload_game_artwork
+  delete 'video_games/:video_game_id/artwork/:id', to: 'game_artwork#destroy_supplemental', as: :delete_game_artwork
   post 'video_games/:video_game_id/artwork/select', to: 'game_artwork#select_cover', as: :select_game_artwork
   post 'video_games/:video_game_id/cover', to: 'game_artwork#cover', as: :game_cover
   post 'video_games/:video_game_id/tracking', to: 'game_tracking#create', as: :game_tracking

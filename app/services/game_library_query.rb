@@ -28,7 +28,7 @@ class GameLibraryQuery
   end
 
   def call
-    scope = VideoGame.with_attached_cover_image
+    scope = VideoGame.with_attached_cover_image.includes(cover_image_attachment: { blob: { artwork_renditions: :blob } })
     scope = personal_scope(scope) if @user
     scope = metadata_filters(scope)
     scope = scope.select('video_games.*', 'LOWER(video_games.title) AS sort_title')

@@ -35,6 +35,24 @@ module GameProviders
       details(id).slice(:thumbnail_url)
     end
 
+    def supplemental_artwork(id)
+      raise Unavailable unless id.to_s.match?(/\A\d+\z/)
+
+      result = json('https://store.steampowered.com/api/appdetails', appids: id.to_s)[id.to_s]
+      raise Unavailable unless result.is_a?(Hash) && result['success'] && result['data'].is_a?(Hash)
+
+      data = result['data']
+      candidates = [{ url: data['header_image'], artwork_type: 'landscape_cover' },
+                    { url: data['background_raw'].presence || data['background'], artwork_type: 'background' }]
+      candidates.concat(Array(data['screenshots']).first(3).filter_map do |row|
+        { url: row['path_full'].presence || row['path_thumbnail'], artwork_type: 'screenshot' } if row.is_a?(Hash)
+      end)
+      candidates.select { |row| row[:url].present? }.map do |row|
+        row.merge(provider: name, provider_id: id.to_s, matched_by: 'steam_app_id', storage_eligible: true,
+                  attribution_url: "https://store.steampowered.com/app/#{id}")
+      end
+    end
+
     private
 
     def metadata_details(data)

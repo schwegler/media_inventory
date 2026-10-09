@@ -11,7 +11,7 @@
 <div class="media-grid-2026">
   <% @games.each do |library| %><% game = library.item %>
     <article class="card-2026 game-library-card">
-      <div class="card-2026-cover"><%= image_tag game_library_cover(game, library), alt: "#{game.title} cover", loading: 'lazy', decoding: 'async' %></div>
+      <div class="card-2026-cover"><%= game_library_image(game, library, alt: "#{game.title} cover", loading: 'lazy', decoding: 'async') %></div>
       <div class="card-2026-content">
         <h2 class="card-2026-title"><%= link_to game.title, game %></h2>
         <% if library.game_favorite? %><p>Favorite game</p><% end %>

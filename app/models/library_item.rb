@@ -12,6 +12,7 @@ class LibraryItem < ApplicationRecord
   has_many :game_playthroughs, dependent: :destroy
   has_many :game_journal_entries, dependent: :destroy
   has_many :game_milestones, dependent: :destroy
+  has_many :game_artworks, dependent: :destroy
 
   validates :game_tags, length: { maximum: 20 }
   validate do

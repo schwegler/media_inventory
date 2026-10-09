@@ -13,12 +13,14 @@ class MediaArtworkDecoder
     width, height = output.split.map(&:to_i)
     valid = status.success? && width&.positive? && height&.positive? && width * height <= 20_000_000
     raise MediaSources::Http::Error, 'Invalid image pixels or dimensions' unless valid
+
+    [width, height]
   end
 
-  def self.normalized(path)
+  def self.normalized(path, dimensions: '600x900')
     validate!(path)
     Tempfile.create(['media-cover-preview', '.webp']) do |preview|
-      _output, _error, status = execute("#{path}[0]", '-auto-orient', '-resize', '600x900>',
+      _output, _error, status = execute("#{path}[0]", '-auto-orient', '-resize', "#{dimensions}>",
                                         '-strip', '-quality', '82', "webp:#{preview.path}")
       raise MediaSources::Http::Error, 'Image transformation failed' unless status.success? && !File.empty?(preview.path)
 

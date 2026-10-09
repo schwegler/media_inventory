@@ -55,6 +55,7 @@ module Admin
         overlap
 
       @source.game_external_ids.update_all(video_game_id: @target.id)
+      @source.game_artworks.update_all(video_game_id: @target.id)
       return if @target.cover_image.attached? || !@source.cover_image.attached?
 
       @target.cover_image.attach(@source.cover_image.blob)

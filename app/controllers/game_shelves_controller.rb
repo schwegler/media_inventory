@@ -14,8 +14,9 @@ class GameShelvesController < ApplicationController
       runs = GamePlaythrough.where(library_item_id: scope.select(:id), status: params[:status])
       scope = scope.where(id: runs.select(:library_item_id))
     end
-    @games = scope.includes(:game_playthroughs, game_cover_image_attachment: :blob,
-                                                item: { cover_image_attachment: :blob })
+    @games = scope.includes(:game_playthroughs,
+                            game_cover_image_attachment: { blob: { artwork_renditions: :blob } },
+                            item: { cover_image_attachment: { blob: { artwork_renditions: :blob } } })
                   .order(game_favorite: :desc, created_at: :desc)
                   .page(params[:page])
   end

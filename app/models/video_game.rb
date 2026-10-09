@@ -14,6 +14,8 @@ class VideoGame < ApplicationRecord
   has_many :comments, as: :commentable, dependent: :destroy
   has_many :edit_suggestions, as: :suggestable, dependent: :destroy
   has_many :game_external_ids, dependent: :destroy
+  has_many :game_artworks, dependent: :destroy
+  has_one :game_artwork_batch, dependent: :destroy
   has_many :library_items, as: :item, dependent: :destroy
 
   validates :title, presence: true

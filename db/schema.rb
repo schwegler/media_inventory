@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_09_182500) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_09_190000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -170,6 +170,32 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_182500) do
     t.index ["user_id"], name: "index_edit_suggestions_on_user_id"
   end
 
+  create_table "game_artwork_batches", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "failure_reason"
+    t.datetime "requested_at"
+    t.string "state", default: "idle", null: false
+    t.datetime "updated_at", null: false
+    t.integer "video_game_id", null: false
+    t.index ["video_game_id"], name: "index_game_artwork_batches_on_video_game_id", unique: true
+  end
+
+  create_table "game_artworks", force: :cascade do |t|
+    t.string "attribution_url"
+    t.string "author"
+    t.datetime "created_at", null: false
+    t.string "edition"
+    t.string "kind", null: false
+    t.integer "library_item_id"
+    t.string "platform"
+    t.string "provider"
+    t.string "source_url"
+    t.datetime "updated_at", null: false
+    t.integer "video_game_id", null: false
+    t.index ["library_item_id"], name: "index_game_artworks_on_library_item_id"
+    t.index ["video_game_id"], name: "index_game_artworks_on_video_game_id"
+  end
+
   create_table "game_copies", force: :cascade do |t|
     t.string "access_method", default: "digital", null: false
     t.string "acquisition_source"
@@ -311,6 +337,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_182500) do
     t.string "server", null: false
     t.datetime "updated_at", null: false
     t.index ["server"], name: "index_mastodon_oauth_applications_on_server", unique: true
+  end
+
+  create_table "media_artwork_renditions", force: :cascade do |t|
+    t.bigint "blob_id"
+    t.datetime "created_at", null: false
+    t.string "failure_reason"
+    t.integer "height"
+    t.integer "requested_height", null: false
+    t.integer "requested_width", null: false
+    t.bigint "source_blob_id", null: false
+    t.string "state", default: "pending", null: false
+    t.datetime "updated_at", null: false
+    t.integer "width"
+    t.index ["source_blob_id", "requested_width", "requested_height"], name: "index_artwork_renditions_on_source_and_size", unique: true
   end
 
   create_table "media_artwork_sources", force: :cascade do |t|
@@ -506,6 +546,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_182500) do
   add_foreign_key "comic_issues", "comics", on_delete: :cascade
   add_foreign_key "comments", "users", on_delete: :cascade
   add_foreign_key "edit_suggestions", "users"
+  add_foreign_key "game_artwork_batches", "video_games"
+  add_foreign_key "game_artworks", "library_items"
+  add_foreign_key "game_artworks", "video_games"
   add_foreign_key "game_copies", "library_items"
   add_foreign_key "game_external_ids", "video_games"
   add_foreign_key "game_journal_entries", "library_items"
@@ -516,6 +559,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_182500) do
   add_foreign_key "game_sessions", "game_playthroughs"
   add_foreign_key "library_items", "users"
   add_foreign_key "likes", "users", on_delete: :cascade
+  add_foreign_key "media_artwork_renditions", "active_storage_blobs", column: "blob_id", on_delete: :cascade
+  add_foreign_key "media_artwork_renditions", "active_storage_blobs", column: "source_blob_id", on_delete: :cascade
   add_foreign_key "media_artwork_sources", "active_storage_blobs", column: "blob_id", on_delete: :cascade
   add_foreign_key "posts", "users"
   add_foreign_key "steam_library_syncs", "users"

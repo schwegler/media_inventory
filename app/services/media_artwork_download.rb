@@ -17,6 +17,7 @@ class MediaArtworkDownload
         MediaArtworkSource.upsert({ source_hash: source_hash, source_url: source_url, blob_id: blob.id,
                                     retrieved_at: Time.current, created_at: Time.current, updated_at: Time.current },
                                   unique_by: :source_hash)
+        MediaArtworkRendition.request(blob)
         blob
       end
     end
@@ -47,6 +48,10 @@ class MediaArtworkDownload
     blob = ActiveStorage::Blob.find_by(key: key)
     if blob
       blob.upload(file, identify: false) unless MediaCoverImporter.stored_file?(blob)
+      unless blob.metadata['width'] && blob.metadata['height']
+        width, height = MediaArtworkDecoder.validate!(file.path)
+        blob.update!(metadata: blob.metadata.merge('width' => width, 'height' => height))
+      end
       return blob
     end
 
@@ -54,9 +59,11 @@ class MediaArtworkDownload
     used = ActiveStorage::Blob.where("key LIKE 'media-covers/%'").sum(:byte_size)
     raise MediaSources::Http::Error, 'Artwork storage quota reached' if used + file.size > quota
 
+    width, height = MediaArtworkDecoder.validate!(file.path)
     ActiveStorage::Blob.create_and_upload!(io: file, key: key, filename: "#{digest}.webp",
                                            content_type: 'image/webp', identify: false,
-                                           metadata: { remote_source: source_url })
+                                           metadata: { remote_source: source_url, width: width, height: height,
+                                                       analyzed: true, identified: true })
   rescue ActiveRecord::RecordNotUnique
     ActiveStorage::Blob.find_by!(key: key)
   end

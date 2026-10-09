@@ -26,13 +26,23 @@ class VideoGamesController < InventoryController
     prepare_library if @personal_library
   end
 
+  def show
+    super
+    return if performed?
+
+    @artworks = @video_game.game_artworks.where(library_item_id: [nil, @library_item&.id])
+                           .with_attached_image.includes(image_attachment: { blob: { artwork_renditions: :blob } })
+                           .order(created_at: :desc).limit(20)
+  end
+
   private
 
   def prepare_library
     @game_statistics = GameLibraryStatistics.call(current_user)
     libraries = current_user.library_items.where(item_type: 'VideoGame')
     @libraries = libraries.where(item_id: @video_games.map(&:id))
-                          .includes(:game_copies, :game_playthroughs, game_cover_image_attachment: :blob)
+                          .includes(:game_copies, :game_playthroughs,
+                                    game_cover_image_attachment: { blob: { artwork_renditions: :blob } })
                           .index_by(&:item_id)
     copies = GameCopy.where(library_item_id: libraries.select(:id))
     @platforms = copies.distinct.order(:platform).pluck(:platform)

@@ -4,6 +4,47 @@ class GameArtworkController < ApplicationController
   before_action :logged_in_user
   before_action :load_library
 
+  def fetch_supplemental
+    batch = GameArtworkBatch.find_or_create_by!(video_game: @library.item)
+    return head :too_many_requests if batch.requested_at && batch.requested_at > 5.minutes.ago
+    return head :too_many_requests if GameArtworkBatch.where(state: %w[pending processing]).count >= 50
+
+    batch.with_lock do
+      return head :too_many_requests if batch.requested_at && batch.requested_at > 5.minutes.ago
+
+      batch.update!(state: 'pending', requested_at: Time.current)
+      ImportGameArtworkJob.perform_later(@library.item)
+    end
+    redirect_to video_game_path(@library.item), notice: 'Supplemental artwork queued.', status: :see_other
+  end
+
+  def upload_supplemental
+    return head :too_many_requests if @library.game_artworks.count >= 20
+
+    fields = params.require(:artwork).permit(:kind, :platform, :edition)
+    upload = params.require(:artwork).fetch(:image)
+    return head :payload_too_large if upload.size > MediaCoverImporter::MAX_BYTES
+    unless MediaCoverImporter::IMAGE_TYPES.include?(Marcel::MimeType.for(upload.tempfile))
+      return head :unprocessable_content
+    end
+
+    entry = @library.game_artworks.new(fields.merge(video_game: @library.item, provider: 'My upload'))
+    MediaArtworkDecoder.normalized(upload.tempfile.path) do |preview|
+      entry.image.attach(MediaArtworkDownload.store_blob(preview, nil))
+      entry.save!
+    end
+    MediaArtworkRendition.request(entry.image.blob)
+    redirect_to video_game_path(@library.item), notice: 'Your private artwork was saved.', status: :see_other
+  rescue MediaSources::Http::Error, ActiveRecord::RecordInvalid, KeyError
+    redirect_to video_game_path(@library.item), alert: 'Choose a supported artwork type and valid image up to 5 MB.',
+                                                status: :see_other
+  end
+
+  def destroy_supplemental
+    @library.game_artworks.find(params[:id]).destroy!
+    redirect_to video_game_path(@library.item), notice: 'Your private artwork was removed.', status: :see_other
+  end
+
   def alternates
     return head :too_many_requests if MediaSources::Registry::CACHE.read(['game-alternate-cooldown', @library.id])
 
@@ -52,6 +93,7 @@ class GameArtworkController < ApplicationController
     MediaSources::Registry::CACHE.write(['game-repair', @library.id], true, expires_in: 5.minutes)
     item = @library.item
     check_remote_cover(item)
+    MediaArtworkRendition.request(item.cover_image.blob) if item.cover_image.attached?
     ImportMediaCoverJob.perform_later(item, item.thumbnail_url) if item.thumbnail_url.present?
     redirect_to video_game_path(item), notice: 'Artwork repair queued. Custom covers are preserved.', status: :see_other
   end
