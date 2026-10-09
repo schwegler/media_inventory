@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'tempfile'
 require 'digest'
 
 class MediaCoverImporter
@@ -12,30 +11,53 @@ class MediaCoverImporter
 
   def self.call(item, source_url)
     LOCKS[Digest::SHA256.hexdigest(source_url).to_i(16) % LOCKS.length].synchronize do
-      slot = DOWNLOAD_SLOTS.pop
-      begin
-        import(item, source_url)
-      ensure
-        DOWNLOAD_SLOTS << slot
-      end
+      with_download_slot { import(item, source_url) }
     end
+  end
+
+  def self.with_download_slot
+    slot = DOWNLOAD_SLOTS.pop
+    yield
+  ensure
+    DOWNLOAD_SLOTS << slot if slot
   end
 
   def self.import(item, source_url)
     item.reload
     return unless current_selection?(item, source_url)
-    if item.cover_image.attached? && item.cover_image.blob.metadata['remote_source'] == source_url &&
-       stored_file?(item.cover_image.blob)
-      return
-    end
 
+    return if ready?(item, source_url)
+
+    health = CoverImport.find_or_create_by!(item: item) { |entry| entry.source_url = source_url }
+    health.update!(source_url: source_url, state: 'processing', attempted_at: Time.current,
+                   attempts: health.attempts + 1, failure_reason: nil)
     source_key = "media-cover-source-#{Digest::SHA256.hexdigest(source_url)}"
-    blob = local_blob(source_url) || cached_blob(source_key) || download_blob(source_url)
+    blob = resolve_blob(source_url, source_key)
     MediaSources::Registry::CACHE.write(source_key, blob.id, expires_in: 7.days)
     item.with_lock { item.cover_image.attach(blob) if current_selection?(item, source_url) }
+    health.update!(state: 'ready', ready_at: Time.current)
   rescue JSON::ParserError, MediaSources::Http::Error, Timeout::Error, SocketError,
          IOError, SystemCallError, OpenSSL::SSL::SSLError => e
+    health&.update!(state: 'failed', failure_reason: e.is_a?(MediaSources::Http::Error) ? e.message : e.class.name)
     Rails.logger.warn "Cover import failed for #{item.class.name}##{item.id}: #{e.class}"
+  end
+
+  def self.resolve_blob(source_url, source_key)
+    local = local_blob(source_url)
+    return local if local && stored_file?(local)
+
+    remote = local&.metadata&.fetch('remote_source', nil)
+    raise MediaSources::Http::Error, 'Missing local image' if local && remote.blank?
+
+    cached_blob(source_key) || download_blob(remote || source_url)
+  end
+
+  def self.ready?(item, source_url)
+    return false unless item.cover_image.attached?
+
+    blob = item.cover_image.blob
+    blob.service.delete(blob.key) if CoverImport.exists?(item: item, failure_reason: 'Corrupted stored image')
+    blob.metadata['remote_source'] == source_url && stored_file?(blob)
   end
 
   def self.current_selection?(item, source_url)
@@ -49,40 +71,12 @@ class MediaCoverImporter
     blob if blob && stored_file?(blob)
   end
 
-  def self.download_blob(source_url)
-    Tempfile.create(['media-cover', '.image']) do |file|
-      file.binmode
-      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 15
-      image_url = resolve_legacy_steam_url(source_url, deadline: deadline)
-      MediaSources::Http.get(image_url, max_bytes: MAX_BYTES,
-                                        deadline: deadline) { |chunk, _type| file.write(chunk) }
-      file.flush
-      raise MediaSources::Http::Error, 'Empty image' if File.empty?(file.path)
-
-      file.rewind
-      content_type = Marcel::MimeType.for(file)
-      raise MediaSources::Http::Error, 'Unsupported image' unless IMAGE_TYPES.include?(content_type)
-
-      digest = Digest::SHA256.file(file.path).hexdigest
-      file.rewind
-      store_blob(file, digest, content_type, source_url)
-    end
+  def self.download_blob(source_url, deadline: nil)
+    MediaArtworkDownload.call(source_url, deadline: deadline)
   end
 
-  def self.store_blob(file, digest, content_type, source_url)
-    key = "media-covers/#{digest}"
-    blob = ActiveStorage::Blob.find_by(key: key)
-    if blob
-      blob.upload(file, identify: false) unless stored_file?(blob)
-      return blob
-    end
-
-    ActiveStorage::Blob.create_and_upload!(
-      io: file, key: key, filename: "#{digest}.#{content_type.split('/').last}",
-      content_type: content_type, identify: false, metadata: { remote_source: source_url }
-    )
-  rescue ActiveRecord::RecordNotUnique
-    ActiveStorage::Blob.find_by!(key: key)
+  def self.validate_pixels!(path)
+    MediaArtworkDecoder.validate!(path)
   end
 
   def self.local_blob(url)

@@ -1,6 +1,17 @@
 # frozen_string_literal: true
 
 SampleApp::Application.routes.draw do
+  get 'game_import/new', to: 'game_imports#new', as: :new_game_import
+  post 'game_import/preview', to: 'game_imports#preview', as: :preview_game_import
+  post 'game_import', to: 'game_imports#create', as: :game_import
+  post 'video_games/sync_steam', to: 'video_games#sync_steam', as: :sync_steam_games
+  post 'video_games/:video_game_id/artwork/alternates', to: 'game_artwork#alternates', as: :alternate_game_artwork
+  post 'video_games/:video_game_id/artwork/select', to: 'game_artwork#select_cover', as: :select_game_artwork
+  post 'video_games/:video_game_id/cover', to: 'game_artwork#cover', as: :game_cover
+  post 'video_games/:video_game_id/tracking', to: 'game_tracking#create', as: :game_tracking
+  patch 'video_games/:video_game_id/tracking/:id', to: 'game_tracking#update', as: :game_progress
+  post 'video_games/:video_game_id/artwork/repair', to: 'game_artwork#repair', as: :repair_game_artwork
+  get 'video_games/:video_game_id/export', to: 'game_tracking#export', as: :export_game
   get 'media/covers/:type/:id', to: 'media_covers#show', as: :media_cover, constraints: { id: /\d+/ }
   resources :posts, only: %i[create destroy show]
   resources :notifications, only: %i[index] do
@@ -9,6 +20,8 @@ SampleApp::Application.routes.draw do
     end
   end
   namespace :admin do
+    get 'game_health', to: 'game_health#index'
+    post 'game_health/:id/retry', to: 'game_health#retry', as: :retry_game_cover
     resources :api_configurations
     resources :activities
     resources :albums do

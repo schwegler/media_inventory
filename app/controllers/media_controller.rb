@@ -169,13 +169,15 @@ class MediaController < ApplicationController
     local_results = fetch_local_video_games(query)
     web_results = MediaSearchService.call(query, 'video_game')
 
-    filter_unique_results(local_results + web_results)
+    GameSearchArtwork.call(GameSearchQuery.new(query).rank(local_results + web_results))
   end
 
   def fetch_local_video_games(query)
-    VideoGame.with_attached_cover_image.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(3).map do |vg|
+    VideoGame.with_attached_cover_image.where('LOWER(title) LIKE ?',
+                                              "%#{VideoGame.sanitize_sql_like(query.downcase)}%").limit(20).map do |vg|
       {
         title: vg.title,
+        game_type: vg.game_type,
         developer: vg.developer,
         publisher: vg.publisher,
         platform: vg.platform,

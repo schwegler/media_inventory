@@ -1,7 +1,7 @@
 <% content_for :title, 'Command Center' %>
 <header class="page-header">
   <div><h1>Command Center</h1><p>Your catalog, community, and next steps.</p></div>
-  <div class="actions"><%= link_to 'Review pending edits', admin_edit_suggestions_path(status: 'pending'), class: 'button button--primary' %><%= link_to 'Browse catalog', admin_movies_path, class: 'button' %></div>
+  <div class="actions"><%= link_to 'Game integration health', admin_game_health_path, class: 'button' %><%= link_to 'Review pending edits', admin_edit_suggestions_path(status: 'pending'), class: 'button button--primary' %><%= link_to 'Browse catalog', admin_movies_path, class: 'button' %></div>
 </header>
 <div class="metric-band">
   <div class="metric"><span>Catalog records</span><strong><%= number_with_delimiter(@snapshot[:catalog].sum { |row| row['total'] }) %></strong><small>Across eight media types</small></div>

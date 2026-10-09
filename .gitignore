@@ -37,3 +37,8 @@ doc/
 
 # Ignore test coverage results
 /coverage/
+
+# Runtime artwork and task scratch files
+/storage/*
+!/storage/.keep
+/work/

@@ -3,8 +3,14 @@
 class LibraryItem < ApplicationRecord
   include Trackable
 
+  has_one_attached :game_cover_image
+
   belongs_to :user
   belongs_to :item, polymorphic: true
+
+  has_many :game_copies, dependent: :destroy
+  has_many :game_playthroughs, dependent: :destroy
+  has_many :game_journal_entries, dependent: :destroy
 
   has_many :likes, as: :likeable, dependent: :destroy
   has_many :comments, as: :commentable, dependent: :destroy

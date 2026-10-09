@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_08_193000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_09_174000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -137,6 +137,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_193000) do
     t.index ["user_id"], name: "index_comments_on_user_id"
   end
 
+  create_table "cover_imports", force: :cascade do |t|
+    t.datetime "attempted_at"
+    t.integer "attempts", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.string "failure_reason"
+    t.integer "item_id", null: false
+    t.string "item_type", null: false
+    t.datetime "ready_at"
+    t.string "source_url", null: false
+    t.string "state", default: "pending", null: false
+    t.datetime "updated_at", null: false
+    t.index ["item_type", "item_id"], name: "index_cover_imports_on_item"
+    t.index ["item_type", "item_id"], name: "unique_cover_import_item", unique: true
+    t.index ["state", "attempted_at"], name: "index_cover_imports_on_state_and_attempted_at"
+  end
+
   create_table "edit_suggestions", force: :cascade do |t|
     t.text "admin_notes"
     t.datetime "created_at", null: false
@@ -149,6 +165,70 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_193000) do
     t.index ["status", "created_at"], name: "index_edit_suggestions_on_status_and_created_at"
     t.index ["suggestable_type", "suggestable_id"], name: "index_edit_suggestions_on_suggestable"
     t.index ["user_id"], name: "index_edit_suggestions_on_user_id"
+  end
+
+  create_table "game_copies", force: :cascade do |t|
+    t.string "access_method", default: "digital", null: false
+    t.datetime "created_at", null: false
+    t.string "currency"
+    t.string "edition"
+    t.integer "imported_playtime_minutes"
+    t.integer "library_item_id", null: false
+    t.text "notes"
+    t.string "ownership_status", default: "owned", null: false
+    t.string "platform", null: false
+    t.date "purchase_date"
+    t.decimal "purchase_price", precision: 12, scale: 2
+    t.string "steam_app_id"
+    t.string "storefront"
+    t.datetime "updated_at", null: false
+    t.index ["library_item_id", "steam_app_id"], name: "index_game_copies_on_library_item_id_and_steam_app_id", unique: true
+    t.index ["library_item_id"], name: "index_game_copies_on_library_item_id"
+  end
+
+  create_table "game_external_ids", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "external_id", null: false
+    t.string "provider", null: false
+    t.datetime "updated_at", null: false
+    t.integer "video_game_id", null: false
+    t.index ["provider", "external_id"], name: "index_game_external_ids_on_provider_and_external_id", unique: true
+    t.index ["video_game_id"], name: "index_game_external_ids_on_video_game_id"
+  end
+
+  create_table "game_journal_entries", force: :cascade do |t|
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.integer "library_item_id", null: false
+    t.boolean "spoiler", default: false, null: false
+    t.datetime "updated_at", null: false
+    t.index ["library_item_id"], name: "index_game_journal_entries_on_library_item_id"
+  end
+
+  create_table "game_playthroughs", force: :cascade do |t|
+    t.date "completed_on"
+    t.datetime "created_at", null: false
+    t.string "difficulty"
+    t.integer "library_item_id", null: false
+    t.text "notes"
+    t.string "platform"
+    t.integer "progress", default: 0, null: false
+    t.string "route"
+    t.date "started_on"
+    t.string "status", default: "backlog", null: false
+    t.datetime "updated_at", null: false
+    t.index ["library_item_id"], name: "index_game_playthroughs_on_library_item_id"
+  end
+
+  create_table "game_sessions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "ended_at", null: false
+    t.integer "game_playthrough_id", null: false
+    t.text "milestones"
+    t.text "notes"
+    t.datetime "started_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["game_playthrough_id"], name: "index_game_sessions_on_game_playthrough_id"
   end
 
   create_table "library_items", force: :cascade do |t|
@@ -192,6 +272,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_193000) do
     t.string "server", null: false
     t.datetime "updated_at", null: false
     t.index ["server"], name: "index_mastodon_oauth_applications_on_server", unique: true
+  end
+
+  create_table "media_artwork_sources", force: :cascade do |t|
+    t.integer "blob_id", null: false
+    t.datetime "created_at", null: false
+    t.text "provenance"
+    t.datetime "retrieved_at", null: false
+    t.string "source_hash", null: false
+    t.text "source_url", null: false
+    t.datetime "updated_at", null: false
+    t.index ["blob_id"], name: "index_media_artwork_sources_on_blob_id"
+    t.index ["source_hash"], name: "index_media_artwork_sources_on_source_hash", unique: true
   end
 
   create_table "metadata_refreshes", force: :cascade do |t|
@@ -250,6 +342,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_193000) do
     t.index ["followed_id"], name: "index_relationships_on_followed_id"
     t.index ["follower_id", "followed_id"], name: "index_relationships_on_follower_id_and_followed_id", unique: true
     t.index ["follower_id"], name: "index_relationships_on_follower_id"
+  end
+
+  create_table "steam_library_syncs", force: :cascade do |t|
+    t.datetime "attempted_at"
+    t.datetime "created_at", null: false
+    t.integer "discovered", default: 0, null: false
+    t.string "failure_reason"
+    t.integer "imported", default: 0, null: false
+    t.string "state", default: "never", null: false
+    t.string "steam_id", null: false
+    t.datetime "succeeded_at"
+    t.integer "updated", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["user_id"], name: "index_steam_library_syncs_on_user_id", unique: true
   end
 
   create_table "tv_episodes", force: :cascade do |t|
@@ -339,9 +446,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_193000) do
     t.datetime "created_at", null: false
     t.string "developer"
     t.string "external_url"
+    t.string "game_type", default: "unknown", null: false
+    t.json "metadata_details", default: {}, null: false
     t.string "platform"
     t.string "publisher"
     t.integer "release_year"
+    t.text "synopsis"
     t.string "thumbnail_url"
     t.string "title", null: false
     t.datetime "updated_at", null: false
@@ -354,8 +464,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_193000) do
   add_foreign_key "comic_issues", "comics", on_delete: :cascade
   add_foreign_key "comments", "users", on_delete: :cascade
   add_foreign_key "edit_suggestions", "users"
+  add_foreign_key "game_copies", "library_items"
+  add_foreign_key "game_external_ids", "video_games"
+  add_foreign_key "game_journal_entries", "library_items"
+  add_foreign_key "game_playthroughs", "library_items"
+  add_foreign_key "game_sessions", "game_playthroughs"
   add_foreign_key "library_items", "users"
   add_foreign_key "likes", "users", on_delete: :cascade
+  add_foreign_key "media_artwork_sources", "active_storage_blobs", column: "blob_id", on_delete: :cascade
   add_foreign_key "posts", "users"
+  add_foreign_key "steam_library_syncs", "users"
   add_foreign_key "tv_episodes", "tv_shows", on_delete: :cascade
 end

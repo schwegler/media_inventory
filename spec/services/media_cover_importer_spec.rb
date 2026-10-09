@@ -5,7 +5,7 @@ require 'rails_helper'
 RSpec.describe MediaCoverImporter do
   let(:url) { 'https://covers.openlibrary.org/b/id/123-M.jpg' }
   let(:png) do
-    Base64.decode64('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aO1sAAAAASUVORK5CYII=')
+    File.binread(Rails.root.join('spec/fixtures/files/valid-cover.png'))
   end
   let(:item) { Book.create!(title: 'Cover test', thumbnail_url: url) }
 
@@ -85,6 +85,48 @@ RSpec.describe MediaCoverImporter do
     stub_request(:get, url).to_return(body: '<html>Error</html>', headers: { 'Content-Type' => 'image/jpeg' })
     described_class.call(item, url)
     expect(item.reload.cover_image).not_to be_attached
+  end
+
+  it 'reuses durable source mappings after the process cache is cleared' do
+    described_class.call(item, url)
+    MediaSources::Registry::CACHE.clear
+    another = Book.create!(title: 'After restart', thumbnail_url: url)
+    described_class.call(another, url)
+    expect(another.reload.cover_image.blob_id).to eq(item.reload.cover_image.blob_id)
+    expect(WebMock).to have_requested(:get, url).once
+  end
+
+  it 'repairs a missing locally selected search cover through its original source' do
+    described_class.call(item, url)
+    blob = item.reload.cover_image.blob
+    local_url = Rails.application.routes.url_helpers.rails_storage_proxy_path(blob, only_path: true)
+    item.update!(thumbnail_url: local_url)
+    blob.service.delete(blob.key)
+    MediaSources::Registry::CACHE.clear
+    described_class.call(item, local_url)
+    expect(item.reload.cover_image.blob_id).to eq(blob.id)
+    expect(blob.service.exist?(blob.key)).to be(true)
+    expect(WebMock).to have_requested(:get, url).twice
+  end
+
+  it 'rejects a truncated payload even with a valid PNG magic signature' do
+    stub_request(:get, url).to_return(body: png.first(24), headers: { 'Content-Type' => 'image/png' })
+    described_class.call(item, url)
+    expect(item.reload.cover_image).not_to be_attached
+    expect(CoverImport.find_by(item: item)).to have_attributes(state: 'failed',
+                                                               failure_reason: 'Invalid image pixels or dimensions')
+  end
+
+  it 'rejects a valid image delivered with an HTML response type' do
+    stub_request(:get, url).to_return(body: png, headers: { 'Content-Type' => 'text/html' })
+    described_class.call(item, url)
+    expect(item.reload.cover_image).not_to be_attached
+  end
+
+  it 'normalizes remote images into bounded WebP covers' do
+    described_class.call(item, url)
+    expect(item.reload.cover_image.blob.content_type).to eq('image/webp')
+    expect(CoverImport.find_by(item: item).state).to eq('ready')
   end
 
   it 'limits background and HTTP recovery imports to two concurrent operations' do

@@ -9,7 +9,9 @@ module MediaSources
     end
 
     def self.token(source, type)
-      ApiConfiguration.find_by(source_name: source, media_type: type, is_active: true)&.access_token.presence
+      config = ApiConfiguration.find_by(source_name: source, media_type: type)
+      config ||= ApiConfiguration.find_by(source_name: source, media_type: nil)
+      config&.is_active? ? config.access_token.presence : nil
     end
   end
 end

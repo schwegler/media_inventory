@@ -22,6 +22,7 @@
               </div>
             <% end %>
 
+            <%= f.hidden_field :game_type, data: { thumbnail_fetcher_target: "gameType" } %>
             <%= f.hidden_field :api_id, data: { thumbnail_fetcher_target: "apiId" } %>
             <%= f.hidden_field :external_url, data: { thumbnail_fetcher_target: "externalUrl" } %>
             <%= f.hidden_field :thumbnail_url, data: { thumbnail_fetcher_target: "thumbnailUrl" } %>
@@ -36,7 +37,7 @@
               <div class="thumbnail-fetcher-container">
                 <label>Select Cover</label>
                 <div class="thumbnail-options-box">
-                  <span class="fetcher-status-text" data-thumbnail-fetcher-target="statusText">Type title to fetch covers...</span>
+                  <span class="fetcher-status-text" role="status" aria-live="polite" data-thumbnail-fetcher-target="statusText">Type title to fetch covers...</span>
                   <div class="thumbnail-options-grid" data-thumbnail-fetcher-target="optionsGrid"></div>
                 </div>
               </div>
@@ -80,7 +81,7 @@
 
                   <div class="details-form-row">
                     <div class="details-field-group">
-                      <%= f.label :platform %>
+                      <%= f.label :platform, "Available platforms" %>
                       <%= f.text_field :platform, placeholder: "e.g., PC, Nintendo Switch, PS5, Xbox", data: { thumbnail_fetcher_target: "platform" } %>
                     </div>
 
@@ -89,6 +90,19 @@
                       <%= f.number_field :release_year, data: { thumbnail_fetcher_target: "releaseYear" } %>
                     </div>
                   </div>
+
+                  <div class="details-form-row">
+                    <div class="details-field-group"><%= f.label :copy_platform, 'My platform' %><%= f.select :copy_platform, ['Windows PC', 'macOS', 'Linux PC', 'Nintendo Switch', 'Nintendo Switch 2', 'Xbox Series X|S', 'Xbox One', 'PlayStation 5', 'PlayStation 4', 'Retro console', 'Other'], include_blank: 'Not specified' %></div>
+                    <div class="details-field-group"><%= f.label :access_method, 'How I access it' %><%= f.select :access_method, [['Digital purchase', 'digital'], ['Physical copy', 'physical'], ['Subscription', 'subscription'], ['Cloud', 'cloud']] %></div>
+                  </div>
+                  <div class="details-form-row">
+                    <div class="details-field-group"><%= f.label :ownership_status %><%= f.select :ownership_status, [['Owned', 'owned'], ['Wishlist', 'wishlist'], ['Previously owned', 'previously_owned']] %></div>
+                    <div class="details-field-group"><%= f.label :play_status %><%= f.select :play_status, GamePlaythrough::STATUSES.map { |v| [v.humanize, v] }, include_blank: 'Not specified' %></div>
+                  </div>
+                  <details><summary>Storefront and edition</summary>
+                    <%= f.label :storefront %><%= f.text_field :storefront, placeholder: 'Steam, GOG, retail…' %>
+                    <%= f.label :edition %><%= f.text_field :edition %>
+                  </details>
 
                   <div class="form-row-toggles">
                     <div class="toggle-field">

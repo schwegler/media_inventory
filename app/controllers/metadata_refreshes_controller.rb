@@ -12,6 +12,7 @@ class MetadataRefreshesController < ApplicationController
 
     item = klass.find(params[:media_id])
     return head :forbidden unless can_access?(item)
+    return head :forbidden if item.is_a?(VideoGame) && !current_user.library_items.exists?(item: item)
 
     state = MetadataRefresher.call(item, current_user)
     flash[:metadata_result] = state

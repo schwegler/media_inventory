@@ -21,7 +21,6 @@ class InventoryController < ApplicationController
 
   # rubocop:disable Metrics/MethodLength
   def create
-    Rails.logger.debug "DEBUG CREATE PARAMS: #{params.inspect}"
     global_params = resource_params.except(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
                                            :consumed_at, :is_public, :owned_physically, :owned_physically_format,
                                            :owned_digitally, :owned_digitally_format)
@@ -38,7 +37,8 @@ class InventoryController < ApplicationController
                   resource_class.find_or_initialize_by(title: global_params[:title])
                 end
 
-    @resource.assign_attributes(global_params)
+    # Logging a shared game must not overwrite another user's curated catalog.
+    @resource.assign_attributes(global_params) unless @resource.is_a?(VideoGame) && @resource.persisted?
     instance_variable_set("@#{resource_name}", @resource)
 
     ActiveRecord::Base.transaction do
@@ -46,6 +46,7 @@ class InventoryController < ApplicationController
         @library_item = LibraryItem.find_or_initialize_by(user: current_user, item: @resource)
         @library_item.assign_attributes(library_params)
         @library_item.save!
+        after_library_saved
 
         respond_to do |format|
           format.html { redirect_to @resource, notice: "#{resource_class.model_name.human} was successfully logged." }
@@ -122,6 +123,7 @@ class InventoryController < ApplicationController
     ActiveRecord::Base.transaction do
       @resource.update!(global_params) if global_params.to_h.any?
       @library_item.update!(library_params)
+      after_library_saved
     end
 
     respond_to do |format|
@@ -164,6 +166,8 @@ class InventoryController < ApplicationController
   def failure_status
     :unprocessable_content
   end
+
+  def after_library_saved; end
 
   def resource_params
     raise NotImplementedError

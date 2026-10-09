@@ -16,7 +16,8 @@ class MediaCoversController < ApplicationController
       redirect_to rails_storage_proxy_path(item.cover_image, only_path: true)
     else
       response.headers['Cache-Control'] = 'no-store'
-      send_file Rails.root.join('public/favicon.svg'), type: 'image/svg+xml', disposition: 'inline'
+      send_file Rails.root.join(item.is_a?(VideoGame) ? 'public/missing-game-cover.svg' : 'public/favicon.svg'),
+                type: 'image/svg+xml', disposition: 'inline'
     end
   end
 

@@ -8,7 +8,8 @@ module MediaSources
   # Both metadata and cover downloads use fixed public provider domains. Redirects
   # pass the same checks; submitted form URLs cannot reach internal services.
   class Http
-    HOSTS = %w[api.themoviedb.org image.tmdb.org api.rawg.io media.rawg.io store.steampowered.com
+    HOSTS = %w[api.themoviedb.org image.tmdb.org api.rawg.io media.rawg.io api.steampowered.com store.steampowered.com
+               steamgriddb.com
                steamstatic.com steamcdn-a.akamaihd.net itunes.apple.com mzstatic.com
                api.tvmaze.com static.tvmaze.com musicbrainz.org coverartarchive.org
                archive.org comicvine.gamespot.com
@@ -16,7 +17,7 @@ module MediaSources
     class Error < StandardError; end
     MAX_JSON_BYTES = 2.megabytes
 
-    def self.get(url, max_bytes: MAX_JSON_BYTES, redirects: 3, deadline: nil, &consumer)
+    def self.get(url, max_bytes: MAX_JSON_BYTES, redirects: 3, deadline: nil, headers: {}, &consumer)
       uri = validated_uri(url)
       deadline ||= Process.clock_gettime(Process::CLOCK_MONOTONIC) + 15
       remaining = deadline - Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -25,6 +26,7 @@ module MediaSources
       request = Net::HTTP::Get.new(uri)
       request['User-Agent'] = 'TroveMediaInventory/2.0'
       request['Accept-Encoding'] = 'identity'
+      headers.each { |key, value| request[key] = value }
       result = nil
       Net::HTTP.start(uri.host, uri.port, use_ssl: true, open_timeout: [remaining, 3].min,
                                           read_timeout: [remaining, 5].min, write_timeout: [remaining, 3].min) do |http|
@@ -32,8 +34,10 @@ module MediaSources
           if response.is_a?(Net::HTTPRedirection)
             raise Error, 'Too many redirects' unless redirects.positive? && response['location'].present?
 
-            result = get(URI.join(uri, response['location']), max_bytes: max_bytes,
-                                                              redirects: redirects - 1, deadline: deadline, &consumer)
+            destination = URI.join(uri, response['location'])
+            redirect_headers = destination.host == uri.host ? headers : {}
+            result = get(destination, max_bytes: max_bytes, redirects: redirects - 1,
+                                      deadline: deadline, headers: redirect_headers, &consumer)
           else
             result = read_response(response, max_bytes, deadline, &consumer)
           end

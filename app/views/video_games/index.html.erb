@@ -5,6 +5,30 @@
   <% end %>
 </div>
 
+<%= form_with url: video_games_path, method: :get, class: 'standard-form' do |f| %>
+  <%= f.label :q, 'Search collection' %><%= f.search_field :q, value: params[:q] %>
+  <%= f.label :library, 'Collection' %><%= f.select :library, [['All catalog games', 'all'], ['My library', 'mine']], selected: params[:library] %>
+  <%= f.label :game_type, 'Content type' %><%= f.select :game_type, [['All', ''], ['Base games', 'game'], ['DLC', 'dlc'], ['Soundtracks', 'soundtrack'], ['Unknown', 'unknown']], selected: params[:game_type] %>
+  <%= f.label :sort %><%= f.select :sort, [['Recently added', 'added'], ['Title', 'title'], ['Release year', 'release']], selected: params[:sort] %>
+  <%= f.submit 'Apply filters', class: 'btn btn-secondary' %>
+<% end %>
+
+<% if @game_statistics %>
+  <p>Unique games in my library: <%= @game_statistics[:unique_games] %> · Owned physical/digital copies: <%= @game_statistics[:owned_copies] %> · Subscription access: <%= @game_statistics[:subscription_access] %></p>
+  <p>Copy counts include the explicit ownership records below each game. Legacy collection flags are preserved and excluded from copy totals until reconciled.</p>
+<% end %>
+<% if logged_in? %>
+  <%= link_to 'Import game data (JSON / CSV)', new_game_import_path, class: 'btn btn-secondary' %>
+  <details><summary>Import my public Steam library</summary>
+    <p>Requires an operator-configured Steam Web API key and a public game library. This reads owned games and lifetime playtime; it does not authenticate your Steam account or create session history.</p>
+    <%= form_with url: sync_steam_games_path, class: 'standard-form' do |f| %>
+      <%= f.label :steam_id, 'My SteamID64' %><%= f.text_field :steam_id, required: true, pattern: '[0-9]{17}' %>
+      <%= f.check_box :authorized, required: true %><%= f.label :authorized, 'I authorize importing this Steam library into my account' %>
+      <%= f.submit 'Import Steam library', class: 'btn btn-secondary' %>
+    <% end %>
+  </details>
+<% end %>
+
 <% if @video_games.empty? %>
     <%= render 'shared/catalog_empty_state', media_name: 'games', singular_name: 'game', article: 'a', new_item_path: new_video_game_path %>
   <% end %>

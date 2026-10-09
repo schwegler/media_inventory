@@ -26,6 +26,7 @@ class User < ApplicationRecord
   has_one_attached :avatar
   has_one_attached :header_banner
 
+  has_one :steam_library_sync, dependent: :destroy
   has_many :library_items, dependent: :destroy
 
   def albums
