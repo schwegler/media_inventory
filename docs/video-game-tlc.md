@@ -157,3 +157,9 @@ The test workflow now installs ImageMagick and explicitly verifies WebP read/wri
 All 52 focused reported-failure/regression examples passed on SQLite with the original CI seed 22113. PostgreSQL validation uses a separate disposable PostgreSQL 11 container, matching the workflow, with schema loading and the same `GITHUB_ACTIONS=true bin/rake` path and seed.
 
 PostgreSQL 11 CI-equivalent verification passed: **532 examples, 0 failures, 9 existing pending**, seed 22113; system examples were excluded exactly as in GitHub Actions. RuboCop inspected 425 files without offenses; Brakeman reported the same two baseline weak-confidence warnings. The GitHub-hosted rerun remains separate from this local verification.
+
+## Follow-up: CI image registry throttling
+
+A subsequent GitHub runner failed before tests started because Docker Hub returned its unauthenticated pull rate limit while starting PostgreSQL. The workflow now uses `public.ecr.aws/docker/library/postgres:11-alpine`, a public mirror of the official image. The mirrored pull succeeded and resolved to the same digest as the original image: `sha256:ea50b9fd617b66c9135816a4536cf6e0697d4eea7014a7194479c95f6edd5ef9`. PostgreSQL version and test configuration are unchanged. This avoids the reported Docker Hub pull path without requiring registry credentials; it does not establish any Steam/API issue.
+
+The mirrored container also started successfully, accepted connections and reported PostgreSQL 11.22. Workflow YAML validation and diff checks passed. The previous 532-example PostgreSQL verification remains applicable to the identical image; the GitHub-hosted rerun is pending separately.
