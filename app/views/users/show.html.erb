@@ -32,7 +32,7 @@
       <% end %>
       <div class="profile-share" data-controller="link-share" data-link-share-url-value="<%= public_url %>">
         <button type="button" class="sleek-btn sleek-btn-secondary" data-action="link-share#copy">Share profile</button>
-        <span role="status" data-link-share-target="status"></span>
+        <span role="status" aria-live="polite" data-link-share-target="status"></span>
         <input readonly hidden value="<%= public_url %>" aria-label="Public profile link" data-link-share-target="fallback">
       </div>
     </div>
