@@ -16,11 +16,18 @@ class Comic < ApplicationRecord
 
   validates :title, presence: true
 
-  after_commit :sync_issues_from_api, on: %i[create update]
+  after_commit :enqueue_series_sync, on: %i[create update]
 
   attr_accessor :refreshing_metadata
 
   private
+
+  def enqueue_series_sync
+    return if refreshing_metadata || api_id.blank? || !api_id.to_s.match?(/\A\d+\z/)
+    return unless saved_change_to_api_id? || comic_issues.empty?
+
+    SyncSeriesMetadataJob.perform_later(self)
+  end
 
   def sync_issues_from_api
     return if refreshing_metadata
@@ -47,7 +54,7 @@ class Comic < ApplicationRecord
       all_issues.concat(results)
 
       offset += 100
-      break if offset >= data['number_of_total_results'].to_i || results.empty?
+      break if offset >= data['number_of_total_results'].to_i || results.empty? || offset >= 500
 
       sleep 1
     end
@@ -66,7 +73,7 @@ class Comic < ApplicationRecord
       api_key: api_key, format: 'json', filter: "volume:#{api_id}",
       sort: 'issue_number:asc', limit: 100, offset: offset
     )
-    response = MediaSources::Http.get(url)
+    response = MediaSources::Http.cached_get(url)
     JSON.parse(response)
   end
 

@@ -77,7 +77,8 @@ RSpec.describe MetadataRefresher do
   it 'never replaces uploaded artwork or a custom network' do
     show.update_columns(network: 'My network')
     show.cover_image.attach(io: StringIO.new('image'), filename: 'cover.jpg', content_type: 'image/jpeg')
-    expect(described_class.call(show, user)).to eq('unchanged')
+    # Child imports are deferred, so this refresh creates the provider episode.
+    expect(described_class.call(show, user)).to eq('success')
     expect(show.reload.thumbnail_url).to be_nil
     expect(show.network).to eq('My network')
     expect(show.cover_image).to be_attached

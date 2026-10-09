@@ -17,10 +17,19 @@ class MetadataRefresher
     @refresh = MetadataRefresh.create_or_find_by!(item: item)
   end
 
-  def call
+  def enqueue
     return 'cooldown' unless claim?
 
-    @adapter = MetadataProvider.new(@item)
+    RefreshMediaMetadataJob.perform_later(@item, @user)
+    'refreshing'
+  rescue StandardError
+    finish('failed')
+  end
+
+  def call(claimed: false)
+    return 'cooldown' unless claimed || claim?
+
+    @adapter = MetadataProvider.new(@item, revalidate: true)
     fields, rows = Timeout.timeout(45) { @adapter.call }
     changed = reconcile(fields, rows)
     state = changed.positive? ? 'success' : 'unchanged'

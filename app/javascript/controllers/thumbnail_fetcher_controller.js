@@ -26,7 +26,7 @@ export default class extends Controller {
   static values = { mediaType: String }
 
   connect() {
-    this.debouncedFetch = debounce(() => this.fetchThumbnails(), 600)
+    this.debouncedFetch = debounce(() => this.fetchThumbnails(), 300)
     this.currentQuery = ""
 
     // Pre-populate preview if thumbnail URL already has a value
@@ -84,6 +84,8 @@ export default class extends Controller {
   search() {
     this.searchAbortController?.abort()
     this.currentQuery = this.searchQuery()
+    this.statusTextTarget.textContent = this.currentQuery ? "Searching…" : "Type title to fetch covers..."
+    this.statusTextTarget.classList.toggle("search-pending", Boolean(this.currentQuery))
     this.debouncedFetch()
   }
 
@@ -154,6 +156,7 @@ export default class extends Controller {
   }
 
   async fetchThumbnails() {
+    this.statusTextTarget.classList.remove("search-pending")
     const title = this.titleInputTarget.value.trim()
     if (!title) {
       this.optionsGridTarget.innerHTML = ""
@@ -166,6 +169,7 @@ export default class extends Controller {
     this.currentQuery = query
     this.statusTextTarget.textContent = "Searching local database and web..."
     this.optionsGridTarget.innerHTML = ""
+    this.statusTextTarget.classList.add("search-pending")
 
     try {
       const mediaType = this.mediaTypeValue
@@ -173,9 +177,15 @@ export default class extends Controller {
 
       this.searchAbortController?.abort()
       this.searchAbortController = new AbortController()
-      const response = await fetch(`/media/autocomplete?q=${encodeURIComponent(query)}&type=${encodeURIComponent(mediaType)}`, {
-        signal: this.searchAbortController.signal
-      })
+      const signal = this.searchAbortController.signal
+      let response
+      for (let attempt = 0; attempt < 40; attempt++) {
+        response = await fetch(`/media/autocomplete?async=1&q=${encodeURIComponent(query)}&type=${encodeURIComponent(mediaType)}`, { signal })
+        if (response.status !== 202) break
+        await new Promise(resolve => setTimeout(resolve, 750))
+        if (signal.aborted) return
+      }
+      if (response.status === 202) throw new Error("Search took too long")
       if (!response.ok) throw new Error(`Search failed: ${response.status}`)
       allResults = await response.json()
       if (this.currentQuery !== query) return
@@ -275,6 +285,8 @@ export default class extends Controller {
       if (err.name === "AbortError") return
       console.error("Error fetching thumbnails:", err)
       this.statusTextTarget.textContent = "Error loading covers."
+    } finally {
+      if (this.currentQuery === query) this.statusTextTarget.classList.remove("search-pending")
     }
   }
 

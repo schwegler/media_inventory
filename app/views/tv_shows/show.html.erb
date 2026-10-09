@@ -78,7 +78,7 @@
 
     <% if @tv_show.tv_episodes.any? %>
       <%
-        episodes_by_season = @tv_show.tv_episodes.order(:season, :episode).group_by(&:season)
+        episodes_by_season = @tv_show.tv_episodes.with_attached_cover_image.order(:season, :episode).group_by(&:season)
         sorted_seasons = episodes_by_season.keys.sort
       %>
       <div class="show-episodes-section" style="margin-top: 2.5rem; margin-bottom: 2.5rem;" data-controller="season-tabs">

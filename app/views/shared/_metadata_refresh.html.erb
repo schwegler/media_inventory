@@ -1,10 +1,10 @@
 <% if logged_in? %>
   <% refresh = MetadataRefresh.find_by(item: item) %>
-  <details id="metadata-health" class="metadata-repair" data-refresh-result="<%= flash[:metadata_result].present? %>" <%= "open" if flash[:metadata_result].present? %>>
+  <details id="metadata-health" class="metadata-repair" data-refresh-state="<%= refresh&.state %>" data-refresh-result="<%= flash[:metadata_result].present? %>" <%= "open" if flash[:metadata_result].present? %>>
     <summary>Artwork &amp; metadata</summary>
     <p>Missing artwork or new releases? Check the original source. Source artwork replaces external artwork URLs; uploaded covers, reviews, and library history stay safe.</p>
     <% if refresh %>
-      <p class="form-help" role="status" tabindex="-1"><%= MetadataRefresh::MESSAGES.fetch(flash[:metadata_result].to_s, refresh.message) %>
+      <p class="form-help" role="status" tabindex="-1"><%= refresh.message %>
         <% if refresh.succeeded_at %><br>Last checked <%= time_ago_in_words(refresh.succeeded_at) %> ago.<% end %>
         <% if refresh.provider %>Source: <%= refresh.provider %>.<% end %>
       </p>

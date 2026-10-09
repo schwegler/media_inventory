@@ -3,6 +3,7 @@
 require 'net/http'
 require 'json'
 require 'uri'
+require 'digest'
 
 module MediaSources
   # Both metadata and cover downloads use fixed public provider domains. Redirects
@@ -16,7 +17,7 @@ module MediaSources
     class Error < StandardError; end
     MAX_JSON_BYTES = 2.megabytes
 
-    def self.get(url, max_bytes: MAX_JSON_BYTES, redirects: 3, deadline: nil, &consumer)
+    def self.get(url, max_bytes: MAX_JSON_BYTES, redirects: 3, deadline: nil, options: {}, &consumer)
       uri = validated_uri(url)
       deadline ||= Process.clock_gettime(Process::CLOCK_MONOTONIC) + 15
       remaining = deadline - Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -25,21 +26,49 @@ module MediaSources
       request = Net::HTTP::Get.new(uri)
       request['User-Agent'] = 'TroveMediaInventory/2.0'
       request['Accept-Encoding'] = 'identity'
+      options.fetch(:headers, {}).each { |key, value| request[key] = value }
+      settings = options.merge(max_bytes: max_bytes, redirects: redirects, deadline: deadline)
       result = nil
-      Net::HTTP.start(uri.host, uri.port, use_ssl: true, open_timeout: [remaining, 3].min,
-                                          read_timeout: [remaining, 5].min, write_timeout: [remaining, 3].min) do |http|
-        http.request(request) do |response|
-          if response.is_a?(Net::HTTPRedirection)
-            raise Error, 'Too many redirects' unless redirects.positive? && response['location'].present?
-
-            result = get(URI.join(uri, response['location']), max_bytes: max_bytes,
-                                                              redirects: redirects - 1, deadline: deadline, &consumer)
-          else
-            result = read_response(response, max_bytes, deadline, &consumer)
-          end
-        end
+      Net::HTTP.start(uri.host, uri.port, use_ssl: true, open_timeout: [remaining, 2].min,
+                                          read_timeout: [remaining, 3].min, write_timeout: [remaining, 3].min) do |http|
+        http.request(request) { |response| result = response_result(response, uri, settings, &consumer) }
       end
       result
+    end
+
+    def self.response_result(response, uri, settings, &consumer)
+      if response.is_a?(Net::HTTPRedirection) && !response.is_a?(Net::HTTPNotModified)
+        raise Error, 'Too many redirects' unless settings[:redirects].positive? && response['location'].present?
+
+        return get(URI.join(uri, response['location']), max_bytes: settings[:max_bytes],
+                                                        redirects: settings[:redirects] - 1, deadline: settings[:deadline],
+                                                        options: { metadata: settings[:metadata] }, &consumer)
+      end
+
+      settings[:metadata]&.merge!(etag: response['etag'], status: response.code.to_i)
+      return if response.is_a?(Net::HTTPNotModified) && settings.dig(:headers, 'If-None-Match') && !consumer
+
+      read_response(response, settings[:max_bytes], settings[:deadline], &consumer)
+    end
+
+    # Keep provider payloads on disk, with a bounded body and conditional revalidation.
+    # Hash URLs so tokens never become filesystem names. Cover streams bypass this cache.
+    def self.cached_get(url, expires_in: 7.days, deadline: nil, revalidate: false)
+      validated_uri(url)
+      key = ['provider-http-v1', Digest::SHA256.hexdigest(url.to_s)]
+      cache = MediaSources::Registry::CACHE
+      entry = cache.read(key)
+      return entry[:body] if !revalidate && entry && entry[:fresh_until] > Time.current
+
+      metadata = {}
+      headers = entry && entry[:etag].present? ? { 'If-None-Match' => entry[:etag] } : {}
+      body = get(url, deadline: deadline, options: { headers: headers, metadata: metadata })
+      body = entry.fetch(:body) if metadata[:status] == 304
+      # Never cache invalid JSON or error responses, which would poison subsequent searches.
+      JSON.parse(body)
+      cache.write(key, { body: body, etag: metadata[:etag] || entry&.dig(:etag),
+                         fresh_until: Time.current + expires_in }, expires_in: expires_in + 30.days)
+      body
     end
 
     def self.validated_uri(url)

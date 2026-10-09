@@ -38,6 +38,13 @@ class MediaController < ApplicationController
       return
     end
 
+    if params[:async] == '1'
+      state = MediaSearchService.request(q, type)
+      return render json: [], status: :accepted if state[:state] == 'pending'
+
+      @search_results = state[:results]
+    end
+
     results = case type
               when 'movie' then autocomplete_movies(q)
               when 'album' then autocomplete_albums(q)
@@ -72,7 +79,7 @@ class MediaController < ApplicationController
 
   def autocomplete_movies(query)
     local_results = fetch_local_movies(query)
-    web_results = MediaSearchService.call(query, 'movie')
+    web_results = @search_results || MediaSearchService.call(query, 'movie')
 
     filter_unique_results(local_results + web_results)
   end
@@ -94,7 +101,7 @@ class MediaController < ApplicationController
 
   def autocomplete_albums(query)
     local_results = fetch_local_albums(query)
-    web_results = MediaSearchService.call(query, 'album')
+    web_results = @search_results || MediaSearchService.call(query, 'album')
 
     filter_unique_results(local_results + web_results)
   end
@@ -117,7 +124,7 @@ class MediaController < ApplicationController
 
   def autocomplete_comics(query)
     local_results = fetch_local_comics(query)
-    web_results = MediaSearchService.call(query, 'comic')
+    web_results = @search_results || MediaSearchService.call(query, 'comic')
 
     ComicSearchQuery.new(query).rank(filter_unique_results(local_results + web_results))
   end
@@ -146,7 +153,7 @@ class MediaController < ApplicationController
 
   def autocomplete_tv_shows(query)
     local_results = fetch_local_tv_shows(query)
-    web_results = MediaSearchService.call(query, 'tv_show')
+    web_results = @search_results || MediaSearchService.call(query, 'tv_show')
 
     filter_unique_results(local_results + web_results)
   end
@@ -167,7 +174,7 @@ class MediaController < ApplicationController
 
   def autocomplete_video_games(query)
     local_results = fetch_local_video_games(query)
-    web_results = MediaSearchService.call(query, 'video_game')
+    web_results = @search_results || MediaSearchService.call(query, 'video_game')
 
     filter_unique_results(local_results + web_results)
   end
@@ -191,7 +198,7 @@ class MediaController < ApplicationController
 
   def autocomplete_books(query)
     local_results = fetch_local_books(query)
-    web_results = MediaSearchService.call(query, 'book')
+    web_results = @search_results || MediaSearchService.call(query, 'book')
 
     filter_unique_results(local_results + web_results)
   end

@@ -24,8 +24,7 @@ test:
 
 production:
   <% if ENV['DATABASE_URL'].present? %>
-  adapter: postgresql
-  encoding: unicode
+  <<: *default
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   url: <%= ENV['DATABASE_URL'] %>
   <% else %>

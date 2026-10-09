@@ -5,7 +5,7 @@
       <article class="profile-media-entry">
         <%= link_to item, class: 'profile-cover', aria: { label: item.title } do %>
           <% if item.respond_to?(:stored_cover_url) && item.stored_cover_url.present? %>
-            <%= image_tag item.stored_cover_url, alt: '', loading: 'lazy' %>
+            <%= image_tag item.stored_cover_url, alt: '', loading: 'lazy', decoding: 'async' %>
           <% else %>
             <span class="profile-cover-title"><%= item.title %></span>
           <% end %>
@@ -16,6 +16,7 @@
       </article>
     <% end %>
   </div>
+  <%= paginate items if items.respond_to?(:total_pages) %>
 <% else %>
   <div class="profile-empty"><h3><%= empty_title %></h3><p><%= empty_description %></p><%= link_to 'Explore Trove', movies_path %></div>
 <% end %>

@@ -9,7 +9,8 @@ class MetadataProvider
   class RateLimited < StandardError; end
   class Unsupported < StandardError; end
 
-  def initialize(item, include_children: true, deadline: nil)
+  def initialize(item, include_children: true, deadline: nil, revalidate: false)
+    @revalidate = revalidate
     @include_children = include_children
     @deadline = deadline
     @item = item
@@ -45,7 +46,7 @@ class MetadataProvider
   def json(url, query = {})
     uri = URI(url)
     uri.query = URI.encode_www_form(query) if query.any?
-    JSON.parse(MediaSources::Http.get(uri, deadline: @deadline))
+    JSON.parse(MediaSources::Http.cached_get(uri, deadline: @deadline, revalidate: @revalidate))
   rescue MediaSources::Http::Error => e
     raise RateLimited if e.message == 'HTTP 429'
 

@@ -22,7 +22,7 @@ RSpec.describe 'Media source picker', type: :system do
     expect(page).to have_css('.thumbnail-option-card', text: 'Portal 2')
     expect(page).to have_css('.option-badge', text: /steam/i)
     find('.thumbnail-option-card', text: 'Portal 2').click
-    expect(page).to have_field('video_game[title]', with: 'Portal 2 (2011)', visible: :all)
+    expect(page).to have_field('video_game[title]', with: 'Portal 2', visible: :all)
     perform_enqueued_jobs do
       click_button 'Create Video Game'
       expect(page).to have_text('Video game was successfully logged.')
