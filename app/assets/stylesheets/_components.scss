@@ -10,6 +10,7 @@
   a:hover { color: var(--link-hover); text-decoration-thickness: 2px; }
   :where(.review-content, .post-content, .bio-section) a:visited { color: var(--text-secondary); }
   :where(.brand-link, .brand-companion, .blog-nav-link, .nav-links a, .mobile-nav-links a, .dropdown-item, .settings-nav-item, .stat-item, .card-2026-title a) { text-decoration: none; }
+  .brand-companion, .brand-companion:hover { text-decoration: none; }
   .blog-link, .section-more-link { color: var(--text); text-decoration: underline; text-decoration-color: var(--accent); }
   h1, h2, h3 { text-wrap: balance; }
   h1 { font-size: clamp(2rem, 4vw, 3.5rem); letter-spacing: -.045em; line-height: 1.12; }
