@@ -76,6 +76,8 @@ class MetadataRefresher
   end
 
   def assign_provider_value(field, value, values)
+    return unless @item.has_attribute?(field)
+
     value = MetadataProvider.image(value) if field == :thumbnail_url
     return if value.blank? || (field == :thumbnail_url && @item.cover_image.attached?)
 

@@ -9,7 +9,9 @@ class MetadataProvider
   class RateLimited < StandardError; end
   class Unsupported < StandardError; end
 
-  def initialize(item)
+  def initialize(item, include_children: true, deadline: nil)
+    @include_children = include_children
+    @deadline = deadline
     @item = item
     @id = item.api_id.to_s
     @partial = false
@@ -21,7 +23,7 @@ class MetadataProvider
     raise Unsupported if @id.blank?
 
     case @item
-    when TvShow then television
+    when TvShow then @id.start_with?('itunes_') ? itunes(:network) : television
     when Comic then comic
     when Movie then movie
     when Book then book
@@ -43,7 +45,7 @@ class MetadataProvider
   def json(url, query = {})
     uri = URI(url)
     uri.query = URI.encode_www_form(query) if query.any?
-    JSON.parse(MediaSources::Http.get(uri))
+    JSON.parse(MediaSources::Http.get(uri, deadline: @deadline))
   rescue MediaSources::Http::Error => e
     raise RateLimited if e.message == 'HTTP 429'
 
@@ -51,7 +53,8 @@ class MetadataProvider
   end
 
   def key(source)
-    config = ApiConfiguration.find_by(source_name: source, is_active: true)
+    config = ApiConfiguration.find_by(source_name: source, media_type: @item.class.name, is_active: true)
+    config ||= ApiConfiguration.find_by(source_name: source, media_type: nil, is_active: true)
     raise Unavailable if config&.access_token.blank?
 
     config.access_token
@@ -104,6 +107,8 @@ class MetadataProvider
   end
 
   def children
+    return [] unless @include_children
+
     rows = yield
     raise Unavailable unless rows.is_a?(Array)
 
@@ -116,13 +121,43 @@ class MetadataProvider
   def comic
     @provider = 'ComicVine'
     id = numeric_id('4050-')
+    active!('ComicVine')
     token = key('ComicVine')
     data = json("https://comicvine.gamespot.com/api/volume/4050-#{id}/", api_key: token, format: 'json')
     raise Unavailable unless data['status_code'] == 1 && data['results'].is_a?(Hash)
 
     volume = data['results']
     rows = children { comic_pages(id, token) }
-    [{ publisher: volume.dig('publisher', 'name'), thumbnail_url: volume.dig('image', 'original_url') }, rows]
+    credits = volume['person_credits'] || []
+    first_issue = volume.dig('first_issue', 'id')
+    if first_issue.to_s.match?(/\A\d+\z/)
+      detail = optional_details do
+        issue = json("https://comicvine.gamespot.com/api/issue/4000-#{first_issue}/", api_key: token, format: 'json')
+        raise Unavailable unless issue['status_code'] == 1 && issue['results'].is_a?(Hash)
+
+        [issue['results']]
+      end
+      credits += Array(detail.first&.fetch('person_credits', nil))
+    end
+    [{ publisher: volume.dig('publisher', 'name'), writer: comic_creators(credits, %w[writer]),
+       artist: comic_creators(credits, %w[artist penciler inker colorist]),
+       thumbnail_url: volume.dig('image', 'original_url'), external_url: volume['site_detail_url'] }, rows]
+  end
+
+  def optional_details
+    yield
+  rescue Unavailable, RateLimited, JSON::ParserError, Timeout::Error, SocketError
+    @partial = true
+    []
+  end
+
+  def comic_creators(credits, roles)
+    credits.select { |credit| credit['role'].to_s.downcase.split(/,\s*/).intersect?(roles) }
+           .filter_map { |credit| credit['name'].presence }.uniq.join(', ').presence
+  end
+
+  def names(rows)
+    Array(rows).filter_map { |row| row['name'].presence }.uniq.join(', ').presence
   end
 
   def comic_pages(id, token)
@@ -146,8 +181,10 @@ class MetadataProvider
 
     @provider = 'TMDB'
     active!('TMDB')
-    data = json("https://api.themoviedb.org/3/movie/#{numeric_id('tmdb_')}", api_key: key('TMDB'))
-    [{ release_year: year(data['release_date']),
+    data = json("https://api.themoviedb.org/3/movie/#{numeric_id('tmdb_')}", api_key: key('TMDB'),
+                                                                             append_to_response: 'credits')
+    [{ director: names(Array(data.dig('credits', 'crew')).select { |person| person['job'] == 'Director' }),
+       release_year: year(data['release_date']),
        thumbnail_url: data['poster_path'].present? ? "https://image.tmdb.org/t/p/w500#{data['poster_path']}" : nil }, []]
   end
 
@@ -170,8 +207,9 @@ class MetadataProvider
     raise Unsupported unless @id.match?(/\A[0-9a-f-]{36}\z/i)
 
     type = @item.external_url.to_s.include?('/release-group/') ? 'release-group' : 'release'
-    data = json("https://musicbrainz.org/ws/2/#{type}/#{@id}", fmt: 'json', inc: 'artist-credits')
-    [{ artist: data.dig('artist-credit', 0, 'name'), release_year: year(data['date'] || data['first-release-date']),
+    data = json("https://musicbrainz.org/ws/2/#{type}/#{@id}", fmt: 'json', inc: 'artist-credits+genres')
+    [{ artist: names(data['artist-credit']), genre: names(data['genres']),
+       release_year: year(data['date'] || data['first-release-date']),
        thumbnail_url: "https://coverartarchive.org/#{type}/#{@id}/front-500" }, []]
   end
 
@@ -181,7 +219,8 @@ class MetadataProvider
     data = json('https://itunes.apple.com/lookup', id: numeric_id('itunes_')).fetch('results').first
     raise Unavailable unless data.is_a?(Hash)
 
-    [{ creator => data['artistName'], release_year: year(data['releaseDate']),
+    [{ creator => data['artistName'], genre: @item.is_a?(Album) ? data['primaryGenreName'] : nil,
+       release_year: year(data['releaseDate']),
        thumbnail_url: data['artworkUrl100']&.sub('100x100bb', '600x600bb') }, []]
   end
 
@@ -190,7 +229,8 @@ class MetadataProvider
       @provider = 'RAWG'
       active!('RAWG')
       data = json("https://api.rawg.io/api/games/#{numeric_id('rawg_')}", key: key('RAWG'))
-      [{ developer: data.dig('developers', 0, 'name'), publisher: data.dig('publishers', 0, 'name'),
+      [{ developer: names(data['developers']), publisher: names(data['publishers']),
+         platform: names(Array(data['platforms']).filter_map { |entry| entry['platform'] }),
          release_year: year(data['released']), thumbnail_url: data['background_image'] }, []]
     else
       steam
@@ -206,7 +246,9 @@ class MetadataProvider
 
     data = result['data']
     artwork = data['header_image'].presence || data['capsule_image'].presence
-    [{ developer: data['developers']&.first, publisher: data['publishers']&.first,
+    [{ developer: Array(data['developers']).join(', ').presence, publisher: Array(data['publishers']).join(', ').presence,
+       platform: (data['platforms'] || {}).select { |_platform, supported| supported }.keys.join(', ').presence,
+       release_year: data.dig('release_date', 'date').to_s[/\b(19\d{2}|20\d{2})\b/],
        thumbnail_url: artwork }, []]
   end
 

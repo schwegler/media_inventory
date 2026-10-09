@@ -19,9 +19,11 @@ class MediaSearchService
 
     return [] unless SOURCES.key?(@type)
 
-    @deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 12
+    started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    @deadline = started_at + 12
+    @enrichment_deadline = started_at + 20
     MediaSources::Registry::CACHE.fetch(
-      ['media-search-v2', @type, @query.downcase.strip,
+      ['media-search-v3', @type, @query.downcase.strip,
        ApiConfiguration.order(:id).pluck(:source_name, :media_type, :is_active, :updated_at)], expires_in: 15.minutes
     ) do
       results = (SOURCES.fetch(@type) + [['InternetArchive', :fetch_internet_archive]]).flat_map do |source, method|
@@ -29,7 +31,8 @@ class MediaSearchService
 
         send(method, @query).map { |result| result.merge(source: source) }
       end
-      filter_unique_results(results).first(20)
+      @deadline = @enrichment_deadline
+      filter_unique_results(results.map { |result| enrich_result(result) }).first(20)
     end
   end
 
@@ -48,6 +51,19 @@ class MediaSearchService
 
   private
 
+  def enrich_result(result)
+    return result if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= @deadline
+    return result unless %w[TMDB ComicVine RAWG Steam MusicBrainz].include?(result[:source])
+
+    item = @type.camelize.constantize.new
+    result.each { |field, value| item.public_send("#{field}=", value) if item.has_attribute?(field) }
+    fields, = MetadataProvider.new(item, include_children: false, deadline: @deadline).call
+    result.merge(fields.compact_blank) { |_field, original, detail| original.presence || detail }
+  rescue MetadataProvider::Unavailable, MetadataProvider::RateLimited, MetadataProvider::Unsupported,
+         JSON::ParserError, Timeout::Error, SocketError, KeyError
+    result
+  end
+
   def filter_unique_results(all_results)
     seen = {}
     all_results.select do |item|
@@ -56,9 +72,12 @@ class MediaSearchService
       key = "#{item[:title].to_s.downcase.strip}_#{item[:release_year]}"
 
       if seen[key]
+        item.except(:api_id, :external_url, :source).each do |field, value|
+          seen[key][field] = value if seen[key][field].blank? && value.present?
+        end
         false
       else
-        seen[key] = true
+        seen[key] = item
       end
     end
   end
@@ -351,21 +370,26 @@ class MediaSearchService
     phrase = query.gsub(/[^[:alnum:]\s]/, ' ')
     uri = URI('https://archive.org/advancedsearch.php')
     uri.query = URI.encode_www_form(q: "title:(#{phrase}) AND (#{filter})", rows: 5, output: 'json',
-                                    'fl[]' => %w[identifier title creator date], 'sort[]' => 'downloads desc')
+                                    'fl[]' => %w[identifier title creator date publisher], 'sort[]' => 'downloads desc')
     data = JSON.parse(MediaSources::Http.get(uri, deadline: @deadline))
     Array(data.dig('response', 'docs')).filter_map do |record|
       id = record['identifier']
       next unless id.to_s.match?(/\A[a-zA-Z0-9_.-]+\z/)
 
-      creator = Array(record['creator']).first
-      { title: Array(record['title']).first, author: creator, writer: creator,
-        artist: creator, release_year: record['date'].to_s[/\A\d{4}/], api_id: "archive_#{id}",
-        thumbnail_url: "https://archive.org/services/img/#{id}",
-        external_url: "https://archive.org/details/#{id}", is_local: false }
+      archive_result(record, id)
     end
   rescue StandardError => e
     Rails.logger.warn "Internet Archive search failed: #{e.class}"
     []
+  end
+
+  def archive_result(record, id)
+    creator = Array(record['creator']).join(', ').presence
+    { title: Array(record['title']).first, author: creator, writer: creator,
+      artist: @type == 'album' ? creator : nil, publisher: Array(record['publisher']).join(', ').presence,
+      release_year: record['date'].to_s[/\A\d{4}/], api_id: "archive_#{id}",
+      thumbnail_url: "https://archive.org/services/img/#{id}",
+      external_url: "https://archive.org/details/#{id}", is_local: false }
   end
 
   def fetch_open_library(query)
@@ -374,8 +398,8 @@ class MediaSearchService
                                     limit: 5, fields: 'key,title,author_name,first_publish_year,cover_i,publisher')
     data = JSON.parse(MediaSources::Http.get(uri, deadline: @deadline))
     Array(data['docs']).map do |book|
-      { title: book['title'], author: Array(book['author_name']).first,
-        writer: Array(book['author_name']).first, publisher: Array(book['publisher']).first,
+      { title: book['title'], author: Array(book['author_name']).join(', ').presence,
+        writer: Array(book['author_name']).join(', ').presence, publisher: Array(book['publisher']).first,
         release_year: book['first_publish_year'], api_id: "openlibrary_#{book['key']}",
         thumbnail_url: book['cover_i'] ? "https://covers.openlibrary.org/b/id/#{book['cover_i']}-M.jpg" : nil,
         external_url: "https://openlibrary.org#{book['key']}", is_local: false }
