@@ -47,6 +47,7 @@ class InventoryController < ApplicationController
         @library_item.assign_attributes(library_params)
         @library_item.save!
         after_library_saved
+        enqueue_initial_metadata
 
         respond_to do |format|
           format.html { redirect_to @resource, notice: "#{resource_class.model_name.human} was successfully logged." }
@@ -81,6 +82,7 @@ class InventoryController < ApplicationController
         @resource.owned_digitally_format = @library_item.owned_digitally_format
       end
     end
+    preload_child_library_items
     instance_variable_set("@#{resource_name}", @resource)
   end
 
@@ -154,6 +156,24 @@ class InventoryController < ApplicationController
   end
 
   private
+
+  def enqueue_initial_metadata
+    return if @resource.is_a?(VideoGame)
+
+    MetadataRefresher.new(@resource, current_user).enqueue if @resource.api_id.present?
+  end
+
+  def preload_child_library_items
+    return unless logged_in?
+
+    type, children, variable = case @resource
+                               when TvShow then ['TvEpisode', @resource.tv_episodes, :@episode_library_items]
+                               when Comic then ['ComicIssue', @resource.comic_issues, :@issue_library_items]
+                               else return
+                               end
+    entries = current_user.library_items.where(item_type: type, item_id: children.select(:id)).index_by(&:item_id)
+    instance_variable_set(variable, entries)
+  end
 
   def resource_class
     controller_name.classify.constantize

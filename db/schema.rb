@@ -62,6 +62,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_174000) do
     t.string "thumbnail_url"
     t.string "title"
     t.datetime "updated_at", null: false
+    t.index ["api_id"], name: "index_albums_on_api_id"
     t.index ["created_at"], name: "index_albums_on_created_at"
   end
 
@@ -86,6 +87,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_174000) do
     t.string "thumbnail_url"
     t.string "title"
     t.datetime "updated_at", null: false
+    t.index ["api_id"], name: "index_books_on_api_id"
     t.index ["created_at"], name: "index_books_on_created_at"
   end
 
@@ -120,6 +122,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_174000) do
     t.string "title"
     t.datetime "updated_at", null: false
     t.string "writer"
+    t.index ["api_id"], name: "index_comics_on_api_id"
     t.index ["created_at"], name: "index_comics_on_created_at"
   end
 
@@ -250,6 +253,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_174000) do
     t.integer "user_id", null: false
     t.index ["created_at"], name: "index_library_items_on_created_at"
     t.index ["item_type", "item_id"], name: "index_library_items_on_item"
+    t.index ["user_id", "in_backlog", "created_at"], name: "index_library_items_on_user_id_and_in_backlog_and_created_at"
+    t.index ["user_id", "is_collected", "created_at"], name: "index_library_items_on_user_id_and_is_collected_and_created_at"
+    t.index ["user_id", "is_public", "item_type", "created_at"], name: "index_library_items_on_public_catalog"
     t.index ["user_id"], name: "index_library_items_on_user_id"
   end
 
@@ -308,6 +314,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_174000) do
     t.string "thumbnail_url"
     t.string "title"
     t.datetime "updated_at", null: false
+    t.index ["api_id"], name: "index_movies_on_api_id"
     t.index ["created_at"], name: "index_movies_on_created_at"
   end
 
@@ -385,6 +392,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_174000) do
     t.string "thumbnail_url"
     t.string "title"
     t.datetime "updated_at", null: false
+    t.index ["api_id"], name: "index_tv_shows_on_api_id"
     t.index ["created_at"], name: "index_tv_shows_on_created_at"
   end
 
@@ -455,6 +463,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_174000) do
     t.string "thumbnail_url"
     t.string "title", null: false
     t.datetime "updated_at", null: false
+    t.index ["api_id"], name: "index_video_games_on_api_id"
     t.index ["created_at"], name: "index_video_games_on_created_at"
   end
 

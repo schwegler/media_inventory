@@ -1,0 +1,27 @@
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 160ms; }
+
+/* Move a pseudo-element so skeleton animation does not repaint the gradient. */
+.artwork-pending { position: relative; overflow: hidden; }
+.artwork-pending::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(128, 128, 128, .18), transparent);
+  animation: artwork-shimmer 1.5s ease-in-out infinite;
+}
+@keyframes artwork-shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+.search-pending::before {
+  content: ""; display: inline-block; width: .8em; height: .8em; margin-inline-end: .5em;
+  border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%;
+  animation: search-spin .7s linear infinite;
+}
+@keyframes search-spin { to { transform: rotate(360deg); } }
+.sleek-btn:active, .btn:active, .card-2026:active { transform: scale(.97); }
+form[aria-busy="true"] { opacity: .8; }
+@media (prefers-reduced-motion: reduce) {
+  .artwork-pending::after, .search-pending::before { animation: none; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+  .sleek-btn:active, .btn:active, .card-2026:active { transform: none; }
+}
+:root[data-effects='reduced'] .artwork-pending::after { animation: none; }
+
+.like-button-container { display: inline-flex; align-items: center; }

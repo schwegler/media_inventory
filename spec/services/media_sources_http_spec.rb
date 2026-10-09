@@ -37,11 +37,31 @@ RSpec.describe MediaSources::Http do
     stub_request(:get, 'https://cdn2.steamgriddb.com/grid/test.png').with { |request| !request.headers.key?('Authorization') }
                                                                     .to_return(body: 'image')
     expect(described_class.get('https://www.steamgriddb.com/api/v2/test',
-                               headers: { 'Authorization' => 'Bearer test' })).to eq('image')
+                               options: { headers: { 'Authorization' => 'Bearer test' } })).to eq('image')
   end
   it 'rejects redirects outside trusted providers' do
     stub_request(:get, 'https://media.rawg.io/test').to_return(status: 302,
                                                                headers: { 'Location' => 'https://127.0.0.1/private' })
     expect { described_class.get('https://media.rawg.io/test') }.to raise_error(described_class::Error)
+  end
+end
+
+RSpec.describe 'Provider response caching' do
+  let(:url) { 'https://api.tvmaze.com/shows/42' }
+
+  it 'reuses fresh responses and revalidates stale responses with their ETag' do
+    stub_request(:get, url).to_return(body: '{"name":"Show"}', headers: { 'ETag' => 'version-1' })
+    expect(MediaSources::Http.cached_get(url, expires_in: 0.seconds)).to eq('{"name":"Show"}')
+    stub_request(:get, url).with(headers: { 'If-None-Match' => 'version-1' }).to_return(status: 304)
+    expect(MediaSources::Http.cached_get(url)).to eq('{"name":"Show"}')
+    MediaSources::Http.cached_get(url)
+    expect(WebMock).to have_requested(:get, url).twice
+  end
+
+  it 'does not cache malformed JSON' do
+    stub_request(:get, url).to_return(body: '<html>Error</html>')
+    expect { MediaSources::Http.cached_get(url) }.to raise_error(JSON::ParserError)
+    stub_request(:get, url).to_return(body: '{"name":"Recovered"}')
+    expect(MediaSources::Http.cached_get(url)).to eq('{"name":"Recovered"}')
   end
 end

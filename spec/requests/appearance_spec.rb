@@ -7,6 +7,21 @@ RSpec.describe 'Appearance preferences', type: :request do
 
   before { post login_path, params: { session: { email: user.email, password: 'password' } } }
 
+  it 'opens appearance preferences from the main Settings entry point' do
+    get settings_path
+    expect(response).to have_http_status(:ok)
+    document = Nokogiri::HTML(response.body)
+    expect(document.at_css('h1').text).to eq('Make Trove yours')
+    expect(document.at_css('nav[aria-label="Settings"] a[aria-current="page"]')['href']).to eq(settings_appearance_path)
+    expect(document.css('select[name="user[theme]"] option').map { |option| option['value'] }).to eq(%w[os light dark])
+    expect(document.at_css('select[name="user[accent_theme]"]')).to be_present
+    expect(document.at_css('select[name="user[profile_accent]"]')).to be_present
+
+    get settings_basic_info_path
+    expect(response).to have_http_status(:ok)
+    expect(Nokogiri::HTML(response.body).at_css('input[name="user[username]"]')).to be_present
+  end
+
   it 'persists global preferences and renders them before styles load' do
     patch settings_appearance_path, params: { user: { theme: 'dark', accent_theme: 'moss', content_density: 'compact',
                                                       media_layout: 'rows', reduce_effects: true } }

@@ -2,13 +2,24 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = [ "tab", "content" ]
-  static values = { activeSeason: Number }
+  static values = { activeSeason: Number, showId: Number }
 
   connect() {
     this.element.dataset.connected = "true"
+    this.restore()
+  }
+
+  restore() {
     const seasons = this.tabTargets.map(t => parseInt(t.dataset.season, 10))
     if (seasons.length > 0) {
-      const initialSeason = seasons.includes(this.activeSeasonValue) ? this.activeSeasonValue : seasons[0]
+      let savedSeason = this.activeSeasonValue
+      try {
+        if (this.hasShowIdValue) {
+          const storedSeason = sessionStorage.getItem(`tv-show:${this.showIdValue}:season`)
+          if (storedSeason !== null) savedSeason = parseInt(storedSeason, 10)
+        }
+      } catch { /* Storage may be unavailable in embedded browsers. */ }
+      const initialSeason = seasons.includes(savedSeason) ? savedSeason : seasons[0]
       this.switchSeason(initialSeason)
     }
   }
@@ -46,6 +57,11 @@ export default class extends Controller {
 
   switchSeason(season) {
     this.activeSeasonValue = season
+    try {
+      if (this.hasShowIdValue) {
+        sessionStorage.setItem(`tv-show:${this.showIdValue}:season`, String(season))
+      }
+    } catch { /* Tab switching still works without browser storage. */ }
 
     // Update tab classes and ARIA attributes
     this.tabTargets.forEach((tab) => {

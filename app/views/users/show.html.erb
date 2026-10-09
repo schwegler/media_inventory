@@ -119,7 +119,7 @@
         <% if @library_mix.empty? %><p>No public items yet.</p><% end %>
       </section>
       <% if logged_in? && !current_user?(@user) %>
-        <section class="profile-shared"><h3>In common</h3><p><%= pluralize(@shared_items.size, 'collected item') %> in both your libraries.</p>
+        <section class="profile-shared"><h3>In common</h3><p><%= pluralize(@shared_items_count || 0, 'collected item') %> in both your libraries.</p>
           <% @shared_items.first(4).each do |entry| %><%= link_to entry.item.title, entry.item if entry.item %><% end %>
           <% if @shared_items.empty? %><p>Explore their collection to find your next favorite.</p><% end %>
         </section>

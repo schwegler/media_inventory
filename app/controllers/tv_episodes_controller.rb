@@ -24,7 +24,7 @@ class TvEpisodesController < ApplicationController
 
     if @library_item.update(tv_episode_params)
       # Opportunistically fetch missing episode thumbnails from TVMaze
-      @tv_episode.attempt_thumbnail_update! if @tv_episode.thumbnail_url.blank?
+      SyncSeriesMetadataJob.perform_later(@tv_episode) if @tv_episode.thumbnail_url.blank?
 
       respond_to do |format|
         if params[:back_to_episode]

@@ -8,17 +8,17 @@ RSpec.describe MediaSearchService do
     stub_request(:get, /en.wikipedia.org/).to_return(body: { query: { pages: {} } }.to_json)
   end
 
-  it 'uses Steam supplied artwork and enriches details once before caching' do
+  it 'uses bounded game detail lookup to classify products and caches search results' do
     stub_request(:get, %r{store.steampowered.com/api/storesearch}).to_return(body: {
       items: [{ id: 620, name: 'Portal 2', tiny_image: 'https://shared.fastly.steamstatic.com/real.jpg' }]
     }.to_json)
     stub_request(:get, /appdetails/).to_return(body: { '620' => { success: true, data: {
+      type: 'game', header_image: 'https://shared.fastly.steamstatic.com/header.jpg',
       developers: ['Valve'], publishers: ['Valve'], platforms: { windows: true },
       release_date: { date: 'Apr 18, 2011' }
     } } }.to_json)
     result = described_class.call('Portal', 'video_game').first
-    expect(result).to include(api_id: 'steam_620', source: 'Steam', thumbnail_url: 'https://shared.fastly.steamstatic.com/real.jpg')
-    expect(result).to include(developer: 'Valve', publisher: 'Valve', platform: 'windows', release_year: '2011')
+    expect(result).to include(api_id: 'steam_620', source: 'Steam', game_type: 'game', thumbnail_url: 'https://shared.fastly.steamstatic.com/header.jpg')
     described_class.call('Portal', 'video_game')
     expect(WebMock).to have_requested(:get, /storesearch/).once
     expect(WebMock).to have_requested(:get, /appdetails/).once

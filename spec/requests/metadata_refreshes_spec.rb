@@ -3,6 +3,9 @@
 require 'rails_helper'
 
 RSpec.describe 'Metadata repair', type: :request do
+  include ActiveJob::TestHelper
+
+  around { |example| perform_enqueued_jobs(only: RefreshMediaMetadataJob) { example.run } }
   let(:user) { User.create!(name: 'Reader', email: 'reader@example.com', password: 'password', confirmed_at: Time.current) }
   let(:show) { TvShow.create!(title: 'A custom show title') }
   let(:path) { refresh_metadata_path(media_type: 'tv_shows', media_id: show.id) }

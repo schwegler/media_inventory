@@ -16,11 +16,18 @@ class TvShow < ApplicationRecord
 
   validates :title, presence: true
 
-  after_commit :sync_episodes_from_api, on: %i[create update]
+  after_commit :enqueue_series_sync, on: %i[create update]
 
   attr_accessor :refreshing_metadata
 
   private
+
+  def enqueue_series_sync
+    return if refreshing_metadata || api_id.blank? || !api_id.to_s.match?(/\A\d+\z/)
+    return unless saved_change_to_api_id? || tv_episodes.empty?
+
+    SyncSeriesMetadataJob.perform_later(self)
+  end
 
   def sync_episodes_from_api
     return if refreshing_metadata
@@ -37,7 +44,7 @@ class TvShow < ApplicationRecord
     require 'net/http'
     require 'json'
     url = URI("https://api.tvmaze.com/shows/#{api_id}/episodes")
-    response = MediaSources::Http.get(url)
+    response = MediaSources::Http.cached_get(url)
     JSON.parse(response)
   rescue StandardError => e
     Rails.logger.error "Failed to sync TV show episodes: #{e.class}"

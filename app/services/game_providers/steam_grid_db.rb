@@ -28,8 +28,8 @@ module GameProviders
       key = ['steam-grid-artwork', steam_id]
       MediaSources::Registry::CACHE.fetch(key, expires_in: 6.hours) do
         claim_request!
-        data = JSON.parse(MediaSources::Http.get(uri, deadline: @deadline,
-                                                      headers: { 'Authorization' => "Bearer #{config.access_token}" }))
+        options = { headers: { 'Authorization' => "Bearer #{config.access_token}" } }
+        data = JSON.parse(MediaSources::Http.get(uri, deadline: @deadline, options: options))
         raise Unavailable unless data['success'] == true && data['data'].is_a?(Array)
 
         format_candidates(data['data'])
