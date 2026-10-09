@@ -31,6 +31,7 @@
             <% if entry.item %><%= render 'shared/media_card', media_item: entry.item %><% end %>
           <% end %>
         </div>
+        <%= paginate entries, param_name: "#{entries.first.item.class.table_name}_page", params: { q: @query } if entries.respond_to?(:total_pages) %>
       </section>
     <% end %>
   <% end %>

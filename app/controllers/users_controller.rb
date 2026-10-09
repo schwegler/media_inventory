@@ -30,7 +30,7 @@ class UsersController < ApplicationController
     end
 
     @activities = @activities.limit(20)
-    @likes = @likes.to_a
+    @likes = @likes.limit(24).to_a
 
     # Preload social feed (activities and posts)
     @combined_feed = preload_social_feed(@activities.to_a + @user.posts.order(created_at: :desc).limit(20).to_a)
@@ -124,10 +124,12 @@ class UsersController < ApplicationController
     @shared_items = []
     return unless logged_in? && !current_user?(@user)
 
-    own_pairs = current_user.library_items.where(is_collected: true).pluck(:item_type, :item_id).to_set
-    @shared_items = @visible_library.where(is_collected: true).select do |entry|
-      own_pairs.include?([entry.item_type, entry.item_id])
-    end
+    shared = @visible_library.where(is_collected: true).where(
+      'EXISTS (SELECT 1 FROM library_items own WHERE own.user_id = ? AND own.is_collected = ? ' \
+      'AND own.item_type = library_items.item_type AND own.item_id = library_items.item_id)', current_user.id, true
+    )
+    @shared_items_count = shared.count
+    @shared_items = shared.order(created_at: :desc).limit(4)
     preload_library_items(@shared_items)
   end
 
@@ -158,7 +160,7 @@ class UsersController < ApplicationController
   def fetch_library_items(filter)
     items = @visible_library.where(filter)
     items = items.where(item_type: params[:type]) if %w[Movie TvShow Album Comic Book VideoGame].include?(params[:type])
-    items.order(created_at: :desc)
+    items.order(created_at: :desc).page(params[:page]).per(24)
   end
 
   # Confirms the correct user.

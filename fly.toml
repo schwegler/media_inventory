@@ -6,6 +6,8 @@
 app = 'media-inventory'
 primary_region = 'iad'
 console_command = '/rails/bin/rails console'
+# Fly swap is a machine-level setting, outside [[vm]].
+swap_size_mb = 512
 
 [build]
 
@@ -14,6 +16,10 @@ console_command = '/rails/bin/rails console'
 
 [env]
   DATABASE_URL = 'sqlite3:///data/production.sqlite3'
+  RAILS_MAX_THREADS = '3'
+  RAILS_MIN_THREADS = '1'
+  MEDIA_IMPORT_THREADS = '1'
+  RAILS_CACHE_PATH = '/data/cache'
 
 [[mounts]]
   source = 'data'
@@ -28,10 +34,9 @@ console_command = '/rails/bin/rails console'
   processes = ['app']
 
 [[vm]]
-  memory = '1gb'
+  memory = '256mb'
   cpu_kind = 'shared'
   cpus = 1
-  memory_mb = 256
 
 [[statics]]
   guest_path = '/rails/public'

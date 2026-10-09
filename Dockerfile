@@ -13,7 +13,9 @@ RUN apt-get update -qq && \
 ENV RAILS_ENV="production" \
     BUNDLE_DEPLOYMENT="1" \
     BUNDLE_PATH="/usr/local/bundle" \
-    BUNDLE_WITHOUT="development:test"
+    BUNDLE_WITHOUT="development:test" \
+    LD_PRELOAD="libjemalloc.so.2" \
+    MALLOC_ARENA_MAX="2"
 
 # Build stage
 FROM base AS build

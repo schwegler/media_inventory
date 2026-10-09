@@ -6,6 +6,7 @@ export default class extends Controller {
     this.labels = new WeakMap()
     this.onLoad = (event) => {
       const img = event.target
+      if (img instanceof HTMLImageElement) img.parentElement?.classList.remove("artwork-pending")
       if (img instanceof HTMLImageElement && img.dataset.failed) {
         delete img.dataset.failed
         img.hidden = false
@@ -17,6 +18,7 @@ export default class extends Controller {
     this.element.addEventListener("error", this.onError, true)
     this.element.querySelectorAll("img").forEach(img => {
       if (img.complete && img.naturalWidth === 0) this.fallback(img)
+      else if (!img.complete && img.closest(".card-2026-cover, .profile-cover")) img.parentElement.classList.add("artwork-pending")
     })
     this.element.dataset.connected = "true"
   }
@@ -26,6 +28,7 @@ export default class extends Controller {
   }
   fallback(img) {
     if (img.dataset.failed || img.dataset.controller?.includes("avatar")) return
+    img.parentElement?.classList.remove("artwork-pending")
     img.dataset.failed = "true"
     img.hidden = true
     if (img.alt === "") return

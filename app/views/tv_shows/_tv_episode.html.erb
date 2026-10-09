@@ -3,7 +3,7 @@
   <div class="episode-item">
     <div class="episode-content-row">
       <% if ep.stored_cover_url.present? %>
-        <img src="<%= ep.stored_cover_url %>" alt="<%= ep.name %>" class="episode-thumbnail">
+        <img src="<%= ep.stored_cover_url %>" alt="<%= ep.name %>" class="episode-thumbnail" loading="lazy" decoding="async">
       <% end %>
       <div class="episode-info">
         <div class="episode-header">
@@ -14,7 +14,7 @@
             <% end %>
           </span>
 
-          <% ep_lib = LibraryItem.find_by(user: current_user, item: ep) if logged_in? %>
+          <% ep_lib = (@episode_library_items ? @episode_library_items[ep.id] : LibraryItem.find_by(user: current_user, item: ep)) if logged_in? %>
           <% if logged_in? && @library_item.present? %>
             <div class="episode-actions-wrapper">
               <% if ep_lib&.consumed? %>

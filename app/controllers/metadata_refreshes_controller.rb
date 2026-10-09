@@ -13,7 +13,7 @@ class MetadataRefreshesController < ApplicationController
     item = klass.find(params[:media_id])
     return head :forbidden unless can_access?(item)
 
-    state = MetadataRefresher.call(item, current_user)
+    state = MetadataRefresher.new(item, current_user).enqueue
     flash[:metadata_result] = state
     redirect_to polymorphic_path(item, anchor: 'metadata-health'), status: :see_other, notice: MetadataRefresh::MESSAGES.fetch(state)
   end

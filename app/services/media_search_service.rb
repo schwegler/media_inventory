@@ -5,8 +5,24 @@ require 'json'
 
 # rubocop:disable Metrics/ClassLength
 class MediaSearchService
+  REQUEST_LOCK = Mutex.new
   def self.call(query, type)
     new(query, type).call
+  end
+
+  # Browser polling releases Puma threads while the single in-process job worker searches.
+  def self.request(query, type)
+    fingerprint = ApiConfiguration.order(:id).pluck(:source_name, :media_type, :is_active, :updated_at)
+    key = ['async-search-v1', Digest::SHA256.hexdigest([query.to_s.strip.first(200).downcase, type, fingerprint].to_json)]
+    cache = MediaSources::Registry::CACHE
+    REQUEST_LOCK.synchronize do
+      state = cache.read(key)
+      return state if state
+
+      cache.write(key, { state: 'pending' }, expires_in: 45.seconds)
+      MediaSearchJob.perform_later(query.to_s.strip.first(200), type, key)
+      { state: 'pending' }
+    end
   end
 
   def initialize(query, type)
@@ -21,9 +37,8 @@ class MediaSearchService
 
     started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     @deadline = started_at + 12
-    @enrichment_deadline = started_at + 20
     MediaSources::Registry::CACHE.fetch(
-      ['media-search-v5', @type, @query.downcase.strip,
+      ['media-search-v6', @type, @query.downcase.strip,
        ApiConfiguration.order(:id).pluck(:source_name, :media_type, :is_active, :updated_at)], expires_in: 15.minutes
     ) do
       results = (SOURCES.fetch(@type) + [['InternetArchive', :fetch_internet_archive]]).flat_map do |source, method|
@@ -32,8 +47,8 @@ class MediaSearchService
         send(method, @query).map { |result| result.merge(source: source) }
       end
       results = ComicSearchQuery.new(@query).rank(results).first(20) if @type == 'comic'
-      @deadline = @enrichment_deadline
-      filter_unique_results(results.map { |result| enrich_result(result) }).first(20)
+      # Detail enrichment happens after selection, never for every autocomplete result.
+      filter_unique_results(results).first(20)
     end
   end
 
@@ -51,19 +66,6 @@ class MediaSearchService
   }.freeze
 
   private
-
-  def enrich_result(result)
-    return result if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= @deadline
-    return result unless %w[TMDB ComicVine RAWG Steam MusicBrainz].include?(result[:source])
-
-    item = @type.camelize.constantize.new
-    result.each { |field, value| item.public_send("#{field}=", value) if item.has_attribute?(field) }
-    fields, = MetadataProvider.new(item, include_children: false, deadline: @deadline).call
-    result.merge(fields.compact_blank) { |_field, original, detail| original.presence || detail }
-  rescue MetadataProvider::Unavailable, MetadataProvider::RateLimited, MetadataProvider::Unsupported,
-         JSON::ParserError, Timeout::Error, SocketError, KeyError
-    result
-  end
 
   def filter_unique_results(all_results)
     seen = {}
@@ -90,7 +92,7 @@ class MediaSearchService
     return [] if api_key.blank?
 
     url = URI("https://api.themoviedb.org/3/search/movie?api_key=#{api_key}&query=#{CGI.escape(query)}")
-    response = MediaSources::Http.get(url, deadline: @deadline)
+    response = MediaSources::Http.cached_get(url, expires_in: 15.minutes, deadline: @deadline)
     data = JSON.parse(response)
 
     return [] unless data['results']
@@ -115,7 +117,7 @@ class MediaSearchService
 
   def fetch_itunes_movies(query)
     url = URI("https://itunes.apple.com/search?term=#{CGI.escape(query)}&entity=movie&limit=5&country=US")
-    response = MediaSources::Http.get(url, deadline: @deadline)
+    response = MediaSources::Http.cached_get(url, expires_in: 15.minutes, deadline: @deadline)
     data = JSON.parse(response)
 
     return [] unless data['results']
@@ -141,7 +143,7 @@ class MediaSearchService
 
   def fetch_itunes_albums(query)
     url = URI("https://itunes.apple.com/search?term=#{CGI.escape(query)}&media=music&entity=album&limit=5&country=US")
-    response = MediaSources::Http.get(url, deadline: @deadline)
+    response = MediaSources::Http.cached_get(url, expires_in: 15.minutes, deadline: @deadline)
     data = JSON.parse(response)
 
     return [] unless data['results']
@@ -166,7 +168,7 @@ class MediaSearchService
 
   def fetch_musicbrainz_albums(query)
     url = URI("https://musicbrainz.org/ws/2/release-group?query=#{CGI.escape(query)}&fmt=json")
-    res = MediaSources::Http.get(url, deadline: @deadline)
+    res = MediaSources::Http.cached_get(url, expires_in: 15.minutes, deadline: @deadline)
     data = JSON.parse(res)
 
     return [] unless data['release-groups']
@@ -199,7 +201,7 @@ class MediaSearchService
     offset = 0
     loop do
       url = build_comicvine_url(query, api_key, offset: offset)
-      data = JSON.parse(MediaSources::Http.get(url, deadline: @deadline))
+      data = JSON.parse(MediaSources::Http.cached_get(url, expires_in: 15.minutes, deadline: @deadline))
       page = parse_comicvine_results(data)
       results.concat(page)
       break unless search.year && page.any?
@@ -256,7 +258,7 @@ class MediaSearchService
     return [] if api_key.blank?
 
     url = URI("https://api.themoviedb.org/3/search/tv?api_key=#{api_key}&query=#{CGI.escape(query)}")
-    response = MediaSources::Http.get(url, deadline: @deadline)
+    response = MediaSources::Http.cached_get(url, expires_in: 15.minutes, deadline: @deadline)
     data = JSON.parse(response)
 
     return [] unless data['results']
@@ -280,7 +282,7 @@ class MediaSearchService
 
   def fetch_tvmaze_tv_shows(query)
     url = URI("https://api.tvmaze.com/search/shows?q=#{CGI.escape(query)}")
-    response = MediaSources::Http.get(url, deadline: @deadline)
+    response = MediaSources::Http.cached_get(url, expires_in: 15.minutes, deadline: @deadline)
     data = JSON.parse(response)
 
     results = data.slice(0, 5).map do |item|
@@ -315,7 +317,7 @@ class MediaSearchService
   def fetch_steam_video_games(query)
     uri = URI('https://store.steampowered.com/api/storesearch/')
     uri.query = URI.encode_www_form(term: query, l: 'english', cc: 'US')
-    data = JSON.parse(MediaSources::Http.get(uri, deadline: @deadline))
+    data = JSON.parse(MediaSources::Http.cached_get(uri, expires_in: 15.minutes, deadline: @deadline))
     Array(data['items']).first(5).map do |item|
       {
         title: item['name'],
@@ -336,7 +338,7 @@ class MediaSearchService
     return [] if api_key.blank?
 
     url = URI("https://api.rawg.io/api/games?search=#{CGI.escape(query)}&key=#{api_key}")
-    response = MediaSources::Http.get(url, deadline: @deadline)
+    response = MediaSources::Http.cached_get(url, expires_in: 15.minutes, deadline: @deadline)
     data = JSON.parse(response)
 
     return [] unless data['results']
@@ -368,7 +370,7 @@ class MediaSearchService
                                     gsrlimit: 3, prop: 'pageimages|info', piprop: 'thumbnail',
                                     pithumbsize: 500, pilicense: 'any',
                                     inprop: 'url', format: 'json')
-    data = JSON.parse(MediaSources::Http.get(uri, deadline: @deadline))
+    data = JSON.parse(MediaSources::Http.cached_get(uri, expires_in: 15.minutes, deadline: @deadline))
     (data.dig('query', 'pages') || {}).values.sort_by { |page| page['index'].to_i }.filter_map do |page|
       next unless page.dig('thumbnail', 'source')
 
@@ -394,7 +396,7 @@ class MediaSearchService
     uri = URI('https://archive.org/advancedsearch.php')
     uri.query = URI.encode_www_form(q: "title:(#{phrase}) AND (#{filter})", rows: 5, output: 'json',
                                     'fl[]' => %w[identifier title creator date publisher], 'sort[]' => 'downloads desc')
-    data = JSON.parse(MediaSources::Http.get(uri, deadline: @deadline))
+    data = JSON.parse(MediaSources::Http.cached_get(uri, expires_in: 15.minutes, deadline: @deadline))
     Array(data.dig('response', 'docs')).filter_map do |record|
       id = record['identifier']
       next unless id.to_s.match?(/\A[a-zA-Z0-9_.-]+\z/)
@@ -419,7 +421,7 @@ class MediaSearchService
     uri = URI('https://openlibrary.org/search.json')
     uri.query = URI.encode_www_form(q: @type == 'comic' ? "#{query} subject:comics" : query,
                                     limit: 5, fields: 'key,title,author_name,first_publish_year,cover_i,publisher')
-    data = JSON.parse(MediaSources::Http.get(uri, deadline: @deadline))
+    data = JSON.parse(MediaSources::Http.cached_get(uri, expires_in: 15.minutes, deadline: @deadline))
     Array(data['docs']).map do |book|
       { title: book['title'], author: Array(book['author_name']).join(', ').presence,
         writer: Array(book['author_name']).join(', ').presence, publisher: Array(book['publisher']).first,
@@ -435,7 +437,8 @@ class MediaSearchService
   def fetch_itunes_tv(query)
     uri = URI('https://itunes.apple.com/search')
     uri.query = URI.encode_www_form(term: query, entity: 'tvSeason', limit: 5)
-    Array(JSON.parse(MediaSources::Http.get(uri, deadline: @deadline))['results']).map do |show|
+    Array(JSON.parse(MediaSources::Http.cached_get(uri, expires_in: 15.minutes,
+                                                        deadline: @deadline))['results']).map do |show|
       { title: show['collectionName'] || show['trackName'], network: show['artistName'],
         release_year: show['releaseDate']&.split('-')&.first, api_id: "itunes_#{show['collectionId']}",
         thumbnail_url: show['artworkUrl100']&.sub('100x100bb', '400x400bb'),
@@ -450,7 +453,7 @@ class MediaSearchService
 
   def fetch_itunes_books(query)
     url = URI("https://itunes.apple.com/search?term=#{CGI.escape(query)}&media=ebook&limit=5&country=US")
-    response = MediaSources::Http.get(url, deadline: @deadline)
+    response = MediaSources::Http.cached_get(url, expires_in: 15.minutes, deadline: @deadline)
     data = JSON.parse(response)
 
     return [] unless data['results']

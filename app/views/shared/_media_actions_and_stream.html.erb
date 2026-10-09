@@ -67,18 +67,21 @@ end
                           polymorphic_path(item),
                           method: :patch,
                           params: { item.class.name.underscore.to_sym => { is_collected: !item.is_collected? } },
+                          form: { data: { controller: "optimistic", action: "turbo:submit-start->optimistic#start turbo:before-fetch-response->optimistic#response turbo:submit-end->optimistic#finish", optimistic_label_value: (item.is_collected? ? "📁 Add to Collection" : "📁 Remove from Collection"), optimistic_selected_value: !item.is_collected? } },
                           class: "sleek-btn #{item.is_collected? ? 'sleek-btn-secondary is-selected' : 'sleek-btn-primary'}" %>
 
             <%= button_to item.in_watchlist? ? watchlist_remove_label : watchlist_add_label,
                           polymorphic_path(item),
                           method: :patch,
                           params: { item.class.name.underscore.to_sym => { in_watchlist: !item.in_watchlist? } },
+                          form: { data: { controller: "optimistic", action: "turbo:submit-start->optimistic#start turbo:before-fetch-response->optimistic#response turbo:submit-end->optimistic#finish", optimistic_label_value: (item.in_watchlist? ? watchlist_add_label : watchlist_remove_label), optimistic_selected_value: !item.in_watchlist? } },
                           class: "sleek-btn #{item.in_watchlist? ? 'sleek-btn-secondary is-selected' : 'sleek-btn-secondary'}" %>
 
             <%= button_to item.consumed? ? consumed_remove_label : consumed_add_label,
                           polymorphic_path(item),
                           method: :patch,
                           params: { item.class.name.underscore.to_sym => { consumed: !item.consumed?, consumed_at: (item.consumed? ? nil : Time.current.to_date) } },
+                          form: { data: { controller: "optimistic", action: "turbo:submit-start->optimistic#start turbo:before-fetch-response->optimistic#response turbo:submit-end->optimistic#finish", optimistic_label_value: (item.consumed? ? consumed_add_label : consumed_remove_label), optimistic_selected_value: !item.consumed? } },
                           class: "sleek-btn #{item.consumed? ? 'sleek-btn-secondary is-selected' : 'sleek-btn-success'}" %>
 
             <%= button_to "Delete from Library",
@@ -124,7 +127,7 @@ end
 
   <% if logged_in? && @library_item.present? && (item.is_collected? || item.in_watchlist?) %>
     <div class="inline-quick-review-box">
-      <%= form_with model: item, url: polymorphic_path(item), method: :patch, local: true, class: "quick-review-form" do |f| %>
+      <%= form_with model: item, url: polymorphic_path(item), method: :patch, local: true, class: "quick-review-form", data: { controller: "optimistic", action: "turbo:submit-start->optimistic#start turbo:before-fetch-response->optimistic#response turbo:submit-end->optimistic#finish", optimistic_label_value: "Saving…" } do |f| %>
         <h3 class="quick-review-title">
           ✍️ Quick Review & Rating
         </h3>

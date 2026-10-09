@@ -43,7 +43,7 @@ class TvEpisode < ApplicationRecord
     require 'json'
 
     url = URI("https://api.tvmaze.com/shows/#{tv_show.api_id}/episodebynumber?season=#{season}&number=#{episode}")
-    response = MediaSources::Http.get(url)
+    response = MediaSources::Http.cached_get(url)
     data = JSON.parse(response)
     image_url = data.dig('image', 'original') || data.dig('image', 'medium')
     update!(thumbnail_url: image_url) if image_url.present?

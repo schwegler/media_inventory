@@ -35,6 +35,7 @@ class CollectionsController < ApplicationController
 
   def fetch_collection_scope(item_type, table_name)
     scope = @user.library_items.includes(:item).where(item_type: item_type, is_public: true)
+                 .order(created_at: :desc).page(params["#{table_name}_page"]).per(24)
     return scope if @query.blank?
 
     # Join corresponding media table for database-level title search filtering

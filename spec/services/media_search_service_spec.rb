@@ -8,7 +8,7 @@ RSpec.describe MediaSearchService do
     stub_request(:get, /en.wikipedia.org/).to_return(body: { query: { pages: {} } }.to_json)
   end
 
-  it 'uses Steam supplied artwork and enriches details once before caching' do
+  it 'uses Steam supplied artwork without per-result detail requests and caches search results' do
     stub_request(:get, %r{store.steampowered.com/api/storesearch}).to_return(body: {
       items: [{ id: 620, name: 'Portal 2', tiny_image: 'https://shared.fastly.steamstatic.com/real.jpg' }]
     }.to_json)
@@ -18,10 +18,9 @@ RSpec.describe MediaSearchService do
     } } }.to_json)
     result = described_class.call('Portal', 'video_game').first
     expect(result).to include(api_id: 'steam_620', source: 'Steam', thumbnail_url: 'https://shared.fastly.steamstatic.com/real.jpg')
-    expect(result).to include(developer: 'Valve', publisher: 'Valve', platform: 'windows', release_year: '2011')
     described_class.call('Portal', 'video_game')
     expect(WebMock).to have_requested(:get, /storesearch/).once
-    expect(WebMock).to have_requested(:get, /appdetails/).once
+    expect(WebMock).not_to have_requested(:get, /appdetails/)
   end
 
   it 'retains a search result when its detail request fails' do
