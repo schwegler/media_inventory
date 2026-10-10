@@ -6,7 +6,7 @@
     <p>Your reading room, your way. These preferences follow your account across devices.</p>
     <%= form_with model: @user, url: settings_appearance_path, method: :patch, class: 'settings-form' do |f| %>
       <%= render 'shared/error_messages', object: f.object %>
-      <fieldset>
+      <fieldset class="form-field-grid">
         <legend>Your experience</legend>
         <div class="form-group"><%= f.label :theme, 'Appearance' %><%= f.select :theme, [['System', 'os'], ['Light', 'light'], ['Dark', 'dark']], {}, class: 'form-control' %></div>
         <div class="form-group"><%= f.label :accent_theme, 'Accent' %><%= f.select :accent_theme, [['Editorial violet', 'violet'], ['Graphite ink', 'ink'], ['Garden moss', 'moss']], {}, class: 'form-control' %></div>
@@ -14,7 +14,7 @@
         <div class="form-group"><%= f.label :media_layout, 'Media display' %><%= f.select :media_layout, [['Cover gallery', 'covers'], ['Editorial rows', 'rows']], {}, class: 'form-control' %></div>
         <div class="check-field"><%= f.check_box :reduce_effects %><%= f.label :reduce_effects, 'Reduce decorative effects and motion' %></div>
       </fieldset>
-      <fieldset>
+      <fieldset class="form-field-grid">
         <legend>Your profile</legend>
         <p>Visible to people visiting your profile. Your profile theme stays within your profile.</p>
         <div class="form-group"><%= f.label :profile_accent, 'Profile accent' %><%= f.select :profile_accent, [['Editorial violet', 'violet'], ['Graphite ink', 'ink'], ['Garden moss', 'moss']], {}, class: 'form-control', data: { action: 'change->appearance#preview', appearance_target: 'accent' } %></div>

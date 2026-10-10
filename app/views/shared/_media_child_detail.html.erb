@@ -1,0 +1,29 @@
+<% content_for(:title, title) %>
+<% content_for(:meta_description, "#{description} of #{parent.title}") %>
+<% content_for(:item_detail, 'true') %>
+<% content_for(:media_workspace, 'true') %>
+<% stats = community_stats_for(item) %>
+<% cover = item.stored_cover_url.presence || parent.stored_cover_url %>
+<article class="media-detail media-child-detail" data-media-kind="<%= item.class.name %>">
+  <%= link_to "← Back to #{parent.title}", parent, class: 'media-back-link' %>
+  <header class="media-overview">
+    <div class="media-cover">
+      <% if cover.present? %><%= image_tag cover, alt: "#{title} cover" %><% else %><div class="artwork-fallback">No cover yet</div><% end %>
+    </div>
+    <div class="media-identity">
+      <h1><%= title %></h1>
+      <p class="media-child-subtitle"><%= description %> of <%= link_to parent.title, parent %><% if date.present? %> · <%= date %><% end %></p>
+      <% if @library_item&.rating.present? %><p class="media-personal-rating"><span>Your rating</span><%= render_stars(@library_item.rating) %></p><% end %>
+      <details class="media-share"><summary>Share this title</summary><%= render 'shared/item_sharing', item: item %></details>
+    </div>
+    <aside class="media-overview-stats" aria-label="Community summary">
+      <div><strong><%= stats[:avg_rating] ? "#{stats[:avg_rating]} ★" : '—' %></strong><span>Average rating</span></div>
+      <div><strong><%= stats[:watchers].size %></strong><span><%= media_audience(item) %></span></div>
+      <div><strong><%= item.likes.size %></strong><span>Likes</span></div>
+    </aside>
+  </header>
+  <div class="media-detail-body">
+    <div class="media-detail-main"><%= render tracking, comic: parent, tv_show: parent %></div>
+    <aside class="media-detail-aside" aria-label="Title tools"><%= render 'shared/metadata_refresh', item: parent %></aside>
+  </div>
+</article>

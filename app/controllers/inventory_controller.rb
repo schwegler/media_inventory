@@ -10,7 +10,7 @@ class InventoryController < ApplicationController
     # Eager load ActiveStorage attachments/blobs for cover images to prevent N+1 queries when rendering media card grids
     scope = scope.with_attached_cover_image if scope.respond_to?(:with_attached_cover_image)
 
-    @resources = scope.order(created_at: :desc).page(params[:page])
+    @resources = catalog_scope(scope).page(params[:page])
     instance_variable_set("@#{resource_name.pluralize}", @resources)
   end
 
@@ -174,6 +174,27 @@ class InventoryController < ApplicationController
                                end
     entries = current_user.library_items.where(item_type: type, item_id: children.select(:id)).index_by(&:item_id)
     instance_variable_set(variable, entries)
+  end
+
+  def catalog_scope(scope)
+    if params[:q].present?
+      query = "%#{resource_class.sanitize_sql_like(params[:q].to_s.strip.downcase, '!')}%"
+      scope = scope.where("LOWER(title) LIKE ? ESCAPE '!'", query)
+    end
+    scope = filter_catalog_library(scope) if logged_in?
+    case params[:sort]
+    when 'title' then scope.order(title: :asc, id: :asc)
+    when 'oldest' then scope.order(created_at: :asc, id: :asc)
+    else scope.order(created_at: :desc, id: :desc)
+    end
+  end
+
+  def filter_catalog_library(scope)
+    field = { 'collection' => :is_collected, 'backlog' => :in_backlog, 'finished' => :consumed }[params[:status]]
+    return scope unless field
+
+    ids = LibraryItem.where(user: current_user, item_type: resource_class.name).where(field => true).select(:item_id)
+    scope.where(id: ids)
   end
 
   def resource_class

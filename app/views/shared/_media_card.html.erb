@@ -18,23 +18,32 @@
   </div>
   <div class="card-2026-content">
     <h3 class="card-2026-title"><%= link_to media_item.title, media_item, data: { turbo_frame: "_top" } %></h3>
-    
+
+    <% if media_item.respond_to?(:author) && media_item.author.present? %>
+      <span class="card-2026-meta"><%= media_item.author %></span>
+    <% end %>
+    <% if media_item.respond_to?(:writer) && media_item.writer.present? %>
+      <span class="card-2026-meta"><%= media_item.writer %></span>
+    <% end %>
+    <% if media_item.respond_to?(:platform) && media_item.platform.present? %>
+      <span class="card-2026-meta"><%= media_item.platform %></span>
+    <% end %>
     <% if media_item.respond_to?(:director) && media_item.director.present? %>
       <span class="card-2026-meta"><%= media_item.director %></span>
     <% end %>
-    
+
     <% if media_item.respond_to?(:artist) && media_item.artist.present? %>
       <span class="card-2026-meta"><%= media_item.artist %></span>
     <% end %>
-    
+
     <% if media_item.respond_to?(:developer) && media_item.developer.present? %>
       <span class="card-2026-meta"><%= media_item.developer %></span>
     <% end %>
-    
+
     <% if media_item.respond_to?(:network) && media_item.network.present? %>
       <span class="card-2026-meta"><%= media_item.network %></span>
     <% end %>
-    
+
     <% if media_item.respond_to?(:release_year) && media_item.release_year.present? %>
       <span class="card-2026-meta card-2026-year"><%= media_item.release_year %></span>
     <% end %>

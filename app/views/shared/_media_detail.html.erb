@@ -1,0 +1,104 @@
+<% content_for(:media_workspace, 'true') %>
+<%
+  title, _, emoji = media_catalog(item)
+  stats = community_stats_for(item)
+  entries = item.is_a?(TvShow) ? item.tv_episodes : (item.is_a?(Comic) ? item.comic_issues : nil)
+  @child_library_items = @episode_library_items || @issue_library_items || LibraryItem.where(user: current_user, item_type: entries.klass.name, item_id: entries.select(:id)).index_by(&:item_id) if entries && logged_in?
+  entries_label = item.is_a?(TvShow) ? 'Episodes' : 'Issues'
+%>
+<% content_for(:title, item.title) %>
+<% content_for(:meta_description, ([item.title] + media_metadata(item).map(&:last)).join(' • ')) %>
+<% content_for(:item_detail, 'true') %>
+<article class="media-detail" data-media-kind="<%= item.class.name %>">
+  <%= link_to "← Back to #{title}", polymorphic_path(item.class), class: 'media-back-link' %>
+  <header id="overview" class="media-overview">
+    <div class="media-cover">
+      <% if item.is_a?(VideoGame) %>
+        <%= game_library_image(item, @library_item, alt: "#{item.title} cover", class: "game-cover-art", sizes: "(max-width: 600px) 120px, 180px") %>
+      <% elsif item.stored_cover_url.present? %>
+        <%= image_tag item.stored_cover_url, alt: "#{item.title} cover" %>
+      <% else %>
+        <div class="artwork-fallback"><span aria-hidden="true"><%= emoji %></span><span>No cover yet</span></div>
+      <% end %>
+    </div>
+    <div class="media-identity">
+      <h1><%= item.title %></h1>
+      <dl class="media-facts">
+        <% media_metadata(item).each do |label, value| %>
+          <div><dt><%= label %></dt><dd><%= value %></dd></div>
+        <% end %>
+      </dl>
+      <% if @library_item&.rating.present? %>
+        <p class="media-personal-rating"><span>Your rating</span> <%= render_stars(@library_item.rating) %></p>
+      <% end %>
+      <details class="media-share"><summary>Share this title</summary><%= render 'shared/item_sharing', item: item %></details>
+    </div>
+    <aside class="media-overview-stats" aria-label="Community summary">
+      <div><strong><%= stats[:avg_rating] ? "#{stats[:avg_rating]} ★" : '—' %></strong><span>Average rating</span></div>
+      <div><strong><%= stats[:watchers].size %></strong><span><%= media_audience(item) %></span></div>
+      <div><strong><%= stats[:collectors].size %></strong><span>Collectors</span></div>
+    </aside>
+  </header>
+  <nav data-controller="media-sections" class="media-section-nav" aria-label="On this page">
+    <a href="#overview">Overview</a>
+    <a href="#my-library">My Library</a>
+    <% if entries %><a href="#media-entries"><%= entries_label %> <span><%= entries.size %></span></a><% end %>
+    <a href="#community">Community</a>
+    <a href="#comments">Comments</a>
+  </nav>
+  <div class="media-detail-body">
+    <div class="media-detail-main">
+      <div id="my-library"><%= render 'shared/media_actions_and_stream', item: item, show_sources: false %></div>
+      <% if item.is_a?(VideoGame) %>
+    <% if @video_game.synopsis.present? %><div class="show-community"><h2>About this game</h2><%= simple_format(@video_game.synopsis) %></div><% end %>
+    <% if @video_game.metadata_details.present? %><dl class="show-community">
+      <% { 'genres' => 'Genres', 'features' => 'Features', 'languages' => 'Languages', 'controller_support' => 'Controller support' }.each do |key, label| %>
+        <% value = @video_game.metadata_details[key] %><% next if value.blank? %><dt><%= label %></dt><dd><%= value.is_a?(Array) ? value.join(', ') : value %></dd>
+      <% end %>
+    </dl><% end %>
+    <div class="game-source-credits">
+      <% if @video_game.external_url.to_s.start_with?('https://') %><p>Metadata: <%= link_to(@video_game.api_id.to_s.start_with?('rawg_') ? 'RAWG' : 'Provider source', @video_game.external_url, rel: 'noopener noreferrer') %></p><% end %>
+      <% artwork_blob = @library_item&.game_cover_image&.attached? ? @library_item.game_cover_image.blob : (@video_game.cover_image.blob if @video_game.cover_image.attached?) %>
+      <% if artwork_blob %><% MediaArtworkSource.where(blob_id: artwork_blob.id).each do |source| %>
+        <% provenance = source.provenance || {} %><% next if provenance['provider'].blank? %>
+        <p>Artwork: <%= provenance['provider'] %><%= " · #{provenance['author']}" if provenance['author'].present? %>
+        <% if provenance['attribution_url'].to_s.start_with?('https://') %> · <%= link_to 'Artwork source', provenance['attribution_url'], rel: 'noopener noreferrer' %><% end %></p>
+      <% end %><% end %>
+    </div>
+    <%= render 'artwork_gallery', game: @video_game, library: @library_item %>
+    <%= render 'tracking', library: @library_item if @library_item %>
+
+      <% end %>
+      <% if @library_item&.review.present? %>
+        <section class="show-review media-section"><h2>My Review</h2><blockquote><%= simple_format(@library_item.review) %></blockquote></section>
+      <% end %>
+      <% if entries %>
+        <section id="media-entries" data-controller="child-collection" data-action="season-tabs:change->child-collection#filter" class="media-section media-entries" aria-label="<%= entries_label %>">
+          <h2><%= entries_label %> in this Series</h2>
+          <% if logged_in? %>
+            <% completed = LibraryItem.where(user: current_user, item_type: entries.klass.name, item_id: entries.select(:id), consumed: true).count %>
+            <p class="media-progress"><strong data-child-collection-target="completed"><%= completed %> / <%= entries.size %></strong> <%= entries_label.downcase %> <%= MediaLanguage.for(item)[:past] %></p>
+            <progress data-child-collection-target="progress" value="<%= completed %>" max="<%= [entries.size, 1].max %>" aria-label="<%= entries_label %> completed"></progress>
+          <% end %>
+          <div class="child-collection-toolbar">
+            <div><label for="child-search">Search <%= entries_label.downcase %></label><input id="child-search" type="search" placeholder="Title or number…" data-child-collection-target="search" data-action="input->child-collection#filter"></div>
+            <% if @library_item.present? %>
+              <div><label for="child-status">Progress</label><select id="child-status" data-child-collection-target="status" data-action="change->child-collection#filter"><option value="all">All</option><option value="false"><%= item.is_a?(TvShow) ? 'Unwatched' : 'Unread' %></option><option value="true"><%= item.is_a?(TvShow) ? 'Watched' : 'Read' %></option></select></div>
+            <% end %>
+            <p role="status" aria-live="polite" data-child-collection-target="result"></p>
+          </div>
+          <%= render(item.is_a?(TvShow) ? 'tv_shows/catalog_episodes' : 'comics/catalog_issues') %>
+          <p hidden class="child-collection-empty" data-child-collection-target="empty">No matching <%= entries_label.downcase %>. Try another title, number, or progress filter.</p>
+        </section>
+      <% end %>
+      <%= render 'shared/media_community', item: item, stats: stats %>
+    </div>
+    <aside class="media-detail-aside" aria-label="Sources and title tools">
+      <%= render 'shared/media_sources', item: item %>
+      <%= render 'shared/metadata_refresh', item: item %>
+      <% if logged_in? %>
+        <%= link_to 'Suggest an edit', new_polymorphic_path([item, :edit_suggestion]), class: 'media-tool-link' %>
+      <% end %>
+    </aside>
+  </div>
+</article>

@@ -1,0 +1,13 @@
+      <% if @comic.comic_issues.any? %>
+        <div class="show-episodes-section" style="margin-top: 2.5rem; margin-bottom: 2.5rem;">
+
+          <div class="season-episodes-list" style="display: flex; flex-direction: column; gap: 12px;">
+            <% @comic.comic_issues.with_attached_cover_image.includes(:comic).order(:issue_number).each do |issue| %>
+              <%= render 'comics/comic_issue', issue: issue, comic: @comic %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+<% if @comic.comic_issues.empty? %>
+  <div class="home-empty-state"><h2>No issues yet</h2><p>Use Artwork &amp; metadata to check for new releases.</p></div>
+<% end %>

@@ -1,6 +1,8 @@
+<% ep_lib = (@child_library_items ? @child_library_items[ep.id] : LibraryItem.find_by(user: current_user, item: ep)) if logged_in? %>
 <%# Local variables: ep, tv_show %>
-<%= turbo_frame_tag "tv_episode_#{ep.id}" do %>
-  <div class="episode-item">
+<%= turbo_frame_tag "tv_episode_#{ep.id}", data: { child_collection_target: "entry", search: "#{ep.episode} #{ep.name}", completed: ep_lib&.consumed? ? "true" : "false" } do %>
+  <details class="episode-item child-entry">
+    <summary class="child-entry-summary">
     <div class="episode-content-row">
       <% if ep.stored_cover_url.present? %>
         <img src="<%= ep.stored_cover_url %>" alt="<%= ep.name %>" class="episode-thumbnail" loading="lazy" decoding="async">
@@ -8,31 +10,30 @@
       <div class="episode-info">
         <div class="episode-header">
           <span>
-            <%= link_to "Ep #{ep.episode}: #{ep.name}", tv_episode_path(ep), class: "episode-link", data: { turbo_frame: "_top" } %>
+            <%= link_to "#{ep.episode}. #{ep.name}", tv_episode_path(ep), class: "episode-link", data: { turbo_frame: "_top" } %>
             <% if ep.air_date.present? %>
-              <span class="episode-air-date">(Aired: <%= ep.air_date %>)</span>
+              <span class="episode-air-date">Aired <%= ep.air_date %></span>
             <% end %>
           </span>
 
-          <% ep_lib = (@episode_library_items ? @episode_library_items[ep.id] : LibraryItem.find_by(user: current_user, item: ep)) if logged_in? %>
+
           <% if logged_in? && @library_item.present? %>
             <div class="episode-actions-wrapper">
               <% if ep_lib&.consumed? %>
                 <span class="episode-badge-watched">✓ Watched</span>
 
-                <%= button_to "X",
-                              toggle_watched_tv_episode_path(ep),
-                              method: :patch,
-                              params: { tv_episode: { consumed: false, consumed_at: nil } },
-                              class: "episode-btn-unwatch",
-                              aria: { label: "Mark episode as unwatched" } %>
+
               <% else %>
-                <span class="episode-badge-not-watched">Not Watched</span>
+                <span class="episode-badge-not-watched">Unwatched</span>
               <% end %>
             </div>
           <% end %>
         </div>
 
+      </div>
+    </div>
+    </summary>
+    <div class="child-entry-body">
         <% if ep.summary.present? %>
           <div class="episode-summary">
             <%= strip_tags(ep.summary) %>
@@ -49,11 +50,14 @@
             <% end %>
           </div>
         <% end %>
-      </div>
-    </div>
 
     <% if logged_in? && @library_item.present? %>
-      <div class="episode-form-section">
+      <div class="episode-form-section" aria-label="Watch, rate, or review">
+        <% if ep_lib&.consumed? %>
+          <%= button_to "Undo", toggle_watched_tv_episode_path(ep), method: :patch,
+                        params: { tv_episode: { consumed: false, consumed_at: nil } },
+                        class: "episode-btn-unwatch", aria: { label: "Mark as unwatched" } %>
+        <% end %>
         <%= form_with model: ep, url: toggle_watched_tv_episode_path(ep), method: :patch do |form| %>
           <%= form.hidden_field :consumed, value: true %>
           <%= form.hidden_field :consumed_at, value: Time.current.to_date %>
@@ -64,7 +68,8 @@
           </div>
 
           <div class="episode-form-inputs">
-            <%= form.text_field :review, value: ep_lib&.review, aria: { label: "Episode review" }, placeholder: ep_lib&.consumed? ? "Edit review..." : "Review this episode...", class: "episode-input-review" %>
+            <label class="child-review-label" for="child-review-<%= ep.id %>">Your review <span>(optional)</span></label>
+            <%= form.text_area :review, value: ep_lib&.review, aria: { label: "Episode review" }, placeholder: ep_lib&.consumed? ? "Edit review..." : "Review this episode...", id: "child-review-#{ep.id}", rows: 3, class: "episode-input-review" %>
 
             <%= form.select :rating, [["Rating", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: ep_lib&.rating }, { class: "episode-select-rating", aria: { label: "Rating" } } %>
             <% if ep_lib&.consumed? %>
@@ -76,5 +81,6 @@
         <% end %>
       </div>
     <% end %>
-  </div>
+    </div>
+  </details>
 <% end %>
