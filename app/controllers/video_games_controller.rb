@@ -30,7 +30,8 @@ class VideoGamesController < InventoryController
     @saved_view = current_user.game_library_views.find(params[:view]) if params[:view].present?
     @filters = (@saved_view&.filters || {}).merge(GameLibraryQuery.normalize(params))
     @layout = %w[grid list table].include?(@filters['layout']) ? @filters['layout'] : 'grid'
-    @video_games = GameLibraryQuery.new(@filters, user: @personal_library ? current_user : nil).call.page(params[:page])
+    @video_games = GameLibraryQuery.new(@filters,
+                                        user: @personal_library ? current_user : nil).call.page(params[:page]).per(CATALOG_PAGE_SIZE)
     prepare_library if @personal_library
   end
 

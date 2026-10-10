@@ -2,6 +2,7 @@
 
 # rubocop:disable Metrics/ClassLength
 class InventoryController < ApplicationController
+  CATALOG_PAGE_SIZE = 24
   # Centralize authentication filter for all mutating inventory actions
   before_action :logged_in_user, only: %i[new create edit update destroy]
 
@@ -10,7 +11,7 @@ class InventoryController < ApplicationController
     # Eager load ActiveStorage attachments/blobs for cover images to prevent N+1 queries when rendering media card grids
     scope = scope.with_attached_cover_image if scope.respond_to?(:with_attached_cover_image)
 
-    @resources = catalog_scope(scope).page(params[:page])
+    @resources = catalog_scope(scope).page(params[:page]).per(CATALOG_PAGE_SIZE)
     instance_variable_set("@#{resource_name.pluralize}", @resources)
   end
 
