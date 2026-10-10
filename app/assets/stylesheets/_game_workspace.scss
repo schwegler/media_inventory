@@ -60,4 +60,23 @@
     .media-detail form.game-form :where(input:not([type='checkbox']), select, textarea) { font-size: 1rem; }
   }
   @media (max-width: 359px) { .media-detail form.standard-form.game-form { grid-template-columns: 1fr; } }
+  .media-workspace form.game-library-filters { display: grid; grid-template-columns: minmax(180px, 1fr) 160px 180px auto auto; align-items: end; gap: .75rem; padding: .75rem 0; border: 0; border-radius: 0; background: transparent; }
+  .media-workspace .game-library-filters > .game-filter-row { display: contents; }
+  .media-workspace .game-library-filters > .game-filter-row > div { grid-row: 1; margin: 0; }
+  .media-workspace .game-library-filters label { margin-bottom: .35rem; }
+  .media-workspace .game-library-filters :where(input:not([type='hidden']), select) { min-height: 44px; margin: 0; }
+  .media-workspace .game-library-filters > details { display: contents; }
+  .media-workspace .game-library-filters > details > summary { grid-column: 4; grid-row: 1; display: flex; gap: .5rem; align-items: center; min-height: 44px; padding: 0 .75rem; border: 1px solid var(--border); border-radius: 6px; font-size: .875rem; white-space: nowrap; box-sizing: border-box; }
+  .media-workspace .game-library-filters > details > .game-filter-row { grid-column: 1 / -1; grid-row: 2; margin: 0; padding: 1rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+  .media-workspace .game-library-filters > input[type='submit'] { grid-column: 5; grid-row: 1; width: auto; padding: .6rem 1rem; }
+  @media (max-width: 900px) {
+    .media-workspace form.game-library-filters { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .media-workspace .game-library-filters > .game-filter-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .75rem; grid-column: 1 / -1; }
+    .media-workspace .game-library-filters > .game-filter-row > div { grid-row: auto; }
+    .media-workspace .game-library-filters > .game-filter-row > div:first-child { grid-column: 1 / -1; }
+    .media-workspace .game-library-filters > details > summary { grid-column: 1; grid-row: 2; justify-content: center; }
+    .media-workspace .game-library-filters > input[type='submit'] { grid-column: 2; grid-row: 2; }
+    .media-workspace .game-library-filters > details > .game-filter-row { grid-row: 3; }
+  }
+
 }

@@ -1,7 +1,7 @@
 <%= form_with url: video_games_path, method: :get, class: 'standard-form game-library-filters', namespace: 'game_filter' do |f| %>
   <%= f.hidden_field :library, value: @personal_library ? 'mine' : 'all' %>
   <div class="game-filter-row">
-    <div><%= f.label :q, 'Search collection' %><%= f.search_field :q, value: @filters['q'] %></div>
+    <div><%= f.label :q, 'Search collection' %><%= f.search_field :q, value: @filters['q'], placeholder: 'Search games…' %></div>
     <div><%= f.label :layout, 'Display' %><%= f.select :layout, [['Cover grid', 'grid'], ['Compact list', 'list'], ['Detailed table', 'table']], selected: @layout %></div>
     <div><%= f.label :sort, 'Sort by' %>
       <% sorts = [['Recently added', 'added'], ['Title', 'title'], ['Release year', 'release']] %>
@@ -27,5 +27,5 @@
       <% end %>
     </div>
   </details>
-  <%= f.submit 'Apply filters', class: 'btn btn-secondary' %>
+  <%= f.submit 'Apply', class: 'btn btn-secondary' %>
 <% end %>
