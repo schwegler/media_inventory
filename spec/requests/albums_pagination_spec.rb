@@ -15,13 +15,13 @@ RSpec.describe 'Albums Pagination', type: :request do
       get albums_path
       expect(response).to have_http_status(:success)
 
-      # Should include newest 25 (Album 6 to 30)
-      (5...30).each do |i|
+      # Should include newest 24 (Album 7 to 30)
+      (6...30).each do |i|
         expect(response.body).to include(">Album #{i + 1}</a>")
       end
 
-      # Should NOT include oldest 5 (Album 1 to 5)
-      5.times do |i|
+      # Should NOT include oldest 6 (Album 1 to 6)
+      6.times do |i|
         expect(response.body).not_to include(">Album #{i + 1}</a>")
       end
 
@@ -34,13 +34,13 @@ RSpec.describe 'Albums Pagination', type: :request do
       get albums_path(page: 2)
       expect(response).to have_http_status(:success)
 
-      # Should include oldest 5 (Album 1 to 5)
-      5.times do |i|
+      # Should include oldest 6 (Album 1 to 6)
+      6.times do |i|
         expect(response.body).to include(">Album #{i + 1}</a>")
       end
 
-      # Should NOT include newest 25 (Album 6 to 30)
-      (5...30).each do |i|
+      # Should NOT include newest 24 (Album 7 to 30)
+      (6...30).each do |i|
         expect(response.body).not_to include(">Album #{i + 1}</a>")
       end
     end

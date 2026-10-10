@@ -20,6 +20,10 @@ RSpec.describe InventoryController, type: :controller do
       end
 
       def self.page(_page)
+        self
+      end
+
+      def self.per(_count)
         [:page_data]
       end
 
