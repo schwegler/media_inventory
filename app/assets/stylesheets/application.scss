@@ -30,3 +30,24 @@
 @include site_header.styles;
 
 @include game_workspace.styles;
+
+.back-to-top {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent, #17121f);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 20%);
+  cursor: pointer;
+}
+
+.back-to-top[hidden] { display: none; }
+.back-to-top:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
