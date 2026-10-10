@@ -3,7 +3,20 @@
 require 'rails_helper'
 RSpec.describe 'Independent artwork sources' do
   let(:png) { File.binread(Rails.root.join('spec/fixtures/files/valid-cover.png')) }
-  before { MediaSources::Registry::CACHE.clear }
+  before do
+    MediaSources::Registry::CACHE.clear
+    stub_request(:get, %r{shared.fastly.steamstatic.com/.*/library_600x900_2x.jpg}).to_return(status: 404)
+  end
+
+  it 'tries Steam portrait artwork before the horizontal header' do
+    original = { api_id: 'steam_400', source: 'Steam', thumbnail_url: 'https://shared.akamai.steamstatic.com/header.jpg' }
+    candidates = GameArtworkResolver.candidates(original)
+    expect(candidates.map { |candidate| candidate[:artwork_type] }).to eq(%w[portrait_cover cover])
+    expect(candidates.first[:url]).to include('/400/library_600x900_2x.jpg')
+    stub_request(:get, candidates.first[:url]).to_return(body: png, headers: { 'Content-Type' => 'image/png' })
+    expect(GameSearchArtwork.call([original]).first[:artwork_status]).to eq('ready')
+    expect(WebMock).not_to have_requested(:get, original[:thumbnail_url])
+  end
   it 'retains Steam metadata while selecting a verified SteamGridDB portrait through the Steam ID' do
     ApiConfiguration.create!(source_name: 'SteamGridDB', media_type: 'VideoGame', is_active: true,
                              access_token: 'secret-test-key', options: { allow_image_storage: true }.to_json)

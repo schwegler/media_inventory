@@ -31,10 +31,11 @@ RSpec.describe 'Media catalog organization', type: :request do
     document = Nokogiri::HTML(response.body)
     titles = document.css('.card-2026-title').map(&:text)
     expect(titles.first).to eq('Matching Game 00')
-    expect(titles.last).to eq('Matching Game 24')
+    expect(titles.size).to eq(24)
+    expect(titles.last).to eq('Matching Game 23')
     expect(document.css('.pagination a').map { |a| a['href'] }.join).to include('q=matching', 'sort=title')
     get video_games_path(q: 'matching', sort: 'title', page: 2)
-    expect(response.body).to include('Matching Game 25', 'Matching Game 26')
+    expect(response.body).to include('Matching Game 24', 'Matching Game 25', 'Matching Game 26')
     expect(response.body).not_to include('Unrelated title')
   end
 

@@ -48,8 +48,8 @@
 .media-cover img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .media-cover .artwork-fallback { min-height: 100%; gap: .7rem; }
 .media-cover .artwork-fallback > span:first-child { font-size: 2.5rem; }
-.media-detail[data-media-kind='VideoGame'] .media-cover { aspect-ratio: 4 / 3; }
-.catalog-grid .card-2026[data-media-kind='VideoGame'] .card-2026-cover { aspect-ratio: 4 / 3; }
+.media-detail[data-media-kind='VideoGame'] .media-cover { aspect-ratio: 2 / 3; }
+.catalog-grid .card-2026[data-media-kind='VideoGame'] .card-2026-cover { aspect-ratio: 2 / 3; }
 .media-detail[data-media-kind='Album'] .media-cover { aspect-ratio: 1; }
 .media-identity { min-width: 0; }
 .media-identity h1 { font-size: clamp(2rem, 3.3vw, 3.25rem); margin: 0 0 1rem; overflow-wrap: anywhere; text-wrap: pretty; }

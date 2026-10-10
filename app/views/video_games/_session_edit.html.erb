@@ -1,8 +1,8 @@
 <details><summary>Edit session</summary>
-  <%= form_with url: game_progress_path(video_game_id: library.item_id, id: session.id), method: :patch, scope: :session, namespace: "edit_session_#{session.id}", class: 'standard-form' do |f| %>
+  <%= form_with url: game_progress_path(video_game_id: library.item_id, id: session.id), method: :patch, scope: :session, namespace: "edit_session_#{session.id}", class: 'standard-form game-form' do |f| %>
     <%= hidden_field_tag :kind, 'session', id: nil %>
     <%= render 'session_fields', f: f, session: session %>
-    <%= f.submit 'Update session', class: 'btn btn-primary' %>
+    <div class="game-form-actions"><%= f.submit 'Update session', class: 'btn btn-primary' %></div>
   <% end %>
   <%= button_to 'Remove session', delete_game_tracking_path(video_game_id: library.item_id, id: session.id), method: :delete, params: { kind: 'session' }, data: { turbo_confirm: 'Remove this recorded session?' }, class: 'btn btn-secondary' %>
 </details>
