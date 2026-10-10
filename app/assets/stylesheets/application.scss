@@ -17,6 +17,7 @@
 @use "media_workspace" as media_workspace;
 @use "forms";
 @use "site_header";
+@use "game_workspace";
 
 @include editorial.styles;
 @include profile.styles;
@@ -27,3 +28,5 @@
 @include forms.styles;
 
 @include site_header.styles;
+
+@include game_workspace.styles;

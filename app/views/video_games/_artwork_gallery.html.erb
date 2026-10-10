@@ -1,5 +1,5 @@
-<section class="show-community" aria-labelledby="game-artwork-title">
-  <h2 id="game-artwork-title">Game artwork</h2>
+<section id="game-artwork" class="media-section game-artwork-section" aria-labelledby="game-artwork-title">
+  <header class="game-section-heading"><div><h2 id="game-artwork-title">Game artwork</h2><p>Covers, screenshots, and your private uploads.</p></div></header>
   <% if library %>
     <%= button_to 'Fetch supplemental artwork', fetch_game_artwork_path(video_game_id: game.id), class: 'btn btn-secondary' %>
     <% if game.game_artwork_batch %><p role="status">Acquisition: <%= game.game_artwork_batch.state.humanize %><%= " · #{game.game_artwork_batch.failure_reason}" if game.game_artwork_batch.failure_reason.present? %></p><% end %>
@@ -22,14 +22,23 @@
   </div>
   <% if library %>
     <details><summary>Add private artwork</summary>
-      <%= form_with url: upload_game_artwork_path(video_game_id: game.id), scope: :artwork, namespace: 'private_artwork', class: 'standard-form' do |f| %>
-        <%= f.label :kind, 'Artwork category' %><%= f.select :kind, GameArtwork::KINDS.map { |kind| [kind.humanize, kind] } %>
-        <%= f.label :image, 'Artwork image (up to 5 MB)' %><%= f.file_field :image, required: true, accept: 'image/png,image/jpeg,image/webp,image/gif' %>
-        <%= f.label :platform, 'Platform (optional)' %><%= f.text_field :platform, maxlength: 200 %>
-        <%= f.label :edition, 'Edition (optional)' %><%= f.text_field :edition, maxlength: 200 %>
+      <%= form_with url: upload_game_artwork_path(video_game_id: game.id), scope: :artwork, namespace: 'private_artwork', class: 'standard-form game-form' do |f| %>
+        <div class="game-field"><%= f.label :kind, 'Artwork category' %><%= f.select :kind, GameArtwork::KINDS.map { |kind| [kind.humanize, kind] } %></div>
+        <div class="game-field game-field-wide"><%= f.label :image, 'Artwork image (up to 5 MB)' %><%= f.file_field :image, required: true, accept: 'image/png,image/jpeg,image/webp,image/gif' %></div>
+        <div class="game-field"><%= f.label :platform, 'Platform (optional)' %><%= f.text_field :platform, maxlength: 200 %></div>
+        <div class="game-field"><%= f.label :edition, 'Edition (optional)' %><%= f.text_field :edition, maxlength: 200 %></div>
         <p>Your uploads remain private. Images are normalized without stretching; transparent logos retain transparency. Up to 20 private assets per game.</p>
-        <%= f.submit 'Save private artwork', class: 'btn btn-primary' %>
+        <div class="game-form-actions"><%= f.submit 'Save private artwork', class: 'btn btn-primary' %></div>
       <% end %>
     </details>
   <% end %>
+    <div class="game-source-credits">
+      <% if game.external_url.to_s.start_with?('https://') %><p>Metadata: <%= link_to(game.api_id.to_s.start_with?('rawg_') ? 'RAWG' : 'Provider source', game.external_url, rel: 'noopener noreferrer') %></p><% end %>
+      <% artwork_blob = library&.game_cover_image&.attached? ? library.game_cover_image.blob : (game.cover_image.blob if game.cover_image.attached?) %>
+      <% if artwork_blob %><% MediaArtworkSource.where(blob_id: artwork_blob.id).each do |source| %>
+        <% provenance = source.provenance || {} %><% next if provenance['provider'].blank? %>
+        <p>Artwork: <%= provenance['provider'] %><%= " · #{provenance['author']}" if provenance['author'].present? %>
+        <% if provenance['attribution_url'].to_s.start_with?('https://') %> · <%= link_to 'Artwork source', provenance['attribution_url'], rel: 'noopener noreferrer' %><% end %></p>
+      <% end %><% end %>
+    </div>
 </section>

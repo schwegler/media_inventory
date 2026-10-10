@@ -43,6 +43,10 @@
     <a href="#overview">Overview</a>
     <a href="#my-library">My Library</a>
     <% if entries %><a href="#media-entries"><%= entries_label %> <span><%= entries.size %></span></a><% end %>
+    <% if item.is_a?(VideoGame) %>
+      <% if @library_item %><a href="#my-game-tracking">Gaming record</a><% end %>
+      <a href="#game-artwork">Artwork</a>
+    <% end %>
     <a href="#community">Community</a>
     <a href="#comments">Comments</a>
   </nav>
@@ -56,17 +60,8 @@
         <% value = @video_game.metadata_details[key] %><% next if value.blank? %><dt><%= label %></dt><dd><%= value.is_a?(Array) ? value.join(', ') : value %></dd>
       <% end %>
     </dl><% end %>
-    <div class="game-source-credits">
-      <% if @video_game.external_url.to_s.start_with?('https://') %><p>Metadata: <%= link_to(@video_game.api_id.to_s.start_with?('rawg_') ? 'RAWG' : 'Provider source', @video_game.external_url, rel: 'noopener noreferrer') %></p><% end %>
-      <% artwork_blob = @library_item&.game_cover_image&.attached? ? @library_item.game_cover_image.blob : (@video_game.cover_image.blob if @video_game.cover_image.attached?) %>
-      <% if artwork_blob %><% MediaArtworkSource.where(blob_id: artwork_blob.id).each do |source| %>
-        <% provenance = source.provenance || {} %><% next if provenance['provider'].blank? %>
-        <p>Artwork: <%= provenance['provider'] %><%= " · #{provenance['author']}" if provenance['author'].present? %>
-        <% if provenance['attribution_url'].to_s.start_with?('https://') %> · <%= link_to 'Artwork source', provenance['attribution_url'], rel: 'noopener noreferrer' %><% end %></p>
-      <% end %><% end %>
-    </div>
-    <%= render 'artwork_gallery', game: @video_game, library: @library_item %>
     <%= render 'tracking', library: @library_item if @library_item %>
+    <%= render 'artwork_gallery', game: @video_game, library: @library_item %>
 
       <% end %>
       <% if @library_item&.review.present? %>

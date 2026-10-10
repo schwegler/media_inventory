@@ -1,7 +1,7 @@
-<%= form_with url: game_progress_path(video_game_id: library.item_id, id: entry.id), method: :patch, scope: :journal, namespace: "journal_#{entry.id}", class: 'standard-form' do |f| %>
+<%= form_with url: game_progress_path(video_game_id: library.item_id, id: entry.id), method: :patch, scope: :journal, namespace: "journal_#{entry.id}", class: 'standard-form game-form' do |f| %>
   <%= hidden_field_tag :kind, 'journal', id: nil %>
-  <%= f.label :body, 'Edit private notes' %><%= f.text_area :body, value: entry.body, required: true %>
-  <%= f.check_box :spoiler, checked: entry.spoiler? %><%= f.label :spoiler, 'Contains spoilers' %>
-  <%= f.submit 'Update journal entry', class: 'btn btn-primary' %>
+  <div class="game-field game-field-wide"><%= f.label :body, 'Edit private notes' %><%= f.text_area :body, value: entry.body, required: true %></div>
+  <div class="game-check"><%= f.check_box :spoiler, checked: entry.spoiler? %><%= f.label :spoiler, 'Contains spoilers' %></div>
+  <div class="game-form-actions"><%= f.submit 'Update journal entry', class: 'btn btn-primary' %></div>
 <% end %>
 <%= button_to 'Remove journal entry', delete_game_tracking_path(video_game_id: library.item_id, id: entry.id), method: :delete, params: { kind: 'journal' }, data: { turbo_confirm: 'Remove this journal entry?' }, class: 'btn btn-secondary' %>
