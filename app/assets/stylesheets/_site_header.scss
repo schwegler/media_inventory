@@ -1,0 +1,72 @@
+// One discovery header for every page in the application layout.
+@mixin styles {
+  .header-shell .app-header { background: var(--canvas); border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; padding: 0; }
+  .header-shell .app-header .app-nav { display: flex; align-items: center; gap: 1rem; width: calc(100% - 40px); max-width: 1320px; min-height: 76px; padding: 16px 0; margin-inline: auto; }
+  .header-shell .app-header .library-nav, .header-shell .app-header .workspace-primary-nav, .header-shell .app-header .nav-user-section { display: none; }
+  .header-shell .app-header .nav-brand { position: static; display: flex; align-items: center; flex-shrink: 0; top: auto; }
+  .header-shell .app-header .brand-link { display: inline-flex; align-items: center; gap: .5rem; }
+  .header-shell .app-header .brand-logo { display: block; width: 44px; height: 34px; margin: 0; }
+  .header-shell .app-header .brand-text { position: static; top: auto; font: 700 2rem/1 'Instrument Sans', sans-serif; letter-spacing: -1.5px; text-transform: none; }
+  .header-shell .app-header .brand-companion { display: inline-block; margin-left: 1rem; padding-left: 1rem; }
+  .header-shell .app-header .combined-search { display: block; flex: 1; min-width: 0; align-self: center; }
+  .header-shell .app-header .global-search-form { width: 100%; height: 44px; padding: 0 .75rem; gap: .5rem; align-items: center; }
+  .header-shell .app-header .global-search-input { min-width: 0; height: 42px; line-height: normal; padding: 0; border: 0; box-shadow: none; background: transparent; }
+  .header-shell .app-header .global-search-btn { display: inline-flex; align-items: center; justify-content: center; height: 42px; min-height: 42px; min-width: 24px; }
+  .header-shell .app-header .mobile-menu-btn, .header-shell .app-header .combined-search-toggle { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 44px; height: 44px; min-height: 44px; min-width: 44px; padding: .5rem; margin: 0; }
+  .header-shell .app-header .combined-search-toggle { display: none; }
+  .header-shell .app-header.combined-header { top: 12px; left: 12px; right: 12px; width: auto; margin-inline: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); box-shadow: 0 4px 16px rgba(var(--rgb-inverse), .08); }
+  .header-shell .app-header.combined-header::before { display: none; }
+  .header-shell .app-header.combined-header .app-nav { width: 100%; min-height: 68px; padding: 12px; }
+  .header-shell .app-header .mobile-nav-panel.active { display: flex; top: calc(100% + 8px); left: auto; right: 0; width: min(420px, calc(100vw - 24px)); max-height: calc(100dvh - 112px); padding: 1rem; gap: 1rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); animation: none; }
+  .header-shell .mobile-nav-links { gap: .25rem; }
+  .header-shell .mobile-nav-links li a, .header-shell .mobile-nav-links li a[aria-current='page'] { padding: .65rem .5rem; min-height: 44px; font-size: .9375rem; border: 0; text-decoration: none; }
+  .header-shell .mobile-nav-links li a[aria-current='page'] { color: var(--accent); }
+  .header-shell .mobile-nav-panel .global-search-input { border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+  @media (max-width: 720px) {
+    .header-shell .app-header .app-nav { gap: .5rem; width: calc(100% - 24px); padding-block: 12px; min-height: 68px; }
+    .header-shell .app-header .brand-companion { display: none; }
+    .header-shell .app-header .brand-logo { width: 32px; height: 26px; }
+    .header-shell .app-header .brand-text { font-size: 1.6rem; }
+    .header-shell .app-header .global-search-input { font-size: .8125rem; }
+    .header-shell .app-header .global-search-form { padding-inline: .5rem; }
+  }
+  @media (min-width: 360px) and (max-width: 720px) { .header-shell .mobile-nav-panel > .global-search-form { display: none; } }
+  @media (max-width: 359px) {
+    .header-shell .app-header .combined-search { display: none; }
+    .header-shell .app-header .combined-search-toggle { display: inline-flex; margin-left: auto; }
+  }
+  // Category navigation remains on catalog pages; the header has one universal composition.
+  .media-workspace .catalog-navigation { display: flex; }
+  @media (min-width: 1100px) {
+    .header-shell .app-header .workspace-primary-nav { display: flex; flex: 1; min-width: 0; align-items: center; justify-content: center; gap: clamp(.75rem, 1.5vw, 1.5rem); }
+    .header-shell .workspace-primary-nav a { color: var(--text-secondary); font-size: .8125rem; white-space: nowrap; text-decoration: none; border: 0; padding: .75rem 0; }
+    .header-shell .workspace-primary-nav a[aria-current] { color: var(--accent); border: 0; }
+    .header-shell .app-header .combined-search { display: none; }
+    .header-shell .app-header .combined-search-toggle { display: inline-flex; }
+    .media-workspace .catalog-navigation { display: none; }
+  }
+
+  .header-shell .app-header.search-open .combined-search { display: block; position: absolute; right: 0; top: calc(100% + 8px); width: min(460px, calc(100vw - 24px)); padding: .75rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 24px rgba(var(--rgb-inverse), .12); z-index: 1050; }
+  @media (min-width: 1100px) {
+    .header-shell .app-header .mobile-menu-btn { display: none; }
+    .header-shell .app-header .nav-user-section { display: flex; align-items: center; flex-shrink: 0; gap: .5rem; }
+    .header-shell .app-header .blog-nav-link { display: none; }
+    .header-shell .app-header .nav-user-info { min-height: 44px; }
+    .header-shell .app-header .btn-log { display: inline-flex; background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  }
+  @media (min-width: 721px) and (max-width: 1399px) {
+    .header-shell .app-header .brand-companion { display: none; }
+    .header-shell .app-header .nav-username, .header-shell .app-header .nav-user-info .dropdown-chevron { display: none; }
+    .header-shell .app-header .nav-user-info { width: 44px; padding: 0; justify-content: center; }
+    .header-shell .app-header .btn-log { width: 44px; padding: 0; }
+    .header-shell .app-header .btn-log > span, .header-shell .app-header .btn-log > svg { display: none; }
+    .header-shell .app-header .btn-log::before { content: '+'; font-size: 24px; }
+  }
+
+  @media (min-width: 721px) and (max-width: 1099px) {
+    .header-shell .app-header .nav-user-section { display: flex; align-items: center; flex-shrink: 0; gap: .5rem; }
+    .header-shell .app-header .blog-nav-link { display: none; }
+    .header-shell .app-header .btn-log { display: inline-flex; background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  }
+
+}

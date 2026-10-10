@@ -31,12 +31,14 @@ RSpec.describe 'Media-specific activity language', type: :request do
     album = Album.create!(title: 'A good album')
     entry = LibraryItem.create!(user: user, item: album)
     get album_path(album)
-    expect(Nokogiri::HTML(response.body).text).to include('Mark as listened to')
+    expect(Nokogiri::HTML(response.body).css('#my-library button').map { |button| button.text.strip })
+      .to include('Listened to')
 
     patch album_path(album), params: { album: { consumed: true } }
     follow_redirect!
     expect(entry.reload).to be_consumed
-    expect(Nokogiri::HTML(response.body).text).to include('Mark as not listened to')
+    expect(Nokogiri::HTML(response.body).css('#my-library button').map { |button| button.text.strip })
+      .to include('✓ Listened to')
     expect(entry.activities.find_by!(activity_type: 'consumed').description).to include('listened to album')
   end
 

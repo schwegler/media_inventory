@@ -14,7 +14,16 @@
 @use "components";
 @use "item_header";
 @use "performance";
+@use "media_workspace" as media_workspace;
+@use "forms";
+@use "site_header";
 
 @include editorial.styles;
 @include profile.styles;
 @include components.styles;
+
+@include media_workspace.styles;
+
+@include forms.styles;
+
+@include site_header.styles;

@@ -2,51 +2,51 @@
 <%
 media_type = item.class.name
 terms = MediaLanguage.for(item)
-consumed_add_label = "✓ Mark as #{terms[:past]}"
-consumed_remove_label = "✓ Mark as #{terms[:negative]}"
+consumed_add_label = "Mark as #{terms[:past]}"
+consumed_remove_label = "Mark as #{terms[:negative]}"
 consumed_past_participle = terms[:past]
 
 case media_type
 when 'Album'
-  watchlist_add_label = "⏳ Add to Queue"
-  watchlist_remove_label = "⏳ Remove from Queue"
-  watchlist_copy_label = "⏳ Add to My Queue"
+  watchlist_add_label = "Add to Queue"
+  watchlist_remove_label = "Remove from Queue"
+  watchlist_copy_label = "Add to My Queue"
   review_placeholder = "Review this album..."
   submit_review_label = "Save Review & Listening Status"
   apple_label = " View on Apple Music"
   physical_formats = ["CD", "Vinyl", "Cassette"]
   digital_formats = ["Apple Music", "Spotify", "Bandcamp", "Other"]
 when 'Comic'
-  watchlist_add_label = "⏳ Add to Reading List"
-  watchlist_remove_label = "⏳ Remove from Reading List"
-  watchlist_copy_label = "⏳ Add to My Reading List"
+  watchlist_add_label = "Add to Reading List"
+  watchlist_remove_label = "Remove from Reading List"
+  watchlist_copy_label = "Add to My Reading List"
   review_placeholder = "Review this comic..."
   submit_review_label = "Save Review & Reading Status"
   apple_label = " View on Apple Books"
   physical_formats = ["Single Issue", "Trade Paperback", "Hardcover", "Omnibus"]
   digital_formats = ["ComiXology", "Kindle", "Apple Books", "Other"]
 when 'Book'
-  watchlist_add_label = "⏳ Add to Reading List"
-  watchlist_remove_label = "⏳ Remove from Reading List"
-  watchlist_copy_label = "⏳ Add to My Reading List"
+  watchlist_add_label = "Add to Reading List"
+  watchlist_remove_label = "Remove from Reading List"
+  watchlist_copy_label = "Add to My Reading List"
   review_placeholder = "Review this book..."
   submit_review_label = "Save Review & Reading Status"
   apple_label = " View on Apple Books"
   physical_formats = ["Paperback", "Hardcover", "Mass Market Paperback", "Other"]
   digital_formats = ["Kindle", "Apple Books", "Audible", "PDF", "EPUB", "Other"]
 when 'VideoGame'
-  watchlist_add_label = "⏳ Add to Backlog"
-  watchlist_remove_label = "⏳ Remove from Backlog"
-  watchlist_copy_label = "⏳ Add to My Backlog"
+  watchlist_add_label = "Add to Backlog"
+  watchlist_remove_label = "Remove from Backlog"
+  watchlist_copy_label = "Add to My Backlog"
   review_placeholder = "Review this game..."
   submit_review_label = "Save Review & Playing Status"
-  apple_label = "🎮 View on Apple Arcade"
+  apple_label = "View on Apple Arcade"
   physical_formats = ["PS5", "PS4", "Xbox Series X", "Switch", "PC", "Other"]
   digital_formats = ["Steam", "PSN", "Xbox Live", "eShop", "Epic Games", "GOG", "Other"]
 else # Movie, TvShow, etc.
-  watchlist_add_label = "⏳ Add to Watchlist"
-  watchlist_remove_label = "⏳ Remove from Watchlist"
-  watchlist_copy_label = "⏳ Add to My Watchlist"
+  watchlist_add_label = "Add to Watchlist"
+  watchlist_remove_label = "Remove from Watchlist"
+  watchlist_copy_label = "Add to My Watchlist"
   review_placeholder = "Review this title..."
   submit_review_label = "Save Review & Watching Status"
   apple_label = " View on Apple TV"
@@ -55,54 +55,51 @@ else # Movie, TvShow, etc.
 end
 %>
 
-<div id="media_actions_<%= item.class.name.underscore %>_<%= item.id %>" class="media-actions-container">
+<section id="media_actions_<%= item.class.name.underscore %>_<%= item.id %>" class="media-actions-container" aria-label="My Library">
 
+  <h2>My Library</h2>
+  <p class="library-intro">Track your collection status and personal details.</p>
   <div class="actions-header">
     <% if logged_in? %>
       <% if @library_item.present? %>
         <div class="actions-section">
-          <strong class="actions-section-title">My Library</strong>
+
           <div class="actions-buttons-row">
-            <%= button_to item.is_collected? ? "📁 Remove from Collection" : "📁 Add to Collection",
+            <%= button_to item.is_collected? ? "✓ In Collection" : "Collection",
                           polymorphic_path(item),
                           method: :patch,
                           params: { item.class.name.underscore.to_sym => { is_collected: !item.is_collected? } },
-                          form: { data: { controller: "optimistic", action: "turbo:submit-start->optimistic#start turbo:before-fetch-response->optimistic#response turbo:submit-end->optimistic#finish", optimistic_label_value: (item.is_collected? ? "📁 Add to Collection" : "📁 Remove from Collection"), optimistic_selected_value: !item.is_collected? } },
+                          form: { data: { controller: "optimistic", action: "turbo:submit-start->optimistic#start turbo:before-fetch-response->optimistic#response turbo:submit-end->optimistic#finish", optimistic_label_value: (item.is_collected? ? "Collection" : "✓ In Collection"), optimistic_selected_value: !item.is_collected? } },
                           class: "sleek-btn #{item.is_collected? ? 'sleek-btn-secondary is-selected' : 'sleek-btn-primary'}" %>
 
-            <%= button_to item.in_watchlist? ? watchlist_remove_label : watchlist_add_label,
+            <%= button_to item.in_watchlist? ? "✓ On List" : watchlist_add_label.delete_prefix("Add to "),
                           polymorphic_path(item),
                           method: :patch,
                           params: { item.class.name.underscore.to_sym => { in_watchlist: !item.in_watchlist? } },
-                          form: { data: { controller: "optimistic", action: "turbo:submit-start->optimistic#start turbo:before-fetch-response->optimistic#response turbo:submit-end->optimistic#finish", optimistic_label_value: (item.in_watchlist? ? watchlist_add_label : watchlist_remove_label), optimistic_selected_value: !item.in_watchlist? } },
+                          form: { data: { controller: "optimistic", action: "turbo:submit-start->optimistic#start turbo:before-fetch-response->optimistic#response turbo:submit-end->optimistic#finish", optimistic_label_value: (item.in_watchlist? ? watchlist_add_label.delete_prefix("Add to ") : "✓ On List"), optimistic_selected_value: !item.in_watchlist? } },
                           class: "sleek-btn #{item.in_watchlist? ? 'sleek-btn-secondary is-selected' : 'sleek-btn-secondary'}" %>
 
-            <%= button_to item.consumed? ? consumed_remove_label : consumed_add_label,
+            <%= button_to item.consumed? ? "✓ #{consumed_past_participle.capitalize}" : consumed_past_participle.capitalize,
                           polymorphic_path(item),
                           method: :patch,
                           params: { item.class.name.underscore.to_sym => { consumed: !item.consumed?, consumed_at: (item.consumed? ? nil : Time.current.to_date) } },
-                          form: { data: { controller: "optimistic", action: "turbo:submit-start->optimistic#start turbo:before-fetch-response->optimistic#response turbo:submit-end->optimistic#finish", optimistic_label_value: (item.consumed? ? consumed_add_label : consumed_remove_label), optimistic_selected_value: !item.consumed? } },
+                          form: { data: { controller: "optimistic", action: "turbo:submit-start->optimistic#start turbo:before-fetch-response->optimistic#response turbo:submit-end->optimistic#finish", optimistic_label_value: (item.consumed? ? consumed_past_participle.capitalize : "✓ #{consumed_past_participle.capitalize}"), optimistic_selected_value: !item.consumed? } },
                           class: "sleek-btn #{item.consumed? ? 'sleek-btn-secondary is-selected' : 'sleek-btn-success'}" %>
 
-            <%= button_to "Delete from Library",
-                          polymorphic_path(item),
-                          method: :delete,
-                          data: { turbo_confirm: "Are you sure you want to delete this from your library?" },
-                          class: "sleek-btn sleek-btn-danger" %>
           <%= render 'likes/like_button', item: item %>
           </div>
         </div>
       <% else %>
         <div class="actions-section-full">
-          <strong class="actions-section-title">Add to My Library</strong>
+
           <div class="actions-buttons-row">
-            <%= button_to "📁 Add to My Collection",
+            <%= button_to "Collection",
                           polymorphic_path(item),
                           method: :patch,
                           params: { item.class.name.underscore.to_sym => { is_collected: true } },
                           class: "sleek-btn sleek-btn-primary" %>
 
-            <%= button_to watchlist_copy_label,
+            <%= button_to watchlist_add_label.delete_prefix("Add to "),
                           polymorphic_path(item),
                           method: :patch,
                           params: { item.class.name.underscore.to_sym => { in_watchlist: true } },
@@ -116,129 +113,74 @@ end
       </div>
     <% end %>
 
-    <% if logged_in? %>
-      <div class="actions-section" style="margin-top: 1rem;">
-        <div class="actions-buttons-row">
-          <%= link_to "✏️ Suggest Edit", new_polymorphic_path([item, :edit_suggestion]), class: "sleek-btn sleek-btn-secondary" %>
-        </div>
-      </div>
-    <% end %>
+
   </div>
 
-  <% if logged_in? && @library_item.present? && (item.is_collected? || item.in_watchlist?) %>
+  <% if logged_in? && @library_item.present? %>
     <div class="inline-quick-review-box">
       <%= form_with model: item, url: polymorphic_path(item), method: :patch, local: true, class: "quick-review-form", data: { controller: "optimistic", action: "turbo:submit-start->optimistic#start turbo:before-fetch-response->optimistic#response turbo:submit-end->optimistic#finish", optimistic_label_value: "Saving…" } do |f| %>
-        <h3 class="quick-review-title">
-          ✍️ Quick Review & Rating
-        </h3>
-        
-        <div class="inline-form-row">
+        <details class="library-disclosure">
+          <summary>Review &amp; rating<span>Your personal review and rating</span></summary>
+
+        <div class="review-field">
+          <label for="library-review-<%= item.id %>">Your review <span>(optional)</span></label>
+          <%= f.text_area :review, id: "library-review-#{item.id}", placeholder: review_placeholder, rows: 3, class: "form-control quick-review-textarea" %>
+        </div>
+        <div class="review-options">
           <div class="quick-review-rating-select">
-            <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: item.rating }, { class: "form-control quick-review-select", aria: { label: "Your rating" } } %>
+            <label for="library-rating-<%= item.id %>">Your rating</label>
+            <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: item.rating }, { id: "library-rating-#{item.id}", class: "form-control quick-review-select" } %>
           </div>
-          
-          <div class="inline-checkbox-group">
-            <%= f.check_box :consumed, id: "inline-consumed-checkbox-#{item.id}" %>
-            <%= f.label :consumed, consumed_past_participle.capitalize, for: "inline-consumed-checkbox-#{item.id}", class: "inline-checkbox-label" %>
-          </div>
-
-          <div class="inline-checkbox-group">
-            <%= f.check_box :is_public, id: "inline-public-checkbox-#{item.id}" %>
-            <%= f.label :is_public, "Make Review Public?", for: "inline-public-checkbox-#{item.id}", class: "inline-checkbox-label" %>
-          </div>
-        </div>
-
-        <div>
-          <%= f.text_area :review, aria: { label: "Your review" }, placeholder: review_placeholder, rows: 3, class: "form-control quick-review-textarea" %>
-        </div>
-
-        <div class="ownership-details-row">
-          <div class="inline-checkbox-group" style="display: flex; flex-direction: column; gap: 5px; flex: 1;">
-            <div style="align-items: center; gap: 0.5rem; white-space: nowrap;">
-              <%= f.check_box :owned_physically, id: "inline-phys-checkbox-#{item.id}" %>
-              <%= f.label :owned_physically, "Own Physically", for: "inline-phys-checkbox-#{item.id}", class: "inline-checkbox-label", style: "margin: 0;" %>
+          <div class="review-flags">
+            <div class="inline-checkbox-group">
+              <%= f.check_box :consumed, id: "inline-consumed-checkbox-#{item.id}" %>
+              <%= f.label :consumed, consumed_past_participle.capitalize, for: "inline-consumed-checkbox-#{item.id}", class: "inline-checkbox-label" %>
             </div>
-            <%= f.select :owned_physically_format, physical_formats, { include_blank: 'Select Format...' }, { class: "form-control quick-review-select format-select", style: "width: 100%;", aria: { label: "Ownership format" } } %>
-          </div>
-
-          <div class="inline-checkbox-group" style="display: flex; flex-direction: column; gap: 5px; flex: 1;">
-            <div style="display: flex; align-items: center; gap: 0.5rem; white-space: nowrap;">
-              <%= f.check_box :owned_digitally, id: "inline-digi-checkbox-#{item.id}" %>
-              <%= f.label :owned_digitally, "Own Digitally", for: "inline-digi-checkbox-#{item.id}", class: "inline-checkbox-label", style: "margin: 0;" %>
+            <div class="inline-checkbox-group">
+              <%= f.check_box :is_public, id: "inline-public-checkbox-#{item.id}" %>
+              <%= f.label :is_public, "Public review", for: "inline-public-checkbox-#{item.id}", class: "inline-checkbox-label" %>
             </div>
-            <%= f.select :owned_digitally_format, digital_formats, { include_blank: 'Select Format...' }, { class: "form-control quick-review-select format-select", style: "width: 100%;", aria: { label: "Ownership format" } } %>
           </div>
         </div>
 
         <div class="quick-review-submit-row">
-          <%= f.submit submit_review_label, class: "sleek-btn sleek-btn-primary quick-review-submit-btn" %>
+          <%= f.submit "Save review", class: "sleek-btn sleek-btn-primary quick-review-submit-btn" %>
         </div>
+        </details>
+        <details class="library-disclosure">
+          <summary>Ownership details<span>Physical and digital formats</span></summary>
+        <div class="ownership-details-row">
+          <div class="ownership-field">
+            <div class="inline-checkbox-group">
+              <%= f.check_box :owned_physically, id: "inline-phys-checkbox-#{item.id}" %>
+              <%= f.label :owned_physically, "Physical", for: "inline-phys-checkbox-#{item.id}", class: "inline-checkbox-label", style: "margin: 0;" %>
+            </div>
+            <%= f.select :owned_physically_format, physical_formats, { include_blank: 'Format…' }, { class: "form-control quick-review-select format-select", style: "width: 100%;", aria: { label: "Physical format" } } %>
+          </div>
+
+          <div class="ownership-field">
+            <div class="inline-checkbox-group">
+              <%= f.check_box :owned_digitally, id: "inline-digi-checkbox-#{item.id}" %>
+              <%= f.label :owned_digitally, "Digital", for: "inline-digi-checkbox-#{item.id}", class: "inline-checkbox-label", style: "margin: 0;" %>
+            </div>
+            <%= f.select :owned_digitally_format, digital_formats, { include_blank: 'Format…' }, { class: "form-control quick-review-select format-select", style: "width: 100%;", aria: { label: "Digital format" } } %>
+          </div>
+        </div>
+
+          <div class="quick-review-submit-row"><%= f.submit 'Save ownership', class: 'sleek-btn sleek-btn-primary' %></div>
+        </details>
       <% end %>
     </div>
   <% end %>
 
-  <div class="streaming-links-box">
-    <h3 class="streaming-links-title">
-      🔗 Where to Buy & Stream
-    </h3>
-
-    <div class="streaming-buttons-row">
-      <% if item.external_url.present? %>
-        <% link_label = if item.external_url.include?('itunes.apple.com') || item.external_url.include?('music.apple.com')
-                          apple_label
-                        elsif item.external_url.include?('openlibrary.org')
-                          "📖 Borrow on Open Library"
-                        elsif item.external_url.include?('tvmaze.com')
-                          "📺 View on TVmaze"
-                        elsif item.external_url.include?('steampowered.com') || item.external_url.include?('steamcommunity.com')
-                          "🎮 View on Steam"
-                        else
-                          "🌐 View Official Source"
-                        end %>
-        <%= link_to link_label, item.external_url, target: "_blank", rel: "noopener", class: "btn btn-stream-source" %>
-      <% end %>
-
-      <% if ['Movie', 'TvShow'].include?(item.class.name) %>
-        <%= link_to "🔍 Search JustWatch",
-                    "https://www.justwatch.com/us/search?q=#{CGI.escape(item.title)}",
-                    target: "_blank",
-                    rel: "noopener",
-                    class: "btn btn-stream-search" %>
-      <% end %>
-
-      <% if item.class.name == 'VideoGame' %>
-        <%= link_to "🔍 Search HowLongToBeat",
-                    "https://howlongtobeat.com/?q=#{CGI.escape(item.title)}",
-                    target: "_blank",
-                    rel: "noopener",
-                    class: "btn btn-stream-search" %>
-      <% end %>
-
-      <% if item.class.name == 'Comic' %>
-        <%= link_to "📚 Search Goodreads",
-                    "https://www.goodreads.com/search?q=#{CGI.escape(item.title)}",
-                    target: "_blank",
-                    rel: "noopener",
-                    class: "btn btn-stream-search" %>
-        <%= link_to "📖 Search Open Library",
-                    "https://openlibrary.org/search?q=#{CGI.escape(item.title)}",
-                    target: "_blank",
-                    rel: "noopener",
-                    class: "btn btn-stream-search" %>
-      <% end %>
-
-      <%= link_to "🌐 Google Search Options",
-                  "https://www.google.com/search?q=stream+or+buy+#{CGI.escape(item.title)}",
-                  target: "_blank",
-                  rel: "noopener",
-                  class: "btn btn-stream-search" %>
-
-      <%= link_to "📦 Buy on Amazon",
-                  "https://www.amazon.com/s?k=#{CGI.escape(item.title)}",
-                  target: "_blank",
-                  rel: "noopener",
-                  class: "btn btn-stream-search" %>
-    </div>
-  </div>
-
-</div>
+  <% if logged_in? && @library_item.present? %>
+    <details class="library-disclosure library-management"><summary>Manage library entry</summary>
+            <%= button_to "Delete from Library",
+                          polymorphic_path(item),
+                          method: :delete,
+                          data: { turbo_confirm: "Are you sure you want to delete this from your library?" },
+                          class: "sleek-btn sleek-btn-danger" %>
+    </details>
+  <% end %>
+  <%= render 'shared/media_sources', item: item if local_assigns.fetch(:show_sources, true) %>
+</section>

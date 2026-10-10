@@ -1,5 +1,5 @@
 <%= turbo_stream.replace "media_actions_#{@resource.class.name.underscore}_#{@resource.id}" do %>
-  <%= render 'shared/media_actions_and_stream', item: @resource %>
+  <%= render 'shared/media_actions_and_stream', item: @resource, show_sources: false %>
 <% end %>
 
 <%= turbo_stream.replace "flash-messages" do %>

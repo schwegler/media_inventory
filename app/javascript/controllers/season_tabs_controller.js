@@ -78,5 +78,6 @@ export default class extends Controller {
       content.classList.toggle("hidden", !isCurrent)
       content.hidden = !isCurrent
     })
+    this.dispatch("change")
   }
 }

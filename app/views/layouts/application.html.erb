@@ -46,7 +46,7 @@
     gtag('config', 'G-PPD2TWSZBW');
   </script>
 </head>
-<body class="<%= 'item-detail' if content_for?(:item_detail) %>" data-controller="artwork form-errors" data-ui-preferences="<%= ui_preferences.to_json %>" <% if hotwire_native_app? %>data-native="true"<% end %>>
+<body class="<%= 'item-detail' if content_for?(:item_detail) %> <%= 'media-workspace' if content_for?(:media_workspace) %>" data-controller="artwork form-errors" data-ui-preferences="<%= ui_preferences.to_json %>" <% if hotwire_native_app? %>data-native="true"<% end %>>
   <a href="#main-content" class="skip-link">Skip to content</a>
   <% if content_for?(:header_artwork) %>
     <div class="item-page-artwork" aria-hidden="true">
@@ -56,7 +56,7 @@
 
   <% unless hotwire_native_app? %>
   <div class="header-shell" data-controller="floating-header">
-  <header class="app-header" data-controller="mobile-menu" data-floating-header-target="header">
+  <header class="app-header" data-controller="mobile-menu header-search" data-floating-header-target="header">
     <nav class="app-nav">
       <div class="nav-brand">
         <%= link_to root_path, class: 'brand-link' do %>
@@ -66,8 +66,14 @@
         <a class="brand-companion" href="https://tacobout.online/">from taco ’bout it</a>
       </div>
 
-        <div class="combined-search"><%= render 'shared/header_search' %></div>
-        <button class="combined-search-toggle btn btn-ghost" type="button" data-action="mobile-menu#openSearch" aria-label="Search the library" aria-controls="mobile-navigation" aria-expanded="false" data-mobile-menu-target="button"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m16 16 4 4"/></svg></button>
+        <nav class="workspace-primary-nav" aria-label="Media catalogs">
+          <% MediaLayoutHelper::CATALOGS.each do |type, (label, _singular, _emoji)| %>
+            <% active = [type.underscore.pluralize, { 'TvShow' => 'tv_episodes', 'Comic' => 'comic_issues' }[type]].include?(controller_name) %>
+            <%= link_to label, polymorphic_path(type.constantize), aria: { current: active ? 'page' : nil } %>
+          <% end %>
+        </nav>
+        <div id="header-search-panel" class="combined-search" data-header-search-target="panel"><%= render 'shared/header_search' %></div>
+        <button class="combined-search-toggle btn btn-ghost" type="button" data-action="header-search#toggle" aria-label="Search the library" aria-controls="header-search-panel" aria-expanded="false" data-header-search-target="button"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m16 16 4 4"/></svg></button>
       <div class="nav-user-section desktop-nav">
         <a class="blog-nav-link" href="https://tacobout.online/">Blog</a>
         <% if logged_in? %>
@@ -138,8 +144,8 @@
       <ul class="nav-links">
         <li><%= link_to "Movies", movies_path, aria: { current: controller_name == "movies" ? "page" : nil } %></li>
         <li><%= link_to "Albums", albums_path, aria: { current: controller_name == "albums" ? "page" : nil } %></li>
-        <li><%= link_to "Comics", comics_path, aria: { current: controller_name == "comics" ? "page" : nil } %></li>
-        <li><%= link_to "TV shows", tv_shows_path, aria: { current: controller_name == "tv_shows" ? "page" : nil } %></li>
+        <li><%= link_to "Comics", comics_path, aria: { current: %w[comics comic_issues].include?(controller_name) ? "page" : nil } %></li>
+        <li><%= link_to "TV shows", tv_shows_path, aria: { current: %w[tv_shows tv_episodes].include?(controller_name) ? "page" : nil } %></li>
         <li><%= link_to "Games", video_games_path, aria: { current: controller_name == "video_games" ? "page" : nil } %></li>
         <li><%= link_to "Books", books_path, aria: { current: controller_name == "books" ? "page" : nil } %></li>
         <% if logged_in? %>
@@ -174,8 +180,8 @@
       <ul class="mobile-nav-links">
         <li><%= link_to "Movies", movies_path, aria: { current: controller_name == "movies" ? "page" : nil } %></li>
         <li><%= link_to "Albums", albums_path, aria: { current: controller_name == "albums" ? "page" : nil } %></li>
-        <li><%= link_to "Comics", comics_path, aria: { current: controller_name == "comics" ? "page" : nil } %></li>
-        <li><%= link_to "TV shows", tv_shows_path, aria: { current: controller_name == "tv_shows" ? "page" : nil } %></li>
+        <li><%= link_to "Comics", comics_path, aria: { current: %w[comics comic_issues].include?(controller_name) ? "page" : nil } %></li>
+        <li><%= link_to "TV shows", tv_shows_path, aria: { current: %w[tv_shows tv_episodes].include?(controller_name) ? "page" : nil } %></li>
         <li><%= link_to "Games", video_games_path, aria: { current: controller_name == "video_games" ? "page" : nil } %></li>
         <li><%= link_to "Books", books_path, aria: { current: controller_name == "books" ? "page" : nil } %></li>
         <% if logged_in? %>

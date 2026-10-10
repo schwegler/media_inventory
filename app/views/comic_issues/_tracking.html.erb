@@ -1,0 +1,75 @@
+    <!-- Issue Actions -->
+    <div class="media-actions-container">
+      <% comic_library_item = LibraryItem.find_by(user: current_user, item: comic) if logged_in? %>
+      <% if logged_in? && comic_library_item.present? %>
+        <div class="actions-section">
+          <h2>My Progress</h2>
+          <div class="actions-buttons-row">
+            <% if @library_item&.consumed? %>
+              <span class="btn btn-success" style="background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.2); pointer-events: none;">✓ Read</span>
+              <%= button_to "📁 Mark Unread",
+                            toggle_read_comic_issue_path(@comic_issue),
+                            method: :patch,
+                            params: { comic_issue: { consumed: false, rating: nil, review: nil, consumed_at: nil }, back_to_issue: true },
+                            class: "btn btn-danger" %>
+            <% else %>
+              <span class="btn btn-secondary" style="background: rgba(255,255,255,0.05); color: var(--text-secondary); border: 1px solid rgba(255,255,255,0.08); pointer-events: none;">Not Read</span>
+            <% end %>
+          </div>
+        </div>
+
+        <details class="inline-quick-review-box library-disclosure"><summary>Review &amp; rating</summary>
+          <%= form_with model: @comic_issue, url: toggle_read_comic_issue_path(@comic_issue), method: :patch, local: true, class: "quick-review-form" do |f| %>
+            <%= f.hidden_field :consumed, value: true %>
+            <%= f.hidden_field :consumed_at, value: Time.current.to_date %>
+            <%= hidden_field_tag :back_to_issue, true %>
+
+            <div class="review-field">
+              <label for="child-detail-review">Your review <span>(optional)</span></label>
+              <%= f.text_area :review, id: "child-detail-review", value: @library_item&.review, placeholder: "Add read review for this issue...", rows: 3, class: "form-control quick-review-textarea" %>
+            </div>
+            <div class="review-options">
+              <div class="quick-review-rating-select">
+                <label for="child-detail-rating">Your rating</label>
+                <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: @library_item&.rating }, { id: "child-detail-rating", class: "form-control quick-review-select" } %>
+              </div>
+              <div class="inline-checkbox-group">
+                <%= f.check_box :is_public, checked: @library_item&.is_public? %>
+                <%= f.label :is_public, "Public review" %>
+              </div>
+            </div>
+
+            <div class="quick-review-submit-row">
+              <%= f.submit "Save Issue Status", class: "btn btn-primary quick-review-submit-btn" %>
+            </div>
+          <% end %>
+        </details>
+      <% elsif logged_in? %>
+        <h2>My Progress</h2>
+        <p class="actions-login-message">Add <%= link_to comic.title, comic %> to your library to track issues.</p>
+        <%= button_to "Add series to my library", polymorphic_path(comic), method: :patch,
+                      params: { comic: { is_collected: true } }, class: "sleek-btn sleek-btn-primary" %>
+      <% else %>
+        <div class="actions-login-message">
+          <%= link_to "Log in", login_path, class: "login-link" %> to log your progress for this issue.
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Issue Summary -->
+    <% if @comic_issue.summary.present? %>
+      <div class="show-review" style="margin-top: 2rem;">
+        <h3>Issue Summary</h3>
+        <blockquote class="issue-summary" style="font-style: normal; border-left-color: rgba(255, 255, 255, 0.1);"><%= sanitize(@comic_issue.summary) %></blockquote>
+      </div>
+    <% end %>
+
+    <!-- Comments & Likes -->
+    <div class="show-community" style="margin-top: 2rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 8px; margin-bottom: 16px;">
+        <h2 style="margin: 0; border: none; padding: 0;">Community Activity</h2>
+        <%= render 'likes/like_button', item: @comic_issue %>
+      </div>
+
+      <%= render 'shared/comments_box', matching_item: @comic_issue %>
+    </div>

@@ -1,0 +1,64 @@
+<% apple_label = { 'Album' => 'View on Apple Music', 'Book' => 'View on Apple Books', 'Comic' => 'View on Apple Books', 'VideoGame' => 'View on Apple Arcade' }.fetch(item.class.name, 'View on Apple TV') %>
+  <div class="streaming-links-box">
+    <h3 class="streaming-links-title">
+      Find this title
+    </h3>
+
+    <div class="streaming-buttons-row">
+      <% if item.external_url.present? %>
+        <% link_label = if item.external_url.include?('itunes.apple.com') || item.external_url.include?('music.apple.com')
+                          apple_label
+                        elsif item.external_url.include?('openlibrary.org')
+                          "Borrow on Open Library"
+                        elsif item.external_url.include?('tvmaze.com')
+                          "📺 View on TVmaze"
+                        elsif item.external_url.include?('steampowered.com') || item.external_url.include?('steamcommunity.com')
+                          "View on Steam"
+                        else
+                          "View Official Source"
+                        end %>
+        <%= link_to link_label, item.external_url, target: "_blank", rel: "noopener", class: "btn btn-stream-source" %>
+      <% end %>
+
+      <% if ['Movie', 'TvShow'].include?(item.class.name) %>
+        <%= link_to "Search JustWatch",
+                    "https://www.justwatch.com/us/search?q=#{CGI.escape(item.title)}",
+                    target: "_blank",
+                    rel: "noopener",
+                    class: "btn btn-stream-search" %>
+      <% end %>
+
+      <% if item.class.name == 'VideoGame' %>
+        <%= link_to "Search HowLongToBeat",
+                    "https://howlongtobeat.com/?q=#{CGI.escape(item.title)}",
+                    target: "_blank",
+                    rel: "noopener",
+                    class: "btn btn-stream-search" %>
+      <% end %>
+
+      <% if item.class.name == 'Comic' %>
+        <%= link_to "Search Goodreads",
+                    "https://www.goodreads.com/search?q=#{CGI.escape(item.title)}",
+                    target: "_blank",
+                    rel: "noopener",
+                    class: "btn btn-stream-search" %>
+        <%= link_to "Search Open Library",
+                    "https://openlibrary.org/search?q=#{CGI.escape(item.title)}",
+                    target: "_blank",
+                    rel: "noopener",
+                    class: "btn btn-stream-search" %>
+      <% end %>
+
+      <%= link_to "Google Search Options",
+                  "https://www.google.com/search?q=stream+or+buy+#{CGI.escape(item.title)}",
+                  target: "_blank",
+                  rel: "noopener",
+                  class: "btn btn-stream-search" %>
+
+      <%= link_to "Buy on Amazon",
+                  "https://www.amazon.com/s?k=#{CGI.escape(item.title)}",
+                  target: "_blank",
+                  rel: "noopener",
+                  class: "btn btn-stream-search" %>
+    </div>
+  </div>

@@ -64,10 +64,11 @@ RSpec.describe 'Admin media and moderation workflows', type: :request do
   end
 
   it 'fills blank metadata without replacing existing values or accepting arbitrary attributes' do
+    original_id = movie.id
     post update_from_api_admin_movie_path(movie),
          params: { api_data: { title: 'Provider title', director: 'Director', id: 99 } }
     expect(movie.reload).to have_attributes(title: 'Original', director: 'Director')
-    expect(movie.id).not_to eq(99)
+    expect(movie.id).to eq(original_id)
     expect(flash[:notice]).to include('successfully updated')
   end
 

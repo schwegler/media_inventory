@@ -1,0 +1,47 @@
+    <% if @tv_show.tv_episodes.any? %>
+      <%
+        episodes_by_season = @tv_show.tv_episodes.with_attached_cover_image.includes(:tv_show).order(:season, :episode).group_by(&:season)
+        sorted_seasons = episodes_by_season.keys.sort
+      %>
+      <div class="show-episodes-section" style="margin-top: 2.5rem; margin-bottom: 2.5rem;" data-controller="season-tabs" data-season-tabs-show-id-value="<%= @tv_show.id %>" data-action="turbo:morph@document->season-tabs#restore">
+
+        <div class="season-tabs-container">
+          <div class="season-tabs-strip" role="tablist" aria-label="Seasons">
+            <% sorted_seasons.each_with_index do |season, index| %>
+              <button type="button" class="season-tab <%= 'active-tab' if index == 0 %>"
+                      id="season-tab-<%= season %>"
+                      role="tab"
+                      aria-selected="<%= index == 0 ? 'true' : 'false' %>"
+                      aria-controls="season-panel-<%= season %>"
+                      tabindex="<%= index == 0 ? '0' : '-1' %>"
+                      data-season-tabs-target="tab"
+                      data-season="<%= season %>"
+                      data-action="click->season-tabs#select keydown->season-tabs#keydown">
+                Season <%= season %>
+              </button>
+            <% end %>
+          </div>
+        </div>
+
+        <div>
+          <% sorted_seasons.each_with_index do |season, index| %>
+            <div id="season-panel-<%= season %>"
+                 role="tabpanel"
+                 aria-labelledby="season-tab-<%= season %>"
+                 tabindex="0"
+                 data-season-tabs-target="content"
+                 data-season="<%= season %>"
+                 class="season-episodes-list <%= 'hidden' unless index == 0 %>"
+                 style="display: flex; flex-direction: column; gap: 12px;">
+              <% episodes_by_season[season].each do |ep| %>
+                <%= render 'tv_shows/tv_episode', ep: ep, tv_show: @tv_show %>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <% if @tv_show.tv_episodes.empty? %>
+      <div class="home-empty-state"><h2>No episodes yet</h2><p>The source may not have supplied them yet. Use Artwork &amp; metadata above to check for new releases.</p></div>
+    <% end %>

@@ -1,0 +1,51 @@
+<% content_for(:media_workspace, 'true') %>
+<% title, singular, = media_catalog(klass) %>
+<% content_for(:title, title) %>
+<section class="catalog-page" aria-labelledby="catalog-title">
+  <header class="catalog-heading">
+    <h1 id="catalog-title"><%= title %></h1>
+    <% if logged_in? %>
+      <%= link_to "New #{singular}", new_polymorphic_path(klass), class: 'sleek-btn sleek-btn-primary' %>
+    <% end %>
+  </header>
+  <nav class="catalog-navigation" aria-label="Media catalogs">
+    <% MediaLayoutHelper::CATALOGS.each do |name, (label, *)| %>
+      <%= link_to label, polymorphic_path(name.constantize), aria: { current: name == klass.name ? 'page' : nil } %>
+    <% end %>
+  </nav>
+  <%= form_with url: polymorphic_path(klass), method: :get, class: 'catalog-toolbar' do |f| %>
+    <div class="catalog-search">
+      <%= f.label :q, "Search #{title.downcase}" %>
+      <%= f.search_field :q, value: params[:q], placeholder: 'Search by title…' %>
+    </div>
+    <% if logged_in? %>
+      <div>
+        <%= f.label :status, 'Library status' %>
+        <%= f.select :status, [['All titles', ''], ['In my collection', 'collection'], [MediaLanguage.for(klass.new)[:list].capitalize, 'backlog'], [MediaLanguage.for(klass.new)[:past].capitalize, 'finished']], selected: params[:status] %>
+      </div>
+    <% end %>
+    <div>
+      <%= f.label :sort, 'Sort by' %>
+      <%= f.select :sort, [['Recently added', 'newest'], ['Title A–Z', 'title'], ['Oldest added', 'oldest']], selected: params[:sort] %>
+    </div>
+    <%= f.submit 'Apply', class: 'sleek-btn sleek-btn-secondary' %>
+  <% end %>
+  <div class="catalog-results-heading">
+    <p role="status"><%= number_with_delimiter(items.total_count) %> <%= 'title'.pluralize(items.total_count) %><% if params[:q].present? %> matching “<%= params[:q] %>”<% end %></p>
+    <% if params[:q].present? || params[:status].present? || params[:sort].present? %>
+      <%= link_to 'Reset filters', polymorphic_path(klass) %>
+    <% end %>
+  </div>
+  <% if items.empty? %>
+    <% if params[:q].present? || params[:status].present? %>
+      <div class="home-empty-state"><h2>No matching titles</h2><p>Try another title or library status.</p><%= link_to 'View all titles', polymorphic_path(klass), class: 'sleek-btn sleek-btn-secondary' %></div>
+    <% else %>
+      <%= render 'shared/catalog_empty_state', media_name: title.downcase, singular_name: singular.downcase, article: klass == Album ? 'an' : 'a', new_item_path: new_polymorphic_path(klass) %>
+    <% end %>
+  <% else %>
+    <div class="media-grid-2026 catalog-grid">
+      <%= render partial: 'shared/media_card', collection: items, as: :media_item %>
+    </div>
+  <% end %>
+  <div class="pagination-wrapper"><%= paginate items %></div>
+</section>

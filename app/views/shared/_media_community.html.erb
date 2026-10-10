@@ -1,0 +1,67 @@
+    <section id="community" class="show-community media-section" aria-labelledby="community-title">
+      <h2 id="community-title">Community</h2>
+
+      <div class="show-stats-bar">
+        <div class="show-stat">
+          <div class="show-stat-value"><%= stats[:avg_rating] ? "#{stats[:avg_rating]} ★" : "—" %></div>
+          <div class="show-stat-label">Average Rating</div>
+        </div>
+        <div class="show-stat">
+          <div class="show-stat-value"><%= stats[:watchers].size %></div>
+          <div class="show-stat-label"><%= media_audience(item) %></div>
+        </div>
+        <div class="show-stat">
+          <div class="show-stat-value"><%= stats[:collectors].size %></div>
+          <div class="show-stat-label">Collectors</div>
+        </div>
+      </div>
+
+      <% if stats[:reviews].any? %>
+        <h3>Community Reviews</h3>
+        <div class="show-reviews-list">
+          <% stats[:reviews].each do |matching_item| %>
+            <div class="show-review-card">
+              <div class="review-header">
+                <%= user_avatar_tag(matching_item.user, size: 28) %>
+                <div class="review-meta-info">
+                  <span class="review-user"><%= matching_item.user.name.presence || matching_item.user.display_handle %></span>
+                  <% if matching_item.rating.present? %>
+                    <span class="review-rating"><%= render_stars(matching_item.rating) %></span>
+                  <% end %>
+                </div>
+              </div>
+              <div class="review-content"><%= simple_format(matching_item.review) %></div>
+
+              <div class="review-actions-row">
+                <%= render 'likes/like_button', item: matching_item %>
+              </div>
+
+              <%= render 'shared/comments_box', matching_item: matching_item %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <% if stats[:watchers].any? %>
+        <h3><%= media_audience(item) %></h3>
+        <div class="show-members-list">
+          <% stats[:watchers].each do |user| %>
+            <span class="show-member-tag"><%= user_avatar_tag(user, size: 20) %> <%= user.name.presence || user.display_handle %></span>
+          <% end %>
+        </div>
+      <% end %>
+
+      <% if stats[:collectors].any? %>
+        <h3>Collectors</h3>
+        <div class="show-members-list">
+          <% stats[:collectors].each do |user| %>
+            <span class="show-member-tag"><%= user_avatar_tag(user, size: 20) %> <%= user.name.presence || user.display_handle %></span>
+          <% end %>
+        </div>
+      <% end %>
+    </section>
+
+    <section id="comments" class="show-community media-section" aria-labelledby="comments-title">
+      <h2 id="comments-title">General Comments</h2>
+      <%= render "shared/comments_box", matching_item: item %>
+    </section>

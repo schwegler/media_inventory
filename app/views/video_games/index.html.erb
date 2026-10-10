@@ -1,4 +1,6 @@
-<div class="page-header">
+<% content_for(:media_workspace, "true") %>
+<section class="catalog-page">
+<div class="catalog-heading">
   <h1><%= @personal_library ? 'My game library' : 'Video Games' %></h1>
   <% if logged_in? %>
     <%= link_to 'Log a game', new_video_game_path, class: 'sleek-btn sleek-btn-primary' %>
@@ -43,10 +45,11 @@
 <% elsif @layout == 'table' %>
   <%= render 'library_table' %>
 <% else %>
-  <div class="<%= @layout == 'list' ? 'game-library-list' : 'media-grid-2026' %>">
+  <div class="<%= @layout == 'list' ? 'game-library-list' : 'media-grid-2026 catalog-grid' %>">
     <% @video_games.each do |game| %>
       <%= render 'library_card', game: game, library: @libraries&.[](game.id) %>
     <% end %>
   </div>
 <% end %>
 <div class="pagination-wrapper"><%= paginate @video_games %></div>
+</section>

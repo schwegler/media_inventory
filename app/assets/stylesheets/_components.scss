@@ -1,5 +1,7 @@
 // Authoritative reusable components. Legacy page modules retain their structural behavior.
 @mixin styles {
+  // Intrinsic and uploaded images fit their container; framed artwork keeps its explicit sizing.
+  img { max-width: 100%; height: auto; }
   // Preserve the HTML hidden contract against component display rules.
   [hidden] { display: none !important; }
   html { scroll-padding-top: 1rem; }

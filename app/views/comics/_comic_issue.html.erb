@@ -1,6 +1,8 @@
+<% issue_lib = (@child_library_items ? @child_library_items[issue.id] : LibraryItem.find_by(user: current_user, item: issue)) if logged_in? %>
 <%# Local variables: issue, comic %>
-<%= turbo_frame_tag "comic_issue_#{issue.id}" do %>
-  <div class="episode-item">
+<%= turbo_frame_tag "comic_issue_#{issue.id}", data: { child_collection_target: "entry", search: issue.display_title, completed: issue_lib&.consumed? ? "true" : "false" } do %>
+  <details class="episode-item child-entry">
+    <summary class="child-entry-summary">
     <div class="episode-content-row">
       <% if issue.stored_cover_url.present? %>
         <img src="<%= issue.stored_cover_url %>" alt="<%= issue.title %>" class="episode-thumbnail" loading="lazy" decoding="async">
@@ -8,31 +10,30 @@
       <div class="episode-info">
         <div class="episode-header">
           <span>
-            <%= link_to issue.display_title, comic_issue_path(issue), class: "episode-link", data: { turbo_frame: "_top" } %>
+            <%= link_to "##{issue.issue_number}: #{issue.title.presence || 'Untitled issue'}", comic_issue_path(issue), class: "episode-link", data: { turbo_frame: "_top" } %>
             <% if issue.release_date.present? %>
-              <span class="episode-air-date">(Released: <%= issue.release_date %>)</span>
+              <span class="episode-air-date">Released <%= issue.release_date %></span>
             <% end %>
           </span>
 
-          <% issue_lib = (@issue_library_items ? @issue_library_items[issue.id] : LibraryItem.find_by(user: current_user, item: issue)) if logged_in? %>
+
           <% if logged_in? && @library_item.present? %>
             <div class="episode-actions-wrapper">
               <% if issue_lib&.consumed? %>
                 <span class="episode-badge-watched">✓ Read</span>
 
-                <%= button_to "X",
-                              toggle_read_comic_issue_path(issue),
-                              method: :patch,
-                              params: { comic_issue: { consumed: false, consumed_at: nil } },
-                              class: "episode-btn-unwatch",
-                              aria: { label: "Mark issue as unread" } %>
+
               <% else %>
-                <span class="episode-badge-not-watched">Not Read</span>
+                <span class="episode-badge-not-watched">Unread</span>
               <% end %>
             </div>
           <% end %>
         </div>
 
+      </div>
+    </div>
+    </summary>
+    <div class="child-entry-body">
         <% if issue.summary.present? %>
           <div class="episode-summary">
             <%= truncate(strip_tags(issue.summary), length: 250, separator: ' ') %>
@@ -49,11 +50,14 @@
             <% end %>
           </div>
         <% end %>
-      </div>
-    </div>
 
     <% if logged_in? && @library_item.present? %>
-      <div class="episode-form-section">
+      <div class="episode-form-section" aria-label="Read, rate, or review">
+        <% if issue_lib&.consumed? %>
+          <%= button_to "Undo", toggle_read_comic_issue_path(issue), method: :patch,
+                        params: { comic_issue: { consumed: false, consumed_at: nil } },
+                        class: "episode-btn-unwatch", aria: { label: "Mark as unread" } %>
+        <% end %>
         <%= form_with model: issue, url: toggle_read_comic_issue_path(issue), method: :patch do |form| %>
           <%= form.hidden_field :consumed, value: true %>
           <%= form.hidden_field :consumed_at, value: Time.current.to_date %>
@@ -64,7 +68,8 @@
           </div>
 
           <div class="episode-form-inputs">
-            <%= form.text_field :review, value: issue_lib&.review, aria: { label: "Issue review" }, placeholder: issue_lib&.consumed? ? "Edit review..." : "Review this issue...", class: "episode-input-review" %>
+            <label class="child-review-label" for="child-review-<%= issue.id %>">Your review <span>(optional)</span></label>
+            <%= form.text_area :review, value: issue_lib&.review, aria: { label: "Issue review" }, placeholder: issue_lib&.consumed? ? "Edit review..." : "Review this issue...", id: "child-review-#{issue.id}", rows: 3, class: "episode-input-review" %>
 
             <%= form.select :rating, [["Rating", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: issue_lib&.rating }, { class: "episode-select-rating", aria: { label: "Rating" } } %>
             <% if issue_lib&.consumed? %>
@@ -76,5 +81,6 @@
         <% end %>
       </div>
     <% end %>
-  </div>
+    </div>
+  </details>
 <% end %>
