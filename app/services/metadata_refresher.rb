@@ -14,7 +14,7 @@ class MetadataRefresher
   def initialize(item, user)
     @item = item
     @user = user
-    @refresh = MetadataRefresh.create_or_find_by!(item: item)
+    @refresh = MetadataRefresh.find_by(item: item) || MetadataRefresh.create_or_find_by!(item: item)
   end
 
   def enqueue

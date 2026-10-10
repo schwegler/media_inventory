@@ -17,3 +17,7 @@
 ## 2026-08-29 - [Focus Restoration and Input Auto-Focus in Toggled Containers]
 **Learning:** When toggling container visibility (like comment reply forms), automatically focusing the first visible interactive element improves keyboard flow, and restoring focus back to the triggering element upon close/cancel prevents focus loss to the document body.
 **Action:** In toggle controllers, detect visibility changes to focus `input:not([type='hidden'])` when shown and call `.focus()` on `triggerTarget` when hidden.
+
+## 2026-10-10 - [Accessible Names on Raw Entity Buttons]
+**Learning:** Buttons containing visual arrow symbols or entities (like `&larr; BACK`) can be announced awkwardly by screen readers as raw entities or arrow characters unless an explicit `aria-label` provides a clean, descriptive accessible name.
+**Action:** Always provide explicit `aria-label` attributes (e.g. `aria-label="Back to search"`) on navigation buttons containing symbolic or raw entity text.
