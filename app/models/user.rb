@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/ClassLength
 class User < ApplicationRecord
   has_many :game_library_views, dependent: :destroy
   has_secure_password
@@ -65,8 +66,13 @@ class User < ApplicationRecord
   has_many :following, through: :active_relationships,  source: :followed
   has_many :followers, through: :passive_relationships, source: :follower
 
+  # Check if item is liked by user, using in-memory collection when loaded to prevent N+1 SQL queries
   def liked?(likeable)
-    likes.exists?(likeable_type: likeable.class.name, likeable_id: likeable.id)
+    if likes.loaded?
+      likes.any? { |l| l.likeable_type == likeable.class.name && l.likeable_id == likeable.id }
+    else
+      likes.exists?(likeable_type: likeable.class.name, likeable_id: likeable.id)
+    end
   end
 
   def follow(other_user)
@@ -126,3 +132,4 @@ class User < ApplicationRecord
     self.public_key = key.public_key.to_pem
   end
 end
+# rubocop:enable Metrics/ClassLength
