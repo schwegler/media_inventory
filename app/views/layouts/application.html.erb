@@ -102,6 +102,9 @@
             <div class="dropdown-menu user-dropdown-menu" data-dropdown-target="menu" role="menu">
               <%= link_to "Profile", current_user, class: "dropdown-item", role: "menuitem" %>
               <%= link_to "Settings", settings_path, class: "dropdown-item", role: "menuitem" %>
+              <% if current_user.admin? %>
+                <%= link_to "Admin", admin_root_path, class: "dropdown-item", role: "menuitem" %>
+              <% end %>
               <div class="dropdown-divider"></div>
               <%= button_to "Sign Out", logout_path, method: :delete, class: "dropdown-item dropdown-logout-btn", role: "menuitem", form_class: "dropdown-logout-form" %>
             </div>
@@ -198,6 +201,9 @@
               <div class="mobile-user-links">
                 <%= link_to "Profile", current_user, class: "mobile-link" %>
                 <%= link_to "Settings", settings_path, class: "mobile-link" %>
+                <% if current_user.admin? %>
+                  <%= link_to "Admin", admin_root_path, class: "mobile-link" %>
+                <% end %>
                 <%= link_to notifications_path, class: "mobile-link" do %>
                   Notifications
                   <% unread_count = current_user.notifications.unread.size %>
