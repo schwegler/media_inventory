@@ -66,7 +66,11 @@
       <div id="my-library"><%= render 'shared/media_actions_and_stream', item: item, show_sources: false %></div>
       <%= render 'shared/media_description', item: item %>
       <% if item.is_a?(VideoGame) %>
-        <%= render 'tracking', library: @library_item if @library_item %>
+        <% if @library_item %>
+          <%= render 'tracking', library: @library_item %>
+        <% else %>
+          <div id="my-game-tracking" style="display: none;"></div>
+        <% end %>
         <%= render 'artwork_gallery', game: @video_game, library: @library_item %>
       <% end %>
       <div id="media_my_review_<%= item.class.name.underscore %>_<%= item.id %>">

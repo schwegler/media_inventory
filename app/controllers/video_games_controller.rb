@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/ClassLength
 class VideoGamesController < InventoryController
   before_action :logged_in_user, only: %i[new create edit update destroy sync_steam]
 
@@ -82,15 +83,42 @@ class VideoGamesController < InventoryController
 
   def after_library_saved
     fields = resource_params
-    if fields[:copy_platform].present?
-      @library_item.game_copies.find_or_create_by!(platform: fields[:copy_platform], storefront: fields[:storefront],
-                                                   edition: fields[:edition],
-                                                   ownership_status: fields[:ownership_status].presence || 'owned',
-                                                   access_method: fields[:access_method].presence || 'digital')
-    end
+    find_or_create_explicit_copy(fields)
+    handle_collected_copy(fields)
+
     return unless fields[:play_status].present?
 
     @library_item.game_playthroughs.find_or_create_by!(status: fields[:play_status], platform: fields[:copy_platform])
+  end
+
+  def find_or_create_explicit_copy(fields)
+    return unless fields[:copy_platform].present?
+
+    @copy = @library_item.game_copies.find_or_create_by!(
+      platform: fields[:copy_platform], storefront: fields[:storefront],
+      edition: fields[:edition].presence || 'Standard',
+      ownership_status: fields[:ownership_status].presence || 'owned',
+      access_method: fields[:access_method].presence || 'digital'
+    )
+  end
+
+  def handle_collected_copy(fields)
+    return unless fields.key?(:is_collected) && ActiveModel::Type::Boolean.new.cast(fields[:is_collected])
+
+    if @library_item.game_copies.empty?
+      default_platform = GameCopy.default_platform_for(@resource)
+      default_storefront = GameCopy.default_storefront_for(default_platform)
+      @copy = @library_item.game_copies.create!(
+        platform: default_platform,
+        storefront: default_storefront,
+        edition: 'Standard',
+        ownership_status: 'owned',
+        access_method: 'digital'
+      )
+    else
+      @copy ||= @library_item.game_copies.first
+    end
+    @open_copy_modal = true if action_name == 'update'
   end
 
   def resource_params
@@ -103,3 +131,4 @@ class VideoGamesController < InventoryController
     )
   end
 end
+# rubocop:enable Metrics/ClassLength

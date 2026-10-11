@@ -167,29 +167,31 @@ end
         <% end %>
       <% end %>
 
-      <%= form_with model: item, url: polymorphic_path(item), method: :patch, id: "quick-ownership-form-#{item.id}", local: true, class: "quick-ownership-form" do |f| %>
-        <details class="library-disclosure" id="ownership-details-<%= item.id %>">
-          <summary>Ownership details<span>Physical and digital formats</span></summary>
-          <div class="ownership-details-row">
-            <div class="ownership-field">
-              <div class="inline-checkbox-group">
-                <%= f.check_box :owned_physically, id: "inline-phys-checkbox-#{item.id}" %>
-                <%= f.label :owned_physically, "Physical", for: "inline-phys-checkbox-#{item.id}", class: "inline-checkbox-label", style: "margin: 0;" %>
+      <% unless item.is_a?(VideoGame) %>
+        <%= form_with model: item, url: polymorphic_path(item), method: :patch, id: "quick-ownership-form-#{item.id}", local: true, class: "quick-ownership-form" do |f| %>
+          <details class="library-disclosure" id="ownership-details-<%= item.id %>">
+            <summary>Ownership details<span>Physical and digital formats</span></summary>
+            <div class="ownership-details-row">
+              <div class="ownership-field">
+                <div class="inline-checkbox-group">
+                  <%= f.check_box :owned_physically, id: "inline-phys-checkbox-#{item.id}" %>
+                  <%= f.label :owned_physically, "Physical", for: "inline-phys-checkbox-#{item.id}", class: "inline-checkbox-label", style: "margin: 0;" %>
+                </div>
+                <%= f.select :owned_physically_format, physical_formats, { include_blank: 'Format…' }, { class: "form-control quick-review-select format-select", style: "width: 100%;", aria: { label: "Physical format" } } %>
               </div>
-              <%= f.select :owned_physically_format, physical_formats, { include_blank: 'Format…' }, { class: "form-control quick-review-select format-select", style: "width: 100%;", aria: { label: "Physical format" } } %>
+
+              <div class="ownership-field">
+                <div class="inline-checkbox-group">
+                  <%= f.check_box :owned_digitally, id: "inline-digi-checkbox-#{item.id}" %>
+                  <%= f.label :owned_digitally, "Digital", for: "inline-digi-checkbox-#{item.id}", class: "inline-checkbox-label", style: "margin: 0;" %>
+                </div>
+                <%= f.select :owned_digitally_format, digital_formats, { include_blank: 'Format…' }, { class: "form-control quick-review-select format-select", style: "width: 100%;", aria: { label: "Digital format" } } %>
+              </div>
             </div>
 
-            <div class="ownership-field">
-              <div class="inline-checkbox-group">
-                <%= f.check_box :owned_digitally, id: "inline-digi-checkbox-#{item.id}" %>
-                <%= f.label :owned_digitally, "Digital", for: "inline-digi-checkbox-#{item.id}", class: "inline-checkbox-label", style: "margin: 0;" %>
-              </div>
-              <%= f.select :owned_digitally_format, digital_formats, { include_blank: 'Format…' }, { class: "form-control quick-review-select format-select", style: "width: 100%;", aria: { label: "Digital format" } } %>
-            </div>
-          </div>
-
-          <div class="quick-review-submit-row"><%= f.submit 'Save ownership', class: 'sleek-btn sleek-btn-primary' %></div>
-        </details>
+            <div class="quick-review-submit-row"><%= f.submit 'Save ownership', class: 'sleek-btn sleek-btn-primary' %></div>
+          </details>
+        <% end %>
       <% end %>
     </div>
   <% end %>

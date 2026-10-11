@@ -5,7 +5,7 @@ module GameTrackingHelper
     is_new = action.to_s == 'new'
     case kind.to_s
     when 'copy'
-      is_new ? 'Add Game Copy' : 'Edit Game Copy'
+      is_new ? 'Add Game Copy' : 'Game Copy Details'
     when 'playthrough'
       is_new ? 'Start Playthrough' : 'Edit Playthrough'
     when 'session'

@@ -55,24 +55,24 @@
   .game-spoiler-tag { padding: .15rem .45rem; border-radius: 3px; font-size: .6875rem; font-weight: 600; text-transform: uppercase; background: var(--surface); border: 1px solid var(--warning); color: var(--warning); margin-left: .5rem; }
 
   // Game tracking forms
-  .media-detail form.standard-form.game-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .875rem; width: 100%; max-width: none; margin: .5rem 0 1rem; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
-  .media-detail form.game-form > :where(p, details, .game-check, .game-field-wide, .game-form-actions) { grid-column: 1 / -1; }
-  .media-detail form.game-form :where(.game-field, .game-check, .game-form-actions) { margin: 0; min-width: 0; }
-  .media-detail form.game-form .game-field { display: flex; flex-direction: column; gap: .4rem; }
-  .media-detail form.game-form .game-field > label { display: block; margin: 0 0 .4rem; line-height: 1.4; font-size: .8125rem; font-weight: 500; color: var(--text-secondary); }
-  .media-detail form.game-form :where(input:not([type='checkbox']):not([type='hidden']):not([type='submit']), select, textarea) { width: 100%; max-width: 100%; min-width: 0; margin: 0; border: 1px solid var(--border); border-radius: 6px; background-color: var(--inset); color: var(--text); padding: .6rem .75rem; font-size: .875rem; line-height: 1.4; box-sizing: border-box; }
-  .media-detail form.game-form select { padding-right: 2.5rem; }
-  .media-detail form.game-form :where(input, select) { min-height: 44px; }
-  .media-detail form.game-form input[type='checkbox'] { min-height: 0; accent-color: var(--accent); }
-  .media-detail form.game-form textarea { min-height: 96px; resize: vertical; }
-  .media-detail form.game-form input[type='file'] { font-size: .8125rem; padding: .6rem; }
-  .media-detail form.game-form .game-check { display: flex; align-items: center; gap: .5rem; min-height: 36px; }
-  .media-detail form.game-form .game-check label { margin: 0; line-height: 1.5; font-weight: 400; font-size: .8125rem; color: var(--text); }
-  .media-detail form.game-form p { margin: 0; font-size: .75rem; line-height: 1.5; color: var(--text-secondary); }
-  .media-detail form.game-form .game-form-actions { display: flex; justify-content: flex-end; align-items: center; gap: var(--space-3); padding-top: .25rem; }
-  .media-detail form.game-form .game-form-actions :where(input, .btn) { margin: 0; width: auto; min-height: 44px; font-size: .8125rem; }
-  .media-detail form.game-form > details { margin: 0; }
-  .media-detail form.game-form > details > .game-field { margin-block: .75rem; }
+  :where(.media-detail, .modal-container) form.standard-form.game-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .875rem; width: 100%; max-width: none; margin: .5rem 0 1rem; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+  :where(.media-detail, .modal-container) form.game-form > :where(p, details, .game-check, .game-field-wide, .game-form-actions) { grid-column: 1 / -1; }
+  :where(.media-detail, .modal-container) form.game-form :where(.game-field, .game-check, .game-form-actions) { margin: 0; min-width: 0; }
+  :where(.media-detail, .modal-container) form.game-form .game-field { display: flex; flex-direction: column; gap: .4rem; }
+  :where(.media-detail, .modal-container) form.game-form .game-field > label { display: block; margin: 0 0 .4rem; line-height: 1.4; font-size: .8125rem; font-weight: 500; color: var(--text-secondary); }
+  :where(.media-detail, .modal-container) form.game-form :where(input:not([type='checkbox']):not([type='hidden']):not([type='submit']), select, textarea) { width: 100%; max-width: 100%; min-width: 0; margin: 0; border: 1px solid var(--border); border-radius: 6px; background-color: var(--inset); color: var(--text); padding: .6rem .75rem; font-size: .875rem; line-height: 1.4; box-sizing: border-box; }
+  :where(.media-detail, .modal-container) form.game-form select { padding-right: 2.5rem; }
+  :where(.media-detail, .modal-container) form.game-form :where(input, select) { min-height: 44px; }
+  :where(.media-detail, .modal-container) form.game-form input[type='checkbox'] { min-height: 0; accent-color: var(--accent); }
+  :where(.media-detail, .modal-container) form.game-form textarea { min-height: 96px; resize: vertical; }
+  :where(.media-detail, .modal-container) form.game-form input[type='file'] { font-size: .8125rem; padding: .6rem; }
+  :where(.media-detail, .modal-container) form.game-form .game-check { display: flex; align-items: center; gap: .5rem; min-height: 36px; }
+  :where(.media-detail, .modal-container) form.game-form .game-check label { margin: 0; line-height: 1.5; font-weight: 400; font-size: .8125rem; color: var(--text); }
+  :where(.media-detail, .modal-container) form.game-form p { margin: 0; font-size: .75rem; line-height: 1.5; color: var(--text-secondary); }
+  :where(.media-detail, .modal-container) form.game-form .game-form-actions { display: flex; justify-content: flex-end; align-items: center; gap: var(--space-3); padding-top: .25rem; }
+  :where(.media-detail, .modal-container) form.game-form .game-form-actions :where(input, .btn) { margin: 0; width: auto; min-height: 44px; font-size: .8125rem; }
+  :where(.media-detail, .modal-container) form.game-form > details { margin: 0; }
+  :where(.media-detail, .modal-container) form.game-form > details > .game-field { margin-block: .75rem; }
   .game-nested-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .875rem; padding-top: .75rem; }
   .game-nested-fields > :where(.game-field-wide, .game-check) { grid-column: 1 / -1; }
   .game-artwork-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 1rem; }
@@ -95,14 +95,14 @@
     .game-record-card, .game-artwork-section { padding: 1rem; }
     .game-record-stats { gap: .5rem; }
     .game-private-badge { white-space: normal; text-align: center; }
-    .media-detail form.standard-form.game-form { grid-template-columns: 1fr; gap: .75rem; }
+    :where(.media-detail, .modal-container) form.standard-form.game-form { grid-template-columns: 1fr; gap: .75rem; }
     .game-nested-fields { grid-template-columns: 1fr; gap: .75rem; }
-    .media-detail form.game-form :where(input:not([type='checkbox']), select, textarea) { font-size: 1rem; }
+    :where(.media-detail, .modal-container) form.game-form :where(input:not([type='checkbox']), select, textarea) { font-size: 1rem; }
     .game-item-entry, .game-playthrough-header, .game-session-entry, .game-journal-header { flex-direction: column; align-items: stretch; gap: .6rem; }
     .game-item-actions { justify-content: flex-end; }
     .game-heading-actions { flex-wrap: wrap; }
-    .media-detail form.game-form .game-form-actions { flex-direction: column-reverse; align-items: stretch; }
-    .media-detail form.game-form .game-form-actions :where(input, .btn) { width: 100%; text-align: center; }
+    :where(.media-detail, .modal-container) form.game-form .game-form-actions { flex-direction: column-reverse; align-items: stretch; }
+    :where(.media-detail, .modal-container) form.game-form .game-form-actions :where(input, .btn) { width: 100%; text-align: center; }
   }
   @media (max-width: 359px) {
     .media-detail form.standard-form.game-form { grid-template-columns: 1fr; }

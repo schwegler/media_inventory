@@ -2,6 +2,7 @@
 
 # All personal tracking is scoped through the signed-in user's library. It is
 # never rendered on public catalog pages or included in the activity feed.
+# rubocop:disable Metrics/ClassLength
 class GameTrackingController < ApplicationController
   before_action :logged_in_user
   before_action :load_library
@@ -12,6 +13,15 @@ class GameTrackingController < ApplicationController
       @playthrough = @library.game_playthroughs.find(params[:playthrough_id] || @library.game_playthroughs.first&.id)
       @record = @playthrough.game_sessions.new(started_at: 1.hour.ago.change(sec: 0),
                                                ended_at: Time.current.change(sec: 0))
+    elsif @kind == 'copy'
+      default_platform = GameCopy.default_platform_for(@library.item)
+      @record = tracking_scope.new(
+        platform: default_platform,
+        storefront: GameCopy.default_storefront_for(default_platform),
+        edition: 'Standard',
+        ownership_status: 'owned',
+        access_method: 'digital'
+      )
     else
       @record = tracking_scope.new
     end
@@ -25,7 +35,14 @@ class GameTrackingController < ApplicationController
 
   def create
     record = tracking_scope.new(tracking_params)
-    record.save ? render_tracking_stream('Gaming record saved.') : render_tracking_error(record, :new)
+    if record.save
+      if params[:kind] == 'copy' && record.ownership_status == 'owned' && !@library.is_collected?
+        @library.update(is_collected: true)
+      end
+      render_tracking_stream('Gaming record saved.')
+    else
+      render_tracking_error(record, :new)
+    end
   end
 
   def update
@@ -35,6 +52,7 @@ class GameTrackingController < ApplicationController
 
   def destroy
     tracking_scope.find(params[:id]).destroy!
+    @library.update(is_collected: false) if params[:kind] == 'copy' && @library.game_copies.empty?
     render_tracking_stream('Gaming record removed.')
   end
 
@@ -89,9 +107,13 @@ class GameTrackingController < ApplicationController
 
   def render_tracking_stream(notice)
     @library.reload
+    @library_item = @library
     respond_to do |format|
       format.turbo_stream do
         render turbo_stream: [
+          turbo_stream.replace("media_actions_#{@library.item.class.name.underscore}_#{@library.item.id}",
+                               partial: 'shared/media_actions_and_stream',
+                               locals: { item: @library.item, show_sources: false }),
           turbo_stream.replace('my-game-tracking', partial: 'video_games/tracking', locals: { library: @library }),
           turbo_stream.update('modal', '')
         ]
@@ -118,3 +140,4 @@ class GameTrackingController < ApplicationController
     end
   end
 end
+# rubocop:enable Metrics/ClassLength

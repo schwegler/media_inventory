@@ -137,8 +137,11 @@ class InventoryController < ApplicationController
       after_library_saved
     end
 
+    instance_variable_set("@#{resource_name}", @resource)
+    flash.now[:notice] = "#{resource_class.model_name.human} was successfully updated."
     respond_to do |format|
       format.html { redirect_to @resource, notice: "#{resource_class.model_name.human} was successfully updated." }
+      format.turbo_stream
     end
   rescue ActiveRecord::RecordInvalid
     respond_to do |format|
