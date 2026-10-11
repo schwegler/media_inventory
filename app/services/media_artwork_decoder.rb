@@ -5,11 +5,13 @@ require 'timeout'
 require 'tempfile'
 
 class MediaArtworkDecoder
-  COMMAND = ['-limit', 'memory', '64MiB', '-limit', 'map', '64MiB',
-             '-limit', 'disk', '0', '-limit', 'time', '5'].freeze
+  # Provider originals can need far more pixel-cache space than their compressed
+  # download size. Spill to bounded temporary storage instead of rejecting them.
+  COMMAND = ['-limit', 'memory', '32MiB', '-limit', 'map', '0',
+             '-limit', 'disk', '256MiB', '-limit', 'thread', '1', '-limit', 'time', '5'].freeze
 
   def self.validate!(path)
-    output, _error, status = execute("#{path}[0]", '-format', '%w %h', 'info:')
+    output, _error, status = execute('-ping', "#{path}[0]", '-format', '%w %h', 'info:')
     width, height = output.split.map(&:to_i)
     valid = status.success? && width&.positive? && height&.positive? && width * height <= 20_000_000
     raise MediaSources::Http::Error, 'Invalid image pixels or dimensions' unless valid
@@ -20,8 +22,8 @@ class MediaArtworkDecoder
   def self.normalized(path, dimensions: '600x900')
     validate!(path)
     Tempfile.create(['media-cover-preview', '.webp']) do |preview|
-      _output, _error, status = execute("#{path}[0]", '-auto-orient', '-resize', "#{dimensions}>",
-                                        '-strip', '-quality', '82', "webp:#{preview.path}")
+      _output, _error, status = execute('-define', "jpeg:size=#{dimensions}", "#{path}[0]", '-auto-orient',
+                                        '-resize', "#{dimensions}>", '-strip', '-quality', '82', "webp:#{preview.path}")
       raise MediaSources::Http::Error, 'Image transformation failed' unless status.success? && !File.empty?(preview.path)
 
       preview.binmode
