@@ -60,7 +60,8 @@
   .media-detail form.game-form :where(.game-field, .game-check, .game-form-actions) { margin: 0; min-width: 0; }
   .media-detail form.game-form .game-field { display: flex; flex-direction: column; gap: .4rem; }
   .media-detail form.game-form .game-field > label { display: block; margin: 0 0 .4rem; line-height: 1.4; font-size: .8125rem; font-weight: 500; color: var(--text-secondary); }
-  .media-detail form.game-form :where(input:not([type='checkbox']):not([type='hidden']):not([type='submit']), select, textarea) { width: 100%; max-width: 100%; min-width: 0; margin: 0; border: 1px solid var(--border); border-radius: 6px; background: var(--inset); color: var(--text); padding: .6rem .75rem; font-size: .875rem; line-height: 1.4; box-sizing: border-box; }
+  .media-detail form.game-form :where(input:not([type='checkbox']):not([type='hidden']):not([type='submit']), select, textarea) { width: 100%; max-width: 100%; min-width: 0; margin: 0; border: 1px solid var(--border); border-radius: 6px; background-color: var(--inset); color: var(--text); padding: .6rem .75rem; font-size: .875rem; line-height: 1.4; box-sizing: border-box; }
+  .media-detail form.game-form select { padding-right: 2.5rem; }
   .media-detail form.game-form :where(input, select) { min-height: 44px; }
   .media-detail form.game-form input[type='checkbox'] { min-height: 0; accent-color: var(--accent); }
   .media-detail form.game-form textarea { min-height: 96px; resize: vertical; }
