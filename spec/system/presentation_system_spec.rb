@@ -110,4 +110,28 @@ RSpec.describe 'Presentation and keyboard access', type: :system do
     expect(page.evaluate_script('document.activeElement.closest("#metadata-health") !== null')).to be true
     expect(show.reload.network).to eq('A network')
   end
+
+  it 'does not shift overview layout when expanding the share disclosure' do
+    movie = Movie.create!(title: 'Stable Header Movie', director: 'Director Name', release_year: 2024)
+    visit movie_path(movie)
+    expect(page).to have_css('.media-overview')
+
+    title_before = page.evaluate_script('document.querySelector(".media-identity h1").getBoundingClientRect().top')
+    cover_before = page.evaluate_script('document.querySelector(".media-cover").getBoundingClientRect().top')
+    stats_before = page.evaluate_script('document.querySelector(".media-overview-stats").getBoundingClientRect().top')
+    share_before = page.evaluate_script('document.querySelector(".media-share summary").getBoundingClientRect().top')
+
+    find('.media-share summary').click
+    expect(page).to have_css('.media-share[open]')
+
+    title_after = page.evaluate_script('document.querySelector(".media-identity h1").getBoundingClientRect().top')
+    cover_after = page.evaluate_script('document.querySelector(".media-cover").getBoundingClientRect().top')
+    stats_after = page.evaluate_script('document.querySelector(".media-overview-stats").getBoundingClientRect().top')
+    share_after = page.evaluate_script('document.querySelector(".media-share summary").getBoundingClientRect().top')
+
+    expect(title_after).to eq(title_before)
+    expect(cover_after).to eq(cover_before)
+    expect(stats_after).to eq(stats_before)
+    expect(share_after).to eq(share_before)
+  end
 end
