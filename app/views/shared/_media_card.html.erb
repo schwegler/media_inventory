@@ -1,4 +1,7 @@
 <% media_title = media_item.try(:title) || media_item.try(:name) || 'Media' %>
+<% ratings = item_card_ratings(media_item) %>
+<% user_rating = ratings[:user_rating] %>
+<% avg_rating = ratings[:avg_rating] %>
 <div class="card-2026" data-media-kind="<%= media_item.class.name %>">
   <div class="card-2026-cover">
     <% if media_item.respond_to?(:stored_cover_url) && media_item.stored_cover_url.present? %>
@@ -46,6 +49,23 @@
 
     <% if media_item.respond_to?(:release_year) && media_item.release_year.present? %>
       <span class="card-2026-meta card-2026-year"><%= media_item.release_year %></span>
+    <% end %>
+
+    <% if user_rating.present? || avg_rating.present? %>
+      <div class="card-2026-ratings">
+        <% if user_rating.present? %>
+          <span class="card-2026-user-rating" title="Your rating: <%= user_rating %> / 5">
+            <span class="rating-label">Your rating:</span>
+            <span class="rating-stars"><%= render_stars(user_rating) %></span>
+          </span>
+        <% end %>
+        <% if avg_rating.present? %>
+          <span class="card-2026-avg-rating" title="Average rating: <%= avg_rating %> / 5">
+            <span class="rating-label">Avg rating:</span>
+            <span class="rating-value"><%= avg_rating %> ★</span>
+          </span>
+        <% end %>
+      </div>
     <% end %>
   </div>
 </div>

@@ -10,6 +10,9 @@ class InventoryController < ApplicationController
     scope = resource_class
     # Eager load ActiveStorage attachments/blobs for cover images to prevent N+1 queries when rendering media card grids
     scope = scope.with_attached_cover_image if scope.respond_to?(:with_attached_cover_image)
+    if scope.respond_to?(:reflect_on_association) && scope.reflect_on_association(:library_items)
+      scope = scope.includes(:library_items)
+    end
 
     @resources = catalog_scope(scope).page(params[:page]).per(CATALOG_PAGE_SIZE)
     instance_variable_set("@#{resource_name.pluralize}", @resources)
