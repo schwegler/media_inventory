@@ -46,6 +46,7 @@
     </div>
     </summary>
     <div class="child-entry-body">
+        <%= render 'shared/child_metadata', item: ep %>
         <% if ep.summary.present? %>
           <div class="episode-summary">
             <%= strip_tags(ep.summary) %>

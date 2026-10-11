@@ -23,7 +23,7 @@ class TvShow < ApplicationRecord
   private
 
   def enqueue_series_sync
-    return if refreshing_metadata || api_id.blank? || !api_id.to_s.match?(/\A\d+\z/)
+    return if refreshing_metadata || api_id.blank? || !api_id.to_s.match?(/\A(?:tmdb_)?\d+\z/)
     return unless saved_change_to_api_id? || tv_episodes.empty?
 
     SyncSeriesMetadataJob.perform_later(self)
@@ -31,6 +31,7 @@ class TvShow < ApplicationRecord
 
   def sync_episodes_from_api
     return if refreshing_metadata
+    return sync_tmdb_episodes if api_id.to_s.match?(/\Atmdb_\d+\z/)
     return unless MediaSources::Registry.enabled?('tvmaze', 'TvShow')
 
     return if api_id.blank? || !api_id.to_s.match?(/\A\d+\z/)
@@ -50,6 +51,15 @@ class TvShow < ApplicationRecord
     apply_tvmaze_show_attributes(data)
   rescue StandardError => e
     Rails.logger.error "Failed to sync TV show details: #{e.class}"
+  end
+
+  def sync_tmdb_episodes
+    fields, rows = MetadataProvider.new(self).call
+    missing_fields = fields.compact_blank.select { |field, _| public_send(field).blank? }
+    update_columns(missing_fields) if missing_fields.present?
+    create_tv_episodes(rows)
+  rescue MetadataProvider::Unavailable, MetadataProvider::RateLimited => e
+    Rails.logger.warn "Failed to sync TMDB episodes: #{e.class}"
   end
 
   def apply_tvmaze_show_attributes(data)

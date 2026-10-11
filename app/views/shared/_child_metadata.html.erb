@@ -1,0 +1,14 @@
+<% if item.credits.present? || item.metadata_details.present? %>
+  <section class="child-metadata" aria-label="<%= item.is_a?(ComicIssue) ? 'Issue' : 'Episode' %> details">
+    <h3><%= item.is_a?(ComicIssue) ? 'Issue' : 'Episode' %> details</h3>
+    <dl>
+      <% item.metadata_details.each do |label, value| %>
+        <dt><%= label %></dt><dd><%= value %></dd>
+      <% end %>
+      <% item.credits.group_by { |credit| credit['role'] }.each do |role, credits| %>
+        <dt><%= role.to_s.humanize %></dt>
+        <dd><%= credits.map { |credit| [credit['name'], credit['character'].presence].compact.join(' as ') }.uniq.join(', ') %></dd>
+      <% end %>
+    </dl>
+  </section>
+<% end %>
