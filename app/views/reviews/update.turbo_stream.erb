@@ -1,0 +1,68 @@
+<%= turbo_stream.update "modal", "" %>
+
+<% if @item.is_a?(TvEpisode) %>
+  <%= turbo_stream.replace "tv_episode_#{@item.id}" do %>
+    <%= render 'tv_shows/tv_episode', ep: @item, tv_show: @item.tv_show %>
+  <% end %>
+  <%= turbo_stream.replace "tv_episode_tracking_#{@item.id}" do %>
+    <div id="tv_episode_tracking_<%= @item.id %>">
+      <%= render 'tv_episodes/tracking', tv_show: @item.tv_show %>
+    </div>
+  <% end %>
+  <%= turbo_stream.replace "child_personal_rating_#{@item.class.name.underscore}_#{@item.id}" do %>
+    <div id="child_personal_rating_<%= @item.class.name.underscore %>_<%= @item.id %>">
+      <% if @library_item&.rating.present? %>
+        <p class="media-personal-rating"><span>Your rating</span><%= render_stars(@library_item.rating) %></p>
+      <% end %>
+    </div>
+  <% end %>
+<% elsif @item.is_a?(ComicIssue) %>
+  <%= turbo_stream.replace "comic_issue_#{@item.id}" do %>
+    <%= render 'comics/comic_issue', issue: @item, comic: @item.comic %>
+  <% end %>
+  <%= turbo_stream.replace "comic_issue_tracking_#{@item.id}" do %>
+    <div id="comic_issue_tracking_<%= @item.id %>">
+      <%= render 'comic_issues/tracking', comic: @item.comic %>
+    </div>
+  <% end %>
+  <%= turbo_stream.replace "child_personal_rating_#{@item.class.name.underscore}_#{@item.id}" do %>
+    <div id="child_personal_rating_<%= @item.class.name.underscore %>_<%= @item.id %>">
+      <% if @library_item&.rating.present? %>
+        <p class="media-personal-rating"><span>Your rating</span><%= render_stars(@library_item.rating) %></p>
+      <% end %>
+    </div>
+  <% end %>
+<% else %>
+  <%= turbo_stream.replace "media_actions_#{@item.class.name.underscore}_#{@item.id}" do %>
+    <%= render 'shared/media_actions_and_stream', item: @item, show_sources: false %>
+  <% end %>
+  <%= turbo_stream.replace "media_my_review_#{@item.class.name.underscore}_#{@item.id}" do %>
+    <div id="media_my_review_<%= @item.class.name.underscore %>_<%= @item.id %>">
+      <% if @library_item&.review.present? %>
+        <section class="show-review media-section">
+          <div class="show-review-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <h2 style="margin: 0;">My Review</h2>
+            <%= link_to "Edit review", edit_review_path(item_type: @item.class.name, item_id: @item.id), class: "sleek-btn sleek-btn-secondary", style: "font-size: 0.8125rem; padding: 0.35rem 0.75rem;", data: { turbo_frame: "modal" } %>
+          </div>
+          <blockquote><%= simple_format(@library_item.review) %></blockquote>
+        </section>
+      <% end %>
+    </div>
+  <% end %>
+  <%= turbo_stream.replace "media_personal_rating_#{@item.class.name.underscore}_#{@item.id}" do %>
+    <div id="media_personal_rating_<%= @item.class.name.underscore %>_<%= @item.id %>">
+      <% if @library_item&.rating.present? %>
+        <p class="media-personal-rating"><span>Your rating</span> <%= render_stars(@library_item.rating) %></p>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>
+
+<%= turbo_stream.replace "flash-messages" do %>
+  <div id="flash-messages">
+    <div class="alert alert-notice" data-controller="flash" data-flash-dismiss-after-value="0" role="status" aria-live="polite">
+      <span>Review updated.</span>
+      <button type="button" class="btn-unstyled flash-dismiss" data-action="flash#dismiss" aria-label="Dismiss message">×</button>
+    </div>
+  </div>
+<% end %>

@@ -117,55 +117,76 @@ end
   </div>
 
   <% if logged_in? && @library_item.present? %>
+    <% item_reviewed = @library_item.review.present? || @library_item.rating.present? %>
     <div class="inline-quick-review-box">
-      <%= form_with model: item, url: polymorphic_path(item), method: :patch, local: true, class: "quick-review-form", data: { controller: "optimistic", action: "turbo:submit-start->optimistic#start turbo:before-fetch-response->optimistic#response turbo:submit-end->optimistic#finish", optimistic_label_value: "Saving…" } do |f| %>
-        <details class="library-disclosure">
-          <summary>Review &amp; rating<span>Your personal review and rating</span></summary>
-
-        <div class="review-field">
-          <label for="library-review-<%= item.id %>">Your review <span>(optional)</span></label>
-          <%= f.text_area :review, id: "library-review-#{item.id}", placeholder: review_placeholder, rows: 3, class: "form-control quick-review-textarea" %>
-        </div>
-        <div class="review-options">
-          <div class="quick-review-rating-select">
-            <label for="library-rating-<%= item.id %>">Your rating</label>
-            <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: item.rating }, { id: "library-rating-#{item.id}", class: "form-control quick-review-select" } %>
-          </div>
-          <div class="review-flags">
-            <div class="inline-checkbox-group">
-              <%= f.check_box :consumed, id: "inline-consumed-checkbox-#{item.id}" %>
-              <%= f.label :consumed, consumed_past_participle.capitalize, for: "inline-consumed-checkbox-#{item.id}", class: "inline-checkbox-label" %>
+      <% if item_reviewed %>
+        <div class="reviewed-summary-box">
+          <div class="reviewed-summary-info">
+            <div class="reviewed-summary-heading">
+              <span class="reviewed-summary-label">Your Review &amp; Rating</span>
+              <% if @library_item.rating.present? %>
+                <span class="episode-stars"><%= @library_item.rating %> ★</span>
+              <% end %>
             </div>
-            <div class="inline-checkbox-group">
-              <%= f.check_box :is_public, id: "inline-public-checkbox-#{item.id}" %>
-              <%= f.label :is_public, "Public review", for: "inline-public-checkbox-#{item.id}", class: "inline-checkbox-label" %>
-            </div>
+            <% if @library_item.review.present? %>
+              <p class="reviewed-summary-text"><%= truncate(@library_item.review, length: 140) %></p>
+            <% end %>
           </div>
+          <%= link_to "Edit review", edit_review_path(item_type: item.class.name, item_id: item.id), class: "sleek-btn sleek-btn-secondary", data: { turbo_frame: "modal" } %>
         </div>
+      <% else %>
+        <%= form_with model: item, url: polymorphic_path(item), method: :patch, local: true, class: "quick-review-form", data: { controller: "optimistic", action: "turbo:submit-start->optimistic#start turbo:before-fetch-response->optimistic#response turbo:submit-end->optimistic#finish", optimistic_label_value: "Saving…" } do |f| %>
+          <details class="library-disclosure">
+            <summary>Review &amp; rating<span>Your personal review and rating</span></summary>
 
-        <div class="quick-review-submit-row">
-          <%= f.submit "Save review", class: "sleek-btn sleek-btn-primary quick-review-submit-btn" %>
-        </div>
-        </details>
+            <div class="review-field">
+              <label for="library-review-<%= item.id %>">Your review <span>(optional)</span></label>
+              <%= f.text_area :review, id: "library-review-#{item.id}", placeholder: review_placeholder, rows: 3, class: "form-control quick-review-textarea" %>
+            </div>
+            <div class="review-options">
+              <div class="quick-review-rating-select">
+                <label for="library-rating-<%= item.id %>">Your rating</label>
+                <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: item.rating }, { id: "library-rating-#{item.id}", class: "form-control quick-review-select" } %>
+              </div>
+              <div class="review-flags">
+                <div class="inline-checkbox-group">
+                  <%= f.check_box :consumed, id: "inline-consumed-checkbox-#{item.id}" %>
+                  <%= f.label :consumed, consumed_past_participle.capitalize, for: "inline-consumed-checkbox-#{item.id}", class: "inline-checkbox-label" %>
+                </div>
+                <div class="inline-checkbox-group">
+                  <%= f.check_box :is_public, id: "inline-public-checkbox-#{item.id}" %>
+                  <%= f.label :is_public, "Public review", for: "inline-public-checkbox-#{item.id}", class: "inline-checkbox-label" %>
+                </div>
+              </div>
+            </div>
+
+            <div class="quick-review-submit-row">
+              <%= f.submit "Save review", class: "sleek-btn sleek-btn-primary quick-review-submit-btn" %>
+            </div>
+          </details>
+        <% end %>
+      <% end %>
+
+      <%= form_with model: item, url: polymorphic_path(item), method: :patch, local: true, class: "quick-ownership-form" do |f| %>
         <details class="library-disclosure">
           <summary>Ownership details<span>Physical and digital formats</span></summary>
-        <div class="ownership-details-row">
-          <div class="ownership-field">
-            <div class="inline-checkbox-group">
-              <%= f.check_box :owned_physically, id: "inline-phys-checkbox-#{item.id}" %>
-              <%= f.label :owned_physically, "Physical", for: "inline-phys-checkbox-#{item.id}", class: "inline-checkbox-label", style: "margin: 0;" %>
+          <div class="ownership-details-row">
+            <div class="ownership-field">
+              <div class="inline-checkbox-group">
+                <%= f.check_box :owned_physically, id: "inline-phys-checkbox-#{item.id}" %>
+                <%= f.label :owned_physically, "Physical", for: "inline-phys-checkbox-#{item.id}", class: "inline-checkbox-label", style: "margin: 0;" %>
+              </div>
+              <%= f.select :owned_physically_format, physical_formats, { include_blank: 'Format…' }, { class: "form-control quick-review-select format-select", style: "width: 100%;", aria: { label: "Physical format" } } %>
             </div>
-            <%= f.select :owned_physically_format, physical_formats, { include_blank: 'Format…' }, { class: "form-control quick-review-select format-select", style: "width: 100%;", aria: { label: "Physical format" } } %>
-          </div>
 
-          <div class="ownership-field">
-            <div class="inline-checkbox-group">
-              <%= f.check_box :owned_digitally, id: "inline-digi-checkbox-#{item.id}" %>
-              <%= f.label :owned_digitally, "Digital", for: "inline-digi-checkbox-#{item.id}", class: "inline-checkbox-label", style: "margin: 0;" %>
+            <div class="ownership-field">
+              <div class="inline-checkbox-group">
+                <%= f.check_box :owned_digitally, id: "inline-digi-checkbox-#{item.id}" %>
+                <%= f.label :owned_digitally, "Digital", for: "inline-digi-checkbox-#{item.id}", class: "inline-checkbox-label", style: "margin: 0;" %>
+              </div>
+              <%= f.select :owned_digitally_format, digital_formats, { include_blank: 'Format…' }, { class: "form-control quick-review-select format-select", style: "width: 100%;", aria: { label: "Digital format" } } %>
             </div>
-            <%= f.select :owned_digitally_format, digital_formats, { include_blank: 'Format…' }, { class: "form-control quick-review-select format-select", style: "width: 100%;", aria: { label: "Digital format" } } %>
           </div>
-        </div>
 
           <div class="quick-review-submit-row"><%= f.submit 'Save ownership', class: 'sleek-btn sleek-btn-primary' %></div>
         </details>
