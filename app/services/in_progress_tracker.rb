@@ -78,25 +78,26 @@ class InProgressTracker
     series = lib_item&.item
     return nil unless series
 
-    entries = pass.entries.pluck(:item_id, :consumed_at)
+    entries = pass.entries.order(:consumed_at, :id).pluck(:item_id, :consumed_at)
     consumed_ids = entries.to_set(&:first)
     last_at = entries.map(&:last).max || pass.updated_at
 
     if series.is_a?(TvShow)
-      build_tv_show_item(series, lib_item, pass, consumed_ids, last_at)
+      build_tv_show_item(series, lib_item, pass, entries, last_at)
     else
       build_comic_item(series, lib_item, pass, consumed_ids, last_at)
     end
   end
 
-  def build_tv_show_item(show, lib_item, pass, consumed_ids, last_consumed_at)
+  def build_tv_show_item(show, lib_item, pass, entries, last_consumed_at)
     episodes = show.tv_episodes.order(:season, :episode).to_a
     return nil if episodes.empty?
 
-    done_ids = episodes.to_set(&:id) & consumed_ids
+    done_ids = episodes.to_set(&:id) & entries.to_set(&:first)
     return nil if done_ids.size >= episodes.size
 
-    last_ep = episodes.select { |e| done_ids.include?(e.id) }.max_by { |e| [e.season || 0, e.episode || 0] }
+    last_ep_id = entries.reverse_each.find { |id, _| done_ids.include?(id) }&.first
+    last_ep = episodes.find { |episode| episode.id == last_ep_id }
     next_ep = find_next_episode(episodes, last_ep, done_ids)
     return nil unless next_ep
 
