@@ -34,9 +34,11 @@ class MediaArtworkDownload
       image_url = uri.to_s
     end
     MediaSources::Http.get(image_url, max_bytes: MediaCoverImporter::MAX_BYTES, deadline: deadline) do |chunk, type|
-      if type.present? && !MediaCoverImporter::IMAGE_TYPES.include?(type.split(';').first)
-        raise MediaSources::Http::Error, 'Unsupported response content type'
-      end
+      content_type = type.to_s.split(';').first
+      allowed_type = MediaCoverImporter::IMAGE_TYPES.include?(content_type)
+      # Some ComicVine JPEGs are served as binary; the file signature is checked below.
+      allowed_type ||= uri.host == 'comicvine.gamespot.com' && content_type == 'application/octet-stream'
+      raise MediaSources::Http::Error, 'Unsupported response content type' if type.present? && !allowed_type
 
       file.write(chunk)
     end
