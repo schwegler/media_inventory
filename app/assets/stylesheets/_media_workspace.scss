@@ -43,7 +43,7 @@
 .catalog-grid .card-2026-meta { color: var(--text-secondary); font-size: .8125rem; line-height: 1.45; }
 .catalog-grid .card-2026-year { color: var(--text-tertiary); }
 .media-back-link { display: inline-flex; align-items: center; min-height: 44px; margin-bottom: 1rem; font-size: .875rem; text-decoration: none; }
-.media-overview { display: grid; grid-template-columns: 164px minmax(0, 1fr) 250px; align-items: center; gap: 2rem; padding-block: .5rem 2rem; }
+.media-overview { display: grid; grid-template-columns: 164px minmax(0, 1fr) 250px; align-items: start; gap: 2rem; padding-block: .5rem 2rem; }
 .media-cover { aspect-ratio: 2 / 3; border-radius: 7px; overflow: hidden; border: 1px solid var(--border); background: var(--inset); }
 .media-cover img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .media-cover .artwork-fallback { min-height: 100%; gap: .7rem; }
@@ -60,7 +60,7 @@
 .media-personal-rating { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; color: var(--star-color); margin-block: .75rem; }
 .media-personal-rating > span:first-child { color: var(--text-secondary); font-size: .8125rem; }
 .media-share summary { cursor: pointer; color: var(--text-secondary); font-size: .875rem; min-height: 44px; align-content: center; }
-.media-share .item-sharing { margin-top: .5rem; }
+.media-share .item-sharing { margin-top: .5rem; margin-bottom: 0; }
 .media-overview-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--border); border-radius: 7px; padding: 1.2rem .5rem; background: var(--surface); }
 .media-overview-stats > div { padding: 0 .5rem; display: flex; flex-direction: column; gap: .4rem; }
 .media-overview-stats > div + div { border-left: 1px solid var(--border); }
