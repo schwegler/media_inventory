@@ -67,7 +67,7 @@
         <% end %>
         <section class="profile-section">
           <div class="profile-section-heading"><h2>Recently collected</h2><%= link_to 'View all', profile_tab_path('collection') %></div>
-          <%= render 'profile_shelf', items: @recent_collection, empty_title: 'A library waiting to happen.', empty_description: @profile_owner ? 'Find something you love and add it to your collection.' : 'No public collection items yet.' %>
+          <%= render 'profile_shelf', items: @recent_collection, empty_title: 'A library waiting to happen.', empty_description: @profile_owner ? 'Find something you love and add it to your collection.' : 'No collection items yet.' %>
         </section>
         <section class="profile-section">
           <div class="profile-section-heading"><h2>Recent activity</h2><%= link_to 'View all', profile_tab_path('posts') %></div>
@@ -75,7 +75,7 @@
         </section>
       <% elsif %w[collection backlog].include?(@profile_tab) %>
         <section class="profile-section">
-          <div class="profile-section-heading"><h2><%= @profile_tab.capitalize %></h2><span><%= @profile_owner ? 'Your library, including private items' : 'Public items only' %></span></div>
+          <div class="profile-section-heading"><h2><%= @profile_tab.capitalize %></h2><span><%= @profile_owner ? 'Your library, including private reviews' : 'Private reviews are hidden' %></span></div>
           <%= form_with url: user_path(@user), method: :get, class: 'profile-filter' do |f| %>
             <%= hidden_field_tag :tab, @profile_tab %>
             <%= hidden_field_tag :preview, 'public' if params[:preview] == 'public' %>
@@ -83,7 +83,7 @@
             <%= select_tag :type, options_for_select(ProfilesHelper::PROFILE_MEDIA_TYPES.map { |key, label| [label, key] }, params[:type]), include_blank: 'All media' %>
             <%= f.button 'Filter', class: 'btn btn-secondary' %>
           <% end %>
-          <%= render 'profile_shelf', items: @profile_tab == 'collection' ? @collection_items : @backlog_items, empty_title: 'Nothing here yet.', empty_description: params[:type].present? ? 'Try another media type or choose All media.' : (@profile_owner ? 'Browse Trove to start building this shelf.' : 'No public items on this shelf yet.') %>
+          <%= render 'profile_shelf', items: @profile_tab == 'collection' ? @collection_items : @backlog_items, empty_title: 'Nothing here yet.', empty_description: params[:type].present? ? 'Try another media type or choose All media.' : (@profile_owner ? 'Browse Trove to start building this shelf.' : 'No items on this shelf yet.') %>
         </section>
       <% elsif @profile_tab == 'posts' %>
         <section class="profile-section"><div class="profile-section-heading"><h2>Activity</h2></div>
@@ -111,13 +111,13 @@
     <aside class="library-profile-sidebar">
       <h2>About this library</h2>
       <p><%= @user.bio.presence || "A collection of what #{@user.name} loves, and what’s next." %></p>
-      <p class="profile-visibility"><%= @profile_owner ? 'Only you can see private items. Use Public preview to see what visitors see.' : 'You’re exploring the public side of this library.' %></p>
+      <p class="profile-visibility"><%= @profile_owner ? 'Only you can see reviews marked private. Use Public preview to see what visitors see.' : 'You’re exploring the public side of this library.' %></p>
       <% if @profile_owner && @user.birthday.present? %><p class="profile-visibility">Birthday: <%= @user.birthday.strftime('%B %d, %Y') %> · Only shown to you</p><% end %>
       <section class="profile-mix"><h3>Library mix</h3>
         <% @library_mix.sort_by { |_, count| -count }.each do |type, count| %>
           <%= link_to profile_tab_path('collection', type: type) do %><span><%= ProfilesHelper::PROFILE_MEDIA_TYPES[type] || type.titleize %></span><strong><%= count %></strong><% end %>
         <% end %>
-        <% if @library_mix.empty? %><p>No public items yet.</p><% end %>
+        <% if @library_mix.empty? %><p>No items yet.</p><% end %>
       </section>
       <% if logged_in? && !current_user?(@user) %>
         <section class="profile-shared"><h3>In common</h3><p><%= pluralize(@shared_items_count || 0, 'collected item') %> in both your libraries.</p>

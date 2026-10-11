@@ -82,7 +82,7 @@ RSpec.describe 'Users index', type: :request do
     end
   end
 
-  it 'presents only public collection counts and keeps identity separate from admin actions' do
+  it 'counts every collected item regardless of review privacy and keeps identity separate from admin actions' do
     admin = User.create!(name: 'Directory Admin', email: 'directory-admin@example.com', password: 'password123',
                          admin: true)
     movie = Movie.create!(title: 'Public discovery')
@@ -92,7 +92,7 @@ RSpec.describe 'Users index', type: :request do
     post login_path, params: { session: { email: admin.email, password: 'password123' } }
     get users_path
     card = Nokogiri::HTML(response.body).at_css(".member-card-identity[href='#{user_path(user)}']").parent.parent
-    expect(card.at_css('.member-card-meta').text).to include('1 public collection item')
+    expect(card.at_css('.member-card-meta').text).to include('2 collection items')
     expect(card.at_css('.member-card-identity').text).to include(user.name)
     expect(card.at_css('.member-card-admin button')['aria-label']).to eq("Delete #{user.name}'s account")
     expect(card.at_css('.member-card-identity button')).to be_nil

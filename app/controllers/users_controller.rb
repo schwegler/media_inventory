@@ -11,7 +11,8 @@ class UsersController < ApplicationController
   def index
     # Optimize to eager load user avatars to prevent N+1 queries when rendering the user list
     @users = User.with_attached_avatar.with_attached_header_banner.page(params[:page])
-    @public_collection_counts = LibraryItem.where(user_id: @users.map(&:id), is_collected: true, is_public: true)
+    # `is_public` only governs review/rating visibility, so every collected item counts.
+    @public_collection_counts = LibraryItem.where(user_id: @users.map(&:id), is_collected: true)
                                            .group(:user_id).count
   end
 
@@ -23,9 +24,10 @@ class UsersController < ApplicationController
     @activities = @user.activities.order(created_at: :desc)
     @likes = @user.likes.order(created_at: :desc)
 
-    # Filter activities and likes based on privacy unless the current user is the owner
+    # Hide review content (reviewed activities / liked reviews) the user hasn't made public,
+    # unless the current user is the owner. Library entries themselves are always visible.
     unless @profile_owner
-      @activities = public_library_events(@activities, 'activities', 'trackable')
+      @activities = public_review_activities(@activities)
       @likes = public_library_events(@likes, 'likes', 'likeable')
     end
 
@@ -45,7 +47,7 @@ class UsersController < ApplicationController
     @collection_items = @profile_tab == 'collection' ? preload_library_items(fetch_library_items(is_collected: true)) : []
     @backlog_items = @profile_tab == 'backlog' ? preload_library_items(fetch_library_items(in_backlog: true)) : []
     @recent_collection = preload_library_items(@visible_library.where(is_collected: true).order(created_at: :desc).limit(6))
-    @in_progress_items = InProgressTracker.items_for(@user, public_only: !@profile_owner)
+    @in_progress_items = InProgressTracker.items_for(@user)
     load_shared_items
   end
 
@@ -115,8 +117,8 @@ class UsersController < ApplicationController
   def prepare_profile_library
     @profile_owner = current_user?(@user) && params[:preview] != 'public'
     @profile_tab = %w[overview collection backlog posts likes].include?(params[:tab]) ? params[:tab] : 'overview'
+    # `is_public` controls review/rating visibility only; every library entry is visible on the profile.
     @visible_library = @user.library_items
-    @visible_library = @visible_library.where(is_public: true) unless @profile_owner
     @collection_count = @visible_library.where(is_collected: true).count
     @backlog_count = @visible_library.where(in_backlog: true).count
     @library_mix = @visible_library.where(is_collected: true).group(:item_type).count
@@ -133,6 +135,13 @@ class UsersController < ApplicationController
     @shared_items_count = shared.count
     @shared_items = shared.order(created_at: :desc).limit(4)
     preload_library_items(@shared_items)
+  end
+
+  # Non-review activities (added, consumed, watchlist) are always shown. "reviewed" activities
+  # expose review/rating content, so they're only shown when the underlying entry is public.
+  def public_review_activities(scope)
+    public_reviews = public_library_events(Activity.where(activity_type: 'reviewed'), 'activities', 'trackable')
+    scope.where.not(activity_type: 'reviewed').or(scope.where(id: public_reviews.select(:id)))
   end
 
   def public_library_events(scope, table, association)

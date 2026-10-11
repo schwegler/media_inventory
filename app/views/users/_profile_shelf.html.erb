@@ -10,7 +10,7 @@
             <span class="profile-cover-title"><%= item.title %></span>
           <% end %>
         <% end %>
-        <p class="profile-entry-type"><%= entry.item_type.titleize %><%= ' · Private' unless entry.is_public? %></p>
+        <p class="profile-entry-type"><%= entry.item_type.titleize %><%= ' · Private review' if @profile_owner && !entry.is_public? && (entry.review.present? || entry.rating.present?) %></p>
         <h3><%= link_to item.title, item %></h3>
         <% if item.respond_to?(:release_year) && item.release_year.present? %><p class="profile-entry-year"><%= item.release_year %></p><% end %>
       </article>
