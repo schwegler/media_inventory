@@ -19,8 +19,7 @@ class Movie < ApplicationRecord
   private
 
   def sync_details_from_api
-    return if api_id.blank? || !api_id.match?(/\A\d+\z/)
-    return unless saved_change_to_api_id?
+    return if api_id.blank? || !api_id.match?(/\A\d+\z/) || !saved_change_to_api_id?
 
     api_key = MediaSources::Registry.token('TMDB', 'Movie')
     if api_key.blank?
@@ -28,29 +27,47 @@ class Movie < ApplicationRecord
       return
     end
 
-    require 'net/http'
-    require 'json'
+    data = fetch_tmdb_movie_data(api_key)
+    return unless data.is_a?(Hash)
+
+    apply_tmdb_movie_attributes(data)
+  rescue StandardError => e
+    Rails.logger.error "Failed to sync Movie details: #{e.class}"
+  end
+
+  def fetch_tmdb_movie_data(api_key)
     url = URI("https://api.themoviedb.org/3/movie/#{api_id}?api_key=#{api_key}&append_to_response=credits")
     response = MediaSources::Http.get(url)
-    data = JSON.parse(response)
+    JSON.parse(response)
+  end
 
-    crew = Array(data.dig('credits', 'crew'))
-    cast = Array(data.dig('credits', 'cast'))
-    directors = crew.select { |p| p['job'] == 'Director' }.map { |p| p['name'] }.compact.uniq.join(', ').presence
-    writers = crew.select { |p| p['department'] == 'Writing' || %w[Writer Screenplay Story Author].include?(p['job']) }.map { |p| p['name'] }.compact.uniq.first(5).join(', ').presence
-    actors_list = cast.slice(0, 10).map { |c| c['name'] }.compact.uniq.join(', ').presence
-    genre_names = Array(data['genres']).map { |g| g['name'] }.compact.join(', ').presence
+  def apply_tmdb_movie_attributes(data)
+    directors, writers, actors_list = extract_tmdb_credits(
+      Array(data.dig('credits', 'crew')),
+      Array(data.dig('credits', 'cast'))
+    )
+    genre_names = Array(data['genres']).filter_map { |g| g['name'] }.join(', ').presence
+    poster = data['poster_path'] ? "https://image.tmdb.org/t/p/w500#{data['poster_path']}" : thumbnail_url
+    year = data['release_date'] ? data['release_date'].split('-').first : release_year
 
     update!(
       title: data['title'] || title,
-      release_year: data['release_date']&.split('-')&.first || release_year,
+      release_year: year,
       director: directors || director,
       writer: writers || writer,
       actors: actors_list || actors,
       genre: genre_names || genre,
-      thumbnail_url: data['poster_path'] ? "https://image.tmdb.org/t/p/w500#{data['poster_path']}" : thumbnail_url
+      thumbnail_url: poster
     )
-  rescue StandardError => e
-    Rails.logger.error "Failed to sync Movie details: #{e.class}"
+  end
+
+  def extract_tmdb_credits(crew, cast)
+    directors = crew.select { |p| p['job'] == 'Director' }.map { |p| p['name'] }.compact.uniq.join(', ').presence
+    writing = crew.select do |p|
+      p['department'] == 'Writing' || %w[Writer Screenplay Story Author].include?(p['job'])
+    end
+    writers = writing.map { |p| p['name'] }.compact.uniq.first(5).join(', ').presence
+    actors_list = cast.slice(0, 10).map { |c| c['name'] }.compact.uniq.join(', ').presence
+    [directors, writers, actors_list]
   end
 end

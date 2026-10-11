@@ -82,34 +82,38 @@ class MetadataProvider
     id = numeric_id
     data = json("https://api.tvmaze.com/shows/#{id}")
     data = {} unless data.is_a?(Hash)
-    cast = Array(data.dig('_embedded', 'cast')).slice(0, 10).filter_map { |c| c.dig('person', 'name') }.uniq.join(', ').presence
-    crew = Array(data.dig('_embedded', 'crew'))
-    directors = crew.select { |c| c['type'].to_s.downcase.include?('director') }.filter_map { |c| c.dig('person', 'name') }.uniq.first(5).join(', ').presence
-    writers = crew.select { |c| %w[creator writer developer story head\ writer].any? { |t| c['type'].to_s.downcase.include?(t) } }.filter_map { |c| c.dig('person', 'name') }.uniq.first(5).join(', ').presence
-
-    if directors.blank? && writers.blank? && cast.blank?
-      cast_crew = optional_details do
-        embedded_data = json("https://api.tvmaze.com/shows/#{id}?embed[]=cast&embed[]=crew")
-        [embedded_data] if embedded_data.is_a?(Hash)
-      end
-      if cast_crew.present? && (emb = cast_crew.first&.dig('_embedded'))
-        cast = Array(emb['cast']).slice(0, 10).filter_map { |c| c.dig('person', 'name') }.uniq.join(', ').presence
-        crew = Array(emb['crew'])
-        directors = crew.select { |c| c['type'].to_s.downcase.include?('director') }.filter_map { |c| c.dig('person', 'name') }.uniq.first(5).join(', ').presence
-        writers = crew.select { |c| %w[creator writer developer story head\ writer].any? { |t| c['type'].to_s.downcase.include?(t) } }.filter_map { |c| c.dig('person', 'name') }.uniq.first(5).join(', ').presence
-      end
-    end
-
-    genres = Array(data['genres']).join(', ').presence
+    directors, writers, cast = tvmaze_credits(data['_embedded'])
+    directors, writers, cast = fetch_tvmaze_embedded_credits(id) if directors.blank? && writers.blank? && cast.blank?
 
     fields = { network: data.dig('network', 'name') || data.dig('webChannel', 'name'),
                thumbnail_url: data.dig('image', 'original') || data.dig('image', 'medium'),
                director: directors,
                writer: writers,
                actors: cast,
-               genre: genres,
+               genre: Array(data['genres']).join(', ').presence,
                release_year: year(data['premiered']) }
     [fields, children { json("https://api.tvmaze.com/shows/#{id}/episodes") }]
+  end
+
+  def tvmaze_credits(embedded)
+    return [nil, nil, nil] if embedded.blank?
+
+    cast = Array(embedded['cast']).slice(0, 10).filter_map { |c| c.dig('person', 'name') }.uniq.join(', ').presence
+    crew = Array(embedded['crew'])
+    directors = crew.select { |c| c['type'].to_s.downcase.include?('director') }
+                    .filter_map { |c| c.dig('person', 'name') }.uniq.first(5).join(', ').presence
+    writer_roles = ['creator', 'writer', 'developer', 'story', 'head writer']
+    writers = crew.select { |c| writer_roles.any? { |t| c['type'].to_s.downcase.include?(t) } }
+                  .filter_map { |c| c.dig('person', 'name') }.uniq.first(5).join(', ').presence
+    [directors, writers, cast]
+  end
+
+  def fetch_tvmaze_embedded_credits(id)
+    cast_crew = optional_details do
+      embedded_data = json("https://api.tvmaze.com/shows/#{id}?embed[]=cast&embed[]=crew")
+      [embedded_data] if embedded_data.is_a?(Hash)
+    end
+    tvmaze_credits(cast_crew.first&.dig('_embedded'))
   end
 
   def tmdb_television
@@ -117,37 +121,46 @@ class MetadataProvider
     active!('TMDB')
     token = key('TMDB')
     id = numeric_id('tmdb_')
-    data = json("https://api.themoviedb.org/3/tv/#{id}", api_key: token, append_to_response: 'credits')
-    data = json("https://api.themoviedb.org/3/tv/#{id}", api_key: token) if !data.is_a?(Hash) || data['seasons'].blank?
-    data = {} unless data.is_a?(Hash)
-    rows = children do
-      seasons = Array(data['seasons'])
-      @partial = true if seasons.length > 8
-      seasons.first(8).flat_map do |season|
-        json("https://api.themoviedb.org/3/tv/#{id}/season/#{season.fetch('season_number')}",
-             api_key: token).fetch('episodes').map do |ep|
-          { 'name' => ep['name'], 'season' => ep['season_number'], 'number' => ep['episode_number'],
-            'airdate' => ep['air_date'], 'summary' => ep['overview'],
-            'image' => { 'original' => ep['still_path'].present? ? "https://image.tmdb.org/t/p/w500#{ep['still_path']}" : nil } }
-        end
-      end
-    end
-    crew = Array(data.dig('credits', 'crew'))
-    cast = Array(data.dig('credits', 'cast'))
-    created_by = Array(data['created_by']).map { |c| c['name'] }.compact
-    writers = (created_by + crew.select { |p| p['department'] == 'Writing' || %w[Writer Screenplay Story].include?(p['job']) }.map { |p| p['name'] }).compact.reject(&:blank?).uniq.first(5).join(', ').presence
-    directors = crew.select { |p| p['job'] == 'Director' }.map { |p| p['name'] }.compact.uniq.first(5).join(', ').presence
-    actors = cast.slice(0, 10).map { |c| c['name'] }.compact.uniq.join(', ').presence
-    genres = names(Array(data['genres']))
+    data = fetch_tmdb_show_data(id, token)
+    rows = children { tmdb_tv_episodes(id, token, data['seasons']) }
+    directors, writers, actors = tmdb_tv_credits(data)
 
     fields = { network: data.dig('networks', 0, 'name'),
                thumbnail_url: data['poster_path'].present? ? "https://image.tmdb.org/t/p/w500#{data['poster_path']}" : nil,
                director: directors,
                writer: writers,
                actors: actors,
-               genre: genres,
+               genre: names(Array(data['genres'])),
                release_year: year(data['first_air_date']) }
     [fields, rows]
+  end
+
+  def fetch_tmdb_show_data(id, token)
+    data = json("https://api.themoviedb.org/3/tv/#{id}", api_key: token, append_to_response: 'credits')
+    data = json("https://api.themoviedb.org/3/tv/#{id}", api_key: token) if !data.is_a?(Hash) || data['seasons'].blank?
+    data.is_a?(Hash) ? data : {}
+  end
+
+  def tmdb_tv_episodes(id, token, seasons)
+    season_list = Array(seasons)
+    @partial = true if season_list.length > 8
+    season_list.first(8).flat_map do |season|
+      json("https://api.themoviedb.org/3/tv/#{id}/season/#{season.fetch('season_number')}",
+           api_key: token).fetch('episodes').map do |ep|
+        still = ep['still_path']
+        img = still.present? ? "https://image.tmdb.org/t/p/w500#{still}" : nil
+        { 'name' => ep['name'], 'season' => ep['season_number'], 'number' => ep['episode_number'],
+          'airdate' => ep['air_date'], 'summary' => ep['overview'], 'image' => { 'original' => img } }
+      end
+    end
+  end
+
+  def tmdb_tv_credits(data)
+    crew = Array(data.dig('credits', 'crew'))
+    created_by = Array(data['created_by']).filter_map { |c| c['name'] }
+    writing_crew = crew.select { |p| p['department'] == 'Writing' || %w[Writer Screenplay Story].include?(p['job']) }
+    writers = (created_by + Array(names(writing_crew)&.split(', '))).compact_blank.uniq.first(5).join(', ').presence
+    [names(crew.select { |p| p['job'] == 'Director' }), writers, names(Array(data.dig('credits', 'cast')).slice(0, 10))]
   end
 
   def children
@@ -230,7 +243,10 @@ class MetadataProvider
     crew = Array(data.dig('credits', 'crew'))
     cast = Array(data.dig('credits', 'cast'))
     directors = names(crew.select { |person| person['job'] == 'Director' })
-    writers = names(crew.select { |person| person['department'] == 'Writing' || %w[Writer Screenplay Story Author].include?(person['job']) }.first(5))
+    writing_crew = crew.select do |person|
+      person['department'] == 'Writing' || %w[Writer Screenplay Story Author].include?(person['job'])
+    end
+    writers = names(writing_crew.first(5))
     actors = names(cast.slice(0, 10))
     genres = names(Array(data['genres']))
 

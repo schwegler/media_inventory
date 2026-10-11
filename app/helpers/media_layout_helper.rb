@@ -12,7 +12,9 @@ module MediaLayoutHelper
 
   METADATA = {
     'Movie' => { director: 'Director', writer: 'Writer', actors: 'Actors', genre: 'Genre', release_year: 'Year' },
-    'TvShow' => { network: 'Network', director: 'Director', writer: 'Writer', actors: 'Actors', genre: 'Genre', release_year: 'Year' },
+    'TvShow' => {
+      network: 'Network', director: 'Director', writer: 'Writer', actors: 'Actors', genre: 'Genre', release_year: 'Year'
+    },
     'Book' => { author: 'Author', publisher: 'Publisher', release_year: 'Year' },
     'Album' => { artist: 'Artist', genre: 'Genre', release_year: 'Year' },
     'Comic' => { writer: 'Writer', artist: 'Artist', publisher: 'Publisher', issue_number: 'Issue' },
@@ -38,7 +40,7 @@ module MediaLayoutHelper
     end
   end
 
-  def render_media_metadata_value(item, attribute, value)
+  def render_media_metadata_value(_item, attribute, value)
     category_type = CATEGORY_ATTRIBUTE_MAP[attribute&.to_sym]
     return ERB::Util.html_escape(value) unless category_type
 

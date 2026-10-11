@@ -5,7 +5,8 @@ require 'rails_helper'
 RSpec.describe Category, type: :model do
   describe '.split_names' do
     it 'splits comma, semicolon, slash, and pipe separated names' do
-      expect(Category.split_names('Keanu Reeves, Laurence Fishburne; Carrie-Anne Moss / Hugo Weaving | Joe Pantoliano')).to eq(
+      names_string = 'Keanu Reeves, Laurence Fishburne; Carrie-Anne Moss / Hugo Weaving | Joe Pantoliano'
+      expect(Category.split_names(names_string)).to eq(
         ['Keanu Reeves', 'Laurence Fishburne', 'Carrie-Anne Moss', 'Hugo Weaving', 'Joe Pantoliano']
       )
     end
@@ -19,9 +20,13 @@ RSpec.describe Category, type: :model do
 
   describe '.list_for' do
     before do
-      Movie.create!(title: 'The Matrix', director: 'Lana Wachowski, Lilly Wachowski', writer: 'Lana Wachowski, Lilly Wachowski', actors: 'Keanu Reeves, Laurence Fishburne', genre: 'Action, Sci-Fi')
-      Movie.create!(title: 'John Wick', director: 'Chad Stahelski', writer: 'Derek Kolstad', actors: 'Keanu Reeves, Michael Nyqvist', genre: 'Action, Thriller')
-      TvShow.create!(title: 'Sense8', director: 'Lana Wachowski', writer: 'Lana Wachowski, J. Michael Straczynski', actors: 'Doona Bae, Jamie Clayton', genre: 'Sci-Fi, Drama')
+      Movie.create!(title: 'The Matrix', director: 'Lana Wachowski, Lilly Wachowski',
+                    writer: 'Lana Wachowski, Lilly Wachowski', actors: 'Keanu Reeves, Laurence Fishburne',
+                    genre: 'Action, Sci-Fi')
+      Movie.create!(title: 'John Wick', director: 'Chad Stahelski', writer: 'Derek Kolstad',
+                    actors: 'Keanu Reeves, Michael Nyqvist', genre: 'Action, Thriller')
+      TvShow.create!(title: 'Sense8', director: 'Lana Wachowski', writer: 'Lana Wachowski, J. Michael Straczynski',
+                     actors: 'Doona Bae, Jamie Clayton', genre: 'Sci-Fi, Drama')
     end
 
     it 'aggregates and counts actors across movies and tv shows' do
@@ -63,9 +68,18 @@ RSpec.describe Category, type: :model do
   end
 
   describe '.items_for' do
-    let!(:matrix) { Movie.create!(title: 'The Matrix', release_year: 1999, director: 'Lana Wachowski', writer: 'Lana Wachowski', actors: 'Keanu Reeves, Laurence Fishburne', genre: 'Sci-Fi') }
-    let!(:wick) { Movie.create!(title: 'John Wick', release_year: 2014, director: 'Chad Stahelski', writer: 'Derek Kolstad', actors: 'Keanu Reeves', genre: 'Action') }
-    let!(:sense8) { TvShow.create!(title: 'Sense8', release_year: 2015, director: 'Lana Wachowski', writer: 'Lana Wachowski', actors: 'Doona Bae', genre: 'Sci-Fi') }
+    let!(:matrix) do
+      Movie.create!(title: 'The Matrix', release_year: 1999, director: 'Lana Wachowski',
+                    writer: 'Lana Wachowski', actors: 'Keanu Reeves, Laurence Fishburne', genre: 'Sci-Fi')
+    end
+    let!(:wick) do
+      Movie.create!(title: 'John Wick', release_year: 2014, director: 'Chad Stahelski',
+                    writer: 'Derek Kolstad', actors: 'Keanu Reeves', genre: 'Action')
+    end
+    let!(:sense8) do
+      TvShow.create!(title: 'Sense8', release_year: 2015, director: 'Lana Wachowski',
+                     writer: 'Lana Wachowski', actors: 'Doona Bae', genre: 'Sci-Fi')
+    end
 
     it 'finds all items matching an actor' do
       items = Category.items_for('actors', 'Keanu Reeves')
