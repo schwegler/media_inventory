@@ -1,15 +1,53 @@
-<div class="game-field"><%= f.label :platform, 'Hardware platform' %><%= f.text_field :platform, value: copy&.platform, required: true, placeholder: 'Windows PC, Nintendo Switch 2, Xbox Series X…' %></div>
-<div class="game-field"><%= f.label :storefront %><%= f.text_field :storefront, value: copy&.storefront, placeholder: 'Steam, GOG, retail…' %></div>
-<div class="game-field"><%= f.label :edition %><%= f.text_field :edition, value: copy&.edition %></div>
-<div class="game-field"><%= f.label :ownership_status %><%= f.select :ownership_status, %w[owned wishlist previously_owned].map { |v| [v.humanize, v] }, selected: copy&.ownership_status %></div>
-<div class="game-field"><%= f.label :access_method %><%= f.select :access_method, %w[physical digital subscription cloud].map { |v| [v.humanize, v] }, selected: copy&.access_method %></div>
+<%
+  game = copy&.library_item&.item || local_assigns[:library]&.item
+  selected_platform = copy&.platform.presence || (game ? GameCopy.default_platform_for(game) : 'Windows PC')
+  platform_options = (GameCopy::PLATFORMS + [copy&.platform].compact_blank).uniq
+
+  selected_storefront = copy&.storefront.presence || GameCopy.default_storefront_for(selected_platform)
+  storefront_options = (GameCopy::STOREFRONTS + [copy&.storefront].compact_blank).uniq
+
+  selected_edition = copy&.edition.presence || 'Standard'
+  edition_options = (GameCopy::EDITIONS + [copy&.edition].compact_blank).uniq
+
+  selected_status = copy&.ownership_status.presence || 'owned'
+  selected_access = copy&.access_method.presence || 'digital'
+%>
+<div class="game-field">
+  <%= f.label :platform, 'Hardware platform' %>
+  <%= f.select :platform, platform_options, { selected: selected_platform }, { required: true, class: 'form-control', aria: { label: 'Hardware platform' } } %>
+</div>
+<div class="game-field">
+  <%= f.label :storefront, 'Storefront / Service' %>
+  <%= f.select :storefront, storefront_options, { selected: selected_storefront, include_blank: 'Direct / Not specified' }, { class: 'form-control', aria: { label: 'Storefront or service' } } %>
+</div>
+<div class="game-field">
+  <%= f.label :edition, 'Edition' %>
+  <%= f.select :edition, edition_options, { selected: selected_edition }, { class: 'form-control', aria: { label: 'Game edition' } } %>
+</div>
+<div class="game-field">
+  <%= f.label :ownership_status, 'Ownership status' %>
+  <%= f.select :ownership_status, %w[owned wishlist previously_owned].map { |v| [v.humanize, v] }, { selected: selected_status }, { class: 'form-control', aria: { label: 'Ownership status' } } %>
+</div>
+<div class="game-field">
+  <%= f.label :access_method, 'Format / Access' %>
+  <%= f.select :access_method, [['Digital purchase', 'digital'], ['Physical copy', 'physical'], ['Subscription', 'subscription'], ['Cloud streaming', 'cloud']], { selected: selected_access }, { class: 'form-control', aria: { label: 'Access method' } } %>
+</div>
 <details><summary>Purchase and physical-copy details</summary><div class="game-nested-fields">
-  <div class="game-field"><%= f.label :purchase_date %><%= f.date_field :purchase_date, value: copy&.purchase_date %></div>
-  <div class="game-field"><%= f.label :purchase_price %><%= f.number_field :purchase_price, value: copy&.purchase_price, min: 0, step: '0.01' %></div>
-  <div class="game-field"><%= f.label :currency, 'Currency (ISO code)' %><%= f.text_field :currency, value: copy&.currency, maxlength: 3, placeholder: 'USD' %></div>
-  <div class="game-field"><%= f.label :acquisition_source, 'Acquired from' %><%= f.text_field :acquisition_source, value: copy&.acquisition_source, maxlength: 200 %></div>
+  <div class="game-field"><%= f.label :purchase_date %><%= f.date_field :purchase_date, value: copy&.purchase_date, class: 'form-control' %></div>
+  <div class="game-field"><%= f.label :purchase_price %><%= f.number_field :purchase_price, value: copy&.purchase_price, min: 0, step: '0.01', class: 'form-control' %></div>
+  <div class="game-field">
+    <%= f.label :currency, 'Currency' %>
+    <%= f.select :currency, GameCopy::CURRENCIES, { selected: copy&.currency.presence || 'USD', include_blank: 'None' }, { class: 'form-control' } %>
+  </div>
+  <div class="game-field"><%= f.label :acquisition_source, 'Acquired from' %><%= f.text_field :acquisition_source, value: copy&.acquisition_source, maxlength: 200, placeholder: 'e.g. Steam, Best Buy, Amazon…', class: 'form-control' %></div>
   <div class="game-check"><%= f.check_box :gifted, checked: copy&.gifted? %><%= f.label :gifted, 'Received as a gift' %></div>
-  <div class="game-field"><%= f.label :condition, 'Physical condition' %><%= f.text_field :condition, value: copy&.condition, maxlength: 200, placeholder: 'Complete in box, loose cartridge…' %></div>
-  <div class="game-field"><%= f.label :region %><%= f.text_field :region, value: copy&.region, maxlength: 200 %></div>
-  <div class="game-field game-field-wide"><%= f.label :notes, 'Private purchase notes' %><%= f.text_area :notes, value: copy&.notes %></div>
+  <div class="game-field">
+    <%= f.label :condition, 'Physical condition' %>
+    <%= f.select :condition, GameCopy::CONDITIONS, { selected: copy&.condition, include_blank: 'Select condition (optional)' }, { class: 'form-control' } %>
+  </div>
+  <div class="game-field">
+    <%= f.label :region, 'Region' %>
+    <%= f.select :region, GameCopy::REGIONS, { selected: copy&.region, include_blank: 'Select region (optional)' }, { class: 'form-control' } %>
+  </div>
+  <div class="game-field game-field-wide"><%= f.label :notes, 'Private purchase notes' %><%= f.text_area :notes, value: copy&.notes, class: 'form-control' %></div>
 </div></details>

@@ -168,4 +168,34 @@ RSpec.describe 'Extended private gaming records', type: :request do
     expect(response.media_type).to eq('text/vnd.turbo-stream.html')
     expect(response.body).to include('turbo-stream action="replace" target="my-game-tracking"')
   end
+
+  it 'renders select dropdowns for copy fields and syncs is_collected on copy creation/destruction' do
+    get new_game_tracking_path(video_game_id: game.id, kind: 'copy'),
+        headers: { 'Turbo-Frame' => 'modal' }
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('Add Game Copy')
+    expect(response.body).to include('name="copy[platform]"')
+    expect(response.body).to include('name="copy[storefront]"')
+    expect(response.body).to include('name="copy[edition]"')
+    expect(response.body).to include('name="copy[ownership_status]"')
+    expect(response.body).to include('name="copy[access_method]"')
+
+    expect(library.reload.is_collected?).to be false
+    post game_tracking_path(video_game_id: game.id),
+         params: {
+           kind: 'copy',
+           copy: { platform: 'Windows PC', storefront: 'Steam', ownership_status: 'owned', access_method: 'digital' }
+         },
+         headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
+    expect(response).to have_http_status(:ok)
+    expect(library.reload.is_collected?).to be true
+    expect(response.body).to include("turbo-stream action=\"replace\" target=\"media_actions_video_game_#{game.id}\"")
+
+    copy_id = library.game_copies.last.id
+    delete delete_game_tracking_path(video_game_id: game.id, id: copy_id),
+           params: { kind: 'copy' },
+           headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
+    expect(response).to have_http_status(:ok)
+    expect(library.reload.is_collected?).to be false
+  end
 end

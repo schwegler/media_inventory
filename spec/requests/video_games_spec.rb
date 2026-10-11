@@ -136,4 +136,54 @@ RSpec.describe 'VideoGames', type: :request do
       end
     end
   end
+
+  describe 'PATCH /video_games/:id (Collection action & Ownership details)' do
+    let!(:game) { VideoGame.create!(title: 'Elden Ring', platform: 'PC, PS5, Xbox') }
+
+    before do
+      post login_path, params: { session: { email: user.email, password: 'password123' } }
+    end
+
+    it 'does not show generic Ownership details disclosure on game show page' do
+      LibraryItem.create!(user: user, item: game)
+      get video_game_path(game)
+      expect(response.body).not_to include('Ownership details<span>Physical and digital formats</span>')
+      expect(response.body).not_to include('Save ownership')
+    end
+
+    it 'creates a GameCopy with smart defaults and returns Turbo Stream modal when adding to collection' do
+      expect do
+        patch video_game_path(game),
+              params: { video_game: { is_collected: true } },
+              headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
+      end.to change(GameCopy, :count).by(1)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+      expect(response.body).to include('turbo-stream action="update" target="modal"')
+      expect(response.body).to include('Game Copy Details')
+      expect(response.body).to include('Hardware platform')
+      expect(response.body).to include('name="copy[platform]"')
+      expect(response.body).to include('name="copy[storefront]"')
+      expect(response.body).to include('name="copy[edition]"')
+      expect(response.body).to include('Windows PC')
+
+      copy = GameCopy.last
+      expect(copy.platform).to eq('Windows PC')
+      expect(copy.storefront).to eq('Steam')
+      expect(copy.ownership_status).to eq('owned')
+      expect(copy.access_method).to eq('digital')
+    end
+
+    it 'does not open copy modal when un-collecting' do
+      patch video_game_path(game), params: { video_game: { is_collected: true } }
+      expect do
+        patch video_game_path(game),
+              params: { video_game: { is_collected: false } },
+              headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
+      end.not_to change(GameCopy, :count)
+
+      expect(response.body).not_to include('target="modal"')
+    end
+  end
 end
