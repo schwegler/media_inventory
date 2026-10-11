@@ -13,21 +13,6 @@
       <p class="card-2026-meta"><%= library.game_copies.map { |copy| "#{copy.platform} (#{copy.ownership_status.humanize.downcase})" }.uniq.join(' · ').presence || 'No explicit copy records' %></p>
       <p class="card-2026-meta">Recorded: <%= game_playtime(game[:recorded_minutes]) %></p>
     <% end %>
-    <% if user_rating.present? || avg_rating.present? %>
-      <div class="card-2026-ratings">
-        <% if user_rating.present? %>
-          <span class="card-2026-user-rating" title="Your rating: <%= user_rating %> / 5">
-            <span class="rating-label">Your rating:</span>
-            <span class="rating-stars"><%= render_stars(user_rating) %></span>
-          </span>
-        <% end %>
-        <% if avg_rating.present? %>
-          <span class="card-2026-avg-rating" title="Average rating: <%= avg_rating %> / 5">
-            <span class="rating-label">Avg rating:</span>
-            <span class="rating-value"><%= avg_rating %> ★</span>
-          </span>
-        <% end %>
-      </div>
-    <% end %>
+    <%= render "shared/card_ratings", user_rating: user_rating, avg_rating: avg_rating %>
   </div>
 </article>

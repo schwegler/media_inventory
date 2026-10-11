@@ -78,12 +78,17 @@
   .card-2026-title a { color: var(--text); }
   .card-2026-title a:hover { color: var(--accent); }
   .card-2026-title a:focus-visible::after { outline: 3px solid var(--focus-ring); outline-offset: -3px; border-radius: 8px; }
-  .card-2026-meta { white-space: normal; font-size: .875rem; }
-  .card-2026-ratings { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .5rem; margin-top: .25rem; font-size: .8125rem; line-height: 1.4; }
-  .card-2026-user-rating { display: inline-flex; align-items: center; gap: .25rem; color: var(--star-color); font-weight: 500; }
-  .card-2026-user-rating .rating-label { color: var(--text-secondary); font-weight: 400; }
-  .card-2026-avg-rating { display: inline-flex; align-items: center; gap: .25rem; color: var(--text-secondary); font-weight: 500; }
-  .card-2026-avg-rating .rating-value { color: var(--star-color); }
+  .card-2026-meta { white-space: normal; font-size: .875rem; margin: 0; }
+  .card-2026-title a { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
+  .card-2026-byline { margin: 0; font-size: .875rem; font-weight: 600; line-height: 1.35; color: var(--text); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; line-clamp: 1; overflow: hidden; overflow-wrap: anywhere; }
+  .card-2026-credit { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; }
+  .card-2026-credit-label { color: var(--text-tertiary, var(--text-secondary)); font-size: .6875rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; margin-right: .2rem; }
+  .card-2026-facts { display: flex; flex-wrap: wrap; align-items: center; column-gap: .4rem; color: var(--text-tertiary, var(--text-secondary)); font-variant-numeric: tabular-nums; }
+  .card-2026-facts > span + span::before { content: '·'; margin-right: .4rem; opacity: .7; }
+  .card-2026-ratings { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .75rem; margin-top: auto; padding-top: .5rem; font-size: .8125rem; line-height: 1.4; }
+  .card-2026-user-rating, .card-2026-avg-rating { display: inline-flex; align-items: baseline; gap: .25rem; font-weight: 600; white-space: nowrap; }
+  .card-2026-user-rating .rating-stars, .card-2026-avg-rating .rating-value { color: var(--star-color); letter-spacing: .02em; }
+  .card-2026-ratings .rating-label { color: var(--text-tertiary, var(--text-secondary)); font-size: .6875rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
   .activity-thumbnail .artwork-fallback { font-size: .65rem; padding: .2rem; }
   .artwork-fallback { display: grid; place-content: center; text-align: center; height: 100%; min-height: 3rem; padding: .75rem; color: var(--text-secondary); background: var(--inset); font-size: .875rem; }
   .show-poster { background: var(--inset); }
