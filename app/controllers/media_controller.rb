@@ -39,10 +39,11 @@ class MediaController < ApplicationController
     end
 
     if params[:async] == '1'
-      state = MediaSearchService.request(q, type)
-      return render json: [], status: :accepted if state[:state] == 'pending'
+      state = MediaSearchService.request(q, type, client_id: params[:search_client])
+      return render json: [], status: :service_unavailable if state[:state] == 'failed'
 
-      @search_results = state[:results]
+      @search_results = state[:results] || []
+      @search_pending = state[:state] == 'pending'
     end
 
     results = case type
@@ -55,7 +56,7 @@ class MediaController < ApplicationController
               else []
               end
 
-    render json: results
+    render json: results, status: @search_pending ? :accepted : :ok
   end
 
   private
@@ -184,7 +185,8 @@ class MediaController < ApplicationController
     local_results = fetch_local_video_games(query)
     web_results = @search_results || MediaSearchService.call(query, 'video_game')
 
-    GameSearchArtwork.call(GameSearchQuery.new(query).rank(local_results + web_results))
+    ranked = GameSearchQuery.new(query).rank(local_results + web_results)
+    params[:async] == '1' ? ranked : GameSearchArtwork.call(ranked)
   end
 
   def fetch_local_video_games(query)

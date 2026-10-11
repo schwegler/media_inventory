@@ -28,6 +28,7 @@ export default class extends Controller {
   connect() {
     this.debouncedFetch = debounce(() => this.fetchThumbnails(), 300)
     this.currentQuery = ""
+    this.searchClient = crypto.randomUUID()
 
     // Pre-populate preview if thumbnail URL already has a value
     if (this.thumbnailUrlTarget.value) {
@@ -176,142 +177,26 @@ export default class extends Controller {
 
     try {
       const mediaType = this.mediaTypeValue
-      let allResults = []
-
       this.searchAbortController?.abort()
       this.searchAbortController = new AbortController()
       const signal = this.searchAbortController.signal
-      let response
-      for (let attempt = 0; attempt < 40; attempt++) {
-        response = await fetch(`/media/autocomplete?async=1&q=${encodeURIComponent(query)}&type=${encodeURIComponent(mediaType)}`, { signal })
-        if (response.status !== 202) break
-        await new Promise(resolve => setTimeout(resolve, 750))
+      let previousResults
+      for (let attempt = 0; attempt < 80; attempt++) {
+        const response = await fetch(`/media/autocomplete?async=1&q=${encodeURIComponent(query)}&type=${encodeURIComponent(mediaType)}&search_client=${this.searchClient}`, { signal })
+        if (!response.ok) throw new Error(`Search failed: ${response.status}`)
+        const results = await response.json()
+        if (signal.aborted || this.currentQuery !== query) return
+        const pending = response.status === 202
+        const serialized = JSON.stringify(results)
+        if (serialized !== previousResults || !pending) {
+          this.renderResults(results, mediaType, pending)
+          previousResults = serialized
+        }
+        if (!pending) return
+        await new Promise(resolve => setTimeout(resolve, 400))
         if (signal.aborted) return
       }
-      if (response.status === 202) throw new Error("Search took too long")
-      if (!response.ok) throw new Error(`Search failed: ${response.status}`)
-      allResults = await response.json()
-      if (this.currentQuery !== query) return
-
-      // 3. Render Combined Options
-      if (allResults.length === 0) {
-        this.statusTextTarget.textContent = mediaType === "comic"
-          ? "No matching series found. Try another start year, remove the year, or add manually."
-          : "No matches found. Try another title or add manually."
-        return
-      }
-
-      this.statusTextTarget.textContent = mediaType === "comic"
-        ? `${allResults.length} matching series. Select the run you want:`
-        : "Select a result below:"
-      this.optionsGridTarget.dataset.mediaType = mediaType
-      this.optionsGridTarget.classList.toggle("comic-series-results", mediaType === "comic")
-      this.optionsGridTarget.classList.toggle("game-search-results", mediaType === "video_game")
-      this.optionsGridTarget.classList.toggle("album-search-results", mediaType === "album")
-
-      allResults.forEach((option) => {
-        const imgBtn = document.createElement("div")
-        imgBtn.className = "thumbnail-option-card"
-        imgBtn.setAttribute("tabindex", "0")
-        imgBtn.setAttribute("role", "button")
-        
-        const badgeClass = option.is_local ? "local" : "web"
-        const badgeText = option.is_local ? "Local" : "Web"
-        
-        let subtitle = ""
-        if (mediaType === "movie") subtitle = option.director || ""
-        else if (mediaType === "album") subtitle = option.artist || ""
-        else if (mediaType === "comic") subtitle = option.writer || ""
-        else if (mediaType === "tv_show") subtitle = option.network || ""
-        else if (mediaType === "video_game") subtitle = option.developer || ""
-        else if (mediaType === "book") subtitle = option.author || ""
-        
-        const yearInfo = option.release_year ? ` (${option.release_year})` : ""
-        const tooltipText = `${option.title}${yearInfo} ${subtitle ? `- ${subtitle}` : ""}`
-        imgBtn.setAttribute("aria-label", `Select ${option.title}${yearInfo}`)
-        imgBtn.title = tooltipText
-        const wrapper = document.createElement("div")
-        wrapper.className = "thumbnail-option-img-wrap"
-        const image = document.createElement("img")
-        image.src = option.thumbnail_url || (mediaType === "video_game" ? "/missing-game-cover.svg" : "/favicon.svg")
-        image.alt = option.title
-        image.loading = "lazy"
-        image.referrerPolicy = "no-referrer"
-        image.addEventListener("error", () => { image.src = mediaType === "video_game" ? "/missing-game-cover.svg" : "/favicon.svg" }, { once: true })
-        const badge = document.createElement("span")
-        badge.className = `option-badge ${badgeClass}`
-        badge.textContent = option.source || badgeText
-        const label = document.createElement("div")
-        label.className = "option-label"
-        if (mediaType === "video_game") {
-          const title = document.createElement("strong")
-          title.className = "option-title"
-          title.textContent = option.title
-          const details = document.createElement("span")
-          details.className = "option-details"
-          details.textContent = [option.release_year || "Year unknown", option.platform, option.game_type || "Type unknown"].filter(Boolean).join(" · ")
-          const coverStatus = document.createElement("span")
-          coverStatus.className = "option-cover-status"
-          coverStatus.textContent = option.artwork_status === "missing" ? "Cover unavailable" : option.artwork_source ? `Art: ${option.artwork_source}` : ""
-          label.append(title, details, coverStatus)
-        } else if (mediaType === "comic") {
-          const seriesTitle = document.createElement("strong")
-          seriesTitle.className = "option-title"
-          seriesTitle.textContent = option.title.replace(/\s*\(\d{4}\)$/, "")
-          const year = document.createElement("span")
-          year.className = "option-series-year"
-          year.textContent = option.release_year ? `Started ${option.release_year}` : "Start year unknown"
-          const details = document.createElement("span")
-          details.className = "option-details"
-          details.textContent = [option.publisher, option.issue_count ? `${option.issue_count} issues` : null, subtitle].filter(Boolean).join(" · ")
-          label.append(seriesTitle, year, details)
-        } else {
-          const title = document.createElement("strong")
-          title.className = "option-title"
-          title.textContent = option.title
-          const details = document.createElement("span")
-          details.className = "option-details"
-          const metaParts = []
-          if (option.release_year) metaParts.push(option.release_year)
-          if (subtitle) metaParts.push(subtitle)
-          details.textContent = metaParts.join(" · ")
-          label.append(title, details)
-        }
-        const selectCue = document.createElement("span")
-        selectCue.className = "option-select-cue"
-        selectCue.setAttribute("aria-hidden", "true")
-        selectCue.textContent = "Select"
-        wrapper.append(image, badge)
-        imgBtn.append(wrapper, label, selectCue)
-
-        imgBtn.addEventListener("click", (e) => {
-          this.optionsGridTarget.querySelectorAll(".thumbnail-option-card").forEach(card => card.classList.remove("selected"))
-          imgBtn.classList.add("selected")
-
-          // User clicked explicitly, so populate all text fields and transition to details view!
-          this.selectOption(option, true)
-        })
-
-        imgBtn.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault()
-            this.optionsGridTarget.querySelectorAll(".thumbnail-option-card").forEach(card => card.classList.remove("selected"))
-            imgBtn.classList.add("selected")
-            this.selectOption(option, true)
-          }
-        })
-
-        this.optionsGridTarget.appendChild(imgBtn)
-      })
-
-      // Auto-select first cover invisibly (only update cover preview, NOT text inputs!)
-      const firstCard = this.optionsGridTarget.querySelector(".thumbnail-option-card")
-      if (firstCard) {
-        this.optionsGridTarget.querySelectorAll(".thumbnail-option-card").forEach(card => card.classList.remove("selected"))
-        firstCard.classList.add("selected")
-        const idx = Array.from(this.optionsGridTarget.children).indexOf(firstCard)
-        this.selectOption(allResults[idx], false)
-      }
+      this.statusTextTarget.textContent = "Search is taking longer than expected. Select a result, try again, or add manually."
 
     } catch (err) {
       if (err.name === "AbortError") return
@@ -320,6 +205,133 @@ export default class extends Controller {
     } finally {
       if (this.currentQuery === query) this.statusTextTarget.classList.remove("search-pending")
     }
+  }
+
+  renderResults(results, mediaType, pending = false) {
+    this.optionsGridTarget.innerHTML = ""
+    if (results.length === 0) {
+      if (pending) {
+        this.statusTextTarget.textContent = "Searching web sources…"
+        return
+      }
+      this.statusTextTarget.textContent = mediaType === "comic"
+        ? "No matching series found. Try another start year, remove the year, or add manually."
+        : "No matches found. Try another title or add manually."
+      return
+    }
+
+    this.statusTextTarget.textContent = pending ? "Select a result, or wait for more web matches…" : mediaType === "comic"
+      ? `${results.length} matching series. Select the run you want:`
+      : "Select a result below:"
+    this.optionsGridTarget.dataset.mediaType = mediaType
+    this.optionsGridTarget.classList.toggle("comic-series-results", mediaType === "comic")
+    this.optionsGridTarget.classList.toggle("game-search-results", mediaType === "video_game")
+    this.optionsGridTarget.classList.toggle("album-search-results", mediaType === "album")
+
+    results.forEach((option) => {
+      const imgBtn = document.createElement("div")
+      imgBtn.className = "thumbnail-option-card"
+      imgBtn.setAttribute("tabindex", "0")
+      imgBtn.setAttribute("role", "button")
+
+      const badgeClass = option.is_local ? "local" : "web"
+      const badgeText = option.is_local ? "Local" : "Web"
+
+      let subtitle = ""
+      if (mediaType === "movie") subtitle = option.director || ""
+      else if (mediaType === "album") subtitle = option.artist || ""
+      else if (mediaType === "comic") subtitle = option.writer || ""
+      else if (mediaType === "tv_show") subtitle = option.network || ""
+      else if (mediaType === "video_game") subtitle = option.developer || ""
+      else if (mediaType === "book") subtitle = option.author || ""
+
+      const yearInfo = option.release_year ? ` (${option.release_year})` : ""
+      const tooltipText = `${option.title}${yearInfo} ${subtitle ? `- ${subtitle}` : ""}`
+      imgBtn.setAttribute("aria-label", `Select ${option.title}${yearInfo}`)
+      imgBtn.title = tooltipText
+      const wrapper = document.createElement("div")
+      wrapper.className = "thumbnail-option-img-wrap"
+      const image = document.createElement("img")
+      image.src = option.thumbnail_url || (mediaType === "video_game" ? "/missing-game-cover.svg" : "/favicon.svg")
+      image.alt = option.title
+      image.loading = "lazy"
+      image.referrerPolicy = "no-referrer"
+      image.addEventListener("error", () => { image.src = mediaType === "video_game" ? "/missing-game-cover.svg" : "/favicon.svg" }, { once: true })
+      const badge = document.createElement("span")
+      badge.className = `option-badge ${badgeClass}`
+      badge.textContent = option.source || badgeText
+      const label = document.createElement("div")
+      label.className = "option-label"
+      if (mediaType === "video_game") {
+        const title = document.createElement("strong")
+        title.className = "option-title"
+        title.textContent = option.title
+        const details = document.createElement("span")
+        details.className = "option-details"
+        details.textContent = [option.release_year || "Year unknown", option.platform, option.game_type || "Type unknown"].filter(Boolean).join(" · ")
+        const coverStatus = document.createElement("span")
+        coverStatus.className = "option-cover-status"
+        coverStatus.textContent = option.artwork_status === "missing" ? "Cover unavailable" : option.artwork_source ? `Art: ${option.artwork_source}` : ""
+        label.append(title, details, coverStatus)
+      } else if (mediaType === "comic") {
+        const seriesTitle = document.createElement("strong")
+        seriesTitle.className = "option-title"
+        seriesTitle.textContent = option.title.replace(/\s*\(\d{4}\)$/, "")
+        const year = document.createElement("span")
+        year.className = "option-series-year"
+        year.textContent = option.release_year ? `Started ${option.release_year}` : "Start year unknown"
+        const details = document.createElement("span")
+        details.className = "option-details"
+        details.textContent = [option.publisher, option.issue_count ? `${option.issue_count} issues` : null, subtitle].filter(Boolean).join(" · ")
+        label.append(seriesTitle, year, details)
+      } else {
+        const title = document.createElement("strong")
+        title.className = "option-title"
+        title.textContent = option.title
+        const details = document.createElement("span")
+        details.className = "option-details"
+        const metaParts = []
+        if (option.release_year) metaParts.push(option.release_year)
+        if (subtitle) metaParts.push(subtitle)
+        details.textContent = metaParts.join(" · ")
+        label.append(title, details)
+      }
+      const selectCue = document.createElement("span")
+      selectCue.className = "option-select-cue"
+      selectCue.setAttribute("aria-hidden", "true")
+      selectCue.textContent = "Select"
+      wrapper.append(image, badge)
+      imgBtn.append(wrapper, label, selectCue)
+
+      imgBtn.addEventListener("click", (e) => {
+        this.optionsGridTarget.querySelectorAll(".thumbnail-option-card").forEach(card => card.classList.remove("selected"))
+        imgBtn.classList.add("selected")
+
+        // User clicked explicitly, so populate all text fields and transition to details view!
+        this.selectOption(option, true)
+      })
+
+      imgBtn.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault()
+          this.optionsGridTarget.querySelectorAll(".thumbnail-option-card").forEach(card => card.classList.remove("selected"))
+          imgBtn.classList.add("selected")
+          this.selectOption(option, true)
+        }
+      })
+
+      this.optionsGridTarget.appendChild(imgBtn)
+    })
+
+    // Auto-select first cover invisibly (only update cover preview, NOT text inputs!)
+    const firstCard = this.optionsGridTarget.querySelector(".thumbnail-option-card")
+    if (firstCard) {
+      this.optionsGridTarget.querySelectorAll(".thumbnail-option-card").forEach(card => card.classList.remove("selected"))
+      firstCard.classList.add("selected")
+      const idx = Array.from(this.optionsGridTarget.children).indexOf(firstCard)
+      this.selectOption(results[idx], false)
+    }
+
   }
 
   clearGameSelection() {

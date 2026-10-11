@@ -6,22 +6,24 @@ require 'json'
 # rubocop:disable Metrics/ClassLength
 class MediaSearchService
   REQUEST_LOCK = Mutex.new
-  def self.call(query, type)
-    new(query, type).call
+  def self.call(query, type, &)
+    new(query, type).call(&)
   end
 
-  # Browser polling releases Puma threads while the single in-process job worker searches.
-  def self.request(query, type)
+  # Browser polling releases Puma threads while background workers search.
+  def self.request(query, type, client_id: nil)
     fingerprint = ApiConfiguration.order(:id).pluck(:source_name, :media_type, :is_active, :updated_at)
-    key = ['async-search-v1', Digest::SHA256.hexdigest([query.to_s.strip.first(200).downcase, type, fingerprint].to_json)]
+    key = ['async-search-v2', Digest::SHA256.hexdigest([query.to_s.strip.first(200).downcase, type, fingerprint].to_json)]
     cache = MediaSources::Registry::CACHE
+    latest_key = ['search-client-v1', client_id] if client_id.to_s.match?(/\A[a-zA-Z0-9-]{16,64}\z/)
     REQUEST_LOCK.synchronize do
+      cache.write(latest_key, key, expires_in: 2.minutes) if latest_key
       state = cache.read(key)
       return state if state
 
-      cache.write(key, { state: 'pending' }, expires_in: 45.seconds)
-      MediaSearchJob.perform_later(query.to_s.strip.first(200), type, key)
-      { state: 'pending' }
+      cache.write(key, { state: 'pending', results: [] }, expires_in: 45.seconds)
+      MediaSearchJob.perform_later(query.to_s.strip.first(200), type, key, latest_key)
+      { state: 'pending', results: [] }
     end
   end
 
@@ -30,7 +32,7 @@ class MediaSearchService
     @type = type
   end
 
-  def call
+  def call(&progress)
     return [] if @query.blank?
 
     return [] unless SOURCES.key?(@type)
@@ -38,15 +40,15 @@ class MediaSearchService
     started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     @deadline = started_at + 12
     MediaSources::Registry::CACHE.fetch(
-      ['media-search-v6', @type, @query.downcase.strip,
+      ['media-search-v7', @type, @query.downcase.strip,
        ApiConfiguration.order(:id).pluck(:source_name, :media_type, :is_active, :updated_at)], expires_in: 15.minutes
     ) do
-      results = search_sources
+      results = search_sources(&progress)
       results = ComicSearchQuery.new(@query).rank(results).first(20) if @type == 'comic'
       # Games need bounded detail lookup to distinguish DLC and resolve real cover candidates.
-      # Other media retain the background-after-selection enrichment path.
+      # Other media fill remaining details through their existing save callbacks.
       results = rank_results(results)
-      if %w[video_game movie tv_show].include?(@type)
+      if @type == 'video_game'
         @deadline = started_at + 18
         results = results.each_with_index.map { |result, index| index < 5 ? enrich_result(result) : result }
       end
@@ -75,10 +77,47 @@ class MediaSearchService
       priorities = ENV.fetch('GAME_METADATA_PROVIDER_PRIORITY', 'Steam,RAWG,Wikipedia').split(',')
       sources = sources.sort_by { |source, _method| priorities.index(source) || 99 }
     end
-    (sources + [['InternetArchive', :fetch_internet_archive]]).flat_map do |source, method|
-      next [] unless MediaSources::Registry.enabled?(source, @type.camelize)
+    configurations = ApiConfiguration.order(:id).to_a
+    sources = MediaSources::Registry.with_snapshot(configurations) do
+      (sources + [['InternetArchive', :fetch_internet_archive]]).select do |source, _method|
+        MediaSources::Registry.enabled?(source, @type.camelize)
+      end
+    end
+    collect_sources(sources, configurations) { |results| yield results if block_given? }
+  end
 
-      send(method, @query).map { |result| result.merge(source: source) }
+  def collect_sources(sources, configurations)
+    completed = Queue.new
+    workers = sources.each_with_index.map do |(source, method), index|
+      search_worker(source, method, index, configurations, completed)
+    end
+    batches = Array.new(sources.size) { [] }
+    ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+      sources.size.times do
+        index, results = completed.pop
+        batches[index] = results
+        partial = batches.flatten.map(&:dup)
+        partial = ComicSearchQuery.new(@query).rank(partial) if @type == 'comic'
+        yield rank_results(partial) if block_given? && @type != 'video_game'
+      end
+      workers.each(&:value)
+    end
+    batches.flatten
+  ensure
+    ActiveSupport::Dependencies.interlock.permit_concurrent_loads { workers&.each(&:join) }
+  end
+
+  def search_worker(source, method, index, configurations, completed)
+    Thread.new do
+      Rails.application.executor.wrap do
+        results = MediaSources::Registry.with_snapshot(configurations) do
+          send(method, @query).map { |result| result.merge(source: source) }
+        end
+        completed << [index, results]
+      end
+    rescue StandardError => e
+      Rails.logger.warn("#{source} search failed: #{e.class}")
+      completed << [index, []]
     end
   end
 
