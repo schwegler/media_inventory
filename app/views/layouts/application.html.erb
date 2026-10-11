@@ -27,6 +27,7 @@
   <meta name="twitter:description" content="<%= yield(:meta_description).presence || "Track and share your movies, albums, comics, and more on Trove." %>">
   <meta name="twitter:image" content="<%= public_preview_image_url(yield(:meta_image)) %>">
 
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <%= favicon_link_tag "tacobout-logo.png", type: "image/png" %>
   <%= stylesheet_link_tag "application", "data-turbo-track": Rails.env.production? ? "reload" : "" %>
   <%= javascript_importmap_tags %>
