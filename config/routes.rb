@@ -14,6 +14,7 @@ SampleApp::Application.routes.draw do
   delete 'video_games/:video_game_id/artwork/:id', to: 'game_artwork#destroy_supplemental', as: :delete_game_artwork
   post 'video_games/:video_game_id/artwork/select', to: 'game_artwork#select_cover', as: :select_game_artwork
   post 'video_games/:video_game_id/cover', to: 'game_artwork#cover', as: :game_cover
+  delete 'video_games/:video_game_id/cover', to: 'game_artwork#reset_cover'
   post 'video_games/:video_game_id/tracking', to: 'game_tracking#create', as: :game_tracking
   get 'video_games/:video_game_id/tracking/new', to: 'game_tracking#new', as: :new_game_tracking
   get 'video_games/:video_game_id/tracking/:id/edit', to: 'game_tracking#edit', as: :edit_game_tracking
@@ -23,6 +24,7 @@ SampleApp::Application.routes.draw do
   post 'video_games/:video_game_id/artwork/repair', to: 'game_artwork#repair', as: :repair_game_artwork
   get 'video_games/:video_game_id/export', to: 'game_tracking#export', as: :export_game
   get 'media/covers/:type/:id', to: 'media_covers#show', as: :media_cover, constraints: { id: /\d+/ }
+  delete 'media/covers/:type/:id', to: 'media_covers#destroy', constraints: { id: /\d+/ }
   resources :posts, only: %i[create destroy show]
   resources :notifications, only: %i[index] do
     collection do

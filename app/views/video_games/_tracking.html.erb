@@ -21,6 +21,9 @@
       <%= link_to 'Export owned copies (CSV)', export_game_path(video_game_id: library.item_id, format: 'csv'), class: 'btn btn-secondary' %>
       <%= button_to 'Repair missing artwork', repair_game_artwork_path(video_game_id: library.item_id), class: 'btn btn-secondary' %>
       <%= button_to 'Find alternate cover', alternate_game_artwork_path(video_game_id: library.item_id), class: 'btn btn-secondary' %>
+      <% if library.game_cover_image.attached? %>
+        <%= button_to 'Use default artwork', game_cover_path(video_game_id: library.item_id), method: :delete, class: 'btn btn-secondary' %>
+      <% end %>
       <% Array(MediaSources::Registry::CACHE.read(['game-alternate-choices', library.id])).each do |choice| %>
         <div class="game-alternate-choice">
           <%= image_tag choice[:url], alt: "Alternate cover from #{choice[:source]}", width: 120, loading: 'lazy' %>

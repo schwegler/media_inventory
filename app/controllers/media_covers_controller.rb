@@ -2,6 +2,8 @@
 
 # Public catalog artwork uses stored record URLs, never a URL supplied to this endpoint.
 class MediaCoversController < ApplicationController
+  before_action :logged_in_user, only: :destroy
+
   TYPES = { 'movie' => Movie, 'tv_show' => TvShow, 'album' => Album, 'video_game' => VideoGame,
             'comic' => Comic, 'book' => Book, 'tv_episode' => TvEpisode, 'comic_issue' => ComicIssue }.freeze
 
@@ -19,6 +21,20 @@ class MediaCoversController < ApplicationController
       send_file Rails.root.join(item.is_a?(VideoGame) ? 'public/missing-game-cover.svg' : 'public/favicon.svg'),
                 type: 'image/svg+xml', disposition: 'inline'
     end
+  end
+
+  def destroy
+    type = TYPES[params[:type]]
+    raise ActiveRecord::RecordNotFound unless type
+
+    library = current_user.library_items.find_by!(item_type: type.name, item_id: params[:id])
+    item = library.item
+    if item.cover_image.attached? && item.cover_image.blob.metadata['remote_source'].blank?
+      item.cover_image.detach
+      MediaSources::Registry::CACHE.delete(['cover-recovery-failed', item.class.name, item.id, item.thumbnail_url])
+      ImportMediaCoverJob.perform_later(item, item.thumbnail_url) if item.thumbnail_url.present?
+    end
+    redirect_to item, notice: 'Cover artwork was reset to the default.', status: :see_other
   end
 
   private

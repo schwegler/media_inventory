@@ -87,6 +87,11 @@ class GameArtworkController < ApplicationController
     redirect_to video_game_path(@library.item), alert: 'Choose a valid image up to 5 MB.', status: :see_other
   end
 
+  def reset_cover
+    @library.game_cover_image.detach
+    redirect_to video_game_path(@library.item), notice: 'Your cover was reset to the default.', status: :see_other
+  end
+
   def repair
     return head :too_many_requests if MediaSources::Registry::CACHE.read(['game-repair', @library.id])
 

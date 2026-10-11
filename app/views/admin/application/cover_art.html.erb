@@ -3,7 +3,7 @@
   <div>
     <%= link_to '← Back to record', [:admin, @item], class: 'back-link' %>
     <h1>Pick cover art</h1>
-    <p>Find and select new cover art from API sources for <strong><%= @item.title %></strong> to override the default cover without changing other metadata.</p>
+    <p>Choose the default catalog artwork for <strong><%= @item.title %></strong> without changing other metadata. Users who reset their personal artwork will see this cover.</p>
   </div>
   <div class="actions">
     <%= link_to 'Search all metadata fields', [:search_api, :admin, @item], class: 'button button--neutral' %>
