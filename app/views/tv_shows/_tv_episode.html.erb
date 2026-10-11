@@ -40,44 +40,57 @@
           </div>
         <% end %>
 
-        <% if ep_lib&.consumed? && (ep_lib.review.present? || ep_lib.rating.present?) %>
+        <% has_reviewed = ep_lib&.consumed? && (ep_lib.review.present? || ep_lib.rating.present?) %>
+        <% if has_reviewed %>
           <div class="episode-rating-review-box">
-            <% if ep_lib.rating.present? %>
-              <span class="episode-stars"><%= ep_lib.rating %> ★</span>
-            <% end %>
-            <% if ep_lib.review.present? %>
-              <span class="episode-review-text"><%= ep_lib.review %></span>
-            <% end %>
+            <div class="episode-rating-review-content">
+              <% if ep_lib.rating.present? %>
+                <span class="episode-stars"><%= ep_lib.rating %> ★</span>
+              <% end %>
+              <% if ep_lib.review.present? %>
+                <span class="episode-review-text"><%= ep_lib.review %></span>
+              <% end %>
+            </div>
+            <%= link_to "Edit review", edit_review_path(item_type: 'TvEpisode', item_id: ep.id),
+                        class: "episode-btn-edit-review", data: { turbo_frame: "modal" } %>
           </div>
         <% end %>
 
     <% if logged_in? && @library_item.present? %>
       <div class="episode-form-section" aria-label="Watch, rate, or review">
         <% if ep_lib&.consumed? %>
-          <%= button_to "Undo", toggle_watched_tv_episode_path(ep), method: :patch,
-                        params: { tv_episode: { consumed: false, consumed_at: nil } },
-                        class: "episode-btn-unwatch", aria: { label: "Mark as unwatched" } %>
+          <div class="episode-reviewed-actions">
+            <%= button_to "Undo", toggle_watched_tv_episode_path(ep), method: :patch,
+                          params: { tv_episode: { consumed: false, consumed_at: nil } },
+                          class: "episode-btn-unwatch", aria: { label: "Mark as unwatched" } %>
+            <% if has_reviewed %>
+              <%= link_to "Edit review", edit_review_path(item_type: 'TvEpisode', item_id: ep.id),
+                          class: "episode-btn-edit-review", data: { turbo_frame: "modal" } %>
+            <% end %>
+          </div>
         <% end %>
-        <%= form_with model: ep, url: toggle_watched_tv_episode_path(ep), method: :patch do |form| %>
-          <%= form.hidden_field :consumed, value: true %>
-          <%= form.hidden_field :consumed_at, value: Time.current.to_date %>
+        <% unless has_reviewed %>
+          <%= form_with model: ep, url: toggle_watched_tv_episode_path(ep), method: :patch do |form| %>
+            <%= form.hidden_field :consumed, value: true %>
+            <%= form.hidden_field :consumed_at, value: Time.current.to_date %>
 
-          <div class="inline-checkbox-group">
-            <%= form.check_box :is_public, checked: ep_lib&.is_public?, id: "public-episode-#{ep.id}" %>
-            <%= form.label :is_public, "Make review public", for: "public-episode-#{ep.id}" %>
-          </div>
+            <div class="inline-checkbox-group">
+              <%= form.check_box :is_public, checked: ep_lib&.is_public?, id: "public-episode-#{ep.id}" %>
+              <%= form.label :is_public, "Make review public", for: "public-episode-#{ep.id}" %>
+            </div>
 
-          <div class="episode-form-inputs">
-            <label class="child-review-label" for="child-review-<%= ep.id %>">Your review <span>(optional)</span></label>
-            <%= form.text_area :review, value: ep_lib&.review, aria: { label: "Episode review" }, placeholder: ep_lib&.consumed? ? "Edit review..." : "Review this episode...", id: "child-review-#{ep.id}", rows: 3, class: "episode-input-review" %>
+            <div class="episode-form-inputs">
+              <label class="child-review-label" for="child-review-<%= ep.id %>">Your review <span>(optional)</span></label>
+              <%= form.text_area :review, value: ep_lib&.review, aria: { label: "Episode review" }, placeholder: ep_lib&.consumed? ? "Edit review..." : "Review this episode...", id: "child-review-#{ep.id}", rows: 3, class: "episode-input-review" %>
 
-            <%= form.select :rating, [["Rating", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: ep_lib&.rating }, { class: "episode-select-rating", aria: { label: "Rating" } } %>
-            <% if ep_lib&.consumed? %>
-              <%= form.submit "Update", class: "episode-btn-rate" %>
-            <%else%>
-              <%= form.submit "Watch", class: "episode-btn-rate" %>
-            <%end%>
-          </div>
+              <%= form.select :rating, [["Rating", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: ep_lib&.rating }, { class: "episode-select-rating", aria: { label: "Rating" } } %>
+              <% if ep_lib&.consumed? %>
+                <%= form.submit "Update", class: "episode-btn-rate" %>
+              <%else%>
+                <%= form.submit "Watch", class: "episode-btn-rate" %>
+              <%end%>
+            </div>
+          <% end %>
         <% end %>
       </div>
     <% end %>

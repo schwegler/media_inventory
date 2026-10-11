@@ -18,32 +18,49 @@
           </div>
         </div>
 
-        <details class="inline-quick-review-box library-disclosure"><summary>Review &amp; rating</summary>
-          <%= form_with model: @tv_episode, url: toggle_watched_tv_episode_path(@tv_episode), method: :patch, local: true, class: "quick-review-form" do |f| %>
-            <%= f.hidden_field :consumed, value: true %>
-            <%= f.hidden_field :consumed_at, value: Time.current.to_date %>
-            <%= hidden_field_tag :back_to_episode, true %>
-
-            <div class="review-field">
-              <label for="child-detail-review">Your review <span>(optional)</span></label>
-              <%= f.text_area :review, id: "child-detail-review", value: @library_item&.review, placeholder: "Add watch review for this episode...", rows: 3, class: "form-control quick-review-textarea" %>
-            </div>
-            <div class="review-options">
-              <div class="quick-review-rating-select">
-                <label for="child-detail-rating">Your rating</label>
-                <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: @library_item&.rating }, { id: "child-detail-rating", class: "form-control quick-review-select" } %>
+        <% if @library_item&.review.present? || @library_item&.rating.present? %>
+          <div class="reviewed-summary-box">
+            <div class="reviewed-summary-info">
+              <div class="reviewed-summary-heading">
+                <span class="reviewed-summary-label">Your Review &amp; Rating</span>
+                <% if @library_item.rating.present? %>
+                  <span class="episode-stars"><%= @library_item.rating %> ★</span>
+                <% end %>
               </div>
-              <div class="inline-checkbox-group">
-                <%= f.check_box :is_public, checked: @library_item&.is_public? %>
-                <%= f.label :is_public, "Public review" %>
-              </div>
+              <% if @library_item.review.present? %>
+                <p class="reviewed-summary-text"><%= truncate(@library_item.review, length: 140) %></p>
+              <% end %>
             </div>
+            <%= link_to "Edit review", edit_review_path(item_type: 'TvEpisode', item_id: @tv_episode.id), class: "sleek-btn sleek-btn-secondary", data: { turbo_frame: "modal" } %>
+          </div>
+        <% else %>
+          <details class="inline-quick-review-box library-disclosure"><summary>Review &amp; rating</summary>
+            <%= form_with model: @tv_episode, url: toggle_watched_tv_episode_path(@tv_episode), method: :patch, local: true, class: "quick-review-form" do |f| %>
+              <%= f.hidden_field :consumed, value: true %>
+              <%= f.hidden_field :consumed_at, value: Time.current.to_date %>
+              <%= hidden_field_tag :back_to_episode, true %>
 
-            <div class="quick-review-submit-row">
-              <%= f.submit "Save Episode Status", class: "btn btn-primary quick-review-submit-btn" %>
-            </div>
-          <% end %>
-        </details>
+              <div class="review-field">
+                <label for="child-detail-review">Your review <span>(optional)</span></label>
+                <%= f.text_area :review, id: "child-detail-review", value: @library_item&.review, placeholder: "Add watch review for this episode...", rows: 3, class: "form-control quick-review-textarea" %>
+              </div>
+              <div class="review-options">
+                <div class="quick-review-rating-select">
+                  <label for="child-detail-rating">Your rating</label>
+                  <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: @library_item&.rating }, { id: "child-detail-rating", class: "form-control quick-review-select" } %>
+                </div>
+                <div class="inline-checkbox-group">
+                  <%= f.check_box :is_public, checked: @library_item&.is_public? %>
+                  <%= f.label :is_public, "Public review" %>
+                </div>
+              </div>
+
+              <div class="quick-review-submit-row">
+                <%= f.submit "Save Episode Status", class: "btn btn-primary quick-review-submit-btn" %>
+              </div>
+            <% end %>
+          </details>
+        <% end %>
       <% elsif logged_in? %>
         <h2>My Progress</h2>
         <p class="actions-login-message">Add <%= link_to tv_show.title, tv_show %> to your library to track episodes.</p>

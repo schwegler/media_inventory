@@ -466,12 +466,98 @@
 }
 
 .episode-rating-review-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin-top: 6px;
   font-size: 0.8rem;
   background: rgba(var(--rgb-inverse), 0.02);
   border: 1px solid rgba(var(--rgb-inverse), 0.04);
   padding: 6px 10px;
   border-radius: 6px;
+
+  .episode-rating-review-content {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-width: 0;
+  }
+}
+
+.episode-btn-edit-review {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: rgba(var(--rgb-inverse), 0.06);
+  border: 1px solid rgba(var(--rgb-inverse), 0.1);
+  border-radius: 4px;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: var(--text-main);
+    background: rgba(var(--rgb-inverse), 0.12);
+    border-color: rgba(var(--rgb-inverse), 0.18);
+  }
+}
+
+.episode-reviewed-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 0.25rem;
+
+  form {
+    margin: 0;
+  }
+}
+
+.reviewed-summary-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0.875rem 1.125rem;
+  background: rgba(var(--rgb-inverse), 0.03);
+  border: 1px solid rgba(var(--rgb-inverse), 0.07);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+
+  .reviewed-summary-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+
+    .reviewed-summary-heading {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .reviewed-summary-label {
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: var(--text-main);
+    }
+
+    .reviewed-summary-text {
+      margin: 0;
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+  }
 }
 
 .episode-stars {

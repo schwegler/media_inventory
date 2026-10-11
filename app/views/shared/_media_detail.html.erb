@@ -28,9 +28,11 @@
           <div><dt><%= label %></dt><dd><%= render_media_metadata_value(item, attribute, value) %></dd></div>
         <% end %>
       </dl>
-      <% if @library_item&.rating.present? %>
-        <p class="media-personal-rating"><span>Your rating</span> <%= render_stars(@library_item.rating) %></p>
-      <% end %>
+      <div id="media_personal_rating_<%= item.class.name.underscore %>_<%= item.id %>">
+        <% if @library_item&.rating.present? %>
+          <p class="media-personal-rating"><span>Your rating</span> <%= render_stars(@library_item.rating) %></p>
+        <% end %>
+      </div>
       <details class="media-share"><summary>Share this title</summary><%= render 'shared/item_sharing', item: item %></details>
     </div>
     <aside class="media-overview-stats" aria-label="Community summary">
@@ -64,9 +66,17 @@
     <%= render 'artwork_gallery', game: @video_game, library: @library_item %>
 
       <% end %>
-      <% if @library_item&.review.present? %>
-        <section class="show-review media-section"><h2>My Review</h2><blockquote><%= simple_format(@library_item.review) %></blockquote></section>
-      <% end %>
+      <div id="media_my_review_<%= item.class.name.underscore %>_<%= item.id %>">
+        <% if @library_item&.review.present? %>
+          <section class="show-review media-section">
+            <div class="show-review-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <h2 style="margin: 0;">My Review</h2>
+              <%= link_to "Edit review", edit_review_path(item_type: item.class.name, item_id: item.id), class: "sleek-btn sleek-btn-secondary", style: "font-size: 0.8125rem; padding: 0.35rem 0.75rem;", data: { turbo_frame: "modal" } %>
+            </div>
+            <blockquote><%= simple_format(@library_item.review) %></blockquote>
+          </section>
+        <% end %>
+      </div>
       <% if entries %>
         <section id="media-entries" data-controller="child-collection" data-action="season-tabs:change->child-collection#filter" class="media-section media-entries" aria-label="<%= entries_label %>">
           <h2><%= entries_label %> in this Series</h2>

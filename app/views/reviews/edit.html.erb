@@ -1,0 +1,40 @@
+<%= turbo_frame_tag "modal" do %>
+  <div class="modal-overlay" data-controller="modal" data-modal-target="overlay" data-action="click->modal#closeOnBackdrop keydown@window->modal#closeOnEsc">
+    <div class="modal-container" role="dialog" aria-modal="true" style="max-width: 560px;">
+      <div class="modal-header">
+        <h2>Edit Review</h2>
+        <button class="modal-close" data-action="click->modal#close" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 1.5rem;">
+        <p class="modal-subtitle" style="color: var(--text-secondary); margin-top: 0; margin-bottom: 1.25rem; font-size: 0.95rem; font-weight: 500;">
+          <%= @item.respond_to?(:display_title) ? @item.display_title : (@item.respond_to?(:title) ? @item.title : @item.name) %>
+        </p>
+
+        <%= form_with url: review_path, method: :patch, class: "standard-form" do |f| %>
+          <%= hidden_field_tag :item_type, @item.class.name %>
+          <%= hidden_field_tag :item_id, @item.id %>
+
+          <div class="form-group" style="margin-bottom: 1.25rem;">
+            <%= f.label :review, "Your review", style: "display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.875rem;" %>
+            <%= f.text_area :review, value: @library_item&.review, rows: 5, class: "form-control", placeholder: "Write your review...", style: "width: 100%; box-sizing: border-box; resize: vertical;" %>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1.25rem;">
+            <%= f.label :rating, "Your rating", style: "display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.875rem;" %>
+            <%= f.select :rating, [["Unrated", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: @library_item&.rating }, { class: "form-control", style: "width: 100%;" } %>
+          </div>
+
+          <div class="check-field" style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.5rem;">
+            <%= f.check_box :is_public, checked: @library_item&.is_public?, id: "modal-review-public" %>
+            <%= f.label :is_public, "Make review public", for: "modal-review-public", style: "margin: 0; cursor: pointer; font-size: 0.875rem;" %>
+          </div>
+
+          <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem;">
+            <button type="button" class="sleek-btn sleek-btn-secondary" data-action="click->modal#close">Cancel</button>
+            <%= f.submit "Update Review", class: "sleek-btn sleek-btn-primary" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+<% end %>

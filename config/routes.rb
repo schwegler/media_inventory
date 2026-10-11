@@ -190,6 +190,7 @@ SampleApp::Application.routes.draw do
   post '/likes/toggle', to: 'likes#toggle', as: 'toggle_like'
 
   resources :comments, only: :create
+  resource :review, only: %i[edit update]
 
   resources :consumption_passes, only: :create do
     member do
