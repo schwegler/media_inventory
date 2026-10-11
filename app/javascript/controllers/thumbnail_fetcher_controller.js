@@ -18,7 +18,7 @@ function debounce(func, wait) {
 // Connects to data-controller="thumbnail-fetcher"
 export default class extends Controller {
   static targets = [
-    "titleInput", "secondaryInput", "previewImg", "placeholder", "statusText", "optionsGrid", "thumbnailUrl",
+    "titleInput", "previewImg", "placeholder", "statusText", "optionsGrid", "thumbnailUrl",
     "director", "artist", "writer", "actors", "publisher", "releaseYear", "genre", "network", "venue", "promotion", "date",
     "season", "episode", "issueNumber", "apiId", "catalogSelection", "externalUrl", "manualFormSection", "developer", "platform",
     "searchStage", "detailsStage", "backBtn", "modalTitle", "selectedTitleDisplay", "gameType", "author", "searchYear", "submitButton"
@@ -78,11 +78,13 @@ export default class extends Controller {
   }
 
   searchNow() {
+    if (!this.searchStageActive) return
     this.debouncedFetch.cancel()
     this.fetchThumbnails()
   }
 
   search() {
+    if (!this.searchStageActive) return
     this.clearGameSelection()
     this.searchAbortController?.abort()
     this.currentQuery = this.searchQuery()
@@ -96,8 +98,6 @@ export default class extends Controller {
     if (this.mediaTypeValue === "comic" && this.hasSearchYearTarget && this.searchYearTarget.value.trim()) {
       query = query.replace(/\s+\(?\d{4}\)?$/, "")
       query += ` (${this.searchYearTarget.value.trim()})`
-    } else if (this.mediaTypeValue !== "comic" && this.hasSecondaryInputTarget && this.secondaryInputTarget.value.trim()) {
-      query += " " + this.secondaryInputTarget.value.trim()
     }
     return query
   }
@@ -110,6 +110,7 @@ export default class extends Controller {
     if (this.hasSearchStageTarget) this.searchStageTarget.classList.add("hidden")
     if (this.hasDetailsStageTarget) this.detailsStageTarget.classList.remove("hidden")
     if (this.hasBackBtnTarget) this.backBtnTarget.classList.remove("hidden")
+    if (this.hasManualFormSectionTarget) this.manualFormSectionTarget.style.display = "block"
     
     if (this.hasSelectedTitleDisplayTarget) {
       const yearInfo = releaseYear ? ` (${releaseYear})` : ""
@@ -135,11 +136,12 @@ export default class extends Controller {
   }
 
   goToSearch() {
-    this.searchStageActive = this.hasSearchStageTarget
-    if (this.searchStageActive) this.submitButtonTargets.forEach(button => { button.disabled = true })
+    this.searchStageActive = this.hasSearchStageTarget || (this.hasManualFormSectionTarget && this.manualFormSectionTarget.style.display === "none")
+    if (this.hasSearchStageTarget) this.submitButtonTargets.forEach(button => { button.disabled = true })
     if (this.hasSearchStageTarget) this.searchStageTarget.classList.remove("hidden")
     if (this.hasDetailsStageTarget) this.detailsStageTarget.classList.add("hidden")
     if (this.hasBackBtnTarget) this.backBtnTarget.classList.add("hidden")
+    if (this.hasManualFormSectionTarget) this.manualFormSectionTarget.style.display = "none"
 
     if (this.hasModalTitleTarget) {
       const mediaNames = {
@@ -160,6 +162,7 @@ export default class extends Controller {
   }
 
   async fetchThumbnails() {
+    if (!this.searchStageActive) return
     this.statusTextTarget.classList.remove("search-pending")
     const title = this.titleInputTarget.value.trim()
     if (!title) {
@@ -185,7 +188,7 @@ export default class extends Controller {
         const response = await fetch(`/media/autocomplete?async=1&q=${encodeURIComponent(query)}&type=${encodeURIComponent(mediaType)}&search_client=${this.searchClient}`, { signal })
         if (!response.ok) throw new Error(`Search failed: ${response.status}`)
         const results = await response.json()
-        if (signal.aborted || this.currentQuery !== query) return
+        if (signal.aborted || !this.searchStageActive || this.currentQuery !== query) return
         const pending = response.status === 202
         const serialized = JSON.stringify(results)
         if (serialized !== previousResults || !pending) {
@@ -194,7 +197,7 @@ export default class extends Controller {
         }
         if (!pending) return
         await new Promise(resolve => setTimeout(resolve, 400))
-        if (signal.aborted) return
+        if (signal.aborted || !this.searchStageActive) return
       }
       this.statusTextTarget.textContent = "Search is taking longer than expected. Select a result, try again, or add manually."
 
@@ -208,6 +211,7 @@ export default class extends Controller {
   }
 
   renderResults(results, mediaType, pending = false) {
+    if (!this.searchStageActive) return
     this.optionsGridTarget.innerHTML = ""
     if (results.length === 0) {
       if (pending) {
@@ -348,6 +352,8 @@ export default class extends Controller {
   }
 
   selectOption(option, isManualClick = false) {
+    if (!isManualClick && !this.searchStageActive) return
+
     // 1. Update cover art URL and previews
     this.thumbnailUrlTarget.value = option.cover_source_url || option.thumbnail_url || ""
     this.previewImgTarget.src = option.thumbnail_url || (this.mediaTypeValue === "video_game" ? "/missing-game-cover.svg" : "/favicon.svg")
