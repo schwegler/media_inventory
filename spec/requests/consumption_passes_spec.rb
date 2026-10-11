@@ -78,4 +78,66 @@ RSpec.describe 'Consumption passes' do
     get user_path(user)
     expect(response.body).to include('Dismiss')
   end
+
+  describe 're-watching from the show page' do
+    before do
+      # Complete the first pass
+      patch toggle_watched_tv_episode_path(ep2), params: { tv_episode: { consumed: true } }
+      patch toggle_watched_tv_episode_path(ep3), params: { tv_episode: { consumed: true } }
+      # Start re-watch (pass 2)
+      post consumption_passes_path(library_item_id: show_lib.id)
+    end
+
+    it 'renders episodes as unwatched on the show page at start of re-watch' do
+      get tv_show_path(show)
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include('0 / 3')
+      expect(response.body).to include('Re-watch #1')
+      expect(response.body).to include('Unwatched')
+      expect(response.body).to include('value="Watch"')
+    end
+
+    it 'marks an episode watched from the show page and updates re-watch progress' do
+      patch toggle_watched_tv_episode_path(ep1), params: { tv_episode: { consumed: true } }, as: :turbo_stream
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include('✓ Watched')
+      expect(response.body).to include('Undo')
+
+      pass2 = show_lib.consumption_passes.find_by(number: 2)
+      expect(pass2.entries.pluck(:item_id)).to eq([ep1.id])
+      expect(show_lib.consumption_passes.find_by(number: 1).entries.count).to eq(3)
+
+      get tv_show_path(show)
+      expect(response.body).to include('1 / 3')
+    end
+
+    it 'allows marking an episode watched during re-watch even if previously reviewed' do
+      ep1_lib = LibraryItem.find_by(user: user, item: ep1)
+      ep1_lib.update!(rating: '4.0', review: 'Great episode')
+
+      get tv_show_path(show)
+      expect(response.body).to include('value="Watch"')
+
+      patch toggle_watched_tv_episode_path(ep1), params: { tv_episode: { consumed: true } }, as: :turbo_stream
+      expect(response).to have_http_status(:success)
+
+      pass2 = show_lib.consumption_passes.find_by(number: 2)
+      expect(pass2.entries.pluck(:item_id)).to eq([ep1.id])
+    end
+
+    it 'allows undoing an episode in a re-watch from the show page while preserving lifetime history' do
+      patch toggle_watched_tv_episode_path(ep1), params: { tv_episode: { consumed: true } }
+      pass2 = show_lib.consumption_passes.find_by(number: 2)
+      expect(pass2.entries.pluck(:item_id)).to eq([ep1.id])
+
+      patch toggle_watched_tv_episode_path(ep1),
+            params: { tv_episode: { consumed: false, consumed_at: nil } }, as: :turbo_stream
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include('Unwatched')
+      expect(pass2.reload.entries).to be_empty
+      expect(LibraryItem.find_by(user: user, item: ep1)).to be_consumed
+    end
+  end
 end

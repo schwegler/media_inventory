@@ -1,6 +1,20 @@
-<% issue_lib = (@child_library_items ? @child_library_items[issue.id] : LibraryItem.find_by(user: current_user, item: issue)) if logged_in? %>
+<%
+  issue_lib = (@child_library_items ? @child_library_items[issue.id] : LibraryItem.find_by(user: current_user, item: issue)) if logged_in?
+  series_lib = @series_library_item || (@library_item if @library_item&.item_type == 'Comic') || (logged_in? && LibraryItem.find_by(user: current_user, item: issue.comic))
+  active_pass = @active_pass || (series_lib && ConsumptionPasses.current_pass(series_lib))
+  pass_entry_ids = @active_pass_entry_ids || ConsumptionPasses.pass_entry_ids(active_pass)
+
+  is_read = ConsumptionPasses.consumed?(
+    issue,
+    user: current_user,
+    series_lib: series_lib,
+    child_lib: issue_lib,
+    pass: active_pass,
+    entry_ids: pass_entry_ids
+  )
+%>
 <%# Local variables: issue, comic %>
-<%= turbo_frame_tag "comic_issue_#{issue.id}", data: { child_collection_target: "entry", search: issue.display_title, completed: issue_lib&.consumed? ? "true" : "false" } do %>
+<%= turbo_frame_tag "comic_issue_#{issue.id}", data: { child_collection_target: "entry", search: issue.display_title, completed: is_read ? "true" : "false" } do %>
   <details class="episode-item child-entry">
     <summary class="child-entry-summary">
     <div class="episode-content-row">
@@ -17,12 +31,10 @@
           </span>
 
 
-          <% if logged_in? && @library_item.present? %>
+          <% if logged_in? && series_lib.present? %>
             <div class="episode-actions-wrapper">
-              <% if issue_lib&.consumed? %>
+              <% if is_read %>
                 <span class="episode-badge-watched">✓ Read</span>
-
-
               <% else %>
                 <span class="episode-badge-not-watched">Unread</span>
               <% end %>
@@ -40,7 +52,7 @@
           </div>
         <% end %>
 
-        <% has_reviewed = issue_lib&.consumed? && (issue_lib.review.present? || issue_lib.rating.present?) %>
+        <% has_reviewed = is_read && (issue_lib&.review.present? || issue_lib&.rating.present?) %>
         <% if has_reviewed %>
           <div class="episode-rating-review-box">
             <div class="episode-rating-review-content">
@@ -56,9 +68,9 @@
           </div>
         <% end %>
 
-    <% if logged_in? && @library_item.present? %>
+    <% if logged_in? && series_lib.present? %>
       <div class="episode-form-section" aria-label="Read, rate, or review">
-        <% if issue_lib&.consumed? %>
+        <% if is_read %>
           <div class="episode-reviewed-actions">
             <%= button_to "Undo", toggle_read_comic_issue_path(issue), method: :patch,
                           params: { comic_issue: { consumed: false, consumed_at: nil } },
@@ -81,14 +93,14 @@
 
             <div class="episode-form-inputs">
               <label class="child-review-label" for="child-review-<%= issue.id %>">Your review <span>(optional)</span></label>
-              <%= form.text_area :review, value: issue_lib&.review, aria: { label: "Issue review" }, placeholder: issue_lib&.consumed? ? "Edit review..." : "Review this issue...", id: "child-review-#{issue.id}", rows: 3, class: "episode-input-review" %>
+              <%= form.text_area :review, value: issue_lib&.review, aria: { label: "Issue review" }, placeholder: is_read ? "Edit review..." : "Review this issue...", id: "child-review-#{issue.id}", rows: 3, class: "episode-input-review" %>
 
               <%= form.select :rating, [["Rating", ""], ["½ ★", "0.5"], ["★", "1.0"], ["★½", "1.5"], ["★★", "2.0"], ["★★½", "2.5"], ["★★★", "3.0"], ["★★★½", "3.5"], ["★★★★", "4.0"], ["★★★★½", "4.5"], ["★★★★★", "5.0"]], { selected: issue_lib&.rating }, { class: "episode-select-rating", aria: { label: "Rating" } } %>
-              <% if issue_lib&.consumed? %>
+              <% if is_read %>
                 <%= form.submit "Update", class: "episode-btn-rate" %>
-              <%else%>
+              <% else %>
                 <%= form.submit "Read", class: "episode-btn-rate" %>
-              <%end%>
+              <% end %>
             </div>
           <% end %>
         <% end %>

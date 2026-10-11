@@ -117,4 +117,45 @@ RSpec.describe ConsumptionPasses do
     LibraryItem.find_by!(user: user, item: ep1).destroy
     expect(show_lib.consumption_passes.sole.entries).to be_empty
   end
+
+  describe '.consumed?' do
+    it 'reports true when watched in first pass' do
+      watch(ep1)
+      expect(described_class.consumed?(ep1, user: user)).to be true
+      expect(described_class.consumed?(ep2, user: user)).to be false
+    end
+
+    it 'reports false during a re-watch until watched in that pass' do
+      watch(ep1)
+      watch(ep2)
+      described_class.start(show_lib)
+
+      expect(described_class.consumed?(ep1, user: user)).to be false
+      expect(described_class.consumed?(ep2, user: user)).to be false
+
+      watch(ep1)
+      expect(described_class.consumed?(ep1, user: user)).to be true
+      expect(described_class.consumed?(ep2, user: user)).to be false
+    end
+  end
+
+  describe '.current_pass' do
+    it 'returns the active pass' do
+      watch(ep1)
+      expect(described_class.current_pass(show_lib)&.number).to eq(1)
+    end
+
+    it 'returns the dismissed pass if dismissed' do
+      watch(ep1)
+      pass = show_lib.consumption_passes.sole
+      described_class.dismiss(pass)
+      expect(described_class.current_pass(show_lib)).to eq(pass)
+    end
+
+    it 'returns nil when pass is completed and no active pass' do
+      watch(ep1)
+      watch(ep2)
+      expect(described_class.current_pass(show_lib)).to be_nil
+    end
+  end
 end

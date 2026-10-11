@@ -175,6 +175,10 @@ class InventoryController < ApplicationController
                                end
     entries = current_user.library_items.where(item_type: type, item_id: children.select(:id)).index_by(&:item_id)
     instance_variable_set(variable, entries)
+    return unless @library_item
+
+    @active_pass = ConsumptionPasses.current_pass(@library_item)
+    @active_pass_entry_ids = ConsumptionPasses.pass_entry_ids(@active_pass)
   end
 
   def catalog_scope(scope)

@@ -1,3 +1,9 @@
 <%= turbo_stream.replace "tv_episode_#{@tv_episode.id}" do %>
   <%= render 'tv_shows/tv_episode', ep: @tv_episode, tv_show: @tv_episode.tv_show %>
 <% end %>
+
+<% if @show_library_item.present? %>
+  <%= turbo_stream.replace "consumption-pass-panel" do %>
+    <%= render 'shared/consumption_pass_panel', item: @tv_episode.tv_show, library_item: @show_library_item %>
+  <% end %>
+<% end %>
