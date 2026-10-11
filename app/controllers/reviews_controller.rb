@@ -1,6 +1,17 @@
 # frozen_string_literal: true
 
 class ReviewsController < ApplicationController
+  REVIEWABLE_MODELS = {
+    'Movie' => Movie,
+    'TvShow' => TvShow,
+    'TvEpisode' => TvEpisode,
+    'Album' => Album,
+    'Comic' => Comic,
+    'ComicIssue' => ComicIssue,
+    'VideoGame' => VideoGame,
+    'Book' => Book
+  }.freeze
+
   before_action :logged_in_user
   before_action :load_reviewable
 
@@ -45,11 +56,10 @@ class ReviewsController < ApplicationController
   private
 
   def load_reviewable
-    allowed_types = %w[Movie TvShow TvEpisode Album Comic ComicIssue VideoGame Book]
-    item_type = params[:item_type]
+    model_class = REVIEWABLE_MODELS[params[:item_type]]
 
-    if item_type.present? && allowed_types.include?(item_type)
-      @item = item_type.constantize.find(params[:item_id])
+    if model_class.present?
+      @item = model_class.find(params[:item_id])
       @library_item = LibraryItem.find_or_initialize_by(user: current_user, item: @item)
     elsif params[:id].present?
       @library_item = current_user.library_items.find(params[:id])
