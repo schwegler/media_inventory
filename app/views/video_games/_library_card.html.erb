@@ -1,18 +1,29 @@
+<% card = media_card_presentation(game) %>
+<% year = game.release_year.presence || game.title.to_s[MediaCardHelper::TRAILING_YEAR, 1] %>
 <% ratings = item_card_ratings(game, user_library: library) %>
 <% user_rating = ratings[:user_rating] %>
 <% avg_rating = ratings[:avg_rating] %>
-<article class="card-2026 game-library-card">
+<article class="card-2026 game-library-card" data-media-kind="VideoGame">
   <div class="card-2026-cover">
     <%= game_library_image(game, library, alt: "#{game.title} cover", loading: 'lazy', decoding: 'async') %>
   </div>
   <div class="card-2026-content">
-    <h2 class="card-2026-title"><%= link_to game.title, game %></h2>
-    <p class="card-2026-meta"><%= [game.release_year, game.game_type.humanize, game.developer.presence].compact.join(' · ') %></p>
-    <% if library %>
-      <p class="game-library-status"><%= library.game_playthroughs.map { |run| run.status.humanize }.uniq.join(' · ').presence || 'No playthrough recorded' %></p>
-      <p class="card-2026-meta"><%= library.game_copies.map { |copy| "#{copy.platform} (#{copy.ownership_status.humanize.downcase})" }.uniq.join(' · ').presence || 'No explicit copy records' %></p>
-      <p class="card-2026-meta">Recorded: <%= game_playtime(game[:recorded_minutes]) %></p>
+    <div class="card-2026-heading">
+      <h2 class="card-2026-title"><%= link_to card.title, game, title: game.title %></h2>
+      <% if year.present? %><span class="card-2026-year"><%= year %></span><% end %>
+    </div>
+    <% if game.developer.present? %>
+      <p class="card-2026-meta card-2026-creator" title="<%= game.developer %>"><%= game.developer %></p>
     <% end %>
-    <%= render "shared/card_ratings", user_rating: user_rating, avg_rating: avg_rating %>
+    <% if library %>
+      <% statuses = library.game_playthroughs.map { |run| run.status.humanize }.uniq %>
+      <% if statuses.any? || game[:recorded_minutes].to_i.positive? %>
+        <div class="card-2026-progress">
+          <% if statuses.any? %><span class="game-library-status"><%= statuses.join(' · ') %></span><% end %>
+          <% if game[:recorded_minutes].to_i.positive? %><span><%= game_playtime(game[:recorded_minutes]) %> played</span><% end %>
+        </div>
+      <% end %>
+    <% end %>
+    <%= render 'shared/card_ratings', user_rating: user_rating, avg_rating: avg_rating %>
   </div>
 </article>

@@ -33,16 +33,29 @@
 .catalog-toolbar input[type='submit'] { margin: 0; height: 46px; background: var(--surface); color: var(--text); border-color: var(--border-strong); }
 .catalog-results-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; margin-block: 1.5rem 1rem; font-size: .875rem; }
 .catalog-results-heading p { margin: 0; color: var(--text-secondary); }
-.catalog-page .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 2rem 1.5rem; }
+// An open shelf: artwork first, one credit, and a quiet numeric rating footer.
+.catalog-page .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 2.5rem 1.75rem; }
 .catalog-grid .card-2026 { overflow: visible; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 .catalog-grid .card-2026:hover, .catalog-grid .card-2026:focus-within { box-shadow: none; transform: none; }
-.catalog-grid .card-2026-cover { border-radius: 6px; border: 1px solid var(--border); transition: box-shadow .18s ease; }
-.catalog-grid .card-2026:hover .card-2026-cover { box-shadow: 0 6px 20px rgba(var(--rgb-inverse), .12); }
-.catalog-grid .card-2026-content { padding: .8rem 0 0; gap: .2rem; }
+.catalog-grid .card-2026-cover { border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(var(--rgb-inverse), .06); transition: box-shadow .18s ease, transform .18s ease; }
+.catalog-grid .card-2026:hover .card-2026-cover { box-shadow: 0 8px 24px rgba(var(--rgb-inverse), .12); transform: translateY(-3px); }
+.catalog-grid .card-2026-content { padding: .9rem 0 0; gap: .35rem; }
+.card-2026-heading { display: flex; align-items: baseline; gap: .65rem; min-width: 0; }
+.card-2026-heading .card-2026-title { flex: 1; min-width: 0; margin: 0; padding: 0; border: 0; }
+.card-2026-heading .card-2026-year { flex-shrink: 0; color: var(--text-secondary); font-size: .8125rem; font-variant-numeric: tabular-nums; }
 .catalog-grid .card-2026-title a { text-decoration: none; }
-.catalog-grid .card-2026-title { font-size: 1rem; margin: 0 0 .2rem; letter-spacing: -.015em; }
-.catalog-grid .card-2026-meta { color: var(--text-secondary); font-size: .8125rem; line-height: 1.45; }
-.catalog-grid .card-2026-year { color: var(--text-tertiary); }
+.catalog-grid .card-2026-title { font-size: 1rem; letter-spacing: -.015em; line-height: 1.4; text-wrap: pretty; }
+.card-2026-heading .card-2026-title a { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.catalog-grid .card-2026-meta { color: var(--text-secondary); font-size: .875rem; line-height: 1.5; }
+.card-2026-creator { margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.card-2026-content .card-2026-ratings { padding-top: 0; margin-top: .65rem; gap: .4rem .75rem; font-size: .8125rem; }
+.card-2026-ratings .rating-label { color: var(--text-secondary); font-size: .75rem; font-weight: 400; letter-spacing: 0; text-transform: none; }
+.card-2026-ratings .rating-value { color: var(--star-color); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.card-2026-ratings .card-2026-avg-rating { gap: .3rem; }
+.card-2026-ratings .card-2026-user-rating { gap: .3rem; }
+.card-2026-ratings > span + span { border-left: 1px solid var(--border); padding-left: .75rem; }
+.card-2026-progress { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .6rem; color: var(--text-secondary); font-size: .75rem; margin-top: .25rem; }
+.card-2026-progress .game-library-status { margin: 0; padding: .15rem .5rem; border-radius: 20px; background: var(--accent-subtle); color: var(--accent); font-size: .75rem; font-weight: 500; }
 .media-back-link { display: inline-flex; align-items: center; min-height: 44px; margin-bottom: 1rem; font-size: .875rem; text-decoration: none; }
 .media-overview { display: grid; grid-template-columns: 164px minmax(0, 1fr) 250px; align-items: start; gap: 2rem; padding-block: .5rem 2rem; }
 .media-cover { aspect-ratio: 2 / 3; border-radius: 7px; overflow: hidden; border: 1px solid var(--border); background: var(--inset); }
@@ -183,7 +196,7 @@
   .media-detail .actions-buttons-row .sleek-btn { width: 100%; font-size: .8125rem; padding-inline: .5rem; }
   .media-detail .inline-form-row { align-items: stretch; flex-direction: column; }
 }
-@media (prefers-reduced-motion: reduce) { .catalog-grid .card-2026-cover { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .catalog-grid .card-2026-cover { transition: none; } .catalog-grid .card-2026:hover .card-2026-cover { transform: none; } }
 
 .child-collection-toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem; margin-block: 1rem; }
 .child-collection-toolbar > div:first-child { flex: 1; min-width: 150px; }
@@ -261,7 +274,7 @@
 .media-entries .episode-link { font-size: .9375rem; font-weight: 700; color: var(--text); text-decoration: none; }
 .media-entries .episode-air-date { font-size: .8125rem; color: var(--text-tertiary); }
 .media-entries .episode-actions-wrapper { margin-top: .3rem; }
-.media-entries :where(.episode-badge-watched, .episode-badge-not-watched) { padding: .2rem .6rem; border: 0; border-radius: 20px; font-size: .75rem; font-weight: 400; }
+.media-entries :where(.episode-badge-watched, .episode-badge-not-watched) { padding: .2rem .6rem; border: 0; border-radius: 20px; font-size: .75rem; font-weight: 400; letter-spacing: 0; text-transform: none; }
 .child-entry-body { padding-top: 1rem; }
 .media-entries .episode-form-section { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
 .media-entries .episode-btn-unwatch { margin-bottom: .75rem; font-size: .8125rem; }

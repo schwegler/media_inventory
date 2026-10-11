@@ -46,9 +46,9 @@ RSpec.describe 'Item card ratings', type: :request do
 
       rated_card = document.at_css(".card-2026:has(a:contains('Rated Movie'))")
       expect(rated_card).to be_present
-      expect(rated_card.css('.card-2026-user-rating').text).to include('Your rating:')
-      expect(rated_card.css('.card-2026-user-rating').text).to include('★★★★★')
-      expect(rated_card.css('.card-2026-avg-rating').text).to include('Avg rating:')
+      expect(rated_card.css('.card-2026-user-rating').text).to include('Yours')
+      expect(rated_card.css('.card-2026-user-rating').text).to include('5.0 ★')
+      expect(rated_card.css('.card-2026-avg-rating').text).to include('Avg')
       expect(rated_card.css('.card-2026-avg-rating').text).to include('4.5 ★')
     end
 
@@ -59,9 +59,9 @@ RSpec.describe 'Item card ratings', type: :request do
 
       game_card = document.at_css(".card-2026:has(a:contains('Rated Game'))")
       expect(game_card).to be_present
-      expect(game_card.css('.card-2026-user-rating').text).to include('Your rating:')
-      expect(game_card.css('.card-2026-user-rating').text).to include('★★★★★')
-      expect(game_card.css('.card-2026-avg-rating').text).to include('Avg rating:')
+      expect(game_card.css('.card-2026-user-rating').text).to include('Yours')
+      expect(game_card.css('.card-2026-user-rating').text).to include('5.0 ★')
+      expect(game_card.css('.card-2026-avg-rating').text).to include('Avg')
       expect(game_card.css('.card-2026-avg-rating').text).to include('4.0 ★')
     end
 
@@ -72,7 +72,7 @@ RSpec.describe 'Item card ratings', type: :request do
 
       movie_card = document.at_css(".card-2026:has(a:contains('Rated Movie'))")
       expect(movie_card).to be_present
-      expect(movie_card.css('.card-2026-user-rating').text).to include('Your rating:')
+      expect(movie_card.css('.card-2026-user-rating').text).to include('Yours')
       expect(movie_card.css('.card-2026-avg-rating').text).to include('4.5 ★')
     end
   end
