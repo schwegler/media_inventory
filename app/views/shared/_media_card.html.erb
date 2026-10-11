@@ -32,6 +32,17 @@
     <% if creator.present? %>
       <p class="card-2026-meta card-2026-creator" title="<%= creator.label %> <%= creator.full %>"><%= creator.value %></p>
     <% end %>
+    <% if @personal_library && (library = @libraries&.[](media_item.id)) %>
+      <div class="library-card-state">
+        <% if (progress = library_progress(media_item, library)) %>
+          <span><%= progress[0] %> / <%= progress[1] %> <%= progress[2] %></span>
+          <progress value="<%= progress[0] %>" max="<%= progress[1] %>" aria-label="<%= progress[2] %>"></progress>
+        <% else %>
+          <span><%= library.consumed? ? library_config(media_item.class)[:finished] : (library.in_backlog? ? library_config(media_item.class)[:queue] : library_config(media_item.class)[:unfinished]) %></span>
+        <% end %>
+        <%= link_to 'Update', polymorphic_path(media_item), aria: { label: "Update #{media_title}" } %>
+      </div>
+    <% end %>
     <%= render 'shared/card_ratings', user_rating: user_rating, avg_rating: avg_rating %>
   </div>
 </div>

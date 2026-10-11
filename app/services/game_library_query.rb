@@ -84,7 +84,12 @@ class GameLibraryQuery
   def filter_play_status(scope, libraries)
     return scope if @filters['play_status'].blank?
 
-    runs = GamePlaythrough.where(library_item_id: libraries.select(:id), status: @filters['play_status'])
+    statuses = case @filters['play_status']
+               when 'completed' then GameLibraryStatistics::COMPLETED
+               when 'playing' then %w[currently_playing replaying]
+               else @filters['play_status']
+               end
+    runs = GamePlaythrough.where(library_item_id: libraries.select(:id), status: statuses)
     scope.where(library_items: { id: runs.select(:library_item_id) })
   end
 

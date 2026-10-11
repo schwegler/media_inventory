@@ -11,7 +11,7 @@ RSpec.describe 'Media catalog organization', type: :request do
       get polymorphic_path(klass)
       expect(response).to have_http_status(:ok)
       if klass == VideoGame
-        expect(response.body).to include('Search collection', 'game-library-filters')
+        expect(response.body).to include('Search games', 'game-library-filters')
       else
         expect(response.body).to include('Search by title', 'catalog-navigation')
       end
