@@ -28,6 +28,19 @@ class LibraryItem < ApplicationRecord
   after_save :record_pass_entry, if: -> { PASS_CHILD_TYPES.include?(item_type) && saved_change_to_consumed? }
   after_destroy :forget_pass_entry, if: -> { PASS_CHILD_TYPES.include?(item_type) }
 
+  after_save :mark_episodes_watched_if_series_watched,
+             if: -> { item_type == 'TvShow' && consumed? && (saved_change_to_id? || saved_change_to_consumed?) }
+
+  def mark_all_episodes_watched
+    return unless item.is_a?(TvShow)
+
+    watched_date = consumed_at || Time.current.to_date
+    item.tv_episodes.find_each do |episode|
+      ep_lib = user.library_items.find_or_initialize_by(item: episode)
+      ConsumptionPasses.apply(user, episode, ep_lib, { consumed: true, consumed_at: ep_lib.consumed_at || watched_date })
+    end
+  end
+
   def method_missing(method, *, &)
     if item.respond_to?(method)
       item.send(method, *, &)
@@ -52,5 +65,9 @@ class LibraryItem < ApplicationRecord
 
   def forget_pass_entry
     ConsumptionPasses.forget(user, item)
+  end
+
+  def mark_episodes_watched_if_series_watched
+    mark_all_episodes_watched
   end
 end

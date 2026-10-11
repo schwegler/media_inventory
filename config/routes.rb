@@ -128,6 +128,9 @@ SampleApp::Application.routes.draw do
   end
   resources :tv_shows do
     resources :edit_suggestions, only: %i[new create]
+    member do
+      patch 'seasons/:season/mark_watched', to: 'tv_shows#mark_season_watched', as: 'mark_season_watched'
+    end
   end
   resources :tv_episodes, only: %i[show]
   resources :video_games do
@@ -181,6 +184,10 @@ SampleApp::Application.routes.draw do
   get '/tv_episodes/:id/toggle_watched', to: redirect { |params, _request|
     episode = TvEpisode.find_by(id: params[:id])
     episode ? "/tv_shows/#{episode.tv_show.to_param}" : '/tv_shows'
+  }
+  get '/tv_shows/:id/seasons/:season/mark_watched', to: redirect { |params, _request|
+    show = TvShow.find_by(id: params[:id])
+    show ? "/tv_shows/#{show.to_param}" : '/tv_shows'
   }
 
   resources :comic_issues, only: %i[show]
