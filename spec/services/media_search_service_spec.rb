@@ -8,6 +8,32 @@ RSpec.describe MediaSearchService do
     stub_request(:get, /en.wikipedia.org/).to_return(body: { query: { pages: {} } }.to_json)
   end
 
+  it 'searches providers concurrently and publishes fast matches without waiting for a slow provider' do
+    service = described_class.new('Trivial Pursuit', 'tv_show')
+    started = Queue.new
+    release = Queue.new
+    allow(MediaSources::Registry).to receive(:enabled?) { |source, _type| %w[tvmaze TMDB].include?(source) }
+    allow(service).to receive(:fetch_tmdb_tv_shows) do
+      started << true
+      release.pop
+      [{ title: 'Trivial Pursuit', release_year: '1993' }]
+    end
+    allow(service).to receive(:fetch_tvmaze_tv_shows) do
+      Timeout.timeout(2) { started.pop }
+      [{ title: 'Trivial Pursuit', release_year: '2024' }]
+    end
+    expect(service).not_to receive(:enrich_result)
+    snapshots = []
+    results = service.call do |partial|
+      snapshots << partial
+      release << true if snapshots.size == 1
+    end
+    expect(snapshots.first).to contain_exactly(hash_including(source: 'tvmaze', release_year: '2024'))
+    expect(results.map { |result| result[:source] }).to eq(%w[tvmaze TMDB])
+  ensure
+    release << true if release
+  end
+
   it 'uses bounded game detail lookup to classify products and caches search results' do
     stub_request(:get, %r{store.steampowered.com/api/storesearch}).to_return(body: {
       items: [{ id: 620, name: 'Portal 2', tiny_image: 'https://shared.fastly.steamstatic.com/real.jpg' }]
