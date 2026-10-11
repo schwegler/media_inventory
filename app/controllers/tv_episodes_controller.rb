@@ -22,7 +22,7 @@ class TvEpisodesController < ApplicationController
 
     @library_item = LibraryItem.find_or_initialize_by(user: current_user, item: @tv_episode)
 
-    if @library_item.update(tv_episode_params)
+    if ConsumptionPasses.apply(current_user, @tv_episode, @library_item, tv_episode_params)
       # Opportunistically fetch missing episode thumbnails from TVMaze
       SyncSeriesMetadataJob.perform_later(@tv_episode) if @tv_episode.thumbnail_url.blank?
 

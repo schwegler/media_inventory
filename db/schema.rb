@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_09_190000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_10_220000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -138,6 +138,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_190000) do
     t.index ["created_at"], name: "index_comments_on_created_at"
     t.index ["parent_id"], name: "index_comments_on_parent_id"
     t.index ["user_id"], name: "index_comments_on_user_id"
+  end
+
+  create_table "consumption_pass_entries", force: :cascade do |t|
+    t.datetime "consumed_at", null: false
+    t.integer "consumption_pass_id", null: false
+    t.datetime "created_at", null: false
+    t.integer "item_id", null: false
+    t.string "item_type", null: false
+    t.datetime "updated_at", null: false
+    t.index ["consumption_pass_id", "item_type", "item_id"], name: "index_pass_entries_on_pass_and_item", unique: true
+    t.index ["consumption_pass_id"], name: "index_consumption_pass_entries_on_consumption_pass_id"
+  end
+
+  create_table "consumption_passes", force: :cascade do |t|
+    t.date "completed_on"
+    t.datetime "created_at", null: false
+    t.integer "library_item_id", null: false
+    t.integer "number", default: 1, null: false
+    t.date "started_on"
+    t.string "status", default: "active", null: false
+    t.datetime "updated_at", null: false
+    t.index ["library_item_id", "number"], name: "index_consumption_passes_on_library_item_id_and_number", unique: true
+    t.index ["library_item_id"], name: "index_consumption_passes_on_library_item_id"
+    t.index ["library_item_id"], name: "index_consumption_passes_one_active_per_item", unique: true, where: "status = 'active'"
   end
 
   create_table "cover_imports", force: :cascade do |t|
@@ -545,6 +569,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_190000) do
   add_foreign_key "activities", "users", on_delete: :cascade
   add_foreign_key "comic_issues", "comics", on_delete: :cascade
   add_foreign_key "comments", "users", on_delete: :cascade
+  add_foreign_key "consumption_pass_entries", "consumption_passes"
+  add_foreign_key "consumption_passes", "library_items"
   add_foreign_key "edit_suggestions", "users"
   add_foreign_key "game_artwork_batches", "video_games"
   add_foreign_key "game_artworks", "library_items"

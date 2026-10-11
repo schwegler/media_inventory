@@ -22,7 +22,7 @@ class ComicIssuesController < ApplicationController
 
     @library_item = LibraryItem.find_or_initialize_by(user: current_user, item: @comic_issue)
 
-    if @library_item.update(comic_issue_params)
+    if ConsumptionPasses.apply(current_user, @comic_issue, @library_item, comic_issue_params)
       respond_to do |format|
         if params[:back_to_issue]
           format.html { redirect_to @comic_issue, notice: 'Issue updated.' }

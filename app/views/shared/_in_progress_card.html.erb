@@ -50,7 +50,18 @@
     </div>
 
     <div class="in-progress-series-info">
-      <span class="in-progress-series-tag"><%= tag_label %></span>
+      <div class="in-progress-tag-row">
+        <span class="in-progress-series-tag"><%= tag_label %></span>
+        <% if in_progress.pass&.rewatch? %>
+          <span class="in-progress-pass-badge"><%= is_tv ? "Re-watch" : "Re-read" %> #<%= in_progress.pass.number - 1 %></span>
+        <% end %>
+        <% if profile_owner && in_progress.pass %>
+          <%= button_to "Dismiss", dismiss_consumption_pass_path(in_progress.pass), method: :patch,
+                        class: "in-progress-dismiss", form_class: "in-progress-dismiss-form",
+                        title: "Take off In progress. Your progress is kept.",
+                        aria: { label: "Dismiss #{series_title} from In progress" } %>
+        <% end %>
+      </div>
       <h3 class="in-progress-series-title">
         <%= link_to series_title, series_path %>
       </h3>

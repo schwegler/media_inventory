@@ -74,6 +74,7 @@
             <% completed = LibraryItem.where(user: current_user, item_type: entries.klass.name, item_id: entries.select(:id), consumed: true).count %>
             <p class="media-progress"><strong data-child-collection-target="completed"><%= completed %> / <%= entries.size %></strong> <%= entries_label.downcase %> <%= MediaLanguage.for(item)[:past] %></p>
             <progress data-child-collection-target="progress" value="<%= completed %>" max="<%= [entries.size, 1].max %>" aria-label="<%= entries_label %> completed"></progress>
+            <%= render 'shared/consumption_pass_panel', item: item, library_item: @library_item if @library_item.present? %>
           <% end %>
           <div class="child-collection-toolbar">
             <div><label for="child-search">Search <%= entries_label.downcase %></label><input id="child-search" type="search" placeholder="Title or number…" data-child-collection-target="search" data-action="input->child-collection#filter"></div>

@@ -167,6 +167,13 @@ SampleApp::Application.routes.draw do
 
   resources :comments, only: :create
 
+  resources :consumption_passes, only: :create do
+    member do
+      patch :dismiss
+      patch :resume
+    end
+  end
+
   patch '/tv_episodes/:id/toggle_watched', to: 'tv_episodes#toggle_watched', as: 'toggle_watched_tv_episode'
   get '/tv_episodes/:id/toggle_watched', to: redirect { |params, _request|
     episode = TvEpisode.find_by(id: params[:id])
