@@ -26,6 +26,13 @@ class MediaArtworkDownload
   def self.download(file, source_url, deadline)
     file.binmode
     image_url = MediaCoverImporter.resolve_legacy_steam_url(source_url, deadline: deadline)
+    # ComicVine originals can exceed the download limit; its large rendition
+    # retains the same cover and is sufficient for our 600x900 stored preview.
+    uri = MediaSources::Http.validated_uri(image_url)
+    if uri.host == 'comicvine.gamespot.com'
+      uri.path = uri.path.sub(%r{\A/a/uploads/original/}, '/a/uploads/scale_large/')
+      image_url = uri.to_s
+    end
     MediaSources::Http.get(image_url, max_bytes: MediaCoverImporter::MAX_BYTES, deadline: deadline) do |chunk, type|
       if type.present? && !MediaCoverImporter::IMAGE_TYPES.include?(type.split(';').first)
         raise MediaSources::Http::Error, 'Unsupported response content type'
