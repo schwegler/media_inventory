@@ -149,8 +149,10 @@ class MetadataProvider
            api_key: token).fetch('episodes').map do |ep|
         still = ep['still_path']
         img = still.present? ? "https://image.tmdb.org/t/p/w500#{still}" : nil
-        { 'name' => ep['name'], 'season' => ep['season_number'], 'number' => ep['episode_number'],
-          'airdate' => ep['air_date'], 'summary' => ep['overview'], 'image' => { 'original' => img } }
+        { 'id' => ep['id'], 'name' => ep['name'], 'season' => ep['season_number'], 'number' => ep['episode_number'],
+          'airdate' => ep['air_date'], 'summary' => ep['overview'], 'image' => { 'original' => img },
+          'guest_stars' => ep['guest_stars'], 'crew' => ep['crew'], 'runtime' => ep['runtime'],
+          'production_code' => ep['production_code'] }
       end
     end
   end

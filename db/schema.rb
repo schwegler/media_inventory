@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_10_221000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_11_120000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -116,7 +116,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_10_221000) do
   create_table "comic_issues", force: :cascade do |t|
     t.integer "comic_id", null: false
     t.datetime "created_at", null: false
+    t.json "credits", default: [], null: false
     t.integer "issue_number"
+    t.json "metadata_details", default: {}, null: false
     t.string "provider_id"
     t.string "publisher"
     t.string "rating"
@@ -493,8 +495,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_10_221000) do
   create_table "tv_episodes", force: :cascade do |t|
     t.string "air_date"
     t.datetime "created_at", null: false
+    t.json "credits", default: [], null: false
     t.integer "episode"
+    t.json "metadata_details", default: {}, null: false
     t.string "name"
+    t.string "provider_id"
     t.string "rating"
     t.text "review"
     t.integer "season"

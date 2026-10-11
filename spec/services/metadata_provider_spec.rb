@@ -18,11 +18,22 @@ RSpec.describe MetadataProvider do
     ApiConfiguration.create!(source_name: 'TMDB', is_active: true, access_token: 'test')
     json_response('https://api.themoviedb.org/3/tv/12', { seasons: [{ season_number: 1 }] }, api_key: 'test')
     json_response('https://api.themoviedb.org/3/tv/12/season/1',
-                  { episodes: [{ name: 'Pilot', season_number: 1, episode_number: 1, air_date: '2026-10-01' }] },
+                  { episodes: [{ id: 123, name: 'Pilot', season_number: 1, episode_number: 1, air_date: '2026-10-01',
+                                 runtime: 44, production_code: 'P101',
+                                 guest_stars: [{ name: 'Guest actor', character: 'The mayor' }],
+                                 crew: [{ name: 'Pilot director', job: 'Director' }] }] },
                   api_key: 'test')
     fields, rows = described_class.new(item).call
     expect(fields).to include(:network)
     expect(rows.first).to include('season' => 1, 'number' => 1, 'name' => 'Pilot')
+    MetadataChildren.episodes(item, rows)
+    episode = item.tv_episodes.first
+    expect(episode.credits).to include('name' => 'Guest actor', 'role' => 'Guest star', 'character' => 'The mayor')
+    expect(episode.credits).to include('name' => 'Pilot director', 'role' => 'Director')
+    expect(episode.metadata_details).to include('Runtime' => '44 minutes', 'Production code' => 'P101')
+    expect(episode.provider_id).to eq('123')
+    item.send(:sync_episodes_from_api)
+    expect(item.tv_episodes.count).to eq(1)
   end
 
   it 'refreshes TMDB movie artwork without searching for a different title' do

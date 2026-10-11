@@ -24,6 +24,9 @@
   </header>
   <div class="media-detail-body">
     <div class="media-detail-main"><%= render tracking, comic: parent, tv_show: parent %></div>
-    <aside class="media-detail-aside" aria-label="Title tools"><%= render 'shared/metadata_refresh', item: parent %></aside>
+    <aside class="media-detail-aside" aria-label="Title tools">
+      <%= render 'shared/child_metadata', item: item %>
+      <%= render 'shared/metadata_refresh', item: parent %>
+    </aside>
   </div>
 </article>
