@@ -92,4 +92,38 @@ RSpec.describe User, type: :model do
     end
     it { should_not be_valid }
   end
+
+  describe '#liked?' do
+    let(:movie) { Movie.create!(title: 'Inception') }
+
+    before do
+      @user.save!
+    end
+
+    context 'when likes association is not loaded' do
+      it 'returns false when not liked' do
+        expect(@user.liked?(movie)).to be false
+      end
+
+      it 'returns true when liked' do
+        Like.create!(user: @user, likeable: movie)
+        expect(@user.liked?(movie)).to be true
+      end
+    end
+
+    context 'when likes association is preloaded in memory' do
+      it 'returns false when not liked' do
+        @user.likes.load
+        expect(@user.likes).to be_loaded
+        expect(@user.liked?(movie)).to be false
+      end
+
+      it 'returns true when liked using in-memory array' do
+        Like.create!(user: @user, likeable: movie)
+        user_reloaded = User.includes(:likes).find(@user.id)
+        expect(user_reloaded.likes).to be_loaded
+        expect(user_reloaded.liked?(movie)).to be true
+      end
+    end
+  end
 end
