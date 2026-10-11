@@ -59,7 +59,7 @@
 .media-back-link { display: inline-flex; align-items: center; min-height: 44px; margin-bottom: 1rem; font-size: .875rem; text-decoration: none; }
 .media-overview { display: grid; grid-template-columns: 164px minmax(0, 1fr) 250px; align-items: start; gap: 2rem; padding-block: .5rem 2rem; }
 .media-cover { aspect-ratio: 2 / 3; border-radius: 7px; overflow: hidden; border: 1px solid var(--border); background: var(--inset); }
-.media-cover img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.media-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .media-cover .artwork-fallback { min-height: 100%; gap: .7rem; }
 .media-cover .artwork-fallback > span:first-child { font-size: 2.5rem; }
 .media-detail[data-media-kind='VideoGame'] .media-cover { aspect-ratio: 2 / 3; }
@@ -206,8 +206,8 @@
 .child-collection-toolbar p { flex-basis: 100%; margin: 0; font-size: .8125rem; color: var(--text-secondary); }
 .media-entries .episode-item { margin: 0; padding: 1rem 0; border: 0; border-bottom: 1px solid var(--border); border-radius: 0; background: transparent; gap: .5rem; }
 .media-entries .episode-content-row { flex-direction: row; gap: 1rem; }
-.media-entries .episode-thumbnail { width: 100px; height: 64px; object-fit: cover; flex-shrink: 0; border-radius: 5px; }
-.media-detail[data-media-kind='Comic'] .episode-thumbnail { width: 55px; height: 80px; object-fit: contain; }
+.media-entries .episode-thumbnail { width: 100px; height: auto; aspect-ratio: 16 / 9; object-fit: cover; flex-shrink: 0; border-radius: 5px; }
+.media-detail[data-media-kind='Comic'] .episode-thumbnail { width: 55px; height: auto; aspect-ratio: 2 / 3; object-fit: cover; }
 .media-entries .episode-header { flex-wrap: wrap; align-items: start; gap: .5rem; font-size: .9375rem; }
 .media-entries .episode-air-date { display: block; margin: .25rem 0 0; }
 .media-entries .episode-link { border: 0; }
@@ -225,7 +225,7 @@
   .media-entries .episode-input-review { flex: none; width: 100%; height: 44px; }
   .media-entries .episode-form-inputs select, .media-entries .episode-form-inputs input[type='submit'] { width: 100%; }
 }
-@media (max-width: 480px) { .media-entries .episode-thumbnail { width: 72px; height: 48px; } }
+@media (max-width: 480px) { .media-entries .episode-thumbnail { width: 72px; height: auto; aspect-ratio: 16 / 9; } }
 
 .media-child-detail[data-media-kind='TvEpisode'] .media-cover { aspect-ratio: 16 / 9; }
 .media-child-subtitle { color: var(--text-secondary); font-size: .9375rem; }
@@ -295,7 +295,7 @@
   .media-detail .actions-buttons-row .sleek-btn { font-size: .75rem; padding: .5rem .45rem; }
   .media-detail .actions-buttons-row form:has(.btn-like-icon) { flex: 0 0 auto; }
   .media-detail .library-intro { font-size: .8125rem; }
-  .media-entries .episode-thumbnail { width: 88px; height: 56px; }
+  .media-entries .episode-thumbnail { width: 88px; height: auto; aspect-ratio: 16 / 9; }
   .media-entries .episode-content-row { gap: .8rem; }
   .media-entries .season-panel-header { flex-direction: column; align-items: stretch; }
   .media-entries .season-panel-actions, .media-entries .season-panel-actions form, .media-entries .season-panel-actions .sleek-btn { width: 100%; }

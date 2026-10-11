@@ -490,7 +490,7 @@
 .game-library-list { display: grid; gap: .75rem; }
 .game-library-list .game-library-card { display: grid; grid-template-columns: 80px 1fr; }
 .game-library-list .card-2026-cover { height: 120px; aspect-ratio: auto; }
-.game-library-card .card-2026-cover img { object-fit: contain; }
+.game-library-card .card-2026-cover img { object-fit: cover; }
 .game-library-card .game-library-status { font-size: .85rem; font-weight: 600; }
 .game-library-card .card-2026-content { min-width: 0; overflow-wrap: anywhere; }
 .game-library-table-wrap { overflow-x: auto; max-width: 100%; margin: 1rem 0; }
