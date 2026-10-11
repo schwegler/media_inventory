@@ -3,6 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe InProgressTracker do
+  include ActiveSupport::Testing::TimeHelpers
+
   let!(:user) do
     User.create!(name: 'Tracker User', email: 'tracker@example.com', password: 'password123',
                  password_confirmation: 'password123', confirmed_at: Time.current)
@@ -64,6 +66,53 @@ RSpec.describe InProgressTracker do
         LibraryItem.create!(user: user, item: s2e1, consumed: true, consumed_at: Date.current)
 
         expect(described_class.items_for(user)).to be_empty
+      end
+    end
+
+    context 'when watching episodes out of series order' do
+      let!(:s3e1) { tv_show.tv_episodes.create!(name: 'Go Big or Go Home', season: 3, episode: 1) }
+      let!(:s3e2) { tv_show.tv_episodes.create!(name: 'Flu Season', season: 3, episode: 2) }
+      let!(:s3e3) { tv_show.tv_episodes.create!(name: 'Time Capsule', season: 3, episode: 3) }
+
+      it 'continues in season three when earlier seasons are unwatched' do
+        LibraryItem.create!(user: user, item: s3e1, consumed: true, consumed_at: Date.current)
+
+        expect(described_class.items_for(user).sole.next_item).to eq(s3e2)
+      end
+
+      it 'continues after the most recently marked episode even when a later episode is already watched' do
+        travel_to 1.day.ago do
+          LibraryItem.create!(user: user, item: s3e3, consumed: true, consumed_at: Date.current)
+        end
+        LibraryItem.create!(user: user, item: s3e1, consumed: true, consumed_at: 1.week.ago.to_date)
+
+        expect(described_class.items_for(user).sole.next_item).to eq(s3e2)
+      end
+
+      it 'uses the latest entry when episodes are marked at the same time' do
+        travel_to Time.current do
+          LibraryItem.create!(user: user, item: s3e3, consumed: true, consumed_at: Date.current)
+          LibraryItem.create!(user: user, item: s3e1, consumed: true, consumed_at: Date.current)
+        end
+
+        expect(described_class.item_for(user, tv_show).next_item).to eq(s3e2)
+      end
+
+      it 'skips watched episodes after the most recently marked episode' do
+        LibraryItem.create!(user: user, item: s3e2, consumed: true, consumed_at: Date.current)
+        LibraryItem.create!(user: user, item: s3e1, consumed: true, consumed_at: Date.current)
+
+        expect(described_class.items_for(user).sole.next_item).to eq(s3e3)
+      end
+
+      it 'wraps to the earliest unwatched episode and then continues from there' do
+        LibraryItem.create!(user: user, item: s3e3, consumed: true, consumed_at: Date.current)
+
+        expect(described_class.item_for(user, tv_show).next_item).to eq(s1e1)
+
+        LibraryItem.create!(user: user, item: s1e1, consumed: true, consumed_at: Date.current)
+
+        expect(described_class.item_for(user, tv_show).next_item).to eq(s1e2)
       end
     end
 
