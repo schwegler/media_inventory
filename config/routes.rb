@@ -40,6 +40,9 @@ SampleApp::Application.routes.draw do
         post :do_merge
         get :search_api
         post :update_from_api
+        get :cover_art
+        get :pick_cover_art, action: :cover_art
+        post :update_cover_art
       end
     end
     resources :books do
@@ -48,6 +51,9 @@ SampleApp::Application.routes.draw do
         post :do_merge
         get :search_api
         post :update_from_api
+        get :cover_art
+        get :pick_cover_art, action: :cover_art
+        post :update_cover_art
       end
     end
     resources :comics do
@@ -56,6 +62,9 @@ SampleApp::Application.routes.draw do
         post :do_merge
         get :search_api
         post :update_from_api
+        get :cover_art
+        get :pick_cover_art, action: :cover_art
+        post :update_cover_art
       end
     end
     resources :comic_issues
@@ -75,6 +84,9 @@ SampleApp::Application.routes.draw do
         post :do_merge
         get :search_api
         post :update_from_api
+        get :cover_art
+        get :pick_cover_art, action: :cover_art
+        post :update_cover_art
       end
     end
     resources :relationships
@@ -85,6 +97,9 @@ SampleApp::Application.routes.draw do
         post :do_merge
         get :search_api
         post :update_from_api
+        get :cover_art
+        get :pick_cover_art, action: :cover_art
+        post :update_cover_art
       end
     end
     resources :users
@@ -94,6 +109,9 @@ SampleApp::Application.routes.draw do
         post :do_merge
         get :search_api
         post :update_from_api
+        get :cover_art
+        get :pick_cover_art, action: :cover_art
+        post :update_cover_art
       end
     end
 

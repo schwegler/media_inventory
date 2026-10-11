@@ -130,4 +130,64 @@ RSpec.describe 'Admin media and moderation workflows', type: :request do
     expect(issue.reload.comic).to eq(target)
     expect(Comic.exists?(source.id)).to be false
   end
+
+  it 'provides an interface to search API sources and pick cover art without changing other metadata' do
+    movie.update!(director: 'Existing director', release_year: 2021)
+    results = [
+      { title: 'API Movie', release_year: '2024', director: 'API Director',
+        thumbnail_url: 'https://image.tmdb.org/t/p/w500/new_poster.jpg', source: 'TMDB' },
+      { title: 'No artwork movie', release_year: '2020', thumbnail_url: nil }
+    ]
+    allow(MediaSearchService).to receive(:call).with('Original', 'movie').and_return(results)
+    get cover_art_admin_movie_path(movie)
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('Pick cover art', 'https://image.tmdb.org/t/p/w500/new_poster.jpg',
+                                     'Use this cover art')
+    expect(response.body).not_to include('No artwork movie')
+
+    get pick_cover_art_admin_movie_path(movie)
+    expect(response).to have_http_status(:ok)
+
+    expect do
+      post update_cover_art_admin_movie_path(movie),
+           params: { thumbnail_url: 'https://image.tmdb.org/t/p/w500/new_poster.jpg' }
+    end.to have_enqueued_job(ImportMediaCoverJob).with(movie, 'https://image.tmdb.org/t/p/w500/new_poster.jpg')
+
+    expect(response).to redirect_to(admin_movie_path(movie))
+    expect(flash[:notice]).to include('Cover art updated successfully. Other metadata was preserved.')
+
+    movie.reload
+    expect(movie.thumbnail_url).to eq('https://image.tmdb.org/t/p/w500/new_poster.jpg')
+    expect(movie.title).to eq('Original')
+    expect(movie.director).to eq('Existing director')
+    expect(movie.release_year).to eq(2021)
+  end
+
+  it 'purges existing attached cover image when overriding cover art' do
+    png = File.binread(Rails.root.join('spec/fixtures/files/valid-cover.png'))
+    movie.cover_image.attach(io: StringIO.new(png), filename: 'old_cover.png', content_type: 'image/png')
+    expect(movie.cover_image).to be_attached
+
+    post update_cover_art_admin_movie_path(movie),
+         params: { thumbnail_url: 'https://image.tmdb.org/t/p/w500/override.jpg' }
+
+    expect(movie.reload.cover_image).not_to be_attached
+    expect(movie.thumbnail_url).to eq('https://image.tmdb.org/t/p/w500/override.jpg')
+    expect(flash[:notice]).to include('Cover art updated successfully')
+  end
+
+  it 'rejects invalid cover art URLs' do
+    post update_cover_art_admin_movie_path(movie), params: { thumbnail_url: 'javascript:alert(1)' }
+    expect(response).to redirect_to(admin_movie_path(movie))
+    expect(flash[:alert]).to include('Invalid cover art URL')
+    expect(movie.reload.thumbnail_url).to be_nil
+  end
+
+  it 'offers cover art override alongside metadata fill in search_api view' do
+    allow(MediaSearchService).to receive(:call).and_return([
+                                                             { title: 'Provider title', thumbnail_url: 'https://image.tmdb.org/t/p/w500/search_poster.jpg' }
+                                                           ])
+    get search_api_admin_movie_path(movie)
+    expect(response.body).to include('Use this cover art only', 'Pick cover art only')
+  end
 end

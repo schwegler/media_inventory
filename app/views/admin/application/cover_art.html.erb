@@ -1,0 +1,66 @@
+<% content_for :title, "Pick cover art for #{admin_label(@item)}" %>
+<header class="page-header">
+  <div>
+    <%= link_to '← Back to record', [:admin, @item], class: 'back-link' %>
+    <h1>Pick cover art</h1>
+    <p>Find and select new cover art from API sources for <strong><%= @item.title %></strong> to override the default cover without changing other metadata.</p>
+  </div>
+  <div class="actions">
+    <%= link_to 'Search all metadata fields', [:search_api, :admin, @item], class: 'button button--neutral' %>
+  </div>
+</header>
+
+<div class="current-cover-panel">
+  <div class="current-cover-preview">
+    <%= render 'admin/application/artwork', record: @item, large: true %>
+    <div class="current-cover-info">
+      <strong>Current cover art</strong>
+      <p class="muted">
+        <% if @item.respond_to?(:cover_image) && @item.cover_image.attached? %>
+          Local image stored in app storage.
+        <% elsif @item.thumbnail_url.present? %>
+          Remote source URL: <%= @item.thumbnail_url %>
+        <% else %>
+          No cover art currently set for this item.
+        <% end %>
+      </p>
+    </div>
+  </div>
+</div>
+
+<%= form_with url: [:cover_art, :admin, @item], method: :get, class: 'resource-filters' do |f| %>
+  <div class="filter-search">
+    <%= f.label :query, 'Search terms for cover art' %>
+    <%= f.search_field :query, value: @query, required: true %>
+  </div>
+  <%= f.submit 'Search cover art', class: 'button button--primary', data: { turbo_submits_with: 'Searching…' } %>
+<% end %>
+
+<% if @results.any? %>
+  <h2>Cover art choices from API sources</h2>
+  <div class="provider-results artwork-picker-grid">
+    <% @results.each do |result| %>
+      <article class="provider-result artwork-option">
+        <div class="artwork-preview-wrapper">
+          <%= image_tag result[:thumbnail_url], alt: "#{result[:title]} artwork", loading: 'lazy', data: { admin_artwork: true }, referrerpolicy: 'no-referrer' %>
+        </div>
+        <div class="artwork-meta">
+          <h3><%= result[:title] %></h3>
+          <% if result[:release_year].present? %>
+            <p><%= result[:release_year] %></p>
+          <% end %>
+          <small><%= result[:source] || admin_provider_reference(result[:external_url]) %></small>
+        </div>
+        <%= form_with url: [:update_cover_art, :admin, @item], method: :post do |f| %>
+          <%= f.hidden_field :thumbnail_url, value: result[:thumbnail_url] %>
+          <%= f.submit 'Use this cover art', class: 'button button--primary', data: { turbo_confirm: "Override the cover art for #{@item.title} with this artwork? All other metadata will be preserved.", turbo_submits_with: 'Saving cover art…' } %>
+        <% end %>
+      </article>
+    <% end %>
+  </div>
+<% else %>
+  <div class="empty-state">
+    <h2>No cover art found</h2>
+    <p>Try searching with another title or keywords. Check that API provider credentials are enabled in API configuration.</p>
+  </div>
+<% end %>

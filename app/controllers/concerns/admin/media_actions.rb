@@ -51,5 +51,34 @@ module Admin
                                      status: :see_other
       end
     end
+
+    def cover_art
+      @item = requested_resource
+      @query = (params[:query] || @item.title).to_s.first(120)
+      all_results = @query.present? ? MediaSearchService.call(@query, @item.class.name.underscore) : []
+      @results = all_results.select { |res| res[:thumbnail_url].to_s.match?(%r{\Ahttps?://}i) }
+                            .uniq { |res| res[:thumbnail_url] }
+      render 'admin/application/cover_art'
+    end
+    alias pick_cover_art cover_art
+
+    def update_cover_art
+      @item = requested_resource
+      url = params[:thumbnail_url].to_s.strip
+      unless url.match?(%r{\Ahttps?://}i)
+        redirect_to [:admin, @item], alert: 'Invalid cover art URL. Must be an HTTP or HTTPS URL.', status: :see_other
+        return
+      end
+
+      @item.cover_image.purge if @item.respond_to?(:cover_image) && @item.cover_image.attached?
+      @item.thumbnail_url = url
+      if @item.save
+        redirect_to [:admin, @item], notice: 'Cover art updated successfully. Other metadata was preserved.',
+                                     status: :see_other
+      else
+        redirect_to [:admin, @item], alert: 'Failed to update cover art. Review the record and try again.',
+                                     status: :see_other
+      end
+    end
   end
 end
