@@ -28,7 +28,8 @@
 .catalog-toolbar > div { min-width: 150px; }
 .catalog-toolbar .catalog-search { flex: 1; min-width: min(100%, 220px); }
 .catalog-toolbar label { display: block; font-size: .8125rem; font-weight: 600; margin-bottom: .45rem; color: var(--text-secondary); text-transform: none; letter-spacing: 0; }
-.catalog-toolbar :where(input[type='search'], select) { width: 100%; height: 46px; padding: .65rem .85rem; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); font: 400 .9375rem/1.4 'Instrument Sans', sans-serif; }
+.catalog-toolbar :where(input[type='search'], select) { width: 100%; height: 46px; padding: .65rem .85rem; border: 1px solid var(--border); border-radius: 6px; background-color: var(--surface); color: var(--text); font: 400 .9375rem/1.4 'Instrument Sans', sans-serif; }
+.catalog-toolbar select { padding-right: 2.5rem; }
 .catalog-toolbar input[type='submit'] { margin: 0; height: 46px; background: var(--surface); color: var(--text); border-color: var(--border-strong); }
 .catalog-results-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; margin-block: 1.5rem 1rem; font-size: .875rem; }
 .catalog-results-heading p { margin: 0; color: var(--text-secondary); }
@@ -92,7 +93,8 @@
 .media-detail .inline-form-row { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-bottom: 1rem; }
 .media-detail .inline-checkbox-group { display: flex; align-items: center; gap: .5rem; }
 .media-detail .inline-checkbox-label { font-size: .875rem; }
-.media-detail .quick-review-select, .media-detail .quick-review-textarea { background: var(--canvas); border: 1px solid var(--border); color: var(--text); font: 400 1rem/1.5 'Instrument Sans', sans-serif; padding: .7rem; border-radius: 6px; max-width: 100%; }
+.media-detail .quick-review-select, .media-detail .quick-review-textarea { background-color: var(--canvas); border: 1px solid var(--border); color: var(--text); font: 400 1rem/1.5 'Instrument Sans', sans-serif; padding: .7rem; border-radius: 6px; max-width: 100%; }
+.media-detail .quick-review-select { padding-right: 2.5rem; }
 .media-detail .quick-review-textarea { width: 100%; resize: vertical; }
 .media-detail .quick-review-submit-row { margin-top: 1rem; }
 .media-detail .quick-review-submit-btn { width: auto; }
@@ -186,7 +188,8 @@
 .child-collection-toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem; margin-block: 1rem; }
 .child-collection-toolbar > div:first-child { flex: 1; min-width: 150px; }
 .child-collection-toolbar label { text-transform: none; letter-spacing: 0; display: block; font-size: .8125rem; color: var(--text-secondary); margin-bottom: .4rem; }
-.child-collection-toolbar input, .child-collection-toolbar select { height: 44px; width: 100%; padding: .5rem .75rem; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 6px; font-size: 1rem; }
+.child-collection-toolbar input, .child-collection-toolbar select { height: 44px; width: 100%; padding: .5rem .75rem; background-color: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 6px; font-size: 1rem; }
+.child-collection-toolbar select { padding-right: 2.5rem; }
 .child-collection-toolbar p { flex-basis: 100%; margin: 0; font-size: .8125rem; color: var(--text-secondary); }
 .media-entries .episode-item { margin: 0; padding: 1rem 0; border: 0; border-bottom: 1px solid var(--border); border-radius: 0; background: transparent; gap: .5rem; }
 .media-entries .episode-content-row { flex-direction: row; gap: 1rem; }
@@ -199,7 +202,8 @@
 .media-entries .episode-summary { margin: 0; font-size: .875rem; line-height: 1.6; color: var(--text-secondary); }
 .media-entries .episode-form-section { padding-top: 0; margin-top: 0; border: 0; }
 .media-entries .episode-form-inputs { flex-wrap: wrap; }
-.media-entries .episode-form-inputs :where(input, select) { background: var(--surface); color: var(--text); border: 1px solid var(--border); min-height: 44px; font-size: 1rem; }
+.media-entries .episode-form-inputs :where(input, select) { background-color: var(--surface); color: var(--text); border: 1px solid var(--border); min-height: 44px; font-size: 1rem; }
+.media-entries .episode-form-inputs select { padding-right: 2.5rem; }
 .media-entries .episode-form-inputs .episode-btn-rate { background: var(--accent); color: var(--on-accent); }
 .media-entries .episode-badge-watched { background: var(--accent-subtle); color: var(--accent); }
 .media-entries .episode-badge-not-watched { background: var(--inset); color: var(--text-secondary); }
