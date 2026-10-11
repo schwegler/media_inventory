@@ -8,6 +8,13 @@
         <div class="season-tabs-container">
           <div class="season-tabs-strip" role="tablist" aria-label="Seasons">
             <% sorted_seasons.each_with_index do |season, index| %>
+              <%
+                season_eps = episodes_by_season[season]
+                season_all_watched = logged_in? && season_eps.present? && season_eps.all? do |ep|
+                  lib = @child_library_items ? @child_library_items[ep.id] : LibraryItem.find_by(user: current_user, item: ep)
+                  lib&.consumed?
+                end
+              %>
               <button type="button" class="season-tab <%= 'active-tab' if index == 0 %>"
                       id="season-tab-<%= season %>"
                       role="tab"
@@ -17,7 +24,7 @@
                       data-season-tabs-target="tab"
                       data-season="<%= season %>"
                       data-action="click->season-tabs#select keydown->season-tabs#keydown">
-                Season <%= season %>
+                Season <%= season %><%= " ✓" if season_all_watched %>
               </button>
             <% end %>
           </div>
@@ -33,7 +40,42 @@
                  data-season="<%= season %>"
                  class="season-episodes-list <%= 'hidden' unless index == 0 %>"
                  style="display: flex; flex-direction: column; gap: 12px;">
-              <% episodes_by_season[season].each do |ep| %>
+              <% season_eps = episodes_by_season[season] %>
+              <% if logged_in? %>
+                <%
+                  watched_count = season_eps.count do |ep|
+                    lib = @child_library_items ? @child_library_items[ep.id] : LibraryItem.find_by(user: current_user, item: ep)
+                    lib&.consumed?
+                  end
+                  all_watched = watched_count == season_eps.size
+                %>
+                <div class="season-panel-header">
+                  <div class="season-panel-status">
+                    <span class="season-count-badge">Season <%= season %></span>
+                    <span class="season-watched-tally">
+                      <strong><%= watched_count %></strong> of <strong><%= season_eps.size %></strong> watched
+                    </span>
+                  </div>
+                  <div class="season-panel-actions">
+                    <% if all_watched %>
+                      <%= button_to "Undo Season #{season}",
+                                    mark_season_watched_tv_show_path(@tv_show, season: season),
+                                    method: :patch,
+                                    params: { consumed: false },
+                                    class: "sleek-btn sleek-btn-secondary episode-btn-unwatch",
+                                    aria: { label: "Mark Season #{season} as unwatched" } %>
+                    <% else %>
+                      <%= button_to "Mark Season #{season} Watched",
+                                    mark_season_watched_tv_show_path(@tv_show, season: season),
+                                    method: :patch,
+                                    params: { consumed: true },
+                                    class: "sleek-btn sleek-btn-success season-btn-watch",
+                                    aria: { label: "Mark Season #{season} as watched" } %>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+              <% season_eps.each do |ep| %>
                 <%= render 'tv_shows/tv_episode', ep: ep, tv_show: @tv_show %>
               <% end %>
             </div>

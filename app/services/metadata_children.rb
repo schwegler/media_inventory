@@ -19,6 +19,7 @@ class MetadataChildren
         changed += 1
       end
     end
+    LibraryItem.where(item: show, consumed: true).find_each(&:mark_all_episodes_watched) if changed.positive?
     changed
   end
 
