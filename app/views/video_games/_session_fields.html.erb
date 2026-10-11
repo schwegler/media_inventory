@@ -1,5 +1,9 @@
-<div class="game-field"><%= f.label :started_at, 'Started (application time zone)' %><%= f.datetime_local_field :started_at, value: session&.started_at&.strftime('%Y-%m-%dT%H:%M'), required: true %></div>
-<div class="game-field"><%= f.label :ended_at, 'Ended (application time zone)' %><%= f.datetime_local_field :ended_at, value: session&.ended_at&.strftime('%Y-%m-%dT%H:%M'), required: true %></div>
+<%
+  default_start = (session&.started_at || 1.hour.ago).strftime('%Y-%m-%dT%H:%M')
+  default_end = (session&.ended_at || Time.current).strftime('%Y-%m-%dT%H:%M')
+%>
+<div class="game-field"><%= f.label :started_at, 'Started (application time zone)' %><%= f.datetime_local_field :started_at, value: default_start, required: true %></div>
+<div class="game-field"><%= f.label :ended_at, 'Ended (application time zone)' %><%= f.datetime_local_field :ended_at, value: default_end, required: true %></div>
 <div class="game-field game-field-wide"><%= f.label :notes %><%= f.text_area :notes, value: session&.notes %></div>
 <div class="game-field game-field-wide"><%= f.label :milestones, 'Session milestones or achievements earned (manual notes)' %><%= f.text_area :milestones, value: session&.milestones %></div>
 <details><summary>Progress and enjoyment</summary><div class="game-nested-fields">

@@ -1,14 +1,37 @@
 // Consistent field rhythm across library, tracking, modal, and settings forms.
 @mixin styles {
-  :where(.standard-form, .settings-form, .quick-review-form, .episode-form-section) label {
+  :where(.standard-form, .settings-form, .quick-review-form, .episode-form-section, .game-form) label {
     text-transform: none; letter-spacing: 0; font-size: .8125rem; font-weight: 500;
-    color: var(--text-secondary); margin: 0 0 .4rem;
+    color: var(--text-secondary); margin: 0 0 .4rem; line-height: 1.4;
   }
-  :where(.standard-form, .settings-form, .quick-review-form) :where(input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not([type='submit']), select) {
+  :where(.standard-form, .settings-form, .quick-review-form, .game-form) :where(input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not([type='submit']), select) {
     min-height: 44px; padding: .6rem .75rem; font-size: 1rem;
+    border: 1px solid var(--border); border-radius: 6px;
+    background-color: var(--inset); color: var(--text);
+    box-sizing: border-box; width: 100%;
+    transition: border-color .15s ease;
   }
-  :where(.standard-form, .settings-form, .quick-review-form) textarea { padding: .7rem .75rem; min-height: 96px; line-height: 1.5; }
-  :where(.standard-form, .settings-form) .form-group { margin-bottom: 1rem; }
+  :where(.standard-form, .settings-form, .quick-review-form, .game-form) select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23716a7a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right .75rem center;
+    background-size: 16px 16px;
+    padding-right: 2.25rem;
+  }
+  :where(.standard-form, .settings-form, .quick-review-form, .game-form) textarea {
+    padding: .7rem .75rem; min-height: 96px; line-height: 1.5;
+    border: 1px solid var(--border); border-radius: 6px;
+    background-color: var(--inset); color: var(--text);
+    box-sizing: border-box; width: 100%; resize: vertical;
+  }
+  :where(.standard-form, .settings-form, .quick-review-form, .game-form) :where(input, select, textarea):focus-visible {
+    border-color: var(--accent);
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 1px;
+  }
+  :where(.standard-form, .settings-form, .game-form) .form-group { margin-bottom: 1rem; }
   form.standard-form div { margin-bottom: 0; }
   form.standard-form :where([data-thumbnail-fetcher-target='searchStage'], .details-modal-right) > div { margin-bottom: 1rem; }
   form.standard-form .details-form-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .875rem; }
@@ -16,7 +39,10 @@
   form.standard-form .form-row-toggles { display: flex; flex-wrap: wrap; gap: .5rem 1rem; }
   form.standard-form :where(.toggle-field, .check-field) { display: flex; align-items: center; gap: .5rem; min-height: 36px; margin: 0; }
   form.standard-form :where(.toggle-field, .check-field) label { margin: 0; }
-  :where(.settings-form, .standard-form) .form-help { font-size: .8125rem; line-height: 1.5; margin-block: .4rem 0; }
+  :where(.settings-form, .standard-form, .game-form) .form-help {
+    font-size: .8125rem; line-height: 1.5; margin-block: .4rem 0;
+    color: var(--text-secondary); overflow-wrap: anywhere; word-break: break-word;
+  }
   .media-detail .inline-checkbox-group { width: auto; margin: 0; min-height: 28px; gap: .5rem; justify-content: flex-start; }
   .media-detail .inline-checkbox-group label { margin: 0; line-height: 1.3; font-weight: 400; }
   .media-detail :where(input[type='checkbox'], input[type='radio']) { flex: 0 0 18px; width: 18px; height: 18px; margin: 0; }
@@ -27,11 +53,21 @@
   .media-detail .review-flags { display: grid; gap: .25rem; padding-bottom: .2rem; }
   .media-detail .quick-review-select { width: 100%; height: 44px; min-width: 0; }
   .media-detail .quick-review-textarea { min-height: 96px; }
-  .media-detail .quick-review-submit-row { display: flex; justify-content: flex-end; margin: .875rem 0 0; }
-  .media-detail .quick-review-submit-row input[type='submit'] { width: auto; min-height: 44px; padding: .6rem 1rem; }
+  :where(.standard-form, .settings-form) .form-actions,
+  .media-detail .quick-review-submit-row,
+  .game-form-actions {
+    display: flex; justify-content: flex-end; align-items: center; gap: var(--space-3); margin-top: 1rem;
+  }
+  .media-detail .quick-review-submit-row input[type='submit'],
+  :where(.standard-form, .settings-form) .form-actions :where(.btn, input[type='submit']),
+  .game-form-actions :where(.btn, input[type='submit']) {
+    width: auto; min-height: 44px; padding: .6rem 1rem; font-size: .875rem;
+  }
   .media-detail .ownership-details-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .875rem; margin: 0; }
   .media-detail .ownership-details-row > .ownership-field { display: grid; gap: .5rem; min-width: 0; }
   .media-detail .library-disclosure[open] { padding-bottom: 1rem; }
+  :where(.game-record-card, .game-form, .standard-form) details { margin-block: .5rem; }
+  :where(.game-record-card, .game-form, .standard-form) details[open] { padding-bottom: .75rem; }
   .media-entries .episode-form-section { padding-top: .875rem; margin-top: .875rem; }
   .media-entries .episode-form-section > form { display: grid; gap: .75rem; margin: 0; }
   .media-entries .episode-form-inputs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(110px, .7fr); gap: .6rem .75rem; margin: 0; align-items: center; }
@@ -43,15 +79,18 @@
   .media-child-detail .quick-review-form .quick-review-title { display: none; }
   .media-detail .comment-form { align-items: start; gap: .6rem !important; }
   .media-detail .comment-form .quick-review-submit-row { margin: 0; }
-  @media (max-width: 359px) {
-    form.standard-form .details-form-row { grid-template-columns: 1fr; }
-  }
   form.standard-form .details-modal-right { gap: 1rem; }
   form.standard-form .details-modal-right > div { margin: 0; }
   form.standard-form .details-field-group { gap: .4rem; }
   form.standard-form .details-field-group label { text-transform: none; letter-spacing: 0; font-size: .8125rem; font-weight: 500; margin: 0; }
   form.standard-form .details-modal-left .thumbnail-preview-box { box-shadow: none; background: var(--inset); border-color: var(--border); border-radius: 6px; }
   .settings-form .form-group { margin-bottom: 1rem; }
+  .settings-form .form-field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-block: 1.5rem; padding-top: 1rem; }
+  .settings-form .form-field-grid > .form-group { min-width: 0; margin: 0; }
+  .settings-form .form-field-grid > :not(.form-group) { grid-column: 1 / -1; margin-block: 0; }
+  .media-detail .library-management > summary { min-height: 44px; padding-block: .75rem; }
+  .modal-danger-row { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; justify-content: flex-start; }
+
   @media (max-width: 580px) {
     .modal-body { padding: 1rem; }
     form.standard-form .details-modal-layout { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 1rem; margin-top: 0; align-items: center; }
@@ -61,18 +100,26 @@
     form.standard-form .details-modal-right .details-title-display { grid-column: 2; grid-row: 1; padding: 0; margin: 0; border: 0; font-size: 1.25rem; }
     form.standard-form .thumbnail-preview-placeholder { font-size: .6875rem; text-transform: none; letter-spacing: 0; text-align: center; }
     form.standard-form .details-modal-right .btn-save-log { margin-top: 0; }
+    form.standard-form .details-modal-left .thumbnail-preview-box { min-height: 0; height: 96px; }
+    form.standard-form .details-form-row { grid-template-columns: 1fr; gap: .75rem; }
+    .settings-form .form-field-grid { grid-template-columns: 1fr; gap: .75rem; }
+    :where(.standard-form, .settings-form) .form-actions,
+    .game-form-actions {
+      flex-direction: column-reverse;
+      align-items: stretch;
+      gap: .5rem;
+    }
+    :where(.standard-form, .settings-form) .form-actions > *,
+    .game-form-actions > * {
+      width: 100%;
+      justify-content: center;
+    }
+    .modal-danger-row { justify-content: stretch; }
+    .modal-danger-row form, .modal-danger-row button { width: 100%; }
   }
 
-  .settings-form .form-field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-block: 1.5rem; padding-top: 1rem; }
-  .settings-form .form-field-grid > .form-group { min-width: 0; margin: 0; }
-  .settings-form .form-field-grid > :not(.form-group) { grid-column: 1 / -1; margin-block: 0; }
-  @media (max-width: 580px) {
-    form.standard-form .details-modal-left .thumbnail-preview-box { min-height: 0; height: 96px; }
-  }
   @media (max-width: 359px) {
+    form.standard-form .details-form-row { grid-template-columns: 1fr; }
     .settings-form .form-field-grid { grid-template-columns: 1fr; }
   }
-
-  .media-detail .library-management > summary { min-height: 44px; padding-block: .75rem; }
-
 }

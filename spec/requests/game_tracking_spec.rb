@@ -122,4 +122,46 @@ RSpec.describe 'Extended private gaming records', type: :request do
     expect(session.reload).to be_present
     expect(milestone.reload.title).to eq('Beat final boss')
   end
+
+  it 'renders modal templates for new and edit requests, and returns turbo stream responses' do
+    get new_game_tracking_path(video_game_id: game.id, kind: 'journal'),
+        headers: { 'Turbo-Frame' => 'modal' }
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('turbo-frame id="modal"', 'New Journal Entry', 'modal-overlay')
+
+    get new_game_tracking_path(video_game_id: game.id, kind: 'copy'),
+        headers: { 'Turbo-Frame' => 'modal' }
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('Add Game Copy', 'Hardware platform')
+
+    entry = library.game_journal_entries.create!(body: 'Logged notes')
+    get edit_game_tracking_path(video_game_id: game.id, id: entry.id, kind: 'journal'),
+        headers: { 'Turbo-Frame' => 'modal' }
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('Edit Journal Entry', 'Logged notes')
+
+    post game_tracking_path(video_game_id: game.id),
+         params: { kind: 'journal', journal: { body: 'Turbo streamed journal entry' } },
+         headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
+    expect(response).to have_http_status(:ok)
+    expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+    expect(response.body).to include('turbo-stream action="replace" target="my-game-tracking"',
+                                     'turbo-stream action="update" target="modal"')
+    expect(response.body).to include('Turbo streamed journal entry')
+
+    created = library.game_journal_entries.last
+    patch game_progress_path(video_game_id: game.id, id: created.id),
+          params: { kind: 'journal', journal: { body: 'Updated stream notes' } },
+          headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
+    expect(response).to have_http_status(:ok)
+    expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+    expect(response.body).to include('Updated stream notes')
+
+    delete delete_game_tracking_path(video_game_id: game.id, id: created.id),
+           params: { kind: 'journal' },
+           headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
+    expect(response).to have_http_status(:ok)
+    expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+    expect(response.body).to include('turbo-stream action="replace" target="my-game-tracking"')
+  end
 end
