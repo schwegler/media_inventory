@@ -68,4 +68,22 @@ RSpec.describe 'Metadata repair', type: :request do
     expect(show.reload.thumbnail_url).to eq('https://images.example/dead.jpg')
     expect(MetadataRefresh.find_by(item: show).state).to eq('unsupported')
   end
+
+  it 'expires stale refreshing state after lease duration' do
+    refresh = MetadataRefresh.create!(item: show, state: 'refreshing', requested_at: 3.minutes.ago)
+    expect(refresh.current_state).to eq('failed')
+
+    login
+    get tv_show_path(show)
+    expect(response.body).to include('data-refresh-state="failed"')
+  end
+
+  it 'renders unique disclosure IDs for ownership and review on media show page' do
+    album = Album.create!(title: 'Abbey Road', artist: 'The Beatles')
+    LibraryItem.create!(user: user, item: album)
+    login
+    get album_path(album)
+    expect(response.body).to include("id=\"ownership-details-#{album.id}\"")
+    expect(response.body).to include("id=\"review-details-#{album.id}\"")
+  end
 end

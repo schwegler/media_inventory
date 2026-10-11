@@ -135,8 +135,8 @@ end
           <%= link_to "Edit review", edit_review_path(item_type: item.class.name, item_id: item.id), class: "sleek-btn sleek-btn-secondary", data: { turbo_frame: "modal" } %>
         </div>
       <% else %>
-        <%= form_with model: item, url: polymorphic_path(item), method: :patch, local: true, class: "quick-review-form", data: { controller: "optimistic", action: "turbo:submit-start->optimistic#start turbo:before-fetch-response->optimistic#response turbo:submit-end->optimistic#finish", optimistic_label_value: "Saving…" } do |f| %>
-          <details class="library-disclosure">
+        <%= form_with model: item, url: polymorphic_path(item), method: :patch, id: "quick-review-form-#{item.id}", local: true, class: "quick-review-form", data: { controller: "optimistic", action: "turbo:submit-start->optimistic#start turbo:before-fetch-response->optimistic#response turbo:submit-end->optimistic#finish", optimistic_label_value: "Saving…" } do |f| %>
+          <details class="library-disclosure" id="review-details-<%= item.id %>">
             <summary>Review &amp; rating<span>Your personal review and rating</span></summary>
 
             <div class="review-field">
@@ -167,8 +167,8 @@ end
         <% end %>
       <% end %>
 
-      <%= form_with model: item, url: polymorphic_path(item), method: :patch, local: true, class: "quick-ownership-form" do |f| %>
-        <details class="library-disclosure">
+      <%= form_with model: item, url: polymorphic_path(item), method: :patch, id: "quick-ownership-form-#{item.id}", local: true, class: "quick-ownership-form" do |f| %>
+        <details class="library-disclosure" id="ownership-details-<%= item.id %>">
           <summary>Ownership details<span>Physical and digital formats</span></summary>
           <div class="ownership-details-row">
             <div class="ownership-field">
@@ -195,7 +195,7 @@ end
   <% end %>
 
   <% if logged_in? && @library_item.present? %>
-    <details class="library-disclosure library-management"><summary>Manage library entry</summary>
+    <details class="library-disclosure library-management" id="manage-library-details-<%= item.id %>"><summary>Manage library entry</summary>
             <%= button_to "Delete from Library",
                           polymorphic_path(item),
                           method: :delete,
