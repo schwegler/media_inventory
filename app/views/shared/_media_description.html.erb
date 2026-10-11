@@ -1,0 +1,51 @@
+<%
+  facts = media_metadata(item)
+  synopsis = item.synopsis if item.respond_to?(:synopsis)
+  game_details = item.is_a?(VideoGame) ? item.metadata_details : {}
+  heading = item.is_a?(VideoGame) ? 'About this game' : "#{media_catalog(item)[1]} details"
+%>
+<% if facts.any? || synopsis.present? || game_details.present? %>
+  <section id="title-details" class="media-description" aria-labelledby="title-details-heading">
+    <h2 id="title-details-heading"><%= heading %></h2>
+    <% if synopsis.present? %>
+      <div class="media-description-prose"><%= simple_format(strip_tags(synopsis)) %></div>
+    <% end %>
+    <dl class="media-description-facts">
+      <% facts.each do |label, value, attribute| %>
+        <div class="media-description-row<%= ' media-description-row-wide' if %i[actors writer].include?(attribute) %>">
+          <dt><%= label %></dt>
+          <dd><%= render_media_metadata_value(item, attribute, value) %></dd>
+        </div>
+      <% end %>
+      <% { 'genres' => 'Genres', 'features' => 'Features', 'controller_support' => 'Controller support' }.each do |key, label| %>
+        <% value = game_details[key] %>
+        <% next if value.blank? %>
+        <div class="media-description-row media-description-row-wide">
+          <dt><%= label %></dt>
+          <dd>
+            <% if value.is_a?(Array) %>
+              <ul class="media-description-tags" role="list">
+                <% value.reject(&:blank?).each do |entry| %><li><%= entry %></li><% end %>
+              </ul>
+            <% else %>
+              <%= key == 'controller_support' ? value.to_s.humanize : value %>
+            <% end %>
+          </dd>
+        </div>
+      <% end %>
+      <% if game_details['languages'].present? %>
+        <% languages = strip_tags(Array(game_details['languages']).join(', ')).split(/\*\s*languages with full audio support/i, 2).first.to_s.strip %>
+        <div class="media-description-row media-description-row-wide">
+          <dt>Languages</dt>
+          <dd>
+            <details class="media-description-disclosure">
+              <summary>Supported languages</summary>
+              <p><%= languages %></p>
+              <% if languages.include?('*') %><small>* Full audio support</small><% end %>
+            </details>
+          </dd>
+        </div>
+      <% end %>
+    </dl>
+  </section>
+<% end %>

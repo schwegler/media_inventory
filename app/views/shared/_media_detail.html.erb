@@ -2,6 +2,9 @@
 <%
   title, _, emoji = media_catalog(item)
   stats = community_stats_for(item)
+  overview_facts = media_metadata(item).reject do |_, _, attribute|
+    %w[Movie TvShow].include?(item.class.name) && %i[actors writer].include?(attribute)
+  end
   entries = item.is_a?(TvShow) ? item.tv_episodes : (item.is_a?(Comic) ? item.comic_issues : nil)
   @child_library_items = @episode_library_items || @issue_library_items || (LibraryItem.where(user: current_user, item_type: entries.klass.name, item_id: entries.select(:id)).index_by(&:item_id) if entries && logged_in?)
   @series_library_item = @library_item
@@ -27,7 +30,7 @@
     <div class="media-identity">
       <h1><%= item.title %></h1>
       <dl class="media-facts">
-        <% media_metadata(item).each do |label, value, attribute| %>
+        <% overview_facts.each do |label, value, attribute| %>
           <div><dt><%= label %></dt><dd><%= render_media_metadata_value(item, attribute, value) %></dd></div>
         <% end %>
       </dl>
@@ -47,6 +50,9 @@
   <nav data-controller="media-sections" class="media-section-nav" aria-label="On this page">
     <a href="#overview">Overview</a>
     <a href="#my-library">My Library</a>
+    <% if media_metadata(item).any? || (item.is_a?(VideoGame) && (item.synopsis.present? || item.metadata_details.present?)) %>
+      <a href="#title-details">Details</a>
+    <% end %>
     <% if entries %><a href="#media-entries"><%= entries_label %> <span><%= entries.size %></span></a><% end %>
     <% if item.is_a?(VideoGame) %>
       <% if @library_item %><a href="#my-game-tracking">Gaming record</a><% end %>
@@ -58,16 +64,10 @@
   <div class="media-detail-body">
     <div class="media-detail-main">
       <div id="my-library"><%= render 'shared/media_actions_and_stream', item: item, show_sources: false %></div>
+      <%= render 'shared/media_description', item: item %>
       <% if item.is_a?(VideoGame) %>
-    <% if @video_game.synopsis.present? %><div class="show-community"><h2>About this game</h2><%= simple_format(@video_game.synopsis) %></div><% end %>
-    <% if @video_game.metadata_details.present? %><dl class="show-community">
-      <% { 'genres' => 'Genres', 'features' => 'Features', 'languages' => 'Languages', 'controller_support' => 'Controller support' }.each do |key, label| %>
-        <% value = @video_game.metadata_details[key] %><% next if value.blank? %><dt><%= label %></dt><dd><%= value.is_a?(Array) ? value.join(', ') : value %></dd>
-      <% end %>
-    </dl><% end %>
-    <%= render 'tracking', library: @library_item if @library_item %>
-    <%= render 'artwork_gallery', game: @video_game, library: @library_item %>
-
+        <%= render 'tracking', library: @library_item if @library_item %>
+        <%= render 'artwork_gallery', game: @video_game, library: @library_item %>
       <% end %>
       <div id="media_my_review_<%= item.class.name.underscore %>_<%= item.id %>">
         <% if @library_item&.review.present? %>
