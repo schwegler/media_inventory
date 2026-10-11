@@ -1,0 +1,36 @@
+<% config = library_config(klass) %>
+<section class="library-overview" aria-label="Your library at a glance">
+  <% [[config[:noun].capitalize, :all, ''], [config[:queue], :backlog, 'backlog'], [config[:finished], :finished, 'finished'], [config[:progress] || 'Collected', config[:progress] ? :progress : :collection, config[:progress] ? 'progress' : 'collection']].each do |label, key, status| %>
+    <%= link_to library_link(klass, status: status), class: 'library-metric' do %>
+      <strong><%= number_with_delimiter(@library_statistics[key]) %></strong><span><%= label %></span>
+    <% end %>
+  <% end %>
+</section>
+<nav class="library-shelves" aria-label="Library shelves">
+  <% library_shelves(klass).each do |label, value| %>
+    <%= link_to label, library_link(klass, status: value), aria: { current: params[:status].to_s == value ? 'page' : nil } %>
+  <% end %>
+</nav>
+<%= form_with url: polymorphic_path(klass), method: :get, class: 'collection-toolbar', namespace: 'library' do |f| %>
+  <%= f.hidden_field :library, value: 'mine' %>
+  
+  <div class="collection-primary-controls">
+    <div class="collection-search"><%= f.label :q, "Search #{config[:noun]}" %><%= f.search_field :q, value: params[:q], placeholder: 'Search by title…' %></div>
+    <div><%= f.label :sort, 'Sort by' %><%= f.select :sort, [['Recently added', 'newest'], ['Title A–Z', 'title'], ['My rating', 'rating'], ["Recently #{config[:finished].downcase}", 'finished'], ['Oldest added', 'oldest']], selected: params[:sort] %></div>
+    <div><%= f.label :layout, 'Display' %><%= f.select :layout, [['Cover grid', 'grid'], ['Compact list', 'list']], selected: params[:layout] %></div>
+    <%= f.submit 'Apply', class: 'sleek-btn sleek-btn-primary' %>
+  </div>
+  <% advanced = params.slice(*config[:fields].keys, :year, :format).values.any?(&:present?) %>
+  <details class="collection-filters" <%= 'open' if advanced %>>
+    <summary>More filters<%= ' · active' if advanced %></summary>
+    <div class="collection-filter-fields">
+      <div><%= f.label :status, 'Shelf' %><%= f.select :status, library_shelves(klass), selected: params[:status] %></div>
+      <% if @library_formats.any? %><div><%= f.label :format, 'My edition / format' %><%= f.select :format, @library_formats, { include_blank: 'All my formats', selected: params[:format] } %></div><% end %>
+      <% config[:fields].each do |field, label| %>
+        <div><%= f.label field, label %><%= f.search_field field, value: params[field], placeholder: "Any #{label.downcase}" %></div>
+      <% end %>
+      <% if klass.column_names.include?('release_year') %><div><%= f.label :year, 'Release year' %><%= f.number_field :year, value: params[:year], min: 1800, max: 2200 %></div><% end %>
+    </div>
+    <p>Combine these with any shelf, then choose Apply.</p>
+  </details>
+<% end %>

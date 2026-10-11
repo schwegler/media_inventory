@@ -88,4 +88,14 @@ RSpec.describe 'Personal game library', type: :request do
     expect(response).to have_http_status(:ok)
     expect(response.body).to include('Portal')
   end
+  it 'keeps overview filters aligned with grouped completion and playing counts' do
+    portal_library.game_playthroughs.create!(status: 'beaten')
+    halo_library.game_playthroughs.create!(status: 'replaying')
+    get video_games_path, params: { library: 'mine', play_status: 'completed' }
+    expect(response.body).to include('>Portal<')
+    expect(response.body).not_to include('>Halo<')
+    get video_games_path, params: { library: 'mine', play_status: 'playing' }
+    expect(response.body).to include('>Halo<')
+    expect(response.body).not_to include('>Portal<')
+  end
 end

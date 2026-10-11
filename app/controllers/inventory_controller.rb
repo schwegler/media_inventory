@@ -7,6 +7,10 @@ class InventoryController < ApplicationController
   before_action :logged_in_user, only: %i[new create edit update destroy]
 
   def index
+    @personal_library = params[:library] == 'mine'
+    return redirect_to login_path if @personal_library && !logged_in?
+
+    response.headers['Cache-Control'] = 'private, no-store' if @personal_library
     scope = resource_class
     # Eager load ActiveStorage attachments/blobs for cover images to prevent N+1 queries when rendering media card grids
     scope = scope.with_attached_cover_image if scope.respond_to?(:with_attached_cover_image)
@@ -16,6 +20,7 @@ class InventoryController < ApplicationController
 
     @resources = catalog_scope(scope).page(params[:page]).per(CATALOG_PAGE_SIZE)
     instance_variable_set("@#{resource_name.pluralize}", @resources)
+    prepare_media_library if @personal_library
   end
 
   def new
@@ -193,12 +198,35 @@ class InventoryController < ApplicationController
       query = "%#{resource_class.sanitize_sql_like(params[:q].to_s.strip.downcase, '!')}%"
       scope = scope.where("LOWER(title) LIKE ? ESCAPE '!'", query)
     end
+    if @personal_library
+      query = MediaLibraryQuery.new(resource_class, user: current_user, filters: params)
+      @library_statistics = query.statistics
+      return query.call(scope)
+    end
     scope = filter_catalog_library(scope) if logged_in?
     case params[:sort]
     when 'title' then scope.order(title: :asc, id: :asc)
     when 'oldest' then scope.order(created_at: :asc, id: :asc)
     else scope.order(created_at: :desc, id: :desc)
     end
+  end
+
+  def prepare_media_library
+    @libraries = current_user.library_items.where(item_type: resource_class.name, item_id: @resources.map(&:id))
+                             .includes(:consumption_passes).index_by(&:item_id)
+    records = current_user.library_items.where(item_type: resource_class.name)
+    @library_formats = records.pluck(:owned_physically_format, :owned_digitally_format).flatten.compact_blank.uniq.sort
+    prepare_series_library if %w[TvShow Comic].include?(resource_class.name)
+  end
+
+  def prepare_series_library
+    child_class, foreign_key = resource_class == TvShow ? [TvEpisode, :tv_show_id] : [ComicIssue, :comic_id]
+    pass_ids = @libraries.values.flat_map { |library| library.consumption_passes.map(&:id) }
+    @library_pass_counts = ConsumptionPassEntry.where(consumption_pass_id: pass_ids).group(:consumption_pass_id).count
+    children = child_class.where(foreign_key => @resources.map(&:id))
+    @library_child_totals = children.group(foreign_key).count
+    consumed_ids = current_user.library_items.where(item_type: child_class.name, consumed: true).select(:item_id)
+    @library_child_consumed = children.where(id: consumed_ids).group(foreign_key).count
   end
 
   def filter_catalog_library(scope)
