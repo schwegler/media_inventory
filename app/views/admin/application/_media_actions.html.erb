@@ -1,4 +1,5 @@
 <% if Admin::Catalog::MATCHABLE.include?(record.class) %>
-  <%= link_to 'Search metadata provider', [:search_api, :admin, record], class: 'button' %>
+  <%= link_to 'Pick cover art', [:cover_art, :admin, record], class: 'button' %>
+  <%= link_to 'Search metadata provider', [:search_api, :admin, record], class: 'button button--neutral' %>
   <%= link_to 'Merge duplicate', [:merge, :admin, record], class: 'button button--neutral' %>
 <% end %>

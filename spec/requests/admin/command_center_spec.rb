@@ -20,24 +20,28 @@ RSpec.describe 'Admin command center', type: :request do
   it 'protects new routes and mutation actions from non-administrators' do
     admin.update!(admin: false)
     login
-    [admin_root_path, admin_search_path(q: 'title'), merge_admin_movie_path(movie)].each do |path|
+    [admin_root_path, admin_search_path(q: 'title'), merge_admin_movie_path(movie),
+     cover_art_admin_movie_path(movie)].each do |path|
       get path
       expect(response).to redirect_to(root_path)
     end
     post do_merge_admin_movie_path(movie), params: { target_id: movie.id }
     expect(response).to redirect_to(root_path)
     expect(Movie.exists?(movie.id)).to be true
+    post update_cover_art_admin_movie_path(movie), params: { thumbnail_url: 'https://example.com/cover.jpg' }
+    expect(response).to redirect_to(root_path)
   end
 
   context 'as an administrator' do
     before { login }
 
-    it 'renders an intentional empty overview and every navigation group' do
+    it 'renders an intentional empty overview, branding matching the main site, and every navigation group' do
       ApiConfiguration.create!(is_active: true)
       get admin_root_path
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('Command Center', 'All caught up', 'Media health', 'Background operations',
-                                       'Incomplete configuration')
+                                       'Incomplete configuration', 'tacobout-logo', 'trove', 'from taco ’bout it',
+                                       '<strong>trove</strong> operations')
       Admin::CommandCenterHelper::NAVIGATION.each_value do |links|
         links.each_value { |label| expect(response.body).to include(label.gsub('&', '&amp;')) }
       end
@@ -77,6 +81,7 @@ RSpec.describe 'Admin command center', type: :request do
 
     it 'renders CRUD and metadata views for populated media' do
       [admin_movie_path(movie), edit_admin_movie_path(movie), new_admin_movie_path,
+       cover_art_admin_movie_path(movie), pick_cover_art_admin_movie_path(movie),
        merge_admin_movie_path(movie)].each do |path|
         get path
         expect(response).to have_http_status(:ok)

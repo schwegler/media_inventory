@@ -1,5 +1,10 @@
 <section class="media-summary" aria-label="Media overview">
-  <%= render 'admin/application/artwork', record: record, large: true %>
+  <div class="media-summary-artwork">
+    <%= render 'admin/application/artwork', record: record, large: true %>
+    <% if Admin::Catalog::MATCHABLE.include?(record.class) %>
+      <%= link_to 'Pick cover art', [:cover_art, :admin, record], class: 'button button--small button--neutral artwork-change-btn' %>
+    <% end %>
+  </div>
   <div><h2><%= admin_media_context(record) %></h2><div class="actions"><span class="badge <%= admin_has_artwork?(record) ? '' : 'badge--warning' %>"><%= admin_has_artwork?(record) ? 'Artwork reference saved' : 'Artwork missing' %></span><% if record.respond_to?(:api_id) %><span class="badge"><%= record.api_id.present? ? "Metadata ID: #{record.api_id}" : 'No metadata match' %></span><% end %></div>
   <% if record.respond_to?(:external_url) && record.external_url.present? %><p>External reference: <%= admin_provider_reference(record.external_url) %></p><% end %>
   <p class="muted">Record updated <%= l(record.updated_at, format: :long) %>. Metadata refresh time and original source are not separately tracked.</p>

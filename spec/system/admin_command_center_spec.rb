@@ -52,6 +52,7 @@ RSpec.describe 'Admin command center interactions', type: :system do
     expect(page).to have_text('This suggestion was approved.')
     expect(movie.reload.title).to eq('Reviewed title')
   end
+
   it 'reviews provider results on a phone and confirms filling missing metadata' do
     allow(MediaSearchService).to receive(:call).and_return([
                                                              { title: 'Provider title', director: 'Provider director',
@@ -65,5 +66,46 @@ RSpec.describe 'Admin command center interactions', type: :system do
     accept_confirm { click_button 'Fill missing metadata' }
     expect(page).to have_text('Item successfully updated from API data.')
     expect(movie.reload).to have_attributes(title: 'Browser catalog title', director: 'Provider director')
+  end
+
+  it 'renders branding matching the main site in the header, sidebar, and footer' do
+    within('.admin-sidebar') do
+      expect(page).to have_css("img[src*='tacobout-logo']")
+      expect(page).to have_css('.admin-brand-text', text: 'trove')
+      expect(page).to have_css('.admin-brand-badge', text: /admin/i)
+      expect(page).to have_link('from taco ’bout it', href: 'https://tacobout.online/')
+      expect(page).to have_css('.sidebar-footer', text: /A library companion to taco ’bout it/i)
+    end
+    within('.admin-footer') do
+      expect(page).to have_css("img[src*='tacobout-logo']")
+      expect(page).to have_text(/trove\s+operations/i)
+    end
+  end
+
+  it 'picks new cover art from API sources to override default without altering other metadata' do
+    movie.update!(director: 'Existing Director', release_year: 2023)
+    allow(MediaSearchService).to receive(:call).and_return([
+                                                             {
+                                                               title: 'Browser catalog title',
+                                                               release_year: '2023',
+                                                               thumbnail_url: 'https://image.tmdb.org/t/p/w500/selected_art.jpg',
+                                                               source: 'TMDB'
+                                                             }
+                                                           ])
+    visit admin_movie_path(movie)
+    first(:link, 'Pick cover art').click
+    expect(page).to have_css('h1', text: 'Pick cover art')
+    expect(page).to have_text('Current cover art')
+    expect(page).to have_css("img[src='https://image.tmdb.org/t/p/w500/selected_art.jpg']", visible: :all)
+
+    accept_confirm { click_button 'Use this cover art' }
+    expect(page).to have_current_path(admin_movie_path(movie))
+    expect(page).to have_text('Cover art updated successfully. Other metadata was preserved.')
+
+    movie.reload
+    expect(movie.thumbnail_url).to eq('https://image.tmdb.org/t/p/w500/selected_art.jpg')
+    expect(movie.title).to eq('Browser catalog title')
+    expect(movie.director).to eq('Existing Director')
+    expect(movie.release_year).to eq(2023)
   end
 end

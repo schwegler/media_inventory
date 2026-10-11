@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="<%= current_user&.theme || 'os' %>">
+<html lang="en" data-theme="<%= current_user&.theme || 'os' %>" data-accent="<%= current_user&.accent_theme || 'violet' %>">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title><%= content_for(:title).presence || admin_resource_title %> · Trove Admin</title>
+  <%= favicon_link_tag "tacobout-logo.png", type: "image/png" %>
   <%= csrf_meta_tags %>
   <%= csp_meta_tag %>
   <%= stylesheet_link_tag 'admin', 'data-turbo-track': 'reload' %>
@@ -12,7 +13,14 @@
 <body class="admin-app" data-controller="admin-shell">
   <a class="skip-link" href="#main-content">Skip to content</a>
   <aside class="admin-sidebar" aria-label="Administration">
-    <%= link_to admin_root_path, class: 'admin-brand' do %>Trove <span>Admin</span><% end %>
+    <div class="admin-brand-wrapper">
+      <%= link_to admin_root_path, class: 'admin-brand' do %>
+        <%= image_tag 'tacobout-logo.png', class: 'admin-brand-logo', width: 38, height: 30, alt: '' %>
+        <span class="admin-brand-text">trove</span>
+        <span class="admin-brand-badge">Admin</span>
+      <% end %>
+      <a class="admin-brand-companion" href="https://tacobout.online/" target="_blank" rel="noopener noreferrer">from taco ’bout it</a>
+    </div>
     <nav aria-label="Admin navigation">
       <% Admin::CommandCenterHelper::NAVIGATION.each do |group, links| %>
         <details class="nav-group" open>
@@ -24,7 +32,10 @@
         </details>
       <% end %>
     </nav>
-    <div class="sidebar-footer">Media Inventory<br><span>A little order. More discovery.</span></div>
+    <div class="sidebar-footer">
+      <strong>trove</strong><br>
+      <span>A library companion to taco ’bout it.</span>
+    </div>
   </aside>
   <div class="admin-workspace">
     <header class="admin-topbar">
@@ -43,7 +54,13 @@
       <% end %>
       <%= yield %>
     </main>
-    <footer class="admin-footer">Trove operations <span>Built for the people behind the library.</span></footer>
+    <footer class="admin-footer">
+      <div class="admin-footer-brand">
+        <%= image_tag 'tacobout-logo.png', width: 28, height: 22, alt: '', class: 'footer-logo', loading: 'lazy' %>
+        <strong>trove</strong> operations
+      </div>
+      <span>A library companion to taco ’bout it. Built for the people behind the library.</span>
+    </footer>
   </div>
 </body>
 </html>
