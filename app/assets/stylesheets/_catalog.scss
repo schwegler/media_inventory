@@ -78,14 +78,35 @@
 .fetcher-status-text {
   font-size: 0.78rem;
   color: $text-dim;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.4;
+
+  &.search-pending::before {
+    content: "";
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid $accent-orange;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: fetcher-spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+}
+
+@keyframes fetcher-spin {
+  to { transform: rotate(360deg); }
 }
 
 .thumbnail-options-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   gap: 10px;
-  max-height: 350px;
+  max-height: 360px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: rgba(var(--rgb-inverse), 0.08) transparent;
 
@@ -111,13 +132,16 @@
   overflow: hidden;
   background: rgba(13, 17, 23, 0.5);
   position: relative;
+  display: flex;
+  flex-direction: column;
 
   .thumbnail-option-img-wrap {
     width: 100%;
-    height: 120px;
+    height: 125px;
     position: relative;
     border-radius: 4px;
     overflow: hidden;
+    background: rgba(0, 0, 0, 0.2);
 
     img {
       width: 100%;
@@ -130,13 +154,14 @@
     position: absolute;
     top: 2px;
     left: 2px;
-    font-size: 0.55rem;
+    font-size: 0.58rem;
     font-weight: 800;
     text-transform: uppercase;
     padding: 1px 4px;
     border-radius: 3px;
     letter-spacing: 0.03em;
     z-index: 10;
+    line-height: 1.2;
 
     &.local {
       background: rgba(0, 230, 118, 0.9);
@@ -150,12 +175,45 @@
   }
 
   .option-label {
-    display: block;
+    display: flex;
+    flex-direction: column;
     color: var(--text-main);
-    font-size: 0.65rem;
+    font-size: 0.72rem;
     text-align: center;
     padding: 6px 4px;
-    text-overflow: ellipsis;
+    gap: 2px;
+    flex: 1;
+
+    strong, .option-title {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      line-height: 1.25;
+      color: var(--text-main);
+      overflow-wrap: break-word;
+    }
+
+    .option-details, .option-meta-row {
+      display: block;
+      font-size: 0.6875rem;
+      color: $text-dim;
+      line-height: 1.25;
+      overflow-wrap: break-word;
+    }
+
+    .option-series-year {
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .option-cover-status {
+      font-size: 0.65rem;
+      color: var(--text-tertiary);
+    }
+  }
+
+  .option-select-cue {
+    display: none;
   }
 
   .thumbnail-option-actions {
@@ -206,6 +264,11 @@
     border-color: $accent-orange;
     box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
   }
+
+  &:focus-visible {
+    outline: 3px solid var(--accent-color, #70d9ef);
+    outline-offset: 2px;
+  }
 }
 
 .comic-search-year {
@@ -232,7 +295,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   overflow-x: hidden;
-  .thumbnail-option-card { display: flex; min-height: 100px; text-align: left; align-items: center; gap: 12px; }
+  .thumbnail-option-card { display: flex; flex-direction: row; min-height: 100px; text-align: left; align-items: center; gap: 12px; }
   .thumbnail-option-img-wrap { width: 96px; height: 96px; flex-shrink: 0; }
   .thumbnail-option-img-wrap img { width: 100%; height: 100%; object-fit: contain; }
   .option-label { display: flex; flex-direction: column; white-space: normal; gap: 6px; }
@@ -241,6 +304,174 @@
 }
 .game-tracking details { margin: 1rem 0; }
 .game-tracking summary { cursor: pointer; padding: 12px 0; }
+
+@media (max-width: 580px) {
+  .thumbnail-fetcher-container {
+    margin: 1rem 0;
+    gap: 0.4rem;
+
+    label {
+      font-size: 0.8125rem;
+      letter-spacing: 0.03em;
+    }
+  }
+
+  .thumbnail-fetcher-layout {
+    flex-direction: column;
+    gap: 0.75rem;
+
+    .thumbnail-preview-box {
+      width: 100px;
+      margin: 0 auto;
+    }
+  }
+
+  .thumbnail-options-box {
+    padding: 8px;
+    border-radius: 8px;
+    min-height: 100px;
+  }
+
+  .fetcher-status-text {
+    font-size: 0.8125rem;
+    margin-bottom: 8px;
+    padding: 2px 4px;
+  }
+
+  .thumbnail-options-grid,
+  .thumbnail-options-grid.comic-series-results,
+  .thumbnail-options-grid.game-search-results {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    max-height: min(54vh, 420px);
+    padding-right: 2px;
+
+    .thumbnail-option-card {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      text-align: left;
+      gap: 12px;
+      padding: 8px 10px;
+      min-height: 68px;
+      border-radius: 8px;
+      border: 1px solid rgba(var(--rgb-inverse), 0.1);
+      background: rgba(var(--rgb-inverse), 0.03);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+
+      &:hover {
+        transform: none;
+      }
+
+      &:active {
+        background: rgba(var(--rgb-inverse), 0.08);
+        border-color: $accent-orange;
+        transform: scale(0.99);
+      }
+
+      &.selected {
+        border-color: $accent-orange;
+        background: rgba(255, 107, 53, 0.08);
+        box-shadow: 0 0 0 1px $accent-orange;
+      }
+
+      .thumbnail-option-img-wrap {
+        width: 54px;
+        height: 80px;
+        flex-shrink: 0;
+        border-radius: 6px;
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+      }
+
+      .option-badge {
+        top: 2px;
+        left: 2px;
+        font-size: 0.5625rem;
+        padding: 1px 4px;
+      }
+
+      .option-label {
+        flex: 1;
+        min-width: 0;
+        text-align: left;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        align-items: flex-start;
+
+        strong, .option-title {
+          font-size: 0.9375rem;
+          font-weight: 600;
+          line-height: 1.3;
+          color: var(--text-main);
+          word-break: break-word;
+        }
+
+        .option-details,
+        .option-meta-row {
+          font-size: 0.8125rem;
+          color: var(--text-secondary);
+          line-height: 1.35;
+          word-break: break-word;
+        }
+
+        .option-series-year {
+          font-weight: 700;
+          color: var(--accent);
+          font-size: 0.8125rem;
+          margin: 0;
+        }
+
+        .option-cover-status {
+          font-size: 0.75rem;
+          color: var(--text-tertiary);
+        }
+      }
+
+      .option-select-cue {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--accent, $accent-orange);
+        padding: 6px 10px;
+        border-radius: 6px;
+        background: rgba(var(--rgb-inverse), 0.05);
+        border: 1px solid rgba(var(--rgb-inverse), 0.08);
+        line-height: 1;
+        margin-left: auto;
+      }
+    }
+
+    // Album square artwork adjustment on mobile
+    &[data-media-type="album"] .thumbnail-option-card .thumbnail-option-img-wrap,
+    &.album-search-results .thumbnail-option-card .thumbnail-option-img-wrap {
+      width: 60px;
+      height: 60px;
+    }
+
+    // Game cover art adjustment on mobile
+    &.game-search-results .thumbnail-option-card .thumbnail-option-img-wrap img {
+      object-fit: contain;
+    }
+  }
+
+  [data-thumbnail-fetcher-target="searchStage"] .btn-secondary {
+    width: 100%;
+    min-height: 44px;
+    font-size: 0.875rem;
+  }
+}
 @media (max-width: 480px) { .game-search-results { grid-template-columns: 1fr; } }
 .show-poster .game-cover-art { object-fit: contain; }
 // Personal game library: compact responsive controls and optional table scrolling.

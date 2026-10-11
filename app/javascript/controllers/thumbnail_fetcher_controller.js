@@ -204,8 +204,10 @@ export default class extends Controller {
       this.statusTextTarget.textContent = mediaType === "comic"
         ? `${allResults.length} matching series. Select the run you want:`
         : "Select a result below:"
+      this.optionsGridTarget.dataset.mediaType = mediaType
       this.optionsGridTarget.classList.toggle("comic-series-results", mediaType === "comic")
       this.optionsGridTarget.classList.toggle("game-search-results", mediaType === "video_game")
+      this.optionsGridTarget.classList.toggle("album-search-results", mediaType === "album")
 
       allResults.forEach((option) => {
         const imgBtn = document.createElement("div")
@@ -243,26 +245,44 @@ export default class extends Controller {
         label.className = "option-label"
         if (mediaType === "video_game") {
           const title = document.createElement("strong")
+          title.className = "option-title"
           title.textContent = option.title
           const details = document.createElement("span")
+          details.className = "option-details"
           details.textContent = [option.release_year || "Year unknown", option.platform, option.game_type || "Type unknown"].filter(Boolean).join(" · ")
           const coverStatus = document.createElement("span")
+          coverStatus.className = "option-cover-status"
           coverStatus.textContent = option.artwork_status === "missing" ? "Cover unavailable" : option.artwork_source ? `Art: ${option.artwork_source}` : ""
           label.append(title, details, coverStatus)
         } else if (mediaType === "comic") {
           const seriesTitle = document.createElement("strong")
+          seriesTitle.className = "option-title"
           seriesTitle.textContent = option.title.replace(/\s*\(\d{4}\)$/, "")
           const year = document.createElement("span")
           year.className = "option-series-year"
           year.textContent = option.release_year ? `Started ${option.release_year}` : "Start year unknown"
           const details = document.createElement("span")
+          details.className = "option-details"
           details.textContent = [option.publisher, option.issue_count ? `${option.issue_count} issues` : null, subtitle].filter(Boolean).join(" · ")
           label.append(seriesTitle, year, details)
         } else {
-          label.textContent = tooltipText
+          const title = document.createElement("strong")
+          title.className = "option-title"
+          title.textContent = option.title
+          const details = document.createElement("span")
+          details.className = "option-details"
+          const metaParts = []
+          if (option.release_year) metaParts.push(option.release_year)
+          if (subtitle) metaParts.push(subtitle)
+          details.textContent = metaParts.join(" · ")
+          label.append(title, details)
         }
+        const selectCue = document.createElement("span")
+        selectCue.className = "option-select-cue"
+        selectCue.setAttribute("aria-hidden", "true")
+        selectCue.textContent = "Select"
         wrapper.append(image, badge)
-        imgBtn.append(wrapper, label)
+        imgBtn.append(wrapper, label, selectCue)
 
         imgBtn.addEventListener("click", (e) => {
           this.optionsGridTarget.querySelectorAll(".thumbnail-option-card").forEach(card => card.classList.remove("selected"))
