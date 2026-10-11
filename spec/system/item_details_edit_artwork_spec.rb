@@ -8,7 +8,8 @@ RSpec.describe 'Editing details while adding an item preserves artwork and avoid
 
   before do
     stub_request(:get, %r{https://image\.tmdb\.org/}).to_return(body: png, headers: { 'Content-Type' => 'image/png' })
-    stub_request(:get, %r{https://shared\.fastly\.steamstatic\.com/}).to_return(body: png, headers: { 'Content-Type' => 'image/png' })
+    stub_request(:get, %r{https://shared\.fastly\.steamstatic\.com/})
+      .to_return(body: png, headers: { 'Content-Type' => 'image/png' })
     stub_request(:get, %r{https://is1-ssl\.mzstatic\.com/}).to_return(body: png, headers: { 'Content-Type' => 'image/png' })
   end
 
@@ -53,7 +54,7 @@ RSpec.describe 'Editing details while adding an item preserves artwork and avoid
 
   it 'preserves chosen artwork and does not wipe game fields when editing video game details' do
     selected_art = 'https://shared.fastly.steamstatic.com/elden_ring_header.jpg'
-    allow(MediaSearchService).to receive(:call).and_return([
+    game_results = [
       {
         title: 'Elden Ring',
         developer: 'FromSoftware',
@@ -64,7 +65,8 @@ RSpec.describe 'Editing details while adding an item preserves artwork and avoid
         api_id: 'steam_1245620',
         source: 'Steam'
       }
-    ])
+    ]
+    allow(MediaSearchService).to receive(:call).and_return(game_results)
 
     visit new_video_game_path
     expect(page).to have_css('[data-connected="true"]')
