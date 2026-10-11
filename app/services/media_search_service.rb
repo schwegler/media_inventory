@@ -46,7 +46,7 @@ class MediaSearchService
       # Games need bounded detail lookup to distinguish DLC and resolve real cover candidates.
       # Other media retain the background-after-selection enrichment path.
       results = rank_results(results)
-      if @type == 'video_game'
+      if %w[video_game movie tv_show].include?(@type)
         @deadline = started_at + 18
         results = results.each_with_index.map { |result, index| index < 5 ? enrich_result(result) : result }
       end
@@ -90,7 +90,7 @@ class MediaSearchService
 
   def enrich_result(result)
     return result if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= @deadline
-    return result unless %w[TMDB ComicVine RAWG Steam MusicBrainz].include?(result[:source])
+    return result unless %w[TMDB ComicVine RAWG Steam MusicBrainz tvmaze TVMaze].include?(result[:source])
 
     item = @type.camelize.constantize.new
     result.each { |field, value| item.public_send("#{field}=", value) if item.has_attribute?(field) }
@@ -161,6 +161,7 @@ class MediaSearchService
       {
         title: item['trackName'],
         director: item['artistName'],
+        genre: item['primaryGenreName'],
         release_year: item['releaseDate']&.split('-')&.first,
         thumbnail_url: item['artworkUrl100']&.sub('100x100bb', '400x400bb'),
         api_id: "itunes_#{item['trackId']}",
@@ -335,6 +336,7 @@ class MediaSearchService
     {
       title: show['name'],
       network: network_name,
+      genre: Array(show['genres']).join(', ').presence,
       release_year: show['premiered']&.split('-')&.first,
       thumbnail_url: show['image'] ? (show['image']['original'] || show['image']['medium']) : nil,
       api_id: show['id'].to_s,
@@ -435,6 +437,7 @@ class MediaSearchService
     Array(JSON.parse(MediaSources::Http.cached_get(uri, expires_in: 15.minutes,
                                                         deadline: @deadline))['results']).map do |show|
       { title: show['collectionName'] || show['trackName'], network: show['artistName'],
+        genre: show['primaryGenreName'],
         release_year: show['releaseDate']&.split('-')&.first, api_id: "itunes_#{show['collectionId']}",
         thumbnail_url: show['artworkUrl100']&.sub('100x100bb', '400x400bb'),
         external_url: show['collectionViewUrl'], is_local: false }

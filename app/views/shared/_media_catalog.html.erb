@@ -12,6 +12,7 @@
     <% MediaLayoutHelper::CATALOGS.each do |name, (label, *)| %>
       <%= link_to label, polymorphic_path(name.constantize), aria: { current: name == klass.name ? 'page' : nil } %>
     <% end %>
+    <%= link_to "Categories", categories_path, aria: { current: nil } %>
   </nav>
   <%= form_with url: polymorphic_path(klass), method: :get, class: 'catalog-toolbar' do |f| %>
     <div class="catalog-search">

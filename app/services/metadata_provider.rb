@@ -81,8 +81,34 @@ class MetadataProvider
     active!('tvmaze')
     id = numeric_id
     data = json("https://api.tvmaze.com/shows/#{id}")
+    data = {} unless data.is_a?(Hash)
+    cast = Array(data.dig('_embedded', 'cast')).slice(0, 10).filter_map { |c| c.dig('person', 'name') }.uniq.join(', ').presence
+    crew = Array(data.dig('_embedded', 'crew'))
+    directors = crew.select { |c| c['type'].to_s.downcase.include?('director') }.filter_map { |c| c.dig('person', 'name') }.uniq.first(5).join(', ').presence
+    writers = crew.select { |c| %w[creator writer developer story head\ writer].any? { |t| c['type'].to_s.downcase.include?(t) } }.filter_map { |c| c.dig('person', 'name') }.uniq.first(5).join(', ').presence
+
+    if directors.blank? && writers.blank? && cast.blank?
+      cast_crew = optional_details do
+        embedded_data = json("https://api.tvmaze.com/shows/#{id}?embed[]=cast&embed[]=crew")
+        [embedded_data] if embedded_data.is_a?(Hash)
+      end
+      if cast_crew.present? && (emb = cast_crew.first&.dig('_embedded'))
+        cast = Array(emb['cast']).slice(0, 10).filter_map { |c| c.dig('person', 'name') }.uniq.join(', ').presence
+        crew = Array(emb['crew'])
+        directors = crew.select { |c| c['type'].to_s.downcase.include?('director') }.filter_map { |c| c.dig('person', 'name') }.uniq.first(5).join(', ').presence
+        writers = crew.select { |c| %w[creator writer developer story head\ writer].any? { |t| c['type'].to_s.downcase.include?(t) } }.filter_map { |c| c.dig('person', 'name') }.uniq.first(5).join(', ').presence
+      end
+    end
+
+    genres = Array(data['genres']).join(', ').presence
+
     fields = { network: data.dig('network', 'name') || data.dig('webChannel', 'name'),
-               thumbnail_url: data.dig('image', 'original') || data.dig('image', 'medium') }
+               thumbnail_url: data.dig('image', 'original') || data.dig('image', 'medium'),
+               director: directors,
+               writer: writers,
+               actors: cast,
+               genre: genres,
+               release_year: year(data['premiered']) }
     [fields, children { json("https://api.tvmaze.com/shows/#{id}/episodes") }]
   end
 
@@ -91,9 +117,11 @@ class MetadataProvider
     active!('TMDB')
     token = key('TMDB')
     id = numeric_id('tmdb_')
-    data = json("https://api.themoviedb.org/3/tv/#{id}", api_key: token)
+    data = json("https://api.themoviedb.org/3/tv/#{id}", api_key: token, append_to_response: 'credits')
+    data = json("https://api.themoviedb.org/3/tv/#{id}", api_key: token) if !data.is_a?(Hash) || data['seasons'].blank?
+    data = {} unless data.is_a?(Hash)
     rows = children do
-      seasons = data.fetch('seasons')
+      seasons = Array(data['seasons'])
       @partial = true if seasons.length > 8
       seasons.first(8).flat_map do |season|
         json("https://api.themoviedb.org/3/tv/#{id}/season/#{season.fetch('season_number')}",
@@ -104,8 +132,22 @@ class MetadataProvider
         end
       end
     end
-    [{ network: data.dig('networks', 0, 'name'),
-       thumbnail_url: data['poster_path'].present? ? "https://image.tmdb.org/t/p/w500#{data['poster_path']}" : nil }, rows]
+    crew = Array(data.dig('credits', 'crew'))
+    cast = Array(data.dig('credits', 'cast'))
+    created_by = Array(data['created_by']).map { |c| c['name'] }.compact
+    writers = (created_by + crew.select { |p| p['department'] == 'Writing' || %w[Writer Screenplay Story].include?(p['job']) }.map { |p| p['name'] }).compact.reject(&:blank?).uniq.first(5).join(', ').presence
+    directors = crew.select { |p| p['job'] == 'Director' }.map { |p| p['name'] }.compact.uniq.first(5).join(', ').presence
+    actors = cast.slice(0, 10).map { |c| c['name'] }.compact.uniq.join(', ').presence
+    genres = names(Array(data['genres']))
+
+    fields = { network: data.dig('networks', 0, 'name'),
+               thumbnail_url: data['poster_path'].present? ? "https://image.tmdb.org/t/p/w500#{data['poster_path']}" : nil,
+               director: directors,
+               writer: writers,
+               actors: actors,
+               genre: genres,
+               release_year: year(data['first_air_date']) }
+    [fields, rows]
   end
 
   def children
@@ -185,7 +227,17 @@ class MetadataProvider
     active!('TMDB')
     data = json("https://api.themoviedb.org/3/movie/#{numeric_id('tmdb_')}", api_key: key('TMDB'),
                                                                              append_to_response: 'credits')
-    [{ director: names(Array(data.dig('credits', 'crew')).select { |person| person['job'] == 'Director' }),
+    crew = Array(data.dig('credits', 'crew'))
+    cast = Array(data.dig('credits', 'cast'))
+    directors = names(crew.select { |person| person['job'] == 'Director' })
+    writers = names(crew.select { |person| person['department'] == 'Writing' || %w[Writer Screenplay Story Author].include?(person['job']) }.first(5))
+    actors = names(cast.slice(0, 10))
+    genres = names(Array(data['genres']))
+
+    [{ director: directors,
+       writer: writers,
+       actors: actors,
+       genre: genres,
        release_year: year(data['release_date']),
        thumbnail_url: data['poster_path'].present? ? "https://image.tmdb.org/t/p/w500#{data['poster_path']}" : nil }, []]
   end
@@ -221,7 +273,7 @@ class MetadataProvider
     data = json('https://itunes.apple.com/lookup', id: numeric_id('itunes_')).fetch('results').first
     raise Unavailable unless data.is_a?(Hash)
 
-    [{ creator => data['artistName'], genre: @item.is_a?(Album) ? data['primaryGenreName'] : nil,
+    [{ creator => data['artistName'], genre: data['primaryGenreName'],
        release_year: year(data['releaseDate']),
        thumbnail_url: data['artworkUrl100']&.sub('100x100bb', '600x600bb') }, []]
   end

@@ -1,0 +1,7 @@
+<nav class="catalog-navigation category-navigation" aria-label="Category navigation">
+  <%= link_to "Overview", categories_path, aria: { current: current_page?(categories_path) ? 'page' : nil } %>
+  <% Category::TYPES.each do |key, cfg| %>
+    <% is_current = params[:category_type].to_s == key %>
+    <%= link_to cfg[:title], category_type_path(category_type: key), aria: { current: is_current ? 'page' : nil } %>
+  <% end %>
+</nav>

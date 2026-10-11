@@ -19,7 +19,7 @@ function debounce(func, wait) {
 export default class extends Controller {
   static targets = [
     "titleInput", "secondaryInput", "previewImg", "placeholder", "statusText", "optionsGrid", "thumbnailUrl",
-    "director", "artist", "writer", "publisher", "releaseYear", "genre", "network", "venue", "promotion", "date",
+    "director", "artist", "writer", "actors", "publisher", "releaseYear", "genre", "network", "venue", "promotion", "date",
     "season", "episode", "issueNumber", "apiId", "catalogSelection", "externalUrl", "manualFormSection", "developer", "platform",
     "searchStage", "detailsStage", "backBtn", "modalTitle", "selectedTitleDisplay", "gameType", "author", "searchYear", "submitButton"
   ]
@@ -336,6 +336,7 @@ export default class extends Controller {
       if (this.hasDirectorTarget) this.directorTarget.value = option.director || ""
       if (this.hasArtistTarget) this.artistTarget.value = option.artist || ""
       if (this.hasWriterTarget) this.writerTarget.value = option.writer || ""
+      if (this.hasActorsTarget) this.actorsTarget.value = option.actors || ""
       if (this.hasAuthorTarget) this.authorTarget.value = option.author || ""
       if (this.hasPublisherTarget) this.publisherTarget.value = option.publisher || ""
       if (this.releaseYearTargets.length > 0) this.releaseYearTarget.value = option.release_year || ""

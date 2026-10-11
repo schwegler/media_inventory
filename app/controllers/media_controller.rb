@@ -89,6 +89,9 @@ class MediaController < ApplicationController
       {
         title: m.title,
         director: m.director,
+        writer: m.writer,
+        actors: m.actors,
+        genre: m.genre,
         release_year: m.release_year,
         thumbnail_url: m.stored_cover_url,
         cover_source_url: m.cover_image.attached? ? url_for(m.cover_image) : m.thumbnail_url,
@@ -163,6 +166,11 @@ class MediaController < ApplicationController
       {
         title: t.title,
         network: t.network,
+        director: t.director,
+        writer: t.writer,
+        actors: t.actors,
+        genre: t.genre,
+        release_year: t.release_year,
         thumbnail_url: t.stored_cover_url,
         cover_source_url: t.cover_image.attached? ? url_for(t.cover_image) : t.thumbnail_url,
         api_id: t.api_id,

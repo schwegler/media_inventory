@@ -1,0 +1,65 @@
+<% content_for(:media_workspace, 'true') %>
+<% content_for(:title, "#{@title} — Categories") %>
+
+<section class="catalog-page" aria-labelledby="catalog-title">
+  <header class="catalog-heading">
+    <div>
+      <h1 id="catalog-title"><%= @title %></h1>
+      <p style="margin: 0.35rem 0 0; color: var(--text-secondary); font-size: 0.9375rem;">
+        Browse all <%= @title.downcase %> recorded across titles.
+      </p>
+    </div>
+  </header>
+
+  <%= render 'categories/navigation' %>
+
+  <%= form_with url: category_type_path(category_type: @category_type), method: :get, class: 'catalog-toolbar' do |f| %>
+    <div class="catalog-search">
+      <%= f.label :q, "Search #{@title.downcase}" %>
+      <%= f.search_field :q, value: params[:q], placeholder: "Filter by #{@singular.downcase} name…" %>
+    </div>
+    <div>
+      <%= f.label :sort, 'Sort by' %>
+      <%= f.select :sort, [['Most titles', 'count'], ['Name A–Z', 'name']], selected: params[:sort] || 'count' %>
+    </div>
+    <%= f.submit 'Apply', class: 'sleek-btn sleek-btn-secondary' %>
+  <% end %>
+
+  <div class="catalog-results-heading">
+    <p role="status">
+      <%= number_with_delimiter(@categories.total_count) %> <%= @singular.downcase.pluralize(@categories.total_count) %>
+      <% if params[:q].present? %> matching “<%= params[:q] %>”<% end %>
+    </p>
+    <% if params[:q].present? || params[:sort].present? %>
+      <%= link_to 'Reset filters', category_type_path(category_type: @category_type) %>
+    <% end %>
+  </div>
+
+  <% if @categories.empty? %>
+    <div class="home-empty-state" style="text-align: center; padding: 3rem 1rem;">
+      <h2>No matching <%= @title.downcase %></h2>
+      <p style="color: var(--text-secondary);">
+        <% if params[:q].present? %>
+          No <%= @title.downcase %> found matching “<%= params[:q] %>”.
+        <% else %>
+          No <%= @title.downcase %> have been added to the library yet.
+        <% end %>
+      </p>
+      <% if params[:q].present? %>
+        <%= link_to "View all #{@title.downcase}", category_type_path(category_type: @category_type), class: 'sleek-btn sleek-btn-secondary' %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="category-pill-grid" style="display: flex; flex-wrap: wrap; gap: 0.75rem; margin-block: 1rem 2rem;">
+      <% @categories.each do |cat| %>
+        <%= link_to category_item_path(category_type: @category_type, name: cat.name), class: 'category-pill', style: 'display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.65rem 1rem; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); text-decoration: none; font-size: 0.9375rem; font-weight: 500;' do %>
+          <span class="category-pill-name"><%= cat.name %></span>
+          <span class="category-pill-count" style="font-size: 0.75rem; color: var(--text-tertiary); background: var(--border); padding: 0.15rem 0.5rem; border-radius: 10px;">
+            <%= number_with_delimiter(cat.count) %>
+          </span>
+        <% end %>
+      <% end %>
+    </div>
+    <div class="pagination-wrapper"><%= paginate @categories %></div>
+  <% end %>
+</section>

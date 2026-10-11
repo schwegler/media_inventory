@@ -14,6 +14,9 @@ class MovieDashboard < Administrate::BaseDashboard
     api_id: Field::String,
     comments: Field::HasMany,
     director: Field::String,
+    writer: Field::String,
+    actors: Field::Text,
+    genre: Field::String,
     external_url: Field::String,
     likes: Field::HasMany,
     release_year: Field::Number,
@@ -37,6 +40,9 @@ class MovieDashboard < Administrate::BaseDashboard
     api_id
     comments
     director
+    writer
+    actors
+    genre
     external_url
     likes
     release_year
@@ -53,6 +59,9 @@ class MovieDashboard < Administrate::BaseDashboard
     api_id
     comments
     director
+    writer
+    actors
+    genre
     external_url
     likes
     release_year

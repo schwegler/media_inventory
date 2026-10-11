@@ -78,6 +78,23 @@
                     </div>
                   </div>
 
+                  <div class="details-form-row">
+                    <div class="details-field-group">
+                      <%= f.label :writer %>
+                      <%= f.text_field :writer, data: { thumbnail_fetcher_target: "writer" } %>
+                    </div>
+
+                    <div class="details-field-group">
+                      <%= f.label :genre %>
+                      <%= f.text_field :genre, data: { thumbnail_fetcher_target: "genre" } %>
+                    </div>
+                  </div>
+
+                  <div class="details-field-group">
+                    <%= f.label :actors %>
+                    <%= f.text_field :actors, placeholder: "e.g. Actor 1, Actor 2", data: { thumbnail_fetcher_target: "actors" } %>
+                  </div>
+
                   <div class="form-row-toggles">
                     <div class="toggle-field">
                       <%= f.check_box :is_collected %>
