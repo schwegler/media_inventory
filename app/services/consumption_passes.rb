@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/ClassLength
 # Manages ConsumptionPass lifecycle for TV shows and comics.
 #
 # Episode/issue LibraryItems keep meaning "consumed at least once" (so stats, activity and
@@ -79,7 +80,7 @@ class ConsumptionPasses
       series_lib = series_library_item(user, child)
       return false unless series_lib
 
-      pass = series_lib.consumption_passes.active.first
+      pass = current_pass(series_lib)
       pass.present? && pass.rewatch?
     end
 
@@ -101,7 +102,38 @@ class ConsumptionPasses
     end
 
     def active_pass(series_lib)
+      return nil unless series_lib
+
       series_lib.consumption_passes.active.first
+    end
+
+    def current_pass(series_lib)
+      return nil unless series_lib
+
+      series_lib.consumption_passes.active.first ||
+        series_lib.consumption_passes.recent_first.first&.then { |p| p if p.dismissed? }
+    end
+
+    def pass_entry_ids(pass)
+      return Set.new unless pass
+
+      pass.entries.pluck(:item_id).to_set
+    end
+
+    def consumed?(child, user:, series_lib: nil, pass: nil, **options)
+      return false unless user
+
+      series_lib ||= series_library_item(user, child)
+      return false unless series_lib
+
+      pass ||= current_pass(series_lib)
+      if pass&.rewatch?
+        entry_ids = options[:entry_ids] || pass_entry_ids(pass)
+        entry_ids.include?(child.id)
+      else
+        child_lib = options[:child_lib] || user.library_items.find_by(item: child)
+        child_lib&.consumed? || false
+      end
     end
 
     private
@@ -132,3 +164,4 @@ class ConsumptionPasses
     end
   end
 end
+# rubocop:enable Metrics/ClassLength

@@ -36,6 +36,9 @@ class TvEpisodesController < ApplicationController
           format.turbo_stream { render 'in_progress/update_tv_show' }
           format.html { redirect_back fallback_location: @tv_show, notice: "Logged #{@tv_episode.name}." }
         else
+          @show_library_item = LibraryItem.find_by(user: current_user, item: @tv_episode.tv_show)
+          @active_pass = ConsumptionPasses.current_pass(@show_library_item)
+          @active_pass_entry_ids = ConsumptionPasses.pass_entry_ids(@active_pass)
           format.turbo_stream
           format.html { redirect_back fallback_location: @tv_episode.tv_show, notice: 'Episode updated.' }
         end

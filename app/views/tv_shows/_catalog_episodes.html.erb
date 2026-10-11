@@ -11,8 +11,14 @@
               <%
                 season_eps = episodes_by_season[season]
                 season_all_watched = logged_in? && season_eps.present? && season_eps.all? do |ep|
-                  lib = @child_library_items ? @child_library_items[ep.id] : LibraryItem.find_by(user: current_user, item: ep)
-                  lib&.consumed?
+                  ConsumptionPasses.consumed?(
+                    ep,
+                    user: current_user,
+                    series_lib: @series_library_item || @library_item,
+                    child_lib: (@child_library_items ? @child_library_items[ep.id] : nil),
+                    pass: @active_pass,
+                    entry_ids: @active_pass_entry_ids
+                  )
                 end
               %>
               <button type="button" class="season-tab <%= 'active-tab' if index == 0 %>"
@@ -44,12 +50,18 @@
               <% if logged_in? %>
                 <%
                   watched_count = season_eps.count do |ep|
-                    lib = @child_library_items ? @child_library_items[ep.id] : LibraryItem.find_by(user: current_user, item: ep)
-                    lib&.consumed?
+                    ConsumptionPasses.consumed?(
+                      ep,
+                      user: current_user,
+                      series_lib: @series_library_item || @library_item,
+                      child_lib: (@child_library_items ? @child_library_items[ep.id] : nil),
+                      pass: @active_pass,
+                      entry_ids: @active_pass_entry_ids
+                    )
                   end
                   all_watched = watched_count == season_eps.size
                 %>
-                <div class="season-panel-header">
+                <div class="season-panel-header" id="season-panel-header-<%= season %>">
                   <div class="season-panel-status">
                     <span class="season-count-badge">Season <%= season %></span>
                     <span class="season-watched-tally">

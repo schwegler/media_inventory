@@ -1,3 +1,9 @@
 <%= turbo_stream.replace "comic_issue_#{@comic_issue.id}" do %>
   <%= render 'comics/comic_issue', issue: @comic_issue, comic: @comic_issue.comic %>
 <% end %>
+
+<% if @comic_library_item.present? %>
+  <%= turbo_stream.replace "consumption-pass-panel" do %>
+    <%= render 'shared/consumption_pass_panel', item: @comic_issue.comic, library_item: @comic_library_item %>
+  <% end %>
+<% end %>

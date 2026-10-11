@@ -3,7 +3,10 @@
   title, _, emoji = media_catalog(item)
   stats = community_stats_for(item)
   entries = item.is_a?(TvShow) ? item.tv_episodes : (item.is_a?(Comic) ? item.comic_issues : nil)
-  @child_library_items = @episode_library_items || @issue_library_items || LibraryItem.where(user: current_user, item_type: entries.klass.name, item_id: entries.select(:id)).index_by(&:item_id) if entries && logged_in?
+  @child_library_items = @episode_library_items || @issue_library_items || (LibraryItem.where(user: current_user, item_type: entries.klass.name, item_id: entries.select(:id)).index_by(&:item_id) if entries && logged_in?)
+  @series_library_item = @library_item
+  @active_pass ||= ConsumptionPasses.current_pass(@series_library_item) if @series_library_item
+  @active_pass_entry_ids ||= ConsumptionPasses.pass_entry_ids(@active_pass)
   entries_label = item.is_a?(TvShow) ? 'Episodes' : 'Issues'
 %>
 <% content_for(:title, item.title) %>
@@ -81,7 +84,13 @@
         <section id="media-entries" data-controller="child-collection" data-action="season-tabs:change->child-collection#filter" class="media-section media-entries" aria-label="<%= entries_label %>">
           <h2><%= entries_label %> in this Series</h2>
           <% if logged_in? %>
-            <% completed = LibraryItem.where(user: current_user, item_type: entries.klass.name, item_id: entries.select(:id), consumed: true).count %>
+            <%
+              completed = if @active_pass&.rewatch?
+                            @active_pass_entry_ids.size
+                          else
+                            LibraryItem.where(user: current_user, item_type: entries.klass.name, item_id: entries.select(:id), consumed: true).count
+                          end
+            %>
             <p class="media-progress"><strong data-child-collection-target="completed"><%= completed %> / <%= entries.size %></strong> <%= entries_label.downcase %> <%= MediaLanguage.for(item)[:past] %></p>
             <progress data-child-collection-target="progress" value="<%= completed %>" max="<%= [entries.size, 1].max %>" aria-label="<%= entries_label %> completed"></progress>
             <%= render 'shared/consumption_pass_panel', item: item, library_item: @library_item if @library_item.present? %>
