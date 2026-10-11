@@ -4,7 +4,7 @@
   <p>Update the catalog details and your library entry.</p>
   <%= form_with model: @resource, class: 'settings-form' do |f| %>
     <%= render 'shared/error_messages', object: f.object %>
-    <% %w[title director artist author writer publisher developer platform network genre release_year issue_number].each do |field| %>
+    <% %w[title director artist author writer publisher developer platform network genre actors release_year issue_number].each do |field| %>
       <% next unless @resource.has_attribute?(field) %>
       <div class="form-group"><%= f.label field %><%= f.text_field field, class: 'form-control' %></div>
     <% end %>

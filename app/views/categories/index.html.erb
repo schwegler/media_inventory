@@ -1,0 +1,48 @@
+<% content_for(:media_workspace, 'true') %>
+<% content_for(:title, 'Categories — Trove') %>
+
+<section class="catalog-page" aria-labelledby="catalog-title">
+  <header class="catalog-heading">
+    <div>
+      <h1 id="catalog-title">Categories</h1>
+      <p style="margin: 0.35rem 0 0; color: var(--text-secondary); font-size: 0.9375rem;">
+        Explore movies, TV shows, and your collection by genres, directors, actors, and writers.
+      </p>
+    </div>
+  </header>
+
+  <%= render 'categories/navigation' %>
+
+  <div class="category-hub" style="margin-top: 2rem; display: flex; flex-direction: column; gap: 2.5rem;">
+    <% @types.each do |type| %>
+      <% cfg = Category.config_for(type) %>
+      <% items = @top_categories[type] || [] %>
+      <% total = @counts[type] || 0 %>
+      <% emoji = { 'genres' => '🎭', 'directors' => '🎬', 'actors' => '⭐', 'writers' => '✍️' }[type] %>
+
+      <div class="category-hub-section" style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+          <h2 style="margin: 0; font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+            <span><%= emoji %></span>
+            <span><%= cfg[:title] %></span>
+            <span style="font-size: 0.8125rem; font-weight: normal; color: var(--text-tertiary); margin-left: 0.25rem;">(<%= number_with_delimiter(total) %>)</span>
+          </h2>
+          <%= link_to "View all #{cfg[:title]} →", category_type_path(category_type: type), class: 'sleek-btn sleek-btn-secondary', style: 'font-size: 0.8125rem; padding: 0.35rem 0.75rem;' %>
+        </div>
+
+        <% if items.empty? %>
+          <p style="color: var(--text-secondary); font-size: 0.875rem; margin: 0;">No <%= cfg[:title].downcase %> recorded yet.</p>
+        <% else %>
+          <div class="category-pill-grid" style="display: flex; flex-wrap: wrap; gap: 0.6rem;">
+            <% items.each do |cat| %>
+              <%= link_to category_item_path(category_type: type, name: cat.name), class: 'category-pill', style: 'display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.85rem; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-secondary, var(--surface)); color: var(--text); text-decoration: none; font-size: 0.875rem; font-weight: 500;' do %>
+                <span class="category-pill-name"><%= cat.name %></span>
+                <span class="category-pill-count" style="font-size: 0.75rem; color: var(--text-tertiary); background: var(--border); padding: 0.1rem 0.4rem; border-radius: 10px;"><%= cat.count %></span>
+              <% end %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</section>

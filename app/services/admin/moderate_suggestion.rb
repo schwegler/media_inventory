@@ -2,7 +2,7 @@
 
 module Admin
   class ModerateSuggestion
-    ALLOWED_FIELDS = %w[title name director artist author writer publisher developer platform release_year
+    ALLOWED_FIELDS = %w[title name director artist author writer actors publisher developer platform release_year
                         genre network api_id external_url thumbnail_url issue_number summary].freeze
     class InvalidDecision < StandardError; end
 

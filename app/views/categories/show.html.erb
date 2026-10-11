@@ -1,0 +1,58 @@
+<% content_for(:media_workspace, 'true') %>
+<% content_for(:title, "#{@name} (#{@singular}) — Trove") %>
+
+<section class="catalog-page category-detail-page" aria-labelledby="category-title">
+  <div style="margin-bottom: 0.5rem;">
+    <%= link_to "← Back to #{@category_title}", category_type_path(category_type: @category_type), class: 'media-back-link' %>
+  </div>
+
+  <header class="catalog-heading" style="flex-direction: column; align-items: flex-start; gap: 0.5rem; margin-bottom: 1.5rem;">
+    <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+      <span class="category-type-badge" style="background: var(--accent); color: var(--text-on-accent, #fff); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; padding: 0.25rem 0.6rem; border-radius: 4px; letter-spacing: 0.05em;">
+        <%= @singular %>
+      </span>
+      <h1 id="category-title" style="margin: 0;"><%= @name %></h1>
+    </div>
+    <p style="margin: 0; color: var(--text-secondary); font-size: 0.9375rem;">
+      <%= number_with_delimiter(@media_counts['all']) %> <%= 'title'.pluralize(@media_counts['all']) %> in Trove
+    </p>
+  </header>
+
+  <nav class="catalog-navigation" aria-label="Media types for <%= @name %>">
+    <%= link_to "All (#{@media_counts['all']})", category_item_path(category_type: @category_type, name: @name, sort: params[:sort]), aria: { current: params[:type].blank? ? 'page' : nil } %>
+    <% if @media_counts['movies'] > 0 %>
+      <%= link_to "Movies (#{@media_counts['movies']})", category_item_path(category_type: @category_type, name: @name, type: 'movies', sort: params[:sort]), aria: { current: params[:type] == 'movies' ? 'page' : nil } %>
+    <% end %>
+    <% if @media_counts['tv_shows'] > 0 %>
+      <%= link_to "TV Shows (#{@media_counts['tv_shows']})", category_item_path(category_type: @category_type, name: @name, type: 'tv_shows', sort: params[:sort]), aria: { current: params[:type] == 'tv_shows' ? 'page' : nil } %>
+    <% end %>
+    <% if @media_counts['albums'] > 0 %>
+      <%= link_to "Albums (#{@media_counts['albums']})", category_item_path(category_type: @category_type, name: @name, type: 'albums', sort: params[:sort]), aria: { current: params[:type] == 'albums' ? 'page' : nil } %>
+    <% end %>
+    <% if @media_counts['comics'] > 0 %>
+      <%= link_to "Comics (#{@media_counts['comics']})", category_item_path(category_type: @category_type, name: @name, type: 'comics', sort: params[:sort]), aria: { current: params[:type] == 'comics' ? 'page' : nil } %>
+    <% end %>
+  </nav>
+
+  <%= form_with url: category_item_path(category_type: @category_type, name: @name), method: :get, class: 'catalog-toolbar' do |f| %>
+    <%= f.hidden_field :type, value: params[:type] if params[:type].present? %>
+    <div>
+      <%= f.label :sort, 'Sort by' %>
+      <%= f.select :sort, [['Recently added', 'newest'], ['Release year (newest)', 'year'], ['Title A–Z', 'title']], selected: params[:sort] || 'newest' %>
+    </div>
+    <%= f.submit 'Apply', class: 'sleek-btn sleek-btn-secondary' %>
+  <% end %>
+
+  <% if @items.empty? %>
+    <div class="home-empty-state" style="text-align: center; padding: 3rem 1rem;">
+      <h2>No matching titles</h2>
+      <p style="color: var(--text-secondary);">No titles found for this category.</p>
+      <%= link_to "View all titles for #{@name}", category_item_path(category_type: @category_type, name: @name), class: 'sleek-btn sleek-btn-secondary' %>
+    </div>
+  <% else %>
+    <div class="media-grid-2026 catalog-grid">
+      <%= render partial: 'shared/media_card', collection: @items, as: :media_item %>
+    </div>
+    <div class="pagination-wrapper"><%= paginate @items %></div>
+  <% end %>
+</section>

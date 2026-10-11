@@ -68,9 +68,40 @@
 
 
 
+                  <div class="details-form-row">
+                    <div class="details-field-group">
+                      <%= f.label :network %>
+                      <%= f.text_field :network, data: { thumbnail_fetcher_target: "secondaryInput network", action: "input->thumbnail-fetcher#search" } %>
+                    </div>
+
+                    <div class="details-field-group">
+                      <%= f.label :release_year %>
+                      <%= f.number_field :release_year, data: { thumbnail_fetcher_target: "releaseYear" } %>
+                    </div>
+                  </div>
+
+                  <div class="details-form-row">
+                    <div class="details-field-group">
+                      <%= f.label :director %>
+                      <%= f.text_field :director, data: { thumbnail_fetcher_target: "director" } %>
+                    </div>
+
+                    <div class="details-field-group">
+                      <%= f.label :writer %>
+                      <%= f.text_field :writer, data: { thumbnail_fetcher_target: "writer" } %>
+                    </div>
+                  </div>
+
+                  <div class="details-form-row">
+                    <div class="details-field-group">
+                      <%= f.label :genre %>
+                      <%= f.text_field :genre, data: { thumbnail_fetcher_target: "genre" } %>
+                    </div>
+                  </div>
+
                   <div class="details-field-group">
-                    <%= f.label :network %>
-                    <%= f.text_field :network, data: { thumbnail_fetcher_target: "secondaryInput network", action: "input->thumbnail-fetcher#search" } %>
+                    <%= f.label :actors %>
+                    <%= f.text_field :actors, placeholder: "e.g. Actor 1, Actor 2", data: { thumbnail_fetcher_target: "actors" } %>
                   </div>
 
                   <div class="form-row-toggles">

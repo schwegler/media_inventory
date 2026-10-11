@@ -36,8 +36,46 @@ class TvShow < ApplicationRecord
     return if api_id.blank? || !api_id.to_s.match?(/\A\d+\z/)
     return unless saved_change_to_api_id? || tv_episodes.empty?
 
+    sync_show_details_from_api
     episodes_data = fetch_episodes_from_api
     create_tv_episodes(episodes_data) if episodes_data.is_a?(Array)
+  end
+
+  def sync_show_details_from_api
+    url = URI("https://api.tvmaze.com/shows/#{api_id}?embed[]=cast&embed[]=crew")
+    response = MediaSources::Http.cached_get(url)
+    data = JSON.parse(response)
+    return unless data.is_a?(Hash)
+
+    apply_tvmaze_show_attributes(data)
+  rescue StandardError => e
+    Rails.logger.error "Failed to sync TV show details: #{e.class}"
+  end
+
+  def apply_tvmaze_show_attributes(data)
+    directors, writers, cast = extract_tvmaze_credits(data['_embedded'])
+    year = data['premiered'] ? data['premiered'].split('-').first.to_i : nil
+
+    update_columns(
+      director: director.presence || directors,
+      writer: writer.presence || writers,
+      actors: actors.presence || cast,
+      genre: genre.presence || Array(data['genres']).join(', ').presence,
+      release_year: release_year.presence || (year if year&.positive?)
+    )
+  end
+
+  def extract_tvmaze_credits(embedded)
+    return [nil, nil, nil] if embedded.blank?
+
+    cast = Array(embedded['cast']).slice(0, 10).filter_map { |c| c.dig('person', 'name') }.uniq.join(', ').presence
+    crew = Array(embedded['crew'])
+    directors = crew.select { |c| c['type'].to_s.downcase.include?('director') }
+                    .filter_map { |c| c.dig('person', 'name') }.uniq.first(5).join(', ').presence
+    writer_roles = ['creator', 'writer', 'developer', 'story', 'head writer']
+    writers = crew.select { |c| writer_roles.any? { |t| c['type'].to_s.downcase.include?(t) } }
+                  .filter_map { |c| c.dig('person', 'name') }.uniq.first(5).join(', ').presence
+    [directors, writers, cast]
   end
 
   def fetch_episodes_from_api

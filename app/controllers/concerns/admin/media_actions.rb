@@ -32,7 +32,7 @@ module Admin
     def update_from_api
       @item = requested_resource
       api_data = params.require(:api_data).permit(
-        :title, :director, :artist, :author, :writer, :publisher, :developer,
+        :title, :director, :artist, :author, :writer, :actors, :publisher, :developer,
         :platform, :release_year, :genre, :network, :api_id, :external_url, :thumbnail_url
       )
       api_data.each do |key, value|

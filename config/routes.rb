@@ -104,6 +104,9 @@ SampleApp::Application.routes.draw do
   post '/metadata/:media_type/:media_id/refresh', to: 'metadata_refreshes#create', as: 'refresh_metadata'
   root 'landing#index'
   get 'test_bsky', to: 'landing#test_bsky'
+  get '/categories', to: 'categories#index', as: 'categories'
+  get '/categories/:category_type', to: 'categories#type_index', as: 'category_type'
+  get '/categories/:category_type/*name', to: 'categories#show', as: 'category_item', format: false
   get '/search', to: 'search#index', as: 'search'
   get '/collections/:user_id', to: 'collections#show', as: 'collection'
   get    '/login',   to: 'sessions#new'

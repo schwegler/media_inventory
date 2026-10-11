@@ -24,8 +24,8 @@
     <div class="media-identity">
       <h1><%= item.title %></h1>
       <dl class="media-facts">
-        <% media_metadata(item).each do |label, value| %>
-          <div><dt><%= label %></dt><dd><%= value %></dd></div>
+        <% media_metadata(item).each do |label, value, attribute| %>
+          <div><dt><%= label %></dt><dd><%= render_media_metadata_value(item, attribute, value) %></dd></div>
         <% end %>
       </dl>
       <% if @library_item&.rating.present? %>

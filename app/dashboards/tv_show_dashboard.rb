@@ -13,6 +13,11 @@ class TvShowDashboard < Administrate::BaseDashboard
     id: Field::Number,
     api_id: Field::String,
     comments: Field::HasMany,
+    director: Field::String,
+    writer: Field::String,
+    actors: Field::Text,
+    genre: Field::String,
+    release_year: Field::Number,
     external_url: Field::String,
     likes: Field::HasMany,
     network: Field::String,
@@ -36,6 +41,11 @@ class TvShowDashboard < Administrate::BaseDashboard
     id
     api_id
     comments
+    director
+    writer
+    actors
+    genre
+    release_year
     external_url
     likes
     network
@@ -52,6 +62,11 @@ class TvShowDashboard < Administrate::BaseDashboard
   FORM_ATTRIBUTES = %i[
     api_id
     comments
+    director
+    writer
+    actors
+    genre
+    release_year
     external_url
     likes
     network

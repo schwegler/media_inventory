@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_10_220000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_10_221000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -89,6 +89,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_10_220000) do
     t.datetime "updated_at", null: false
     t.index ["api_id"], name: "index_books_on_api_id"
     t.index ["created_at"], name: "index_books_on_created_at"
+  end
+
+  create_table "borrow_requests", force: :cascade do |t|
+    t.datetime "approved_at"
+    t.integer "borrower_id", null: false
+    t.datetime "created_at", null: false
+    t.date "due_date"
+    t.datetime "last_reminder_sent_at"
+    t.integer "lender_id", null: false
+    t.text "lender_notes"
+    t.integer "library_item_id", null: false
+    t.text "message"
+    t.datetime "picked_up_at"
+    t.datetime "returned_at"
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["borrower_id", "status"], name: "index_borrow_requests_on_borrower_id_and_status"
+    t.index ["borrower_id"], name: "index_borrow_requests_on_borrower_id"
+    t.index ["lender_id", "status"], name: "index_borrow_requests_on_lender_id_and_status"
+    t.index ["lender_id"], name: "index_borrow_requests_on_lender_id"
+    t.index ["library_item_id", "status"], name: "index_borrow_requests_on_library_item_id_and_status"
+    t.index ["library_item_id"], name: "index_borrow_requests_on_library_item_id"
   end
 
   create_table "comic_issues", force: :cascade do |t|
@@ -403,16 +425,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_10_220000) do
   end
 
   create_table "movies", force: :cascade do |t|
+    t.text "actors"
     t.string "api_id"
     t.datetime "created_at", null: false
     t.string "director"
     t.string "external_url"
+    t.string "genre"
     t.integer "release_year"
     t.string "thumbnail_url"
     t.string "title"
     t.datetime "updated_at", null: false
+    t.string "writer"
     t.index ["api_id"], name: "index_movies_on_api_id"
     t.index ["created_at"], name: "index_movies_on_created_at"
+    t.index ["director"], name: "index_movies_on_director"
+    t.index ["genre"], name: "index_movies_on_genre"
   end
 
   create_table "notifications", force: :cascade do |t|
@@ -482,15 +509,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_10_220000) do
   end
 
   create_table "tv_shows", force: :cascade do |t|
+    t.text "actors"
     t.string "api_id"
     t.datetime "created_at", null: false
+    t.string "director"
     t.string "external_url"
+    t.string "genre"
     t.string "network"
+    t.integer "release_year"
     t.string "thumbnail_url"
     t.string "title"
     t.datetime "updated_at", null: false
+    t.string "writer"
     t.index ["api_id"], name: "index_tv_shows_on_api_id"
     t.index ["created_at"], name: "index_tv_shows_on_created_at"
+    t.index ["genre"], name: "index_tv_shows_on_genre"
+    t.index ["release_year"], name: "index_tv_shows_on_release_year"
   end
 
   create_table "users", force: :cascade do |t|
@@ -524,6 +558,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_10_220000) do
     t.string "media_layout", default: "covers", null: false
     t.datetime "metadata_requested_at"
     t.string "name"
+    t.boolean "notify_email_borrows", default: true, null: false
     t.boolean "notify_email_comments", default: true
     t.boolean "notify_email_follows", default: true
     t.boolean "notify_email_likes", default: true
@@ -567,6 +602,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_10_220000) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "activities", "users", on_delete: :cascade
+  add_foreign_key "borrow_requests", "library_items", on_delete: :cascade
+  add_foreign_key "borrow_requests", "users", column: "borrower_id", on_delete: :cascade
+  add_foreign_key "borrow_requests", "users", column: "lender_id", on_delete: :cascade
   add_foreign_key "comic_issues", "comics", on_delete: :cascade
   add_foreign_key "comments", "users", on_delete: :cascade
   add_foreign_key "consumption_pass_entries", "consumption_passes"

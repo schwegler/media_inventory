@@ -57,6 +57,10 @@
 .media-facts > div { min-width: 0; max-width: 100%; }
 .media-facts dt { color: var(--text-tertiary); font-size: .75rem; margin-bottom: .2rem; }
 .media-facts dd { margin: 0; font-size: .9375rem; font-weight: 500; }
+.media-category-link { color: inherit; text-decoration: underline; text-decoration-color: var(--border-strong, rgba(120, 120, 120, 0.4)); text-underline-offset: 3px; transition: color .15s ease, text-decoration-color .15s ease; }
+.media-category-link:hover { color: var(--accent); text-decoration-color: var(--accent); }
+.category-pill { transition: border-color .15s ease, background .15s ease, transform .15s ease; }
+.category-pill:hover { border-color: var(--accent) !important; transform: translateY(-1px); box-shadow: 0 2px 8px rgba(var(--rgb-inverse), .06); }
 .media-personal-rating { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; color: var(--star-color); margin-block: .75rem; }
 .media-personal-rating > span:first-child { color: var(--text-secondary); font-size: .8125rem; }
 .media-share summary { cursor: pointer; color: var(--text-secondary); font-size: .875rem; min-height: 44px; align-content: center; }
