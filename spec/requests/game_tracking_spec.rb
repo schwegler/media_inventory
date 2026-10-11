@@ -91,9 +91,13 @@ RSpec.describe 'Extended private gaming records', type: :request do
     get game_shelf_path(user)
     expect(response.body).to include('>Portal<', 'Currently playing (25%)', 'Favorite game')
     expect(response.body).not_to include('Secret shop', 'Private receipt', 'Secret build notes', 'Secret route', 'RPG')
+    library.update!(rating: '4.0')
+    get game_shelf_path(user)
+    expect(response.body).to include('Rating: 4.0 / 5')
     library.update!(is_public: false)
     get game_shelf_path(user)
-    expect(response.body).not_to include('>Portal<')
+    expect(response.body).to include('>Portal<')
+    expect(response.body).not_to include('Rating: 4.0')
   end
 
   it 'edits sessions and journals, records manual goals and rejects cross-user changes' do

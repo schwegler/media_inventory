@@ -47,33 +47,34 @@ RSpec.describe 'Profile redesign', type: :request do
     expect(response).to have_http_status(:not_found)
   end
 
-  it 'shows only public entries, counts and library activity to guests' do
+  it 'shows all entries and counts to guests but hides private review content' do
     get user_path(owner)
-    expect(response.body).to include('Visible movie', 'Visible review', 'Log in to follow')
-    expect(response.body).not_to include('Secret movie', 'Secret review', '1990', 'Edit profile')
+    expect(response.body).to include('Visible movie', 'Visible review', 'Secret movie', 'Log in to follow')
+    expect(response.body).not_to include('Secret review', 'Private review', '1990', 'Edit profile')
     doc = Nokogiri::HTML(response.body)
-    expect(doc.at_css('.library-profile-stats a strong').text).to eq('1')
+    expect(doc.at_css('.library-profile-stats a strong').text).to eq('2')
     get user_path(owner), params: { tab: 'backlog' }
-    expect(response.body).not_to include('Secret movie')
+    expect(response.body).to include('Secret movie')
   end
 
-  it 'lets owners see private items but removes them from public preview' do
+  it 'lets owners see private reviews but removes them from public preview' do
     sign_in(owner)
     get user_path(owner)
     expect(response.body).to include('Secret movie', 'Secret review', 'Public preview', 'Edit profile', '1990')
     get user_path(owner), params: { preview: 'public' }
-    expect(response.body).not_to include('Secret movie', 'Secret review', '1990', 'Edit profile')
+    expect(response.body).to include('Secret movie')
+    expect(response.body).not_to include('Secret review', '1990', 'Edit profile')
     expect(response.body).to include('Back to your profile')
   end
 
-  it 'finds shared collected items without revealing private library entries' do
+  it 'finds shared collected items regardless of review privacy without revealing private reviews' do
     friend = User.create!(name: 'Friend', email: 'friend-profile@example.com', password: 'password123')
     LibraryItem.create!(user: friend, item: public_movie, is_collected: true)
     LibraryItem.create!(user: friend, item: private_movie, is_collected: true)
     sign_in(friend)
     get user_path(owner)
-    expect(response.body).to include('1 collected item', 'Follow')
-    expect(response.body).not_to include('Secret movie', 'Secret review')
+    expect(response.body).to include('2 collected items', 'Follow')
+    expect(response.body).not_to include('Secret review')
   end
 
   it 'filters both shelves and preserves unfiltered headline counts' do

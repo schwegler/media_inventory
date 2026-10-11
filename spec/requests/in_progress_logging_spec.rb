@@ -63,10 +63,10 @@ RSpec.describe 'In Progress Tracking and Logging', type: :request do
         expect(response.body).not_to include('✓ Watch')
       end
 
-      it 'hides private in-progress items from visitors' do
+      it 'still shows in-progress items whose review is private' do
         show_lib.update!(is_public: false)
         get user_path(user)
-        expect(response.body).not_to include('Severance')
+        expect(response.body).to include('Severance')
         expect(response.body).to include('East of West')
       end
     end

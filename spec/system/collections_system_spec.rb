@@ -29,7 +29,7 @@ RSpec.describe 'Collections Viewing', type: :system do
                         user: confirmed_user)
     LibraryItem.create!(item: Album.find_or_create_by!(title: 'Public Album'), is_public: true, is_collected: true,
                         user: confirmed_user)
-    # Create non-public item to ensure it is hidden
+    # Items with a private review are still part of the collection
     LibraryItem.create!(item: Movie.find_or_create_by!(title: 'Private Movie'), is_public: false, is_collected: true,
                         user: confirmed_user)
 
@@ -38,7 +38,7 @@ RSpec.describe 'Collections Viewing', type: :system do
     expect(page).to have_text("Confirmed User's Collection")
     expect(page).to have_text('Public Movie')
     expect(page).to have_text('Public Album')
-    expect(page).not_to have_text('Private Movie')
+    expect(page).to have_text('Private Movie')
   end
 
   it "displays warning for an unconfirmed user's collection" do

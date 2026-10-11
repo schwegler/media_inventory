@@ -34,7 +34,8 @@ class CollectionsController < ApplicationController
   end
 
   def fetch_collection_scope(item_type, table_name)
-    scope = @user.library_items.includes(:item).where(item_type: item_type, is_public: true)
+    # `is_public` governs review visibility only, not whether an item appears in the collection.
+    scope = @user.library_items.includes(:item).where(item_type: item_type, is_collected: true)
                  .order(created_at: :desc).page(params["#{table_name}_page"]).per(24)
     return scope if @query.blank?
 

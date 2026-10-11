@@ -7,7 +7,7 @@ class GameShelvesController < ApplicationController
     @user = User.find_by_profile_param!(params[:user_id])
     return if redirect_to_canonical_url(@user, param: :user_id, path: game_shelf_path(@user))
 
-    scope = @user.library_items.where(item_type: 'VideoGame', is_public: true, game_activity_public: true)
+    scope = @user.library_items.where(item_type: 'VideoGame', game_activity_public: true)
     scope = scope.none unless @user.confirmed_at.present?
     scope = scope.where(game_favorite: true) if params[:favorites] == '1'
     if GamePlaythrough::STATUSES.include?(params[:status])

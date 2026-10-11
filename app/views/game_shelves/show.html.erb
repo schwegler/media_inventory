@@ -16,7 +16,7 @@
         <h2 class="card-2026-title"><%= link_to game.title, game %></h2>
         <% if library.game_favorite? %><p>Favorite game</p><% end %>
         <p><%= library.game_playthroughs.map { |run| "#{run.status.humanize} (#{run.progress}%)" }.uniq.join(' · ') %></p>
-        <% if library.rating.present? %><p>Rating: <%= library.rating %> / 5</p><% end %>
+        <% if library.is_public? && library.rating.present? %><p>Rating: <%= library.rating %> / 5</p><% end %>
       </div>
     </article>
   <% end %>

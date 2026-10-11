@@ -7,21 +7,28 @@ RSpec.describe 'User Profile Privacy', type: :request do
   let(:visitor) do
     User.create!(name: 'Visitor', email: 'visitor@example.com', password: 'password', username: 'visitor')
   end
-  let(:movie) { Movie.create!(title: 'Private Movie') }
-  let!(:library_item) { LibraryItem.create!(user: owner, item: movie, is_collected: true, is_public: false) }
+  let(:movie) { Movie.create!(title: 'Collected Movie') }
+  let!(:library_item) do
+    LibraryItem.create!(user: owner, item: movie, is_collected: true, is_public: false, review: 'Hidden thoughts')
+  end
 
   before do
     post login_path, params: { session: { email: visitor.email, password: 'password' } }
   end
 
-  it 'does not show private items to other users' do
+  it 'shows collected items to other users even when the review is private' do
     get user_path(owner)
-    expect(response.body).not_to include('Private Movie')
+    expect(response.body).to include('Collected Movie')
   end
 
-  it 'shows private items to the owner' do
+  it 'hides private review content from other users' do
+    get user_path(owner)
+    expect(response.body).not_to include('Hidden thoughts')
+  end
+
+  it 'shows private reviews to the owner' do
     post login_path, params: { session: { email: owner.email, password: 'password' } }
     get user_path(owner)
-    expect(response.body).to include('Private Movie')
+    expect(response.body).to include('Collected Movie', 'Hidden thoughts')
   end
 end

@@ -26,7 +26,7 @@
             <% end %>
             <p class="member-card-bio"><%= user.bio.present? ? truncate(user.bio, length: 180) : 'A library waiting to be discovered.' %></p>
             <div class="member-card-meta">
-              <span><%= pluralize(@public_collection_counts.fetch(user.id, 0), 'public collection item') %></span>
+              <span><%= pluralize(@public_collection_counts.fetch(user.id, 0), 'collection item') %></span>
               <span>Joined <%= user.created_at.strftime('%b %Y') %></span>
             </div>
             <div class="member-card-actions">

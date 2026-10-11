@@ -63,23 +63,23 @@ RSpec.describe 'Collections', type: :request do
         expect(response).to have_http_status(:success)
       end
 
-      it 'displays only public collections for the user' do
+      it 'displays all collected items regardless of review privacy' do
         get "/collections/#{user.id}"
 
         expect(response.body).to include('Public Album')
-        expect(response.body).not_to include('Private Album')
+        expect(response.body).to include('Private Album')
 
         expect(response.body).to include('Public Comic')
-        expect(response.body).not_to include('Private Comic')
+        expect(response.body).to include('Private Comic')
 
         expect(response.body).to include('Public Movie')
-        expect(response.body).not_to include('Private Movie')
+        expect(response.body).to include('Private Movie')
 
         expect(response.body).to include('Public TV Show')
-        expect(response.body).not_to include('Private TV Show')
+        expect(response.body).to include('Private TV Show')
 
         expect(response.body).to include('Public Video Game')
-        expect(response.body).not_to include('Private Video Game')
+        expect(response.body).to include('Private Video Game')
       end
     end
 
