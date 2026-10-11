@@ -79,6 +79,11 @@
   .card-2026-title a:hover { color: var(--accent); }
   .card-2026-title a:focus-visible::after { outline: 3px solid var(--focus-ring); outline-offset: -3px; border-radius: 8px; }
   .card-2026-meta { white-space: normal; font-size: .875rem; }
+  .card-2026-ratings { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .5rem; margin-top: .25rem; font-size: .8125rem; line-height: 1.4; }
+  .card-2026-user-rating { display: inline-flex; align-items: center; gap: .25rem; color: var(--star-color); font-weight: 500; }
+  .card-2026-user-rating .rating-label { color: var(--text-secondary); font-weight: 400; }
+  .card-2026-avg-rating { display: inline-flex; align-items: center; gap: .25rem; color: var(--text-secondary); font-weight: 500; }
+  .card-2026-avg-rating .rating-value { color: var(--star-color); }
   .activity-thumbnail .artwork-fallback { font-size: .65rem; padding: .2rem; }
   .artwork-fallback { display: grid; place-content: center; text-align: center; height: 100%; min-height: 3rem; padding: .75rem; color: var(--text-secondary); background: var(--inset); font-size: .875rem; }
   .show-poster { background: var(--inset); }

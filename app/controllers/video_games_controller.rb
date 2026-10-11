@@ -32,7 +32,7 @@ class VideoGamesController < InventoryController
     @layout = %w[grid list table].include?(@filters['layout']) ? @filters['layout'] : 'grid'
     query = GameLibraryQuery.new(@filters, user: @personal_library ? current_user : nil)
     @video_games = query.call.page(params[:page]).per(CATALOG_PAGE_SIZE)
-    prepare_library if @personal_library
+    load_index_libraries
   end
 
   def show
@@ -49,6 +49,22 @@ class VideoGamesController < InventoryController
   def resolve_catalog_resource(attributes)
     token = attributes.delete(:catalog_selection)
     GameCatalogIdentity.resolve(attributes, token)
+  end
+
+  def load_index_libraries
+    if @personal_library
+      prepare_library
+    elsif logged_in?
+      prepare_catalog_libraries
+    end
+  end
+
+  def prepare_catalog_libraries
+    libraries = current_user.library_items.where(item_type: 'VideoGame')
+    @libraries = libraries.where(item_id: @video_games.map(&:id))
+                          .includes(:game_copies, :game_playthroughs,
+                                    game_cover_image_attachment: { blob: { artwork_renditions: :blob } })
+                          .index_by(&:item_id)
   end
 
   def prepare_library

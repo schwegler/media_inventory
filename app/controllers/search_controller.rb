@@ -22,8 +22,10 @@ class SearchController < ApplicationController
       next unless @filter_type.blank? || @filter_type == key
 
       scope = klass.where('title LIKE ?', search_term)
-      # Eager load cover image attachments to eliminate N+1 queries when rendering search results
       scope = scope.with_attached_cover_image if klass.respond_to?(:with_attached_cover_image)
+      if klass.respond_to?(:reflect_on_association) && klass.reflect_on_association(:library_items)
+        scope = scope.includes(:library_items)
+      end
       @results[res_key] = scope.limit(20)
     end
   end
