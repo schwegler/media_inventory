@@ -1,5 +1,5 @@
 <% if logged_in? %>
-  <% refresh = MetadataRefresh.find_by(item: item) %>
+  <% refresh = item.respond_to?(:metadata_refresh) ? item.metadata_refresh : MetadataRefresh.find_by(item: item) %>
   <details id="metadata-health" class="metadata-repair" data-refresh-state="<%= refresh&.state %>" data-refresh-result="<%= flash[:metadata_result].present? %>" <%= "open" if flash[:metadata_result].present? %>>
     <summary>Artwork &amp; metadata</summary>
     <p>Missing artwork or new releases? Check the original source. Source artwork replaces external artwork URLs; uploaded covers, reviews, and library history stay safe.</p>

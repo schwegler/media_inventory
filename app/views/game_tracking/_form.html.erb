@@ -1,0 +1,99 @@
+<%# locals: (library:, kind:, record:, playthrough: nil) %>
+<%
+  is_edit = record.persisted?
+  submit_url = is_edit ? game_progress_path(video_game_id: library.item_id, id: record.id) : game_tracking_path(video_game_id: library.item_id)
+  method = is_edit ? :patch : :post
+  namespace_id = is_edit ? "#{kind}_#{record.id}" : "new_#{kind}"
+%>
+
+<%= form_with url: submit_url, method: method, scope: kind.to_sym, namespace: namespace_id, class: 'standard-form game-form' do |f| %>
+  <%= hidden_field_tag :kind, kind, id: nil %>
+
+  <% case kind %>
+  <% when 'journal' %>
+    <div class="game-field game-field-wide">
+      <%= f.label :body, is_edit ? 'Edit private notes' : 'Private notes' %>
+      <%= f.text_area :body, value: record.body, required: true, rows: 5, placeholder: 'Record thoughts, discoveries, or memorable moments…' %>
+    </div>
+    <div class="game-check">
+      <%= f.check_box :spoiler, checked: record.spoiler? %>
+      <%= f.label :spoiler, 'Contains spoilers' %>
+    </div>
+
+  <% when 'copy' %>
+    <%= render 'video_games/copy_fields', f: f, copy: record %>
+
+  <% when 'playthrough' %>
+    <div class="game-field">
+      <%= f.label :platform %>
+      <%= f.text_field :platform, value: record.platform, placeholder: 'e.g. Windows PC, Nintendo Switch…' %>
+    </div>
+    <div class="game-field">
+      <%= f.label :status %>
+      <%= f.select :status, GamePlaythrough::STATUSES.map { |v| [v.humanize, v] }, selected: (record.status.presence || 'currently_playing') %>
+    </div>
+    <div class="game-field">
+      <%= f.label :started_on %>
+      <%= f.date_field :started_on, value: (record.started_on || Time.current.to_date) %>
+    </div>
+    <div class="game-field">
+      <%= f.label :difficulty %>
+      <%= f.text_field :difficulty, value: record.difficulty %>
+    </div>
+    <div class="game-field">
+      <%= f.label :route, 'Ending or route' %>
+      <%= f.text_field :route, value: record.route %>
+    </div>
+    <% if is_edit %>
+      <div class="game-field">
+        <%= f.label :completed_on %>
+        <%= f.date_field :completed_on, value: record.completed_on %>
+      </div>
+      <div class="game-field">
+        <%= f.label :progress, 'Progress (%)' %>
+        <%= f.number_field :progress, value: record.progress, min: 0, max: 100 %>
+      </div>
+      <div class="game-field game-field-wide">
+        <%= f.label :notes %>
+        <%= f.text_area :notes, value: record.notes, rows: 3 %>
+      </div>
+    <% end %>
+
+  <% when 'session' %>
+    <% if record.new_record? %>
+      <%= hidden_field_tag :playthrough_id, (playthrough&.id || record.game_playthrough_id), id: nil %>
+    <% end %>
+    <%= render 'video_games/session_fields', f: f, session: record %>
+
+  <% when 'milestone' %>
+    <div class="game-field">
+      <%= f.label :title, 'Goal or achievement name' %>
+      <%= f.text_field :title, value: record.title, required: true, maxlength: 200 %>
+    </div>
+    <div class="game-field game-field-wide">
+      <%= f.label :description %>
+      <%= f.text_area :description, value: record.description, rows: 3 %>
+    </div>
+    <% if is_edit %>
+      <div class="game-field">
+        <%= f.label :completed_at, 'Completed (application time zone, leave blank if planned)' %>
+        <%= f.datetime_local_field :completed_at, value: record.completed_at&.strftime('%Y-%m-%dT%H:%M') %>
+      </div>
+    <% end %>
+    <div class="game-check">
+      <%= f.check_box :spoiler, checked: record.spoiler? %>
+      <%= f.label :spoiler, 'Contains spoilers' %>
+    </div>
+  <% end %>
+
+  <div class="game-form-actions">
+    <button type="button" class="btn btn-secondary" data-action="click->modal#close">Cancel</button>
+    <%= f.submit (is_edit ? "Update #{kind.humanize.downcase}" : "Save #{kind.humanize.downcase}"), class: 'btn btn-primary' %>
+  </div>
+<% end %>
+
+<% if is_edit %>
+  <div class="modal-danger-row">
+    <%= button_to "Remove #{kind.humanize.downcase}", delete_game_tracking_path(video_game_id: library.item_id, id: record.id), method: :delete, params: { kind: kind }, data: { turbo_confirm: "Are you sure you want to remove this #{kind.humanize.downcase}?" }, class: 'btn btn-danger' %>
+  </div>
+<% end %>

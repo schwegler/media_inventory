@@ -1,0 +1,29 @@
+<%# Local variables: item (TvShow or Comic), library_item (the current user's) %>
+<%
+  is_tv = item.is_a?(TvShow)
+  passes = library_item.consumption_passes.recent_first.to_a
+  active = passes.find(&:active?)
+  latest = passes.first
+  noun = is_tv ? "watch" : "read"
+  again = is_tv ? "re-watch" : "re-read"
+%>
+<div class="consumption-pass-panel" id="consumption-pass-panel">
+  <% if active %>
+    <p class="consumption-pass-status">
+      <strong><%= active.rewatch? ? "#{again.capitalize} ##{active.number - 1}" : "First #{noun}" %></strong>
+      is on your In progress list.
+    </p>
+    <%= button_to "Dismiss from In progress", dismiss_consumption_pass_path(active), method: :patch,
+                  class: "sleek-btn", form_class: "consumption-pass-form" %>
+  <% else %>
+    <% if latest&.dismissed? %>
+      <p class="consumption-pass-status">Dismissed from In progress. Your progress is kept.</p>
+      <%= button_to "Resume tracking", resume_consumption_pass_path(latest), method: :patch,
+                    class: "sleek-btn", form_class: "consumption-pass-form" %>
+    <% end %>
+    <% if latest.present? %>
+      <%= button_to "Start #{again}", consumption_passes_path(library_item_id: library_item.id), method: :post,
+                    class: "sleek-btn", form_class: "consumption-pass-form" %>
+    <% end %>
+  <% end %>
+</div>

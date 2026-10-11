@@ -1,101 +1,167 @@
 <section class="media-section game-tracking" id="my-game-tracking" aria-labelledby="tracking-title">
-  <header class="game-section-heading"><div><h2 id="tracking-title">My gaming record</h2>
-    <p>Your copies, playthroughs, and moments worth remembering.</p></div><span class="game-private-badge">Private to you</span></header>
+  <header class="game-section-heading">
+    <div>
+      <h2 id="tracking-title">My gaming record</h2>
+      <p>Your copies, playthroughs, and moments worth remembering.</p>
+    </div>
+    <span class="game-private-badge">Private to you</span>
+  </header>
+
   <div class="game-record-stats">
     <div><strong><%= library.game_copies.size %></strong><span>Copies</span></div>
     <div><strong><%= library.game_playthroughs.size %></strong><span>Playthroughs</span></div>
     <div><strong><%= library.game_milestones.where.not(completed_at: nil).count %></strong><span>Milestones completed</span></div>
   </div>
-  <details class="game-tools"><summary>Artwork, exports &amp; sharing</summary><div class="game-tools-content">
-  <p>Purchase details, sessions, and journals are private. Recorded session time excludes imported lifetime totals.</p>
-  <%= link_to 'Export my game data (JSON)', export_game_path(video_game_id: library.item_id), class: 'btn btn-secondary' %>
-  <%= link_to 'Export owned copies (CSV)', export_game_path(video_game_id: library.item_id, format: 'csv'), class: 'btn btn-secondary' %>
-  <%= button_to 'Repair missing artwork', repair_game_artwork_path(video_game_id: library.item_id), class: 'btn btn-secondary' %>
-  <%= button_to 'Find alternate cover', alternate_game_artwork_path(video_game_id: library.item_id), class: 'btn btn-secondary' %>
-  <% Array(MediaSources::Registry::CACHE.read(['game-alternate-choices', library.id])).each do |choice| %>
-    <div class="game-alternate-choice"><%= image_tag choice[:url], alt: "Alternate cover from #{choice[:source]}", width: 120, loading: 'lazy' %>
-      <%= button_to "Use #{choice[:source]} cover", select_game_artwork_path(video_game_id: library.item_id), params: { token: choice[:token] }, class: 'btn btn-secondary' %>
+
+  <details class="game-tools">
+    <summary>Artwork, exports &amp; sharing</summary>
+    <div class="game-tools-content">
+      <p>Purchase details, sessions, and journals are private. Recorded session time excludes imported lifetime totals.</p>
+      <%= link_to 'Export my game data (JSON)', export_game_path(video_game_id: library.item_id), class: 'btn btn-secondary' %>
+      <%= link_to 'Export owned copies (CSV)', export_game_path(video_game_id: library.item_id, format: 'csv'), class: 'btn btn-secondary' %>
+      <%= button_to 'Repair missing artwork', repair_game_artwork_path(video_game_id: library.item_id), class: 'btn btn-secondary' %>
+      <%= button_to 'Find alternate cover', alternate_game_artwork_path(video_game_id: library.item_id), class: 'btn btn-secondary' %>
+      <% Array(MediaSources::Registry::CACHE.read(['game-alternate-choices', library.id])).each do |choice| %>
+        <div class="game-alternate-choice">
+          <%= image_tag choice[:url], alt: "Alternate cover from #{choice[:source]}", width: 120, loading: 'lazy' %>
+          <%= button_to "Use #{choice[:source]} cover", select_game_artwork_path(video_game_id: library.item_id), params: { token: choice[:token] }, class: 'btn btn-secondary' %>
+        </div>
+      <% end %>
+      <details>
+        <summary>Choose my own cover</summary>
+        <%= form_with url: game_cover_path(video_game_id: library.item_id), scope: :cover, class: 'standard-form game-form' do |f| %>
+          <div class="game-field game-field-wide"><%= f.label :image, 'Personal cover (up to 5 MB)' %><%= f.file_field :image, accept: 'image/png,image/jpeg,image/webp,image/gif', required: true %></div>
+          <div class="game-form-actions"><%= f.submit 'Save my cover', class: 'btn btn-primary' %></div>
+        <% end %>
+      </details>
+      <%= render 'video_games/game_organization', library: library %>
     </div>
-  <% end %>
-  <details><summary>Choose my own cover</summary>
-    <%= form_with url: game_cover_path(video_game_id: library.item_id), scope: :cover, class: 'standard-form game-form' do |f| %>
-      <div class="game-field game-field-wide"><%= f.label :image, 'Personal cover (up to 5 MB)' %><%= f.file_field :image, accept: 'image/png,image/jpeg,image/webp,image/gif', required: true %></div>
-      <div class="game-form-actions"><%= f.submit 'Save my cover', class: 'btn btn-primary' %></div>
-    <% end %>
   </details>
-  <%= render 'game_organization', library: library %>
-  </div></details>
+
   <div class="game-record-grid">
-  <section id="game-copies" class="game-record-card"><header class="game-section-heading"><div><h3>My copies</h3><p>Platforms, editions, and ownership.</p></div><span class="game-count"><%= library.game_copies.size %></span></header>
-  <% library.game_copies.each do |copy| %>
-    <p><%= copy.platform %> · <%= copy.storefront %> · <%= copy.edition %> · <%= copy.ownership_status.humanize %> · <%= copy.access_method.humanize %><% if copy.imported_playtime_minutes %> · Imported lifetime: <%= copy.imported_playtime_minutes %> minutes (not recorded sessions)<% end %></p>
-    <details><summary>Edit this copy</summary>
-      <%= form_with url: game_progress_path(video_game_id: library.item_id, id: copy.id), method: :patch, scope: :copy, namespace: "copy_#{copy.id}", class: 'standard-form game-form' do |f| %>
-        <%= hidden_field_tag :kind, 'copy', id: nil %>
-        <%= render 'copy_fields', f: f, copy: copy %>
-        <div class="game-form-actions"><%= f.submit 'Update copy', class: 'btn btn-primary' %></div>
+    <section id="game-copies" class="game-record-card">
+      <header class="game-section-heading">
+        <div>
+          <h3>My copies</h3>
+          <p>Platforms, editions, and ownership.</p>
+        </div>
+        <div class="game-heading-actions">
+          <span class="game-count"><%= library.game_copies.size %></span>
+          <%= link_to 'Add copy', new_game_tracking_path(video_game_id: library.item_id, kind: 'copy'), class: 'btn btn-secondary btn-sm', data: { turbo_frame: 'modal' } %>
+        </div>
+      </header>
+      <% if library.game_copies.any? %>
+        <div class="game-items-list">
+          <% library.game_copies.each do |copy| %>
+            <div class="game-item-entry">
+              <div class="game-item-content">
+                <p class="game-item-main"><strong><%= copy.platform %></strong> · <%= copy.storefront.presence || 'Direct' %> · <%= copy.edition.presence || 'Standard' %></p>
+                <div class="game-item-submeta">
+                  <span class="game-pill"><%= copy.ownership_status.humanize %></span>
+                  <span class="game-pill"><%= copy.access_method.humanize %></span>
+                  <% if copy.imported_playtime_minutes %>
+                    <span class="game-item-note">Imported lifetime: <%= copy.imported_playtime_minutes %> minutes (not recorded sessions)</span>
+                  <% end %>
+                </div>
+              </div>
+              <%= link_to 'Edit', edit_game_tracking_path(video_game_id: library.item_id, id: copy.id, kind: 'copy'), class: 'btn btn-secondary btn-sm', data: { turbo_frame: 'modal' }, aria: { label: "Edit #{copy.platform} copy" } %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="game-empty-hint">No copies recorded yet.</p>
       <% end %>
-    </details>
-  <% end %>
-  <details>
-    <summary>Add an owned copy or wishlist entry</summary>
-    <%= form_with url: game_tracking_path(video_game_id: library.item_id), scope: :copy, class: 'standard-form game-form' do |f| %>
-      <%= hidden_field_tag :kind, 'copy', id: nil %>
-      <%= render 'copy_fields', f: f, copy: nil %>
-      <div class="game-form-actions"><%= f.submit 'Save copy', class: 'btn btn-primary' %></div>
-    <% end %>
-  </details>
-  </section>
-  <section id="game-playthroughs" class="game-record-card"><header class="game-section-heading"><div><h3>Playthroughs &amp; sessions</h3><p>Track each run, your progress, and time played.</p></div><span class="game-count"><%= library.game_playthroughs.size %></span></header>
-  <% library.game_playthroughs.includes(:game_sessions).each do |playthrough| %>
-    <details>
-      <summary><%= playthrough.platform.presence || 'Playthrough' %> · <%= playthrough.status.humanize %> · <%= playthrough.progress %>%</summary>
-      <p>Recorded time: <%= playthrough.game_sessions.sum { |session| session.duration_minutes } %> minutes</p>
-      <%= form_with url: game_progress_path(video_game_id: library.item_id, id: playthrough.id), method: :patch, scope: :playthrough, namespace: "playthrough_#{playthrough.id}", class: 'standard-form game-form' do |f| %>
-        <div class="game-field"><%= f.label :status %><%= f.select :status, GamePlaythrough::STATUSES.map { |v| [v.humanize, v] }, selected: playthrough.status %></div>
-        <div class="game-field"><%= f.label :platform %><%= f.text_field :platform, value: playthrough.platform %></div>
-        <div class="game-field"><%= f.label :difficulty %><%= f.text_field :difficulty, value: playthrough.difficulty %></div>
-        <div class="game-field"><%= f.label :route, 'Ending or route' %><%= f.text_field :route, value: playthrough.route %></div>
-        <div class="game-field"><%= f.label :started_on %><%= f.date_field :started_on, value: playthrough.started_on %></div>
-        <div class="game-field"><%= f.label :completed_on %><%= f.date_field :completed_on, value: playthrough.completed_on %></div>
-        <div class="game-field"><%= f.label :progress, 'Progress (%)' %><%= f.number_field :progress, value: playthrough.progress, min: 0, max: 100 %></div>
-        <div class="game-field game-field-wide"><%= f.label :notes %><%= f.text_area :notes, value: playthrough.notes %></div>
-        <div class="game-form-actions"><%= f.submit 'Update progress', class: 'btn btn-primary' %></div>
+    </section>
+
+    <section id="game-playthroughs" class="game-record-card">
+      <header class="game-section-heading">
+        <div>
+          <h3>Playthroughs &amp; sessions</h3>
+          <p>Track each run, your progress, and time played.</p>
+        </div>
+        <div class="game-heading-actions">
+          <span class="game-count"><%= library.game_playthroughs.size %></span>
+          <%= link_to 'Start playthrough', new_game_tracking_path(video_game_id: library.item_id, kind: 'playthrough'), class: 'btn btn-secondary btn-sm', data: { turbo_frame: 'modal' } %>
+        </div>
+      </header>
+      <% if library.game_playthroughs.any? %>
+        <div class="game-items-list">
+          <% library.game_playthroughs.includes(:game_sessions).each do |playthrough| %>
+            <div class="game-playthrough-block">
+              <div class="game-playthrough-header">
+                <div>
+                  <strong><%= playthrough.platform.presence || 'Playthrough' %></strong> ·
+                  <span class="game-status-badge"><%= playthrough.status.humanize %></span> ·
+                  <span class="game-progress-text"><%= playthrough.progress %>%</span>
+                  <p class="game-playthrough-sub">Recorded time: <%= playthrough.game_sessions.sum(&:duration_minutes) %> minutes</p>
+                  <% if playthrough.notes.present? %><p class="game-playthrough-notes"><%= playthrough.notes %></p><% end %>
+                </div>
+                <div class="game-item-actions">
+                  <%= link_to 'Log session', new_game_tracking_path(video_game_id: library.item_id, kind: 'session', playthrough_id: playthrough.id), class: 'btn btn-secondary btn-sm', data: { turbo_frame: 'modal' } %>
+                  <%= link_to 'Edit run', edit_game_tracking_path(video_game_id: library.item_id, id: playthrough.id, kind: 'playthrough'), class: 'btn btn-secondary btn-sm', data: { turbo_frame: 'modal' }, aria: { label: "Edit #{playthrough.platform} playthrough" } %>
+                </div>
+              </div>
+              <% if playthrough.game_sessions.any? %>
+                <div class="game-sessions-list">
+                  <% playthrough.game_sessions.order(started_at: :desc).each do |session| %>
+                    <div class="game-session-entry">
+                      <div class="game-session-content">
+                        <span class="game-session-time"><%= session.started_at.to_fs(:short) %></span> ·
+                        <strong><%= session.duration_minutes %> min</strong>
+                        <% if session.notes.present? %> · <%= session.notes %><% end %>
+                        <% if session.milestones.present? %> · <span class="game-session-milestone"><%= session.milestones %></span><% end %>
+                        <% if session.progress %> · Progress: <%= session.progress %>%<% end %>
+                      </div>
+                      <%= link_to 'Edit', edit_game_tracking_path(video_game_id: library.item_id, id: session.id, kind: 'session'), class: 'btn btn-secondary btn-sm', data: { turbo_frame: 'modal' }, aria: { label: "Edit session on #{session.started_at.to_fs(:short)}" } %>
+                    </div>
+                  <% end %>
+                </div>
+              <% else %>
+                <p class="game-empty-hint">No sessions recorded yet.</p>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="game-empty-hint">No playthroughs started yet.</p>
       <% end %>
-      <% playthrough.game_sessions.order(started_at: :desc).each do |session| %>
-        <p><%= session.started_at.to_fs(:short) %> · <%= session.duration_minutes %> min · <%= session.notes %> · <%= session.milestones %><% if session.progress %> · Progress: <%= session.progress %>%<% end %></p>
-        <%= render 'session_edit', library: library, session: session %>
+    </section>
+
+    <section id="game-milestones" class="game-record-card">
+      <%= render 'video_games/milestones', library: library %>
+    </section>
+
+    <section id="game-journal" class="game-record-card">
+      <header class="game-section-heading">
+        <div>
+          <h3>Private journal</h3>
+          <p>Notes, discoveries, and thoughts along the way.</p>
+        </div>
+        <div class="game-heading-actions">
+          <span class="game-count"><%= library.game_journal_entries.size %></span>
+          <%= link_to 'New entry', new_game_tracking_path(video_game_id: library.item_id, kind: 'journal'), class: 'btn btn-secondary btn-sm', data: { turbo_frame: 'modal' } %>
+        </div>
+      </header>
+      <% if library.game_journal_entries.any? %>
+        <div class="game-items-list">
+          <% library.game_journal_entries.order(created_at: :desc).each do |entry| %>
+            <article class="game-journal-entry">
+              <header class="game-journal-header">
+                <div>
+                  <time datetime="<%= entry.created_at.iso8601 %>"><%= entry.created_at.to_date %></time>
+                  <% if entry.spoiler? %><span class="game-spoiler-tag">Spoilers</span><% end %>
+                </div>
+                <%= link_to 'Edit', edit_game_tracking_path(video_game_id: library.item_id, id: entry.id, kind: 'journal'), class: 'btn btn-secondary btn-sm', data: { turbo_frame: 'modal' }, aria: { label: "Edit journal entry from #{entry.created_at.to_date}" } %>
+              </header>
+              <div class="game-journal-body">
+                <%= simple_format(entry.body) %>
+              </div>
+            </article>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="game-empty-hint">No journal entries yet.</p>
       <% end %>
-      <h4>Record a session</h4>
-      <%= form_with url: game_tracking_path(video_game_id: library.item_id), scope: :session, namespace: "session_#{playthrough.id}", class: 'standard-form game-form' do |f| %>
-        <%= hidden_field_tag :kind, 'session', id: nil %><%= hidden_field_tag :playthrough_id, playthrough.id, id: nil %>
-        <%= render 'session_fields', f: f, session: nil %>
-        <div class="game-form-actions"><%= f.submit 'Save session', class: 'btn btn-primary' %></div>
-      <% end %>
-    </details>
-  <% end %>
-  <details><summary>Start a playthrough</summary>
-    <%= form_with url: game_tracking_path(video_game_id: library.item_id), scope: :playthrough, class: 'standard-form game-form' do |f| %>
-      <%= hidden_field_tag :kind, 'playthrough', id: nil %>
-      <div class="game-field"><%= f.label :platform %><%= f.text_field :platform %></div>
-      <div class="game-field"><%= f.label :status %><%= f.select :status, GamePlaythrough::STATUSES.map { |v| [v.humanize, v] } %></div>
-      <div class="game-field"><%= f.label :started_on %><%= f.date_field :started_on %></div>
-      <div class="game-field"><%= f.label :difficulty %><%= f.text_field :difficulty %></div>
-      <div class="game-field"><%= f.label :route, 'Ending or route' %><%= f.text_field :route %></div>
-      <div class="game-form-actions"><%= f.submit 'Start playthrough', class: 'btn btn-primary' %></div>
-    <% end %>
-  </details>
-  </section>
-  <section id="game-milestones" class="game-record-card"><%= render 'milestones', library: library %></section>
-  <section id="game-journal" class="game-record-card"><header class="game-section-heading"><div><h3>Private journal</h3><p>Notes, discoveries, and thoughts along the way.</p></div></header>
-  <% library.game_journal_entries.order(created_at: :desc).each do |entry| %>
-    <details><summary><%= entry.created_at.to_date %><%= ' · Spoilers' if entry.spoiler? %></summary><%= simple_format(entry.body) %><%= render 'journal_edit', library: library, entry: entry %></details>
-  <% end %>
-  <%= form_with url: game_tracking_path(video_game_id: library.item_id), scope: :journal, class: 'standard-form game-form' do |f| %>
-    <%= hidden_field_tag :kind, 'journal', id: nil %>
-    <div class="game-field game-field-wide"><%= f.label :body, 'Private notes' %><%= f.text_area :body, required: true %></div>
-    <div class="game-check"><%= f.check_box :spoiler %><%= f.label :spoiler, 'Contains spoilers' %></div>
-    <div class="game-form-actions"><%= f.submit 'Save journal entry', class: 'btn btn-primary' %></div>
-  <% end %>
-  </section></div>
+    </section>
+  </div>
 </section>

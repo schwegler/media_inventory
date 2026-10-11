@@ -1,0 +1,18 @@
+<%= turbo_frame_tag "modal" do %>
+  <div class="modal-overlay" data-controller="modal" data-modal-target="overlay" data-action="click->modal#closeOnBackdrop keydown@window->modal#closeOnEsc">
+    <div class="modal-container" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h2><%= tracking_modal_title(@kind, :new) %></h2>
+        <button class="modal-close" data-action="click->modal#close" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <% if @record.errors.any? %>
+          <div class="alert alert-danger" role="alert">
+            <%= @record.errors.full_messages.to_sentence %>
+          </div>
+        <% end %>
+        <%= render 'form', library: @library, kind: @kind, record: @record, playthrough: @playthrough %>
+      </div>
+    </div>
+  </div>
+<% end %>

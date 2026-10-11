@@ -1,27 +1,31 @@
-<h3>My completion milestones</h3>
+<header class="game-section-heading">
+  <div>
+    <h3>My completion milestones</h3>
+    <p>Manual goals and personal achievements.</p>
+  </div>
+  <div class="game-heading-actions">
+    <span class="game-count"><%= library.game_milestones.size %></span>
+    <%= link_to 'Add milestone', new_game_tracking_path(video_game_id: library.item_id, kind: 'milestone'), class: 'btn btn-secondary btn-sm', data: { turbo_frame: 'modal' } %>
+  </div>
+</header>
+
 <% milestones = library.game_milestones.order(:created_at) %>
 <% if milestones.any? %>
-  <p><%= milestones.where.not(completed_at: nil).count %> / <%= milestones.count %> completed. These are your manual goals, separate from platform achievements.</p>
-<% end %>
-<% milestones.each do |milestone| %>
-  <details><summary><%= milestone.spoiler? ? 'Spoiler milestone' : milestone.title %> · <%= milestone.completed_at ? 'Completed' : 'Planned' %></summary>
-    <%= form_with url: game_progress_path(video_game_id: library.item_id, id: milestone.id), method: :patch, scope: :milestone, namespace: "milestone_#{milestone.id}", class: 'standard-form game-form' do |f| %>
-      <%= hidden_field_tag :kind, 'milestone', id: nil %>
-      <div class="game-field"><%= f.label :title %><%= f.text_field :title, value: milestone.title, required: true, maxlength: 200 %></div>
-      <div class="game-field game-field-wide"><%= f.label :description %><%= f.text_area :description, value: milestone.description %></div>
-      <div class="game-field"><%= f.label :completed_at, 'Completed (application time zone, leave blank if planned)' %><%= f.datetime_local_field :completed_at, value: milestone.completed_at&.strftime('%Y-%m-%dT%H:%M') %></div>
-      <div class="game-check"><%= f.check_box :spoiler, checked: milestone.spoiler? %><%= f.label :spoiler, 'Contains spoilers' %></div>
-      <div class="game-form-actions"><%= f.submit 'Update milestone', class: 'btn btn-primary' %></div>
+  <p class="game-milestone-tally"><%= milestones.where.not(completed_at: nil).count %> / <%= milestones.count %> completed. These are your manual goals, separate from platform achievements.</p>
+  <div class="game-items-list">
+    <% milestones.each do |milestone| %>
+      <div class="game-item-entry">
+        <div class="game-item-content">
+          <p class="game-item-main">
+            <strong><%= milestone.spoiler? ? 'Spoiler milestone' : milestone.title %></strong> ·
+            <span class="game-pill <%= milestone.completed_at ? 'game-pill-success' : '' %>"><%= milestone.completed_at ? 'Completed' : 'Planned' %></span>
+          </p>
+          <% if milestone.description.present? %><p class="game-item-desc"><%= milestone.description %></p><% end %>
+        </div>
+        <%= link_to 'Edit', edit_game_tracking_path(video_game_id: library.item_id, id: milestone.id, kind: 'milestone'), class: 'btn btn-secondary btn-sm', data: { turbo_frame: 'modal' }, aria: { label: "Edit milestone #{milestone.title}" } %>
+      </div>
     <% end %>
-    <%= button_to 'Remove milestone', delete_game_tracking_path(video_game_id: library.item_id, id: milestone.id), method: :delete, params: { kind: 'milestone' }, data: { turbo_confirm: 'Remove this milestone?' }, class: 'btn btn-secondary' %>
-  </details>
+  </div>
+<% else %>
+  <p class="game-empty-hint">No milestones recorded yet.</p>
 <% end %>
-<details><summary>Add a manual milestone</summary>
-  <%= form_with url: game_tracking_path(video_game_id: library.item_id), scope: :milestone, namespace: 'new_milestone', class: 'standard-form game-form' do |f| %>
-    <%= hidden_field_tag :kind, 'milestone', id: nil %>
-    <div class="game-field"><%= f.label :title, 'Goal or achievement name' %><%= f.text_field :title, required: true, maxlength: 200 %></div>
-    <div class="game-field game-field-wide"><%= f.label :description %><%= f.text_area :description %></div>
-    <div class="game-check"><%= f.check_box :spoiler %><%= f.label :spoiler, 'Contains spoilers' %></div>
-    <div class="game-form-actions"><%= f.submit 'Save milestone', class: 'btn btn-primary' %></div>
-  <% end %>
-</details>
