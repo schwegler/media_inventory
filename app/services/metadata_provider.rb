@@ -111,9 +111,9 @@ class MetadataProvider
   def fetch_tvmaze_embedded_credits(id)
     cast_crew = optional_details do
       embedded_data = json("https://api.tvmaze.com/shows/#{id}?embed[]=cast&embed[]=crew")
-      [embedded_data] if embedded_data.is_a?(Hash)
+      embedded_data.is_a?(Hash) ? [embedded_data] : []
     end
-    tvmaze_credits(cast_crew.first&.dig('_embedded'))
+    tvmaze_credits(cast_crew&.first&.dig('_embedded'))
   end
 
   def tmdb_television
@@ -202,8 +202,8 @@ class MetadataProvider
   end
 
   def optional_details
-    yield
-  rescue Unavailable, RateLimited, JSON::ParserError, Timeout::Error, SocketError
+    yield || []
+  rescue StandardError
     @partial = true
     []
   end
