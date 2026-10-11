@@ -1,17 +1,15 @@
 <% if user_rating.present? || avg_rating.present? %>
   <div class="card-2026-ratings">
     <% if user_rating.present? %>
-      <span class="card-2026-user-rating" title="Your rating: <%= user_rating %> / 5">
-        <span class="visually-hidden">Your rating:</span>
-        <span class="rating-stars" aria-hidden="true"><%= render_stars(user_rating) %></span>
-        <span class="rating-label" aria-hidden="true">yours</span>
+      <span class="card-2026-user-rating" aria-label="Your rating: <%= user_rating %> out of 5" title="Your rating: <%= user_rating %> / 5">
+        <span class="rating-value"><%= number_with_precision(user_rating, precision: 1) %> <span aria-hidden="true">★</span></span>
+        <span class="rating-label">Yours</span>
       </span>
     <% end %>
     <% if avg_rating.present? %>
-      <span class="card-2026-avg-rating" title="Average rating: <%= avg_rating %> / 5">
-        <span class="visually-hidden">Avg rating:</span>
-        <span class="rating-value"><%= avg_rating %> ★</span>
-        <span class="rating-label" aria-hidden="true">avg</span>
+      <span class="card-2026-avg-rating" aria-label="Average rating: <%= avg_rating %> out of 5" title="Average rating: <%= avg_rating %> / 5">
+        <span class="rating-value"><%= number_with_precision(avg_rating, precision: 1) %> <span aria-hidden="true">★</span></span>
+        <span class="rating-label">Avg</span>
       </span>
     <% end %>
   </div>

@@ -1,6 +1,9 @@
 <% media_title = media_item.try(:title) || media_item.try(:name) || 'Media' %>
 <% card = media_card_presentation(media_item) %>
+<% year = media_item.try(:release_year).presence || media_title.to_s[MediaCardHelper::TRAILING_YEAR, 1] %>
 <% ratings = item_card_ratings(media_item) %>
+<% user_rating = ratings[:user_rating] %>
+<% avg_rating = ratings[:avg_rating] %>
 <div class="card-2026" data-media-kind="<%= media_item.class.name %>">
   <div class="card-2026-cover">
     <% if media_item.respond_to?(:stored_cover_url) && media_item.stored_cover_url.present? %>
@@ -19,28 +22,16 @@
     <% end %>
   </div>
   <div class="card-2026-content">
-    <h3 class="card-2026-title" title="<%= media_title %>"><%= link_to card.title, media_item, data: { turbo_frame: "_top" } %></h3>
-
-    <% if card.byline %>
-      <p class="card-2026-byline" title="<%= card.byline.label %> <%= card.byline.full %>">
-        <span class="visually-hidden"><%= card.byline.label %></span>
-        <%= card.byline.value %>
-      </p>
+    <div class="card-2026-heading">
+      <h3 class="card-2026-title"><%= link_to card.title, media_item, data: { turbo_frame: "_top" }, title: media_title %></h3>
+      <% if year.present? %>
+        <span class="card-2026-year"><%= year %></span>
+      <% end %>
+    </div>
+    <% creator = card.byline %>
+    <% if creator.present? %>
+      <p class="card-2026-meta card-2026-creator" title="<%= creator.label %> <%= creator.full %>"><%= creator.value %></p>
     <% end %>
-
-    <% card.credits.each do |credit| %>
-      <p class="card-2026-meta card-2026-credit" title="<%= credit.label %> <%= credit.full %>">
-        <span class="card-2026-credit-label"><%= credit.label %></span>
-        <%= credit.value %>
-      </p>
-    <% end %>
-
-    <% if card.facts.any? %>
-      <p class="card-2026-meta card-2026-facts">
-        <% card.facts.each do |fact| %><span class="<%= 'card-2026-year' if fact == card.facts.first && fact.to_s.match?(/\A\d{4}\z/) %>"><%= fact %></span><% end %>
-      </p>
-    <% end %>
-
-    <%= render 'shared/card_ratings', user_rating: ratings[:user_rating], avg_rating: ratings[:avg_rating] %>
+    <%= render 'shared/card_ratings', user_rating: user_rating, avg_rating: avg_rating %>
   </div>
 </div>
