@@ -18,7 +18,7 @@
     <div class="form-actions"><%= f.submit 'Save changes', class: 'btn btn-primary' %><%= link_to 'Cancel', @resource, class: 'btn btn-secondary' %></div>
   <% end %>
   <% if @resource.cover_image.attached? && @resource.cover_image.blob.metadata['remote_source'].blank? %>
-    <p>This cover is part of the shared catalog. Resetting it restores the source artwork for everyone.</p>
+    <p>This cover is part of the shared catalog. Resetting it restores the current catalog source artwork, including artwork selected by an admin, for everyone.</p>
     <%= button_to 'Use default artwork', media_cover_path(type: @resource.class.name.underscore, id: @resource.id), method: :delete, class: 'btn btn-secondary' %>
   <% end %>
 </section>

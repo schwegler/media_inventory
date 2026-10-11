@@ -70,7 +70,7 @@ module Admin
         return
       end
 
-      @item.cover_image.purge if @item.respond_to?(:cover_image) && @item.cover_image.attached?
+      @item.cover_image.detach if @item.respond_to?(:cover_image) && @item.cover_image.attached?
       @item.thumbnail_url = url
       if @item.save
         redirect_to [:admin, @item], notice: 'Cover art updated successfully. Other metadata was preserved.',

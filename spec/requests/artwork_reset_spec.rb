@@ -74,6 +74,51 @@ RSpec.describe 'Artwork resets', type: :request do
     expect(movie.cover_image.blob_id).not_to eq(blob.id)
   end
 
+  it 'uses the latest admin-selected artwork as the default while preserving a personal selection' do
+    attach_cover(game.cover_image)
+    library.game_cover_image.attach(game.cover_image.blob)
+    personal_blob = library.game_cover_image.blob
+    user.update!(admin: true)
+    sign_in
+    source = 'https://covers.openlibrary.org/b/id/456-M.jpg'
+    stub_request(:get, source).to_return(body: File.binread(Rails.root.join('spec/fixtures/files/valid-cover.png')),
+                                         headers: { 'Content-Type' => 'image/png' })
+
+    post update_cover_art_admin_video_game_path(game), params: { thumbnail_url: source }
+    expect(response).to have_http_status(:see_other)
+    expect(game.reload.thumbnail_url).to eq(source)
+    expect(library.reload.game_cover_image.blob_id).to eq(personal_blob.id)
+    expect(personal_blob.service.exist?(personal_blob.key)).to be(true)
+
+    user.update!(admin: false)
+    delete game_cover_path(video_game_id: game.id)
+    expect(library.reload.game_cover_image).not_to be_attached
+    get media_cover_path(type: 'video_game', id: game.id)
+    expect(game.reload.cover_image.blob.metadata['remote_source']).to eq(source)
+    delete media_cover_path(type: 'video_game', id: game.id)
+    expect(game.reload.cover_image.blob.metadata['remote_source']).to eq(source)
+  end
+
+  it 'restores admin-selected catalog artwork after a user uploads a custom catalog cover' do
+    user.update!(admin: true)
+    sign_in
+    movie = Movie.create!(title: 'Alien')
+    LibraryItem.create!(user: user, item: movie)
+    source = 'https://covers.openlibrary.org/b/id/789-M.jpg'
+    stub_request(:get, source).to_return(body: File.binread(Rails.root.join('spec/fixtures/files/valid-cover.png')),
+                                         headers: { 'Content-Type' => 'image/png' })
+    post update_cover_art_admin_movie_path(movie), params: { thumbnail_url: source }
+    expect(response).to have_http_status(:see_other)
+    user.update!(admin: false)
+    patch movie_path(movie), params: { movie: { cover_image: fixture_file_upload('valid-cover.png', 'image/png') } }
+    expect(response).to have_http_status(:found)
+
+    delete media_cover_path(type: 'movie', id: movie.id)
+    get media_cover_path(type: 'movie', id: movie.id)
+    expect(movie.reload.thumbnail_url).to eq(source)
+    expect(movie.cover_image.blob.metadata['remote_source']).to eq(source)
+  end
+
   it 'does not remove downloaded default artwork or reset an item outside the users library' do
     sign_in
     attach_cover(game.cover_image)
