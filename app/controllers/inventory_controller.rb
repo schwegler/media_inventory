@@ -38,24 +38,28 @@ class InventoryController < ApplicationController
     @resource.assign_attributes(global_params) unless @resource.is_a?(VideoGame) && @resource.persisted?
     instance_variable_set("@#{resource_name}", @resource)
 
+    saved = false
     ActiveRecord::Base.transaction do
       if @resource.save
         @library_item = LibraryItem.find_or_initialize_by(user: current_user, item: @resource)
         @library_item.assign_attributes(library_params)
         @library_item.save!
         after_library_saved
-        enqueue_initial_metadata
-
-        respond_to do |format|
-          format.html { redirect_to @resource, notice: "#{resource_class.model_name.human} was successfully logged." }
-        end
-      else
-        respond_to do |format|
-          format.html { render :new, status: failure_status }
-        end
+        saved = true
       end
-      # rubocop:enable Metrics/MethodLength
     end
+
+    if saved
+      enqueue_initial_metadata
+      respond_to do |format|
+        format.html { redirect_to @resource, notice: "#{resource_class.model_name.human} was successfully logged." }
+      end
+    else
+      respond_to do |format|
+        format.html { render :new, status: failure_status }
+      end
+    end
+    # rubocop:enable Metrics/MethodLength
   end
 
   def show

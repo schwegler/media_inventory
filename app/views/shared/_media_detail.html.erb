@@ -33,7 +33,7 @@
           <p class="media-personal-rating"><span>Your rating</span> <%= render_stars(@library_item.rating) %></p>
         <% end %>
       </div>
-      <details class="media-share"><summary>Share this title</summary><%= render 'shared/item_sharing', item: item %></details>
+      <details class="media-share" id="share-title-<%= item.id %>"><summary>Share this title</summary><%= render 'shared/item_sharing', item: item %></details>
     </div>
     <aside class="media-overview-stats" aria-label="Community summary">
       <div><strong><%= stats[:avg_rating] ? "#{stats[:avg_rating]} ★" : '—' %></strong><span>Average rating</span></div>

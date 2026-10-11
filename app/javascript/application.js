@@ -24,8 +24,17 @@ document.addEventListener("click", event => {
 // The initial response already includes these tokens on <html>, so no localStorage race or theme flash.
 document.addEventListener("turbo:before-render", event => {
   const preferences = event.detail.newBody.dataset.uiPreferences
-  if (!preferences) return
-  const values = JSON.parse(preferences)
-  if (Object.entries(values).some(([key, value]) => document.documentElement.dataset[key] !== value)) window.Turbo?.cache.clear()
-  Object.assign(document.documentElement.dataset, values)
+  if (preferences) {
+    const values = JSON.parse(preferences)
+    if (Object.entries(values).some(([key, value]) => document.documentElement.dataset[key] !== value)) window.Turbo?.cache.clear()
+    Object.assign(document.documentElement.dataset, values)
+  }
+
+  // Preserve open states of <details> elements during Turbo page replacement / morph
+  document.querySelectorAll("details[open]").forEach(detail => {
+    if (detail.id) {
+      const target = event.detail.newBody.querySelector(`details#${CSS.escape(detail.id)}`)
+      if (target) target.setAttribute("open", "")
+    }
+  })
 })

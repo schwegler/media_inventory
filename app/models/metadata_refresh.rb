@@ -15,7 +15,17 @@ class MetadataRefresh < ApplicationRecord
     'cooldown' => 'Metadata was recently requested. Please wait a few minutes before trying again.'
   }.freeze
 
+  LEASE = 2.minutes
+
   def message
-    MESSAGES.fetch(state, 'Artwork and details can be checked against the original metadata source.')
+    MESSAGES.fetch(current_state, 'Artwork and details can be checked against the original metadata source.')
+  end
+
+  def current_state
+    if state == 'refreshing' && requested_at.present? && requested_at < LEASE.ago
+      'failed'
+    else
+      state
+    end
   end
 end
