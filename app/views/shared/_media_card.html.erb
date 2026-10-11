@@ -1,7 +1,6 @@
 <% media_title = media_item.try(:title) || media_item.try(:name) || 'Media' %>
+<% card = media_card_presentation(media_item) %>
 <% ratings = item_card_ratings(media_item) %>
-<% user_rating = ratings[:user_rating] %>
-<% avg_rating = ratings[:avg_rating] %>
 <div class="card-2026" data-media-kind="<%= media_item.class.name %>">
   <div class="card-2026-cover">
     <% if media_item.respond_to?(:stored_cover_url) && media_item.stored_cover_url.present? %>
@@ -20,52 +19,28 @@
     <% end %>
   </div>
   <div class="card-2026-content">
-    <h3 class="card-2026-title"><%= link_to media_item.title, media_item, data: { turbo_frame: "_top" } %></h3>
+    <h3 class="card-2026-title" title="<%= media_title %>"><%= link_to card.title, media_item, data: { turbo_frame: "_top" } %></h3>
 
-    <% if media_item.respond_to?(:author) && media_item.author.present? %>
-      <span class="card-2026-meta"><%= media_item.author %></span>
-    <% end %>
-    <% if media_item.respond_to?(:writer) && media_item.writer.present? %>
-      <span class="card-2026-meta"><%= media_item.writer %></span>
-    <% end %>
-    <% if media_item.respond_to?(:platform) && media_item.platform.present? %>
-      <span class="card-2026-meta"><%= media_item.platform %></span>
-    <% end %>
-    <% if media_item.respond_to?(:director) && media_item.director.present? %>
-      <span class="card-2026-meta"><%= media_item.director %></span>
+    <% if card.byline %>
+      <p class="card-2026-byline" title="<%= card.byline.label %> <%= card.byline.full %>">
+        <span class="visually-hidden"><%= card.byline.label %></span>
+        <%= card.byline.value %>
+      </p>
     <% end %>
 
-    <% if media_item.respond_to?(:artist) && media_item.artist.present? %>
-      <span class="card-2026-meta"><%= media_item.artist %></span>
+    <% card.credits.each do |credit| %>
+      <p class="card-2026-meta card-2026-credit" title="<%= credit.label %> <%= credit.full %>">
+        <span class="card-2026-credit-label"><%= credit.label %></span>
+        <%= credit.value %>
+      </p>
     <% end %>
 
-    <% if media_item.respond_to?(:developer) && media_item.developer.present? %>
-      <span class="card-2026-meta"><%= media_item.developer %></span>
+    <% if card.facts.any? %>
+      <p class="card-2026-meta card-2026-facts">
+        <% card.facts.each do |fact| %><span class="<%= 'card-2026-year' if fact == card.facts.first && fact.to_s.match?(/\A\d{4}\z/) %>"><%= fact %></span><% end %>
+      </p>
     <% end %>
 
-    <% if media_item.respond_to?(:network) && media_item.network.present? %>
-      <span class="card-2026-meta"><%= media_item.network %></span>
-    <% end %>
-
-    <% if media_item.respond_to?(:release_year) && media_item.release_year.present? %>
-      <span class="card-2026-meta card-2026-year"><%= media_item.release_year %></span>
-    <% end %>
-
-    <% if user_rating.present? || avg_rating.present? %>
-      <div class="card-2026-ratings">
-        <% if user_rating.present? %>
-          <span class="card-2026-user-rating" title="Your rating: <%= user_rating %> / 5">
-            <span class="rating-label">Your rating:</span>
-            <span class="rating-stars"><%= render_stars(user_rating) %></span>
-          </span>
-        <% end %>
-        <% if avg_rating.present? %>
-          <span class="card-2026-avg-rating" title="Average rating: <%= avg_rating %> / 5">
-            <span class="rating-label">Avg rating:</span>
-            <span class="rating-value"><%= avg_rating %> ★</span>
-          </span>
-        <% end %>
-      </div>
-    <% end %>
+    <%= render 'shared/card_ratings', user_rating: ratings[:user_rating], avg_rating: ratings[:avg_rating] %>
   </div>
 </div>

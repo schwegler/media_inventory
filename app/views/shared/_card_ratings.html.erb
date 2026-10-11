@@ -1,0 +1,18 @@
+<% if user_rating.present? || avg_rating.present? %>
+  <div class="card-2026-ratings">
+    <% if user_rating.present? %>
+      <span class="card-2026-user-rating" title="Your rating: <%= user_rating %> / 5">
+        <span class="visually-hidden">Your rating:</span>
+        <span class="rating-stars" aria-hidden="true"><%= render_stars(user_rating) %></span>
+        <span class="rating-label" aria-hidden="true">yours</span>
+      </span>
+    <% end %>
+    <% if avg_rating.present? %>
+      <span class="card-2026-avg-rating" title="Average rating: <%= avg_rating %> / 5">
+        <span class="visually-hidden">Avg rating:</span>
+        <span class="rating-value"><%= avg_rating %> ★</span>
+        <span class="rating-label" aria-hidden="true">avg</span>
+      </span>
+    <% end %>
+  </div>
+<% end %>
