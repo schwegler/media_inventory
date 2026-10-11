@@ -25,6 +25,7 @@ module MediaLayoutHelper
     director: 'directors',
     writer: 'writers',
     actors: 'actors',
+    platform: 'platforms',
     genre: 'genres'
   }.freeze
 

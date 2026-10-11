@@ -42,7 +42,8 @@ class CategoriesController < ApplicationController
       'movies' => all_matches.count { |i| i.is_a?(Movie) },
       'tv_shows' => all_matches.count { |i| i.is_a?(TvShow) },
       'albums' => all_matches.count { |i| i.is_a?(Album) },
-      'comics' => all_matches.count { |i| i.is_a?(Comic) }
+      'comics' => all_matches.count { |i| i.is_a?(Comic) },
+      'video_games' => all_matches.count { |i| i.is_a?(VideoGame) }
     }
 
     filtered_matches = Category.items_for(@category_type, @name, media_type: params[:type], sort: params[:sort])
