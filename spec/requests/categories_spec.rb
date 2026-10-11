@@ -151,4 +151,29 @@ RSpec.describe 'Categories', type: :request do
       expect(response.body).to include(category_item_path(category_type: 'genres', name: 'Western'))
     end
   end
+  describe 'video game platform categories' do
+    let!(:game) { VideoGame.create!(title: 'Portal', platform: 'PC, Nintendo Switch') }
+
+    it 'includes platforms in the category hub and navigation' do
+      get categories_path
+      expect(response.body).to include(category_type_path(category_type: 'platforms'))
+      get category_type_path(category_type: 'platforms')
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include(category_item_path(category_type: 'platforms', name: 'Nintendo Switch'))
+    end
+
+    it 'shows matching games and their media count' do
+      get category_item_path(category_type: 'platforms', name: 'PC', type: 'video_games')
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include('Portal', 'Video Games (1)')
+    end
+
+    it 'links each platform from game details' do
+      get video_game_path(game)
+      expect(response).to have_http_status(:success)
+      ['PC', 'Nintendo Switch'].each do |platform|
+        expect(response.body).to include(category_item_path(category_type: 'platforms', name: platform))
+      end
+    end
+  end
 end

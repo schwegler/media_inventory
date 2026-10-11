@@ -6,7 +6,7 @@
     <div>
       <h1 id="catalog-title">Categories</h1>
       <p style="margin: 0.35rem 0 0; color: var(--text-secondary); font-size: 0.9375rem;">
-        Explore movies, TV shows, and your collection by genres, directors, actors, and writers.
+        Explore your collection by genres, directors, actors, writers, and video game platforms.
       </p>
     </div>
   </header>
@@ -18,7 +18,7 @@
       <% cfg = Category.config_for(type) %>
       <% items = @top_categories[type] || [] %>
       <% total = @counts[type] || 0 %>
-      <% emoji = { 'genres' => '🎭', 'directors' => '🎬', 'actors' => '⭐', 'writers' => '✍️' }[type] %>
+      <% emoji = { 'genres' => '🎭', 'directors' => '🎬', 'actors' => '⭐', 'writers' => '✍️', 'platforms' => '🎮' }[type] %>
 
       <div class="category-hub-section" style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">

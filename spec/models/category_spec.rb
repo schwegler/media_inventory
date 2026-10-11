@@ -109,4 +109,20 @@ RSpec.describe Category, type: :model do
       expect(items).to eq([wick, matrix])
     end
   end
+  describe 'video game platforms' do
+    let!(:game) { VideoGame.create!(title: 'Portal', platform: 'PC, Nintendo Switch') }
+    let!(:other_game) { VideoGame.create!(title: 'Portal 2', platform: 'pc; PlayStation 3') }
+
+    it 'aggregates platforms case-insensitively and supports search' do
+      platforms = Category.list_for('platforms', query: 'pc')
+      expect(platforms.map(&:name)).to eq(['PC'])
+      expect(platforms.first.count).to eq(2)
+    end
+
+    it 'matches whole platform names and filters by media type' do
+      expect(Category.items_for('platforms', 'PC', media_type: 'video_games')).to match_array([game, other_game])
+      expect(Category.items_for('platforms', 'Nintendo')).to be_empty
+      expect(Category.items_for('platforms', 'PC', media_type: 'movies')).to be_empty
+    end
+  end
 end

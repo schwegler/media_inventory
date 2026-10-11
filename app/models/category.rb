@@ -21,6 +21,12 @@ class Category
       attribute: :actors,
       models: -> { [Movie, TvShow] }
     },
+    'platforms' => {
+      title: 'Platforms',
+      singular: 'Platform',
+      attribute: :platform,
+      models: -> { [VideoGame] }
+    },
     'writers' => {
       title: 'Writers',
       singular: 'Writer',
@@ -142,6 +148,7 @@ class Category
     when 'tv_shows', 'tv_show', 'tv' then model == TvShow
     when 'albums', 'album' then model == Album
     when 'comics', 'comic' then model == Comic
+    when 'video_games', 'video_game' then model == VideoGame
     else true
     end
   end
