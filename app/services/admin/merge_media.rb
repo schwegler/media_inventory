@@ -62,15 +62,17 @@ module Admin
     end
 
     def move_children(model, foreign_key, identifiers)
+      t = ActiveRecord::Base.connection.quote_table_name(model.table_name)
       matches = identifiers.map do |key|
+        k = ActiveRecord::Base.connection.quote_column_name(key)
         <<~SQL.squish
-          (retained.#{key} = #{model.table_name}.#{key} OR
-          (retained.#{key} IS NULL AND #{model.table_name}.#{key} IS NULL))
+          (retained.#{k} = #{t}.#{k} OR
+          (retained.#{k} IS NULL AND #{t}.#{k} IS NULL))
         SQL
       end.join(' AND ')
       conflict = model.where(foreign_key => @source.id)
-                      .joins("INNER JOIN #{model.table_name} retained ON #{matches}")
-                      .where("retained.#{foreign_key} = ?", @target.id).exists?
+                      .joins(Arel.sql("INNER JOIN #{t} retained ON #{matches}"))
+                      .where("retained.#{ActiveRecord::Base.connection.quote_column_name(foreign_key)} = ?", @target.id).exists?
       raise Conflict, 'Episodes or issues overlap. Resolve conflicting child records before merging.' if conflict
 
       model.where(foreign_key => @source.id).update_all(foreign_key => @target.id)
