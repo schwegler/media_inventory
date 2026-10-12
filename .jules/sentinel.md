@@ -11,3 +11,8 @@
 **Vulnerability:** A `SQL Injection` warning was reported by Brakeman because a user-provided search term and an internally mapped table name were used via string interpolation `where("#{table_name}.title LIKE ?", "%#{@query}%")`. Although `table_name` was sanitized through `sanitize_join_sql`, Brakeman correctly flagged string interpolation in the `where` clause as risky.
 **Learning:** Raw string interpolation in SQL string arguments is fundamentally unsafe and trips automated static analysis scanners. Rails provides the Arel library which allows constructing queries dynamically using object methods.
 **Prevention:** Always use Arel table abstractions such as `Arel::Table.new(table_name)[:title].matches(...)` instead of raw string interpolation when the queried table must be determined dynamically at runtime.
+
+## 2026-10-12 - Fix SQL Injection in Media Merge and User Filters
+**Vulnerability:** Raw string interpolation in ActiveRecord queries (`where` and `joins` clauses) for dynamically generated table and column names in `app/controllers/users_controller.rb` and `app/services/admin/merge_media.rb`.
+**Learning:** Even internal variables dynamically constructed (e.g. `#{table}.#{association}_type`) can flag SQL injection warnings or pose risks if caller arguments aren't strictly verified. Brakeman effectively catches these.
+**Prevention:** Always use `ActiveRecord::Base.connection.quote_table_name` and `ActiveRecord::Base.connection.quote_column_name` for interpolating table and column names into raw SQL fragments. If raw SQL is used in `.joins`, ensure it is wrapped in `Arel.sql()` after quoting elements. Use bind variables (e.g., `?`) via `.where(..., value)` rather than `.where(Arel.sql(..., value))` which would drop the parameter in Rails.

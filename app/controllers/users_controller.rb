@@ -145,11 +145,15 @@ class UsersController < ApplicationController
   end
 
   def public_library_events(scope, table, association)
+    t = ActiveRecord::Base.connection.quote_table_name(table)
+    a_type = ActiveRecord::Base.connection.quote_column_name("#{association}_type")
+    a_id = ActiveRecord::Base.connection.quote_column_name("#{association}_id")
+
     scope.where('EXISTS (SELECT 1 FROM library_items WHERE library_items.is_public = ? AND ' \
-                "((#{table}.#{association}_type = 'LibraryItem' AND library_items.id = #{table}.#{association}_id) OR " \
-                "(library_items.item_type = #{table}.#{association}_type AND " \
-                "library_items.item_id = #{table}.#{association}_id " \
-                "AND library_items.user_id = #{table}.user_id)))", true)
+                "((#{t}.#{a_type} = 'LibraryItem' AND library_items.id = #{t}.#{a_id}) OR " \
+                "(library_items.item_type = #{t}.#{a_type} AND " \
+                "library_items.item_id = #{t}.#{a_id} " \
+                "AND library_items.user_id = #{t}.user_id)))", true)
   end
 
   def user_params
