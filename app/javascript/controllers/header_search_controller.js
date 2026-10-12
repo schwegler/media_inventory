@@ -4,14 +4,18 @@ export default class extends Controller {
   static targets = ["panel", "button"]
 
   connect() {
+    this.element.dataset.connected = "true"
     this.onKeydown = event => {
       if (event.key === "Escape" && this.element.classList.contains("search-open")) {
         this.close()
-        this.buttonTarget.focus()
       }
     }
     this.onClick = event => {
-      if (!this.panelTarget.contains(event.target) && !this.buttonTarget.contains(event.target)) this.close()
+      if (this.element.classList.contains("search-open") &&
+          !this.panelTarget.contains(event.target) &&
+          !this.buttonTarget.contains(event.target)) {
+        this.close()
+      }
     }
     this.onBeforeCache = () => this.close()
     document.addEventListener("keydown", this.onKeydown)
@@ -25,14 +29,29 @@ export default class extends Controller {
     document.removeEventListener("turbo:before-cache", this.onBeforeCache)
   }
 
-  toggle() {
+  toggle(event) {
     const open = this.element.classList.toggle("search-open")
     this.buttonTarget.setAttribute("aria-expanded", String(open))
-    if (open) this.panelTarget.querySelector("input")?.focus()
+    if (open) {
+      this.opener = event?.currentTarget || document.activeElement
+      this.panelTarget.querySelector("input")?.focus()
+    } else {
+      this.restoreFocus()
+    }
   }
 
   close() {
+    if (!this.element.classList.contains("search-open")) return
     this.element.classList.remove("search-open")
     this.buttonTarget.setAttribute("aria-expanded", "false")
+    this.restoreFocus()
+  }
+
+  restoreFocus() {
+    if (this.opener && typeof this.opener.focus === "function") {
+      this.opener.focus()
+    } else if (this.hasButtonTarget) {
+      this.buttonTarget.focus()
+    }
   }
 }
