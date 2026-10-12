@@ -70,9 +70,10 @@ module Admin
           (retained.#{k} IS NULL AND #{t}.#{k} IS NULL))
         SQL
       end.join(' AND ')
+      q_foreign_key = ActiveRecord::Base.connection.quote_column_name(foreign_key)
       conflict = model.where(foreign_key => @source.id)
                       .joins(Arel.sql("INNER JOIN #{t} retained ON #{matches}"))
-                      .where("retained.#{ActiveRecord::Base.connection.quote_column_name(foreign_key)} = ?", @target.id).exists?
+                      .where("retained.#{q_foreign_key} = ?", @target.id).exists?
       raise Conflict, 'Episodes or issues overlap. Resolve conflicting child records before merging.' if conflict
 
       model.where(foreign_key => @source.id).update_all(foreign_key => @target.id)
