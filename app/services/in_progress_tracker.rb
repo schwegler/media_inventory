@@ -69,8 +69,21 @@ class InProgressTracker
   def active_passes
     scope = @user.library_items.where(item_type: ConsumptionPass::SERIES_TYPES)
     scope = scope.where(is_public: true) if @public_only
-    ConsumptionPass.active.where(library_item_id: scope.select(:id))
-                   .includes(library_item: { item: [{ cover_image_attachment: :blob }] })
+    # Eager load pass entries and polymorphic series items with cover images to eliminate N+1 queries.
+    passes = ConsumptionPass.active.where(library_item_id: scope.select(:id))
+                            .includes(:entries, library_item: { item: [{ cover_image_attachment: :blob }] })
+                            .to_a
+
+    preload_child_episodes_and_issues(passes)
+    passes
+  end
+
+  def preload_child_episodes_and_issues(passes)
+    shows = passes.map { |p| p.library_item&.item }.compact.grep(TvShow)
+    comics = passes.map { |p| p.library_item&.item }.compact.grep(Comic)
+
+    ActiveRecord::Associations::Preloader.new(records: shows, associations: :tv_episodes).call if shows.any?
+    ActiveRecord::Associations::Preloader.new(records: comics, associations: :comic_issues).call if comics.any?
   end
 
   def build_item(pass)
@@ -78,9 +91,11 @@ class InProgressTracker
     series = lib_item&.item
     return nil unless series
 
-    entries = pass.entries.order(:consumed_at, :id).pluck(:item_id, :consumed_at)
+    # PERFORMANCE IMPACT: Uses preloaded in-memory entries collection instead of triggering database queries.
+    entries_list = pass.entries.to_a.sort_by { |e| [e.consumed_at || Time.at(0), e.id] }
+    entries = entries_list.map { |e| [e.item_id, e.consumed_at] }
     consumed_ids = entries.to_set(&:first)
-    last_at = entries.map(&:last).max || pass.updated_at
+    last_at = entries.map(&:last).compact.max || pass.updated_at
 
     if series.is_a?(TvShow)
       build_tv_show_item(series, lib_item, pass, entries, last_at)
@@ -90,7 +105,8 @@ class InProgressTracker
   end
 
   def build_tv_show_item(show, lib_item, pass, entries, last_consumed_at)
-    episodes = show.tv_episodes.order(:season, :episode).to_a
+    # PERFORMANCE IMPACT: Uses preloaded tv_episodes sorted in-memory to prevent N+1 SQL queries.
+    episodes = show.tv_episodes.to_a.sort_by { |e| [e.season || 0, e.episode || 0] }
     return nil if episodes.empty?
 
     done_ids = episodes.to_set(&:id) & entries.to_set(&:first)
@@ -106,7 +122,8 @@ class InProgressTracker
   end
 
   def build_comic_item(comic, lib_item, pass, consumed_ids, last_consumed_at)
-    issues = comic.comic_issues.order(:issue_number).to_a
+    # PERFORMANCE IMPACT: Uses preloaded comic_issues sorted in-memory to prevent N+1 SQL queries.
+    issues = comic.comic_issues.to_a.sort_by { |i| i.issue_number || 0 }
     return nil if issues.empty?
 
     done_ids = issues.to_set(&:id) & consumed_ids
