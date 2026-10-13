@@ -37,20 +37,34 @@ class CategoriesController < ApplicationController
     @category_title = Category.title_for(@category_type)
 
     all_matches = Category.items_for(@category_type, @name)
-    @media_counts = {
-      'all' => all_matches.size,
-      'movies' => all_matches.count { |i| i.is_a?(Movie) },
-      'tv_shows' => all_matches.count { |i| i.is_a?(TvShow) },
-      'albums' => all_matches.count { |i| i.is_a?(Album) },
-      'comics' => all_matches.count { |i| i.is_a?(Comic) },
-      'video_games' => all_matches.count { |i| i.is_a?(VideoGame) }
-    }
+    @media_counts = calculate_media_counts(all_matches)
 
-    filtered_matches = Category.items_for(@category_type, @name, media_type: params[:type], sort: params[:sort])
+    # Reuse in-memory matches to prevent duplicate database queries
+    filtered_matches = filter_and_sort_matches(all_matches)
     @items = Kaminari.paginate_array(filtered_matches).page(params[:page]).per(PAGE_SIZE)
   end
 
   private
+
+  def calculate_media_counts(matches)
+    {
+      'all' => matches.size,
+      'movies' => matches.count { |i| i.is_a?(Movie) },
+      'tv_shows' => matches.count { |i| i.is_a?(TvShow) },
+      'albums' => matches.count { |i| i.is_a?(Album) },
+      'comics' => matches.count { |i| i.is_a?(Comic) },
+      'video_games' => matches.count { |i| i.is_a?(VideoGame) }
+    }
+  end
+
+  def filter_and_sort_matches(matches)
+    filtered = if params[:type].present?
+                 matches.select { |item| Category.media_type_matches?(item.class, params[:type]) }
+               else
+                 matches
+               end
+    Category.sort_items(filtered, params[:sort])
+  end
 
   def validate_category_type
     @category_type = params[:category_type].to_s.strip.downcase
