@@ -160,7 +160,10 @@ class Category
     when 'year'
       items.sort_by { |i| [-(i.try(:release_year) || 0), i.title.to_s.downcase] }
     else
-      items.sort_by { |i| -(i.created_at ? i.created_at.to_i : 0) }
+      items.sort_by do |i|
+        timestamp = i.try(:updated_at) || i.try(:created_at)
+        -(timestamp ? timestamp.to_i : 0)
+      end
     end
   end
 end
