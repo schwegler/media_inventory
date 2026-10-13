@@ -47,11 +47,7 @@
     </summary>
     <div class="child-entry-body">
         <%= render 'shared/child_metadata', item: issue %>
-        <% if issue.summary.present? %>
-          <div class="episode-summary">
-            <%= truncate(strip_tags(issue.summary), length: 250, separator: ' ') %>
-          </div>
-        <% end %>
+        <%= render 'comics/issue_description', issue: issue %>
 
         <% has_reviewed = is_read && (issue_lib&.review.present? || issue_lib&.rating.present?) %>
         <% if has_reviewed %>
