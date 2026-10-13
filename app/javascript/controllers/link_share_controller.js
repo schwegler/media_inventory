@@ -11,6 +11,7 @@ export default class extends Controller {
 
   disconnect() {
     if (this.timeout) clearTimeout(this.timeout)
+    if (this.copyTimeout) clearTimeout(this.copyTimeout)
   }
 
   async share() {
@@ -22,12 +23,14 @@ export default class extends Controller {
     }
   }
 
-  async copy() {
+  async copy(event) {
+    const button = event?.currentTarget
     try {
       if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable")
       await navigator.clipboard.writeText(this.urlValue)
       if (this.hasFallbackTarget) this.fallbackTarget.hidden = true
       this.showStatus("Link copied.")
+      if (button) this.flashButtonSuccess(button)
     } catch {
       if (this.hasFallbackTarget) {
         this.fallbackTarget.hidden = false
@@ -36,6 +39,22 @@ export default class extends Controller {
       }
       this.showStatus("Select and copy this link.", false)
     }
+  }
+
+  flashButtonSuccess(button) {
+    if (this.copyTimeout) clearTimeout(this.copyTimeout)
+    if (!button.dataset.originalAriaLabel) {
+      button.dataset.originalAriaLabel = button.getAttribute("aria-label") || ""
+    }
+    button.setAttribute("aria-label", "Copied!")
+
+    this.copyTimeout = setTimeout(() => {
+      if (button.dataset.originalAriaLabel) {
+        button.setAttribute("aria-label", button.dataset.originalAriaLabel)
+      } else {
+        button.removeAttribute("aria-label")
+      }
+    }, 2000)
   }
 
   showStatus(message, autoClear = true) {
