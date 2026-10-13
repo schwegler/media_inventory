@@ -12,7 +12,8 @@ RSpec.describe ComicsHelper, type: :helper do
     end
 
     it 'formats plain text paragraphs and removes unsafe attributes and elements' do
-      result = helper.comic_issue_description("First paragraph.\n\nSecond <em onclick='alert(1)'>paragraph</em><iframe src='unsafe'></iframe>.")
+      summary = "First paragraph.\n\nSecond <em onclick='alert(1)'>paragraph</em><iframe src='unsafe'></iframe>."
+      result = helper.comic_issue_description(summary)
       fragment = Nokogiri::HTML.fragment(result)
       expect(fragment.css('p').size).to eq(2)
       expect(fragment.css('iframe, [onclick]')).to be_empty
