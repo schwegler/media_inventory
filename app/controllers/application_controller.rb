@@ -43,12 +43,20 @@ class ApplicationController < ActionController::Base
     redirect_to login_url
   end
 
+  # rubocop:disable Metrics/PerceivedComplexity
   def can_access?(resource)
     return false if resource.nil?
 
     # Global and social media types are always accessible
-    accessible_types = %w[Movie TvShow TvEpisode Album Comic ComicIssue Book VideoGame WrestlingEvent Activity Comment]
+    accessible_types = %w[Movie TvShow TvEpisode Album Comic ComicIssue Book VideoGame WrestlingEvent]
     return true if accessible_types.include?(resource.class.name)
+
+    # Delegate access check for wrapper models to their underlying models
+    if resource.is_a?(Activity)
+      return can_access?(resource.trackable)
+    elsif resource.is_a?(Comment)
+      return can_access?(resource.commentable)
+    end
 
     # 1. Owner access
     return true if resource.respond_to?(:user) && resource.user.present? && resource.user == current_user
@@ -61,4 +69,5 @@ class ApplicationController < ActionController::Base
 
     false
   end
+  # rubocop:enable Metrics/PerceivedComplexity
 end
