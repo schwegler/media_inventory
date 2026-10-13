@@ -396,3 +396,56 @@
 .media-workspace .catalog-navigation a:hover { border-bottom-color: transparent; color: var(--accent); text-decoration: none; }
 
 }
+
+.issue-description {
+  margin-block: 1.25rem;
+  padding: 1.1rem 1.25rem;
+  border-inline-start: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  background: var(--surface);
+  overflow-wrap: anywhere;
+
+  h3 { margin: 0 0 .7rem; color: var(--text); font: 700 .875rem/1.4 'Instrument Sans', sans-serif; }
+}
+.issue-description-prose, .issue-description-preview {
+  max-width: 72ch;
+  color: var(--text-secondary);
+  font-size: .9375rem;
+  line-height: 1.8;
+  p { margin: 0 0 .85rem; }
+  > :last-child { margin-bottom: 0; }
+  ul, ol { padding-inline-start: 1.4rem; }
+  li + li { margin-top: .3rem; }
+  strong, b { color: var(--text); font-weight: 600; }
+}
+.issue-description-preview { margin: 0; }
+.issue-description-disclosure {
+  display: flex;
+  flex-direction: column;
+  summary { width: fit-content; margin-top: .75rem; color: var(--accent); font-size: .8125rem; font-weight: 600; cursor: pointer; }
+  summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  &[open] .issue-description-prose { margin-top: .85rem; }
+}
+.issue-description-less { display: none; }
+.issue-description-disclosure[open] {
+  .issue-description-more { display: none; }
+  .issue-description-less { display: inline; }
+  + .issue-description-preview { display: none; }
+}
+.issue-description:has(.issue-description-disclosure:not([open])) {
+  display: flex;
+  flex-direction: column;
+  .issue-description-preview { order: 1; }
+  .issue-description-disclosure { order: 2; }
+}
+@media (max-width: 480px) {
+  .issue-description { padding: .9rem 1rem; }
+}
+.issue-description-prose :is(h2, h3, h4) {
+  margin: 1rem 0 .5rem;
+  color: var(--text);
+  font: 600 1rem/1.5 'Instrument Sans', sans-serif;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.issue-description-prose > :first-child { margin-top: 0; }

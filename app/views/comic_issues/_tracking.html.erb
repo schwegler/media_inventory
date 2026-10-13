@@ -82,12 +82,7 @@
     </div>
 
     <!-- Issue Summary -->
-    <% if @comic_issue.summary.present? %>
-      <div class="show-review" style="margin-top: 2rem;">
-        <h3>Issue Summary</h3>
-        <blockquote class="issue-summary" style="font-style: normal; border-left-color: rgba(255, 255, 255, 0.1);"><%= sanitize(@comic_issue.summary) %></blockquote>
-      </div>
-    <% end %>
+    <%= render 'comics/issue_description', issue: @comic_issue %>
 
     <!-- Comments & Likes -->
     <div class="show-community" style="margin-top: 2rem;">
