@@ -41,7 +41,7 @@
     <%= f.hidden_field :type, value: params[:type] if params[:type].present? %>
     <div>
       <%= f.label :sort, 'Sort by' %>
-      <%= f.select :sort, [['Recently added', 'newest'], ['Release year (newest)', 'year'], ['Title A–Z', 'title']], selected: params[:sort] || 'newest' %>
+      <%= f.select :sort, [['Recent Activity', 'newest'], ['Release year (newest)', 'year'], ['Title A–Z', 'title']], selected: params[:sort] || 'newest' %>
     </div>
     <%= f.submit 'Apply', class: 'sleek-btn sleek-btn-secondary' %>
   <% end %>

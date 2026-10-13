@@ -62,7 +62,7 @@ class MediaLibraryQuery
             when 'oldest' then LibraryItem.arel_table[:created_at].asc
             when 'finished' then Arel.sql('library_items.consumed_at DESC NULLS LAST')
             when 'rating' then Arel.sql("#{GameLibraryQuery::RATING_SQL} DESC NULLS LAST")
-            else LibraryItem.arel_table[:created_at].desc
+            else LibraryItem.arel_table[:updated_at].desc
             end
     scope.order(order, @klass.arel_table[:id].asc)
   end

@@ -7,8 +7,8 @@ class GameLibraryQuery
                developer publisher rating sort layout genre tag favorite].freeze
   COPY_FILTERS = %w[platform storefront ownership_status access_method].freeze
   SORTS = { 'title' => 'LOWER(video_games.title) ASC', 'release' => 'video_games.release_year DESC',
-            'added' => 'video_games.created_at DESC' }.freeze
-  PERSONAL_SORTS = { 'added' => 'library_added_at DESC', 'last_played' => 'last_played_at DESC NULLS LAST',
+            'added' => 'video_games.updated_at DESC' }.freeze
+  PERSONAL_SORTS = { 'added' => 'library_updated_at DESC', 'last_played' => 'last_played_at DESC NULLS LAST',
                      'rating' => 'personal_rating DESC NULLS LAST', 'playtime' => 'recorded_minutes DESC NULLS LAST',
                      'completed' => 'last_completed_on DESC NULLS LAST' }.freeze
   RATING_SQL = "CASE WHEN library_items.rating IN ('0.5','1','1.0','1.5','2','2.0','2.5','3','3.0'," \
@@ -112,7 +112,7 @@ class GameLibraryQuery
                           .select('library_item_id, MAX(completed_on) AS last_completed_on')
     scope.joins("LEFT JOIN (#{sessions.to_sql}) game_activity ON game_activity.library_item_id = library_items.id")
          .joins("LEFT JOIN (#{runs.to_sql}) game_completion ON game_completion.library_item_id = library_items.id")
-         .select('library_items.created_at AS library_added_at', 'game_activity.last_played_at',
+         .select('library_items.updated_at AS library_updated_at', 'game_activity.last_played_at',
                  'game_activity.recorded_minutes', 'game_completion.last_completed_on',
                  "#{RATING_SQL} AS personal_rating")
   end

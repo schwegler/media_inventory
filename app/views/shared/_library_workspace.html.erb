@@ -16,7 +16,7 @@
   
   <div class="collection-primary-controls">
     <div class="collection-search"><%= f.label :q, "Search #{config[:noun]}" %><%= f.search_field :q, value: params[:q], placeholder: 'Search by title…' %></div>
-    <div><%= f.label :sort, 'Sort by' %><%= f.select :sort, [['Recently added', 'newest'], ['Title A–Z', 'title'], ['My rating', 'rating'], ["Recently #{config[:finished].downcase}", 'finished'], ['Oldest added', 'oldest']], selected: params[:sort] %></div>
+    <div><%= f.label :sort, 'Sort by' %><%= f.select :sort, [['Recent Activity', 'newest'], ['Title A–Z', 'title'], ['My rating', 'rating'], ["Recently #{config[:finished].downcase}", 'finished'], ['Oldest added', 'oldest']], selected: params[:sort] %></div>
     <div><%= f.label :layout, 'Display' %><%= f.select :layout, [['Cover grid', 'grid'], ['Compact list', 'list']], selected: params[:layout] %></div>
     <%= f.submit 'Apply', class: 'sleek-btn sleek-btn-primary' %>
   </div>

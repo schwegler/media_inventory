@@ -210,7 +210,7 @@ class InventoryController < ApplicationController
     case params[:sort]
     when 'title' then scope.order(title: :asc, id: :asc)
     when 'oldest' then scope.order(created_at: :asc, id: :asc)
-    else scope.order(created_at: :desc, id: :desc)
+    else scope.order(updated_at: :desc, id: :desc)
     end
   end
 

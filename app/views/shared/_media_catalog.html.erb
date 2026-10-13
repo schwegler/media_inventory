@@ -34,7 +34,7 @@
     <% end %>
     <div>
       <%= f.label :sort, 'Sort by' %>
-      <%= f.select :sort, [['Recently added', 'newest'], ['Title A–Z', 'title'], ['Oldest added', 'oldest']], selected: params[:sort] %>
+      <%= f.select :sort, [['Recent Activity', 'newest'], ['Title A–Z', 'title'], ['Oldest added', 'oldest']], selected: params[:sort] %>
     </div>
     <%= f.submit 'Apply', class: 'sleek-btn sleek-btn-secondary' %>
   <% end %>
