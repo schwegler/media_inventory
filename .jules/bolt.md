@@ -5,3 +5,7 @@
 ## 2026-06-19 - Risks of Nested Eager Loading on Polymorphic Associations
 **Learning:** Eager loading nested associations on a polymorphic relation (e.g., `includes(trackable: { tv_show: :user })`) will raise an `ActiveRecord::AssociationNotFoundError` if *any* of the returned records belong to a model that does not define that nested association (e.g., a `Movie` or `Album` which doesn't have a `tv_show`).
 **Action:** Stick to first-level eager loading for polymorphic associations (`includes(:trackable)`) or use the grouping/bulk-fetch pattern if nested associations are required for specific types. Also, use `.load` in the controller if the view uses `.any?` or `.exists?` to prevent redundant COUNT queries before the SELECT.
+
+## 2026-10-13 - [Stale Browser Version TODOs in Minified Assets]
+**Learning:** Minified assets or compiled libraries like jQuery often contain old TODOs like `// TODO: identify versions` or `Support: IE, Opera, Webkit`. These are upstream comments in vendored libraries and should not be modified or actively actioned in our downstream source.
+**Prevention:** If an issue or a task requests identifying browser versions for these vendor TODOs, you should ignore them since they are not relevant to our application's active codebase. Do not edit compiled or vendored assets.
