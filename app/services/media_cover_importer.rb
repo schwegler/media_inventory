@@ -31,9 +31,7 @@ class MediaCoverImporter
     health = CoverImport.find_or_create_by!(item: item) { |entry| entry.source_url = source_url }
     health.update!(source_url: source_url, state: 'processing', attempted_at: Time.current,
                    attempts: health.attempts + 1, failure_reason: nil)
-    source_key = "media-cover-source-#{Digest::SHA256.hexdigest(source_url)}"
-    blob = resolve_blob(source_url, source_key)
-    MediaSources::Registry::CACHE.write(source_key, blob.id, expires_in: 7.days)
+    blob = resolve_blob(source_url)
     item.with_lock { item.cover_image.attach(blob) if current_selection?(item, source_url) }
     health.update!(state: 'ready', ready_at: Time.current)
   rescue JSON::ParserError, MediaSources::Http::Error, Timeout::Error, SocketError,
@@ -42,14 +40,16 @@ class MediaCoverImporter
     Rails.logger.warn "Cover import failed for #{item.class.name}##{item.id}: #{e.class}"
   end
 
-  def self.resolve_blob(source_url, source_key)
+  def self.resolve_blob(source_url)
     local = local_blob(source_url)
     return local if local && stored_file?(local)
 
     remote = local&.metadata&.fetch('remote_source', nil)
     raise MediaSources::Http::Error, 'Missing local image' if local && remote.blank?
 
-    cached_blob(source_key) || download_blob(remote || source_url)
+    # MediaArtworkDownload reuses the durable MediaArtworkSource mapping. A
+    # filesystem cache write must not prevent valid artwork from being attached.
+    download_blob(remote || source_url)
   end
 
   def self.ready?(item, source_url)
