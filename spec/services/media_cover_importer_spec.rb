@@ -33,6 +33,18 @@ RSpec.describe MediaCoverImporter do
     expect(WebMock).not_to have_requested(:get, url)
   end
 
+  it 'attaches and reuses artwork when the filesystem cache is not writable' do
+    allow(MediaSources::Registry::CACHE).to receive(:write).and_raise(Errno::EACCES)
+    described_class.call(item, url)
+    expect(item.reload.cover_image).to be_attached
+    expect(CoverImport.find_by(item: item)).to have_attributes(state: 'ready', failure_reason: nil)
+
+    another = Book.create!(title: 'Same artwork', thumbnail_url: url)
+    described_class.call(another, url)
+    expect(another.reload.cover_image.blob_id).to eq(item.cover_image.blob_id)
+    expect(WebMock).to have_requested(:get, url).once
+  end
+
   it 'reuses a signed local search result without downloading from the app' do
     original = Book.create!(title: 'Local cover')
     original.cover_image.attach(io: StringIO.new(png), filename: 'cover.png', content_type: 'image/png')
