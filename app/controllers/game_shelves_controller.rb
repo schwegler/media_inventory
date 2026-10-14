@@ -5,6 +5,10 @@ class GameShelvesController < ApplicationController
 
   def show
     @user = User.find_by_profile_param!(params[:user_id])
+    if @user.username.present?
+      return redirect_to(shelf_path(@user.username, category: 'VideoGame'),
+                         status: :moved_permanently)
+    end
     return if redirect_to_canonical_url(@user, param: :user_id, path: game_shelf_path(@user))
 
     scope = @user.library_items.where(item_type: 'VideoGame', game_activity_public: true)

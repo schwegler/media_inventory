@@ -37,7 +37,7 @@ RSpec.describe 'In Progress Tracking and Logging', type: :request do
       end
 
       it 'renders the In progress section with next episode and next issue with quick logging buttons' do
-        get user_path(user)
+        get handle_profile_path(user.username)
         expect(response).to have_http_status(:success)
         expect(response.body).to include('In progress')
         expect(response.body).to include('Severance')
@@ -55,7 +55,7 @@ RSpec.describe 'In Progress Tracking and Logging', type: :request do
       end
 
       it 'shows in-progress items but without quick logging buttons' do
-        get user_path(user)
+        get handle_profile_path(user.username)
         expect(response).to have_http_status(:success)
         expect(response.body).to include('In progress')
         expect(response.body).to include('Severance')
@@ -65,7 +65,7 @@ RSpec.describe 'In Progress Tracking and Logging', type: :request do
 
       it 'still shows in-progress items whose review is private' do
         show_lib.update!(is_public: false)
-        get user_path(user)
+        get handle_profile_path(user.username)
         expect(response.body).to include('Severance')
         expect(response.body).to include('East of West')
       end

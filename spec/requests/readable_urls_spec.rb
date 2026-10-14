@@ -51,7 +51,8 @@ RSpec.describe 'Readable public URLs', type: :request do
 
   it 'uses usernames for collections and redirects numeric profile and collection links' do
     user = User.create!(name: 'Reader', username: 'reader', password: 'password123', confirmed_at: Time.current)
-    [["/users/#{user.id}", user_path(user)], ["/collections/#{user.id}", collection_path(user)]].each do |legacy, path|
+    [["/users/#{user.id}", handle_profile_path(user.username)],
+     ["/collections/#{user.id}", collection_path(user)]].each do |legacy, path|
       get legacy
       expect(response).to have_http_status(:moved_permanently)
       expect(response).to redirect_to(path)

@@ -17,8 +17,7 @@ class UsersController < ApplicationController
   end
 
   def show
-    @user = User.find_by_profile_param!(params[:id])
-    return if redirect_to_canonical_url(@user)
+    return if load_canonical_profile
 
     prepare_profile_library
     @activities = @user.activities.order(created_at: :desc)
@@ -113,6 +112,19 @@ class UsersController < ApplicationController
   end
 
   private
+
+  def load_canonical_profile
+    @user = if params[:username].present?
+              User.where('LOWER(username) = ?', params[:username].to_s.downcase).first!
+            else
+              User.find_by_profile_param!(params[:id])
+            end
+    canonical = @user.username.present? ? handle_profile_path(@user.username) : user_path(@user)
+    return false if request.path == canonical
+
+    canonical += "?#{request.query_string}" if request.query_string.present?
+    redirect_to canonical, status: :moved_permanently
+  end
 
   def prepare_profile_library
     @profile_owner = current_user?(@user) && params[:preview] != 'public'

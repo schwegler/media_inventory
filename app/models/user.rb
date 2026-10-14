@@ -2,6 +2,7 @@
 
 # rubocop:disable Metrics/ClassLength
 class User < ApplicationRecord
+  has_many :favorite_shelves, dependent: :destroy
   has_many :game_library_views, dependent: :destroy
   has_secure_password
 
