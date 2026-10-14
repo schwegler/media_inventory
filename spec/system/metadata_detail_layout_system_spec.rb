@@ -98,7 +98,7 @@ RSpec.describe 'Metadata detail layout', type: :system do
         const title = entry.querySelector('.series-entry-title').getBoundingClientRect();
         const progress = entry.querySelector('.series-entry-track').getBoundingClientRect();
         const toggle = entry.querySelector('.series-entry-toggle').getBoundingClientRect();
-        return title.width > row.width * .4 && progress.right <= toggle.left;
+        return title.width > row.width * .35 && progress.left >= title.right;
       })()
     JS
   end

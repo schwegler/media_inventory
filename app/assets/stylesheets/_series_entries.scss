@@ -55,17 +55,22 @@
   gap: .75rem;
   margin-left: auto;
   flex-shrink: 0;
+  white-space: nowrap;
 }
 .series-entry-track { margin: 0; flex-shrink: 0; }
-.series-entry-track button { min-height: 38px; font-size: .85rem; padding: .35rem .75rem; }
+.series-entry-track button { min-height: 44px; font-size: .85rem; padding: .4rem .75rem; }
 .series-entry-details { display: inline-block; }
+.series-entry-details[open] {
+  flex-basis: 100%;
+  width: 100%;
+}
 .series-entry-details > summary.series-entry-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: .35rem;
-  min-height: 38px;
-  padding: .35rem .6rem;
+  min-height: 44px;
+  padding: .4rem .6rem;
   border-radius: 6px;
   font: 500 .85rem/1.4 'Instrument Sans', system-ui, sans-serif;
   border: 0;
