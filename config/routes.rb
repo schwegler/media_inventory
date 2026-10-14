@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 SampleApp::Application.routes.draw do
+  get '/api/reviews', to: 'public_reviews#index', defaults: { format: :json }
   get 'shelf', to: 'shelves#mine', as: :my_shelf
   get 'shelves/search', to: 'shelves#search', as: :search_shelves
   get '/@:username/shelf', to: 'shelves#show', as: :shelf
