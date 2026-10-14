@@ -3,6 +3,52 @@
 require 'rails_helper'
 
 RSpec.describe 'Performance Optimization', type: :request do
+  describe 'series child tracking' do
+    let(:user) do
+      User.create!(name: 'Reader', email: 'performance@example.com', password: 'password123',
+                   confirmed_at: Time.current)
+    end
+
+    before do
+      post login_path, params: { session: { email: user.email, password: 'password123' } }
+    end
+
+    def tracking_queries(path)
+      queries = []
+      subscriber = lambda do |*, payload|
+        queries << payload[:sql] if payload[:sql].match?(/\b(?:library_items|consumption_passes)\b/i)
+      end
+      ActiveSupport::Notifications.subscribed(subscriber, 'sql.active_record') { get path }
+      expect(response).to have_http_status(:ok)
+      queries.size
+    end
+
+    [TvShow, Comic].each do |model|
+      [false, true].each do |in_library|
+        it "keeps #{model} tracking queries bounded with library membership #{in_library}" do
+          series = model.create!(title: 'Large series')
+          LibraryItem.create!(user: user, item: series) if in_library
+          children = model == TvShow ? series.tv_episodes : series.comic_issues
+          create_child = lambda do |number|
+            attributes = if model == TvShow
+                           { name: "Episode #{number}", season: 1, episode: number }
+                         else
+                           { title: "Issue #{number}", issue_number: number }
+                         end
+            children.create!(attributes)
+          end
+          create_child.call(1)
+          small_count = tracking_queries(polymorphic_path(series))
+          (2..15).each { |number| create_child.call(number) }
+          large_count = tracking_queries(polymorphic_path(series))
+
+          expect(large_count).to be <= small_count
+          expect(response.body).to include(model == TvShow ? 'Episode 15' : 'Issue 15')
+        end
+      end
+    end
+  end
+
   describe 'GET /movies' do
     it 'loads the application layout with deferred javascript' do
       get movies_path

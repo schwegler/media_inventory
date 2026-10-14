@@ -1,7 +1,7 @@
 <%
   ep_lib = (@child_library_items ? @child_library_items[ep.id] : LibraryItem.find_by(user: current_user, item: ep)) if logged_in?
-  series_lib = @series_library_item || (@library_item if @library_item&.item_type == 'TvShow') || (logged_in? && LibraryItem.find_by(user: current_user, item: ep.tv_show))
-  active_pass = @active_pass || (series_lib && ConsumptionPasses.current_pass(series_lib))
+  series_lib = @child_library_items ? @series_library_item : @series_library_item || (@library_item if @library_item&.item_type == 'TvShow') || (logged_in? && LibraryItem.find_by(user: current_user, item: ep.tv_show))
+  active_pass = @child_library_items ? @active_pass : @active_pass || (series_lib && ConsumptionPasses.current_pass(series_lib))
   pass_entry_ids = @active_pass_entry_ids || ConsumptionPasses.pass_entry_ids(active_pass)
 
   is_watched = ConsumptionPasses.consumed?(
