@@ -20,7 +20,7 @@ module VideoGamesHelper
     game_artwork_image(image, fallback_url: fallback, **)
   end
 
-  def game_artwork_image(image, fallback_url: nil, **)
+  def game_artwork_image(image, fallback_url: nil, **options)
     blob = image.blob
     sources = blob.artwork_renditions.filter_map do |row|
       if row.state == 'ready' && row.blob && row.width&.positive?
@@ -28,8 +28,9 @@ module VideoGamesHelper
       end
     end
     primary = fallback_url.presence || rails_storage_proxy_path(blob)
-    sources << [primary, "#{blob.metadata['width']}w"] if blob.metadata['width'].to_i.positive?
+    primary = sources.min_by { |_, width| width.to_i }&.first || primary
     srcset = sources.uniq(&:last).map { |url, width| "#{url} #{width}" }.join(', ')
-    image_tag(primary, srcset: srcset.presence, sizes: '(max-width: 600px) 45vw, 240px', **)
+    options = { sizes: '(max-width: 600px) 45vw, 240px' }.merge(options)
+    image_tag(primary, srcset: srcset.presence, **options)
   end
 end

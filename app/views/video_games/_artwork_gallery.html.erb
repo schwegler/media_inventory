@@ -8,7 +8,9 @@
   <div class="game-artwork-gallery">
     <% @artworks.each do |art| %><% next unless art.image.attached? %>
       <figure class="game-artwork-asset" data-artwork-kind="<%= art.kind %>">
+        <%= artwork_lightbox(rails_storage_proxy_path(art.image), "#{game.title} #{art.kind.humanize.downcase}") do %>
         <%= game_artwork_image(art.image, alt: "#{game.title} #{art.kind.humanize.downcase}", loading: 'lazy', decoding: 'async', sizes: '(max-width: 600px) calc(100vw - 64px), 600px') %>
+        <% end %>
         <figcaption><%= art.kind.humanize %> · <%= art.provider %><%= " · #{art.author}" if art.author.present? %><%= " · #{art.platform}" if art.platform.present? %><%= " · #{art.edition}" if art.edition.present? %><%= ' · Private' if art.library_item_id %>
           <% if art.attribution_url.present? %><%= link_to 'Artwork credit', art.attribution_url, rel: 'noopener noreferrer' %><% end %>
         </figcaption>

@@ -19,10 +19,15 @@
   <%= link_to "← Back to #{title}", polymorphic_path(item.class), class: 'media-back-link' %>
   <header id="overview" class="media-overview">
     <div class="media-cover">
-      <% if item.is_a?(VideoGame) %>
-        <%= game_library_image(item, @library_item, alt: "#{item.title} cover", class: "game-cover-art", sizes: "(max-width: 600px) 120px, 180px") %>
-      <% elsif item.stored_cover_url.present? %>
-        <%= image_tag item.stored_cover_url, alt: "#{item.title} cover" %>
+      <% original = item.is_a?(VideoGame) && @library_item&.game_cover_image&.attached? ? rails_storage_proxy_path(@library_item.game_cover_image) : ("#{item.stored_cover_url}?size=original" if item.stored_cover_url.present?) %>
+      <% if original %>
+        <%= artwork_lightbox(original, "#{item.title} cover") do %>
+          <% if item.is_a?(VideoGame) %>
+            <%= game_library_image(item, @library_item, alt: "#{item.title} cover", class: "game-cover-art", sizes: "(max-width: 600px) 120px, 180px") %>
+          <% else %>
+            <%= media_cover_image item, alt: "#{item.title} cover", sizes: "(max-width: 600px) 120px, 180px", loading: "eager" %>
+          <% end %>
+        <% end %>
       <% else %>
         <div class="artwork-fallback"><span aria-hidden="true"><%= emoji %></span><span>No cover yet</span></div>
       <% end %>

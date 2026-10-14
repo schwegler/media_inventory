@@ -5,7 +5,7 @@
       <article class="profile-media-entry">
         <%= link_to item, class: 'profile-cover', aria: { label: item.title } do %>
           <% if item.respond_to?(:stored_cover_url) && item.stored_cover_url.present? %>
-            <%= image_tag item.stored_cover_url, alt: '', loading: 'lazy', decoding: 'async' %>
+            <%= media_cover_image item, alt: '', loading: 'lazy', decoding: 'async' %>
           <% else %>
             <span class="profile-cover-title"><%= item.title %></span>
           <% end %>

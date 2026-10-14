@@ -2,7 +2,7 @@
 <div class="card-2026" data-media-kind="<%= media_item.class.name %>">
   <div class="card-2026-cover">
     <% if media_item.respond_to?(:stored_cover_url) && media_item.stored_cover_url.present? %>
-      <%= image_tag media_item.stored_cover_url, alt: "#{media_title} cover", loading: "lazy", decoding: "async" %>
+      <%= media_cover_image media_item, alt: "#{media_title} cover", loading: "lazy", decoding: "async" %>
     <% else %>
       <span class="fallback-emoji">
         <%= case media_item.class.name
