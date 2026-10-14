@@ -67,7 +67,7 @@
       </div>
 
         <nav class="workspace-primary-nav" aria-label="Media catalogs">
-          <% MediaLayoutHelper::CATALOGS.each do |type, (label, _singular, _emoji)| %>
+          <% MediaLayoutHelper::CATALOGS.each do |type, (label, _singular, _icon)| %>
             <% active = [type.underscore.pluralize, { 'TvShow' => 'tv_episodes', 'Comic' => 'comic_issues' }[type]].include?(controller_name) %>
             <%= link_to label, polymorphic_path(type.constantize), aria: { current: active ? 'page' : nil } %>
           <% end %>
@@ -119,12 +119,12 @@
               </svg>
             </button>
             <div class="dropdown-menu" data-dropdown-target="menu" style="display: none;" role="menu">
-              <%= link_to "🎬 Log Movie", new_movie_path, class: "dropdown-item", role: "menuitem", data: { turbo_frame: "modal" } %>
-              <%= link_to "💿 Log Album", new_album_path, class: "dropdown-item", role: "menuitem", data: { turbo_frame: "modal" } %>
-              <%= link_to "📚 Log Comic", new_comic_path, class: "dropdown-item", role: "menuitem", data: { turbo_frame: "modal" } %>
-              <%= link_to "📺 Log TV Show", new_tv_show_path, class: "dropdown-item", role: "menuitem", data: { turbo_frame: "modal" } %>
-              <%= link_to "🎮 Log Video Game", new_video_game_path, class: "dropdown-item", role: "menuitem", data: { turbo_frame: "modal" } %>
-              <%= link_to "📘 Log Book", new_book_path, class: "dropdown-item", role: "menuitem", data: { turbo_frame: "modal" } %>
+              <%= link_to safe_join([ui_icon('film'), " Log Movie"]), new_movie_path, class: "dropdown-item", role: "menuitem", data: { turbo_frame: "modal" } %>
+              <%= link_to safe_join([ui_icon('disc'), " Log Album"]), new_album_path, class: "dropdown-item", role: "menuitem", data: { turbo_frame: "modal" } %>
+              <%= link_to safe_join([ui_icon('library'), " Log Comic"]), new_comic_path, class: "dropdown-item", role: "menuitem", data: { turbo_frame: "modal" } %>
+              <%= link_to safe_join([ui_icon('tv'), " Log TV Show"]), new_tv_show_path, class: "dropdown-item", role: "menuitem", data: { turbo_frame: "modal" } %>
+              <%= link_to safe_join([ui_icon('gamepad'), " Log Video Game"]), new_video_game_path, class: "dropdown-item", role: "menuitem", data: { turbo_frame: "modal" } %>
+              <%= link_to safe_join([ui_icon('book'), " Log Book"]), new_book_path, class: "dropdown-item", role: "menuitem", data: { turbo_frame: "modal" } %>
             </div>
           </div>
         <% else %>
@@ -219,12 +219,12 @@
           </div>
           <div class="mobile-log-actions">
             <h4 class="mobile-log-header">LOG NEW ITEM</h4>
-            <%= link_to "🎬 Log Movie", new_movie_path, class: "mobile-log-btn", data: { turbo_frame: "modal" } %>
-            <%= link_to "💿 Log Album", new_album_path, class: "mobile-log-btn", data: { turbo_frame: "modal" } %>
-            <%= link_to "📚 Log Comic", new_comic_path, class: "mobile-log-btn", data: { turbo_frame: "modal" } %>
-            <%= link_to "📺 Log TV Show", new_tv_show_path, class: "mobile-log-btn", data: { turbo_frame: "modal" } %>
-            <%= link_to "🎮 Log Video Game", new_video_game_path, class: "mobile-log-btn", data: { turbo_frame: "modal" } %>
-            <%= link_to "📘 Log Book", new_book_path, class: "mobile-log-btn", data: { turbo_frame: "modal" } %>
+            <%= link_to safe_join([ui_icon('film'), " Log Movie"]), new_movie_path, class: "mobile-log-btn", data: { turbo_frame: "modal" } %>
+            <%= link_to safe_join([ui_icon('disc'), " Log Album"]), new_album_path, class: "mobile-log-btn", data: { turbo_frame: "modal" } %>
+            <%= link_to safe_join([ui_icon('library'), " Log Comic"]), new_comic_path, class: "mobile-log-btn", data: { turbo_frame: "modal" } %>
+            <%= link_to safe_join([ui_icon('tv'), " Log TV Show"]), new_tv_show_path, class: "mobile-log-btn", data: { turbo_frame: "modal" } %>
+            <%= link_to safe_join([ui_icon('gamepad'), " Log Video Game"]), new_video_game_path, class: "mobile-log-btn", data: { turbo_frame: "modal" } %>
+            <%= link_to safe_join([ui_icon('book'), " Log Book"]), new_book_path, class: "mobile-log-btn", data: { turbo_frame: "modal" } %>
           </div>
         <% else %>
           <div class="mobile-auth-actions">

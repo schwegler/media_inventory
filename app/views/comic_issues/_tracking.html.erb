@@ -15,7 +15,7 @@
           <div class="actions-buttons-row">
             <% if is_read %>
               <span class="btn btn-success" style="background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.2); pointer-events: none;">✓ Read</span>
-              <%= button_to "📁 Mark Unread",
+              <%= button_to safe_join([ui_icon('folder'), " Mark Unread"]),
                             toggle_read_comic_issue_path(@comic_issue),
                             method: :patch,
                             params: { comic_issue: { consumed: false, rating: nil, review: nil, consumed_at: nil }, back_to_issue: true },

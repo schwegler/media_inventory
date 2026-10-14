@@ -18,12 +18,12 @@
       <% cfg = Category.config_for(type) %>
       <% items = @top_categories[type] || [] %>
       <% total = @counts[type] || 0 %>
-      <% emoji = { 'genres' => '🎭', 'directors' => '🎬', 'actors' => '⭐', 'writers' => '✍️', 'platforms' => '🎮' }[type] %>
+      <% icon = { 'genres' => ui_icon('drama'), 'directors' => ui_icon('film'), 'actors' => ui_icon('star'), 'writers' => ui_icon('pen'), 'platforms' => ui_icon('gamepad') }[type] %>
 
       <div class="category-hub-section" style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
           <h2 style="margin: 0; font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
-            <span><%= emoji %></span>
+            <span><%= icon %></span>
             <span><%= cfg[:title] %></span>
             <span style="font-size: 0.8125rem; font-weight: normal; color: var(--text-tertiary); margin-left: 0.25rem;">(<%= number_with_delimiter(total) %>)</span>
           </h2>

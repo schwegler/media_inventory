@@ -1,6 +1,6 @@
 <% content_for(:media_workspace, 'true') %>
 <%
-  title, _, emoji = media_catalog(item)
+  title, _, icon = media_catalog(item)
   stats = community_stats_for(item)
   overview_facts = media_metadata(item).reject do |_, _, attribute|
     %w[Movie TvShow].include?(item.class.name) && %i[actors writer].include?(attribute)
@@ -29,7 +29,7 @@
           <% end %>
         <% end %>
       <% else %>
-        <div class="artwork-fallback"><span aria-hidden="true"><%= emoji %></span><span>No cover yet</span></div>
+        <div class="artwork-fallback"><span aria-hidden="true"><%= ui_icon(icon) %></span><span>No cover yet</span></div>
       <% end %>
     </div>
     <div class="media-identity">

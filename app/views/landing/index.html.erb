@@ -79,12 +79,14 @@
                   <div class="poster-fallback">
                     <span class="fallback-emoji">
                       <%= case media.class.name
-                          when 'Movie' then '🎬'
-                          when 'Album' then '💿'
-                          when 'Comic' then '📚'
-                          when 'TvShow' then '📺'
-                          when 'VideoGame' then '🎮'
-                          else '📦'
+                          when 'Movie' then ui_icon('film')
+                          when 'Album' then ui_icon('disc')
+                          when 'Comic' then ui_icon('library')
+                          when 'TvShow' then ui_icon('tv')
+                          when 'VideoGame' then ui_icon('gamepad')
+                          when 'Book' then ui_icon('book')
+                          when 'WrestlingEvent' then ui_icon('wrestling')
+                          else ui_icon('archive')
                           end %>
                     </span>
                   </div>
@@ -110,7 +112,7 @@
                   <span class="review-stars"><%= render_stars(lib_item.rating) %></span>
                 <% end %>
                 <% if lib_item.respond_to?(:rating) && lib_item.rating.to_f >= 4.0 %>
-                  <span class="heart-icon">🧡</span>
+                  <span class="heart-icon"><%= ui_icon('heart') %></span>
                 <% end %>
 
               </div>
@@ -172,12 +174,14 @@
                   <% else %>
                     <span class="fallback-icon">
                       <%= case media&.class&.name
-                          when 'Movie' then '🎬'
-                          when 'Album' then '💿'
-                          when 'Comic' then '📚'
-                          when 'TvShow' then '📺'
-                          when 'VideoGame' then '🎮'
-                          else '📦'
+                          when 'Movie' then ui_icon('film')
+                          when 'Album' then ui_icon('disc')
+                          when 'Comic' then ui_icon('library')
+                          when 'TvShow' then ui_icon('tv')
+                          when 'VideoGame' then ui_icon('gamepad')
+                          when 'Book' then ui_icon('book')
+                          when 'WrestlingEvent' then ui_icon('wrestling')
+                          else ui_icon('archive')
                           end %>
                     </span>
                   <% end %>

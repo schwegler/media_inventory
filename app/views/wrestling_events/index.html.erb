@@ -13,7 +13,7 @@
           <% elsif wrestling_event.thumbnail_url.present? %>
             <img src="<%= wrestling_event.thumbnail_url %>" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
           <% else %>
-            🤼
+            <%= ui_icon('wrestling') %>
           <% end %>
         </div>
         <div class="card-content">

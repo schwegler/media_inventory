@@ -20,7 +20,7 @@
       <span class="likes-count" style="font-size: 0.9rem; color: <%= liked ? '#ec4899' : '#94a3b8' %>;"><%= likes_count > 0 ? likes_count : '' %></span>
     </div>
   <% else %>
-    <span class="heart <%= liked ? 'is-liked' : 'is-unliked' %>">♥</span> <span class="like-text">Like</span> <span class="likes-count"><%= likes_count %></span>
+    <span class="heart <%= liked ? 'is-liked' : 'is-unliked' %>"><%= ui_icon('heart') %></span> <span class="like-text">Like</span> <span class="likes-count"><%= likes_count %></span>
   <% end %>
 <% end %>
 </div>

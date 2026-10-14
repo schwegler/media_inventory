@@ -66,11 +66,11 @@
       </div>
 
       <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.5rem; margin-top: 1.5rem; margin-bottom: 1.5rem;">
-        <h3 style="font-size: 1.25rem; color: #fff; margin-bottom: 0.5rem;">🐘 Mastodon Integration</h3>
+        <h3 style="font-size: 1.25rem; color: #fff; margin-bottom: 0.5rem;"><%= ui_icon('mastodon') %> Mastodon Integration</h3>
         
         <% if @user.mastodon_access_token.present? %>
           <div style="padding: 1rem; background: rgba(86, 58, 204, 0.1); border-left: 4px solid #563acc; margin-bottom: 1rem;">
-            <p style="margin: 0;">✅ Connected to <strong><%= @user.mastodon_server %></strong></p>
+            <p style="margin: 0;"><%= ui_icon('circle-check') %> Connected to <strong><%= @user.mastodon_server %></strong></p>
           </div>
           
           <div style="margin-top: 15px; display: flex; gap: 20px; flex-wrap: wrap;">

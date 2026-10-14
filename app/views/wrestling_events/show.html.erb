@@ -12,7 +12,7 @@
       <% elsif @wrestling_event.thumbnail_url.present? %>
         <img src="<%= @wrestling_event.thumbnail_url %>" alt="<%= @wrestling_event.title %> Cover">
       <% else %>
-        <span class="fallback-icon">🤼</span>
+        <span class="fallback-icon"><%= ui_icon('wrestling') %></span>
       <% end %>
     </div>
     
@@ -27,7 +27,7 @@
       
       <div class="media-tracking-badges">
         <% if @wrestling_event.is_collected? %>
-          <span class="tracking-badge badge-collected">📁 In Collection</span>
+          <span class="tracking-badge badge-collected"><%= ui_icon('folder') %> In Collection</span>
         <% end %>
         <% if @wrestling_event.in_watchlist? %>
           <span class="tracking-badge badge-watchlist">⏳ Watchlist</span>
@@ -112,7 +112,7 @@
       <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; margin-top: 1.5rem;">Watchers</h3>
       <div class="community-members-list" style="margin-bottom: 1.5rem;">
         <% stats[:watchers].each do |user| %>
-          <span class="member-tag">👤 <%= user.name.presence || user.email %></span>
+          <span class="member-tag"><%= ui_icon('user') %> <%= user.name.presence || user.email %></span>
         <% end %>
       </div>
     <% end %>
@@ -121,7 +121,7 @@
       <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Collectors</h3>
       <div class="community-members-list">
         <% stats[:collectors].each do |user| %>
-          <span class="member-tag">📁 <%= user.name.presence || user.email %></span>
+          <span class="member-tag"><%= ui_icon('folder') %> <%= user.name.presence || user.email %></span>
         <% end %>
       </div>
     <% end %>

@@ -11,7 +11,7 @@
                         elsif item.external_url.include?('openlibrary.org')
                           "Borrow on Open Library"
                         elsif item.external_url.include?('tvmaze.com')
-                          "📺 View on TVmaze"
+                          safe_join([ui_icon('tv'), " View on TVmaze"])
                         elsif item.external_url.include?('steampowered.com') || item.external_url.include?('steamcommunity.com')
                           "View on Steam"
                         else
