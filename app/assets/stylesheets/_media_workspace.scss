@@ -449,3 +449,9 @@
   text-transform: none;
 }
 .child-description-prose > :first-child { margin-top: 0; }
+
+.media-detail .game-description {
+  margin: 0 0 1.75rem;
+  background: var(--background);
+  > h3 { margin: 0 0 .7rem; font: 700 .875rem/1.4 'Instrument Sans', sans-serif; letter-spacing: normal; }
+}
