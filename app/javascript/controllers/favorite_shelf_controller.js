@@ -1,8 +1,8 @@
 import { Controller } from "@hotwired/stimulus"
-import { renderShelfImage, SHELF_THEMES } from "controllers/shelf_image"
+import { renderShelfImage, shelfImageAltText, SHELF_THEMES } from "controllers/shelf_image"
 
 export default class extends Controller {
-  static targets = ["slots", "dialog", "query", "results", "status", "canvas"]
+  static targets = ["slots", "dialog", "query", "results", "status", "canvas", "altText", "altTextDetails"]
   static values = { picks: Array, url: String, search: String, handle: String, category: String, shelves: Array, overview: Boolean, headline: String }
 
   connect() {
@@ -112,12 +112,30 @@ export default class extends Controller {
     try { await navigator.clipboard.writeText(url.href); this.statusTarget.textContent = "Shelf link copied, including your theme." }
     catch { this.statusTarget.textContent = `Copy this shelf link: ${url.href}` }
   }
+  imageOptions() {
+    return { picks: [...this.picks], shelves: this.shelvesValue,
+      overview: this.overviewValue, headline: this.headlineValue, theme: this.imageTheme, format: this.imageFormat,
+      handle: this.handleValue, category: this.categoryValue }
+  }
+  async copyAltText() {
+    if (this.dirty) { this.statusTarget.textContent = "Save your changes before copying alt text so it matches your share image."; return }
+    const description = shelfImageAltText(this.imageOptions())
+    this.altTextTarget.value = description
+    try { await navigator.clipboard.writeText(description); this.statusTarget.textContent = "Image alt text copied." }
+    catch {
+      this.altTextDetailsTarget.open = true
+      this.altTextTarget.focus(); this.altTextTarget.select()
+      this.statusTarget.textContent = "Clipboard unavailable. Select and copy the image alt text below."
+    }
+  }
   async preview() {
     const version = this.version = (this.version || 0) + 1
     const canvas = document.createElement("canvas")
-    await renderShelfImage(canvas, { picks: [...this.picks], shelves: this.shelvesValue,
-      overview: this.overviewValue, headline: this.headlineValue, theme: this.imageTheme, format: this.imageFormat,
-      handle: this.handleValue, category: this.categoryValue })
+    const options = this.imageOptions()
+    const description = shelfImageAltText(options)
+    this.altTextTarget.value = description
+    this.canvasTarget.setAttribute("aria-label", description)
+    await renderShelfImage(canvas, options)
     if (version !== this.version || !this.element.isConnected) return
     this.canvasTarget.width = canvas.width; this.canvasTarget.height = canvas.height
     this.canvasTarget.getContext("2d").drawImage(canvas, 0, 0)

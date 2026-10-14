@@ -4,6 +4,16 @@ export const SHELF_THEMES = {
   electric: { bg: '#181235', text: '#fff4f6', muted: '#bcb0d7', accent: '#ff9ccf', surface: '#30234f', line: '#fff4f630' }
 }
 
+export function shelfImageAltText({ picks, shelves, overview, theme, format, handle, category, headline }) {
+  const source = overview ? shelves : [{ label: category, picks }]
+  const heading = overview ? (headline || 'The things I keep.') : `My top five · ${category}`
+  const description = source.map(shelf => {
+    const titles = Array.from({ length: 5 }, (_, index) => `${index + 1}. ${shelf.picks[index]?.title || 'Not picked yet'}`)
+    return `${shelf.label}: ${titles.join('; ')}.`
+  }).join('\n')
+  return `${format === 'portrait' ? 'Portrait' : 'Landscape'} Trove share image for @${handle}’s Shelf in the ${theme} theme. Heading: “${heading}”. Five numbered cover positions per shelf, in favorite order.\n${description}`
+}
+
 async function cover(pick) {
   if (!pick?.cover) return null
   return new Promise(resolve => {
