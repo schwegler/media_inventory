@@ -14,12 +14,17 @@
     <div class="library-profile-banner"><div class="banner-placeholder" aria-hidden="true"></div></div>
   <% end %>
   <header class="library-profile-heading">
-    <%= user_avatar_tag(@user, size: 112) %>
+    <div class="profile-heading-avatar-group">
+      <%= user_avatar_tag(@user, size: 112) %>
+      <div class="profile-facet-badge" aria-hidden="true">
+        <%= image_tag 'brand/facet_pose_03_crate_digger.png', class: 'mascot-sticker', width: 44, height: 57, alt: '' %>
+      </div>
+    </div>
     <div class="library-profile-identity">
       <h1><%= @user.name %>’s library</h1>
       <% if @user.display_handle.present? %><p class="library-profile-handle"><%= @user.display_handle %></p><% end %>
       <% if @user.bio.present? %><p class="library-profile-bio"><%= @user.bio %></p><% end %>
-      <p class="library-profile-member">Member since <%= @user.created_at.strftime('%B %Y') %></p>
+      <p class="library-profile-member">Cataloging since <%= @user.created_at.strftime('%B %Y') %></p>
     </div>
     <div class="library-profile-actions">
       <% if @profile_owner %>
@@ -113,10 +118,31 @@
       <p><%= @user.bio.presence || "A collection of what #{@user.name} loves, and what’s next." %></p>
       <p class="profile-visibility"><%= @profile_owner ? 'Only you can see reviews marked private. Use Public preview to see what visitors see.' : 'You’re exploring the public side of this library.' %></p>
       <% if @profile_owner && @user.birthday.present? %><p class="profile-visibility">Birthday: <%= @user.birthday.strftime('%B %d, %Y') %> · Only shown to you</p><% end %>
-      <section class="profile-mix"><h3>Library mix</h3>
-        <% @library_mix.sort_by { |_, count| -count }.each do |type, count| %>
-          <%= link_to profile_tab_path('collection', type: type) do %><span><%= ProfilesHelper::PROFILE_MEDIA_TYPES[type] || type.titleize %></span><strong><%= count %></strong><% end %>
-        <% end %>
+      <section class="profile-mix">
+        <h3>Library mix</h3>
+        <% total_mix = @library_mix.values.sum %>
+        <div class="library-mix-bars">
+          <% ProfilesHelper::PROFILE_MEDIA_TYPES.each do |type, label| %>
+            <% count = @library_mix[type] || 0 %>
+            <% percent = total_mix > 0 ? (count.to_f / total_mix * 100).round : 0 %>
+            <% display_label = type == 'VideoGame' ? 'Video Games' : label %>
+            <div class="mix-row">
+              <%= link_to profile_tab_path('collection', type: type), class: 'mix-link' do %>
+                <div class="mix-label-row">
+                  <span class="mix-name"><%= display_label %></span>
+                  <% if count.zero? && type == 'VideoGame' %>
+                    <span class="mix-zero-note"><small>0 logged yet · (backlog incoming)</small></span>
+                  <% else %>
+                    <strong class="mix-count"><%= count %></strong>
+                  <% end %>
+                </div>
+                <div class="mix-bar-track" aria-hidden="true">
+                  <div class="mix-bar-fill" style="width: <%= percent %>%;"></div>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
         <% if @library_mix.empty? %><p>No items yet.</p><% end %>
       </section>
       <% if logged_in? && !current_user?(@user) %>

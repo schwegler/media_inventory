@@ -35,8 +35,17 @@
   .library-profile-sidebar { align-self: start; padding: 25px; border: 1px solid var(--border-subtle); border-radius: 6px; }
   .library-profile-sidebar > p { line-height: 1.6; margin: 18px 0; overflow-wrap: anywhere; }
   .library-profile-sidebar .profile-visibility { font-size: 13px; color: var(--text-muted); }
+  .profile-heading-avatar-group { position: relative; display: inline-flex; flex-shrink: 0; }
+  .profile-facet-badge { position: absolute; bottom: -6px; right: -8px; z-index: 2; }
   .profile-mix, .profile-shared { border-top: 1px solid var(--border-subtle); padding-top: 22px; margin-top: 24px; }
   .library-profile-sidebar h3 { font: 600 20px/1.3 'Space Grotesk', sans-serif; margin: 0 0 14px; }
+  .library-mix-bars { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+  .mix-row .mix-link { display: flex; flex-direction: column; gap: 6px; padding: 6px 0; border-bottom: 1px solid var(--border-subtle); text-decoration: none; color: var(--text-main); }
+  .mix-row .mix-link:hover .mix-name { color: var(--primary-color); }
+  .mix-label-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; }
+  .mix-zero-note { color: var(--text-muted); font-size: 12px; }
+  .mix-bar-track { width: 100%; height: 6px; background: var(--border-subtle); border-radius: 999px; overflow: hidden; }
+  .mix-bar-fill { height: 100%; background: var(--primary-color); border-radius: 999px; min-width: 0; transition: width 0.3s ease; }
   .profile-mix a { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border-subtle); color: var(--text-main); text-decoration: none; }
   .profile-shared a { display: block; padding: 6px 0; }
   .profile-join { background: var(--bg-surface); padding: 20px; border-radius: 6px; margin-top: 28px; }
