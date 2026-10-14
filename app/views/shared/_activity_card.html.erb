@@ -6,12 +6,14 @@
     <% else %>
       <span class="fallback-emoji">
         <%= case media_item.class.name
-            when 'Movie' then '🎬'
-            when 'Album' then '💿'
-            when 'Comic' then '📚'
-            when 'TvShow' then '📺'
-            when 'VideoGame' then '🎮'
-            else '📦'
+            when 'Movie' then ui_icon('film')
+            when 'Album' then ui_icon('disc')
+            when 'Comic' then ui_icon('library')
+            when 'TvShow' then ui_icon('tv')
+            when 'VideoGame' then ui_icon('gamepad')
+            when 'Book' then ui_icon('book')
+            when 'WrestlingEvent' then ui_icon('wrestling')
+            else ui_icon('archive')
             end %>
       </span>
     <% end %>
@@ -29,7 +31,7 @@
           <span class="friend-stars"><%= render_stars(lib_item.rating) %></span>
         <% end %>
         <% if lib_item.respond_to?(:rating) && lib_item.rating.to_f >= 4.0 %>
-          <span class="heart-icon" style="color: var(--destructive); margin-left: 4px;">♥</span>
+          <span class="heart-icon" style="color: var(--destructive); margin-left: 4px;"><%= ui_icon('heart') %></span>
         <% end %>
       </div>
       <div class="activity-date" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">

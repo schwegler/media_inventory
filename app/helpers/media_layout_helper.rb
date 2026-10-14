@@ -2,12 +2,12 @@
 
 module MediaLayoutHelper
   CATALOGS = {
-    'Movie' => ['Movies', 'Movie', '🎬'],
-    'TvShow' => ['TV Shows', 'TV Show', '📺'],
-    'Book' => ['Books', 'Book', '📘'],
-    'Album' => ['Albums', 'Album', '💿'],
-    'Comic' => ['Comics', 'Comic', '📚'],
-    'VideoGame' => ['Video Games', 'Video Game', '🎮']
+    'Movie' => %w[Movies Movie film],
+    'TvShow' => ['TV Shows', 'TV Show', 'tv'],
+    'Book' => %w[Books Book book],
+    'Album' => %w[Albums Album disc],
+    'Comic' => %w[Comics Comic library],
+    'VideoGame' => ['Video Games', 'Video Game', 'gamepad']
   }.freeze
 
   METADATA = {

@@ -1,0 +1,24 @@
+.ui-icon {
+  display: inline-block;
+  width: 1.15em;
+  height: 1.15em;
+  flex: 0 0 auto;
+  vertical-align: -0.2em;
+  overflow: visible;
+}
+
+.fallback-emoji, .fallback-icon, .artwork-fallback {
+  .ui-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    color: var(--text-secondary);
+    opacity: 0.7;
+    stroke-width: 1.35;
+  }
+}
+
+.dropdown-item, .mobile-log-btn {
+  .ui-icon { margin-right: 0.4em; }
+}
+
+.heart.is-liked .ui-icon { fill: currentColor; }

@@ -68,7 +68,7 @@ RSpec.describe 'Presentation and keyboard access', type: :system do
     page.driver.browser.action.send_keys(:escape).perform
     expect(page.evaluate_script('document.activeElement.getAttribute("aria-label")')).to eq('Toggle log menu')
     click_button 'Toggle log menu'
-    click_link '🎬 Log Movie'
+    click_link 'Log Movie'
     expect(page).to have_css('[role="dialog"][aria-modal="true"]')
     expect(page).to have_css('[data-controller="modal"][data-connected="true"]')
     expect(page.evaluate_script('document.activeElement.closest("[role=dialog]") !== null')).to be true

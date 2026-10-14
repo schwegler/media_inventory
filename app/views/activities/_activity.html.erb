@@ -8,12 +8,14 @@
     <% else %>
       <span class="fallback-icon">
         <%= case activity.trackable_type
-            when 'Movie' then '🎬'
-            when 'Album' then '💿'
-            when 'Comic' then '📚'
-            when 'TvShow' then '📺'
-            when 'VideoGame' then '🎮'
-            else '📦'
+            when 'Movie' then ui_icon('film')
+            when 'Album' then ui_icon('disc')
+            when 'Comic' then ui_icon('library')
+            when 'TvShow' then ui_icon('tv')
+            when 'VideoGame' then ui_icon('gamepad')
+            when 'Book' then ui_icon('book')
+            when 'WrestlingEvent' then ui_icon('wrestling')
+            else ui_icon('archive')
             end %>
       </span>
     <% end %>

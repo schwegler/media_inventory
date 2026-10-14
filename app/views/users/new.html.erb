@@ -44,7 +44,7 @@
       </div>
 
       <div class="auth-tab-content hidden" data-tabs-target="content" data-tab-name="bsky-oauth">
-        <h2 class="auth-section-title">🦋 Sign up with Bluesky</h2>
+        <h2 class="auth-section-title"><%= ui_icon('bluesky') %> Sign up with Bluesky</h2>
         <div class="auth-section-body">
           <%= form_tag "/auth/atproto", method: :post, data: { turbo: false } do %>
             <div class="form-group handle-group">
@@ -57,7 +57,7 @@
       </div>
 
       <div class="auth-tab-content hidden" data-tabs-target="content" data-tab-name="mastodon">
-        <h2 class="auth-section-title">🐘 Sign up with Mastodon</h2>
+        <h2 class="auth-section-title"><%= ui_icon('mastodon') %> Sign up with Mastodon</h2>
         <div class="auth-section-body">
           <%= form_tag "/auth/mastodon", method: :post, data: { turbo: false } do %>
             <div class="form-group server-group">

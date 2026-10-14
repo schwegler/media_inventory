@@ -14,7 +14,7 @@
 
   if is_tv
     tag_label = "TV Show"
-    fallback_icon = "📺"
+    fallback_icon = ui_icon('tv')
     next_label = "S#{next_item.season}E#{next_item.episode}"
     next_title = next_item.name.presence || "Episode #{next_item.episode}"
     next_path = tv_episode_path(next_item)
@@ -26,7 +26,7 @@
     units_label = "episodes"
   else
     tag_label = "Comic"
-    fallback_icon = "📚"
+    fallback_icon = ui_icon('library')
     next_label = next_item.issue_number.present? ? "##{next_item.issue_number}" : "Issue"
     next_title = next_item.title.presence || (next_item.issue_number.present? ? "Issue ##{next_item.issue_number}" : "Next issue")
     next_path = comic_issue_path(next_item)
