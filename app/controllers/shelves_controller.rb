@@ -13,9 +13,15 @@ class ShelvesController < ApplicationController
   end
 
   def show
-    @category = FavoriteShelf::CATEGORIES.key?(params[:category]) ? params[:category] : 'overall'
-    @shelf = @user.favorite_shelves.find_or_initialize_by(category: @category)
-    @items = @shelf.items
+    @overview = !FavoriteShelf::CATEGORIES.key?(params[:category])
+    @theme = %w[midnight gallery electric].include?(params[:theme]) ? params[:theme] : 'midnight'
+    @category = @overview ? 'overall' : params[:category]
+    saved = @user.favorite_shelves.index_by(&:category)
+    @shelves = FavoriteShelf::CATEGORIES.map do |key, label|
+      { key: key, label: label, items: saved[key]&.items || [] }
+    end
+    @items = @shelves.find { |shelf| shelf[:key] == @category }[:items]
+    render layout: 'shelf'
   end
 
   def update

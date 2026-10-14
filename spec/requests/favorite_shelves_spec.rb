@@ -29,6 +29,27 @@ RSpec.describe 'Favorite shelves', type: :request do
     expect(response.body).not_to include('Save shelf')
   end
 
+  it 'exhibits all seven shelves at the landing URL and links each category' do
+    user.favorite_shelves.create!(category: 'Movie', picks: [{ type: 'Movie', id: movie.id }])
+    get shelf_path(user.username)
+    expect(response).to have_http_status(:ok)
+    page = Nokogiri::HTML(response.body)
+    expect(page.css('.shelf-exhibit').size).to eq(7)
+    expect(page.css('.shelf-exhibit h2').map(&:text)).to eq(FavoriteShelf::CATEGORIES.values)
+    expect(page.css('.shelf-exhibit').map(&:text).join).to include(movie.title)
+    expect(page.css('.shelf-formats input').map { |input| input['value'] }).to eq(%w[landscape portrait])
+    expect(page.css('.favorite-shelf-slots')).to be_empty
+  end
+
+  it 'carries supported themes through shelf links and safely defaults unknown themes' do
+    get shelf_path(user.username, theme: 'gallery')
+    page = Nokogiri::HTML(response.body)
+    expect(page.at_css('.favorite-shelf')['data-shelf-theme']).to eq('gallery')
+    expect(page.css('.shelf-exhibit').all? { |link| link['href'].include?('theme=gallery') }).to be(true)
+    get shelf_path(user.username, theme: 'unknown')
+    expect(Nokogiri::HTML(response.body).at_css('.favorite-shelf')['data-shelf-theme']).to eq('midnight')
+  end
+
   it 'rejects another user modifying the shelf' do
     login
     other = User.create!(name: 'Other', username: 'other', password: 'password')
@@ -41,10 +62,10 @@ RSpec.describe 'Favorite shelves', type: :request do
     pick = { type: 'Movie', id: movie.id }
     [[pick, pick], Array.new(6, pick)].each do |picks|
       patch shelf_path(user.username, category: 'overall'), params: { picks: picks }, as: :json
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
     patch shelf_path(user.username, category: 'Book'), params: { picks: [pick] }, as: :json
-    expect(response).to have_http_status(:unprocessable_entity)
+    expect(response).to have_http_status(:unprocessable_content)
   end
 
   it 'searches the catalog with media filtering' do

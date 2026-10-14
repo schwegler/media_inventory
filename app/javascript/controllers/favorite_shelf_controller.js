@@ -1,11 +1,18 @@
 import { Controller } from "@hotwired/stimulus"
+import { renderShelfImage, SHELF_THEMES } from "controllers/shelf_image"
 
 export default class extends Controller {
   static targets = ["slots", "dialog", "query", "results", "status", "canvas"]
-  static values = { picks: Array, url: String, search: String, handle: String, category: String }
+  static values = { picks: Array, url: String, search: String, handle: String, category: String, shelves: Array, overview: Boolean }
 
   connect() {
-    this.picks = this.picksValue; this.dirty = false; this.render()
+    this.picks = this.picksValue; this.dirty = false; this.imageFormat = this.element.querySelector('[name="shelf-format"]:checked')?.value || "landscape"
+    this.imageTheme = this.element.dataset.shelfTheme
+    if (!new URL(window.location.href).searchParams.has("theme")) {
+      try { this.imageTheme = localStorage.getItem("trove-shelf-theme") || this.imageTheme } catch { /* Storage can be disabled. */ }
+    }
+    if (!SHELF_THEMES[this.imageTheme]) this.imageTheme = "midnight"
+    this.applyTheme(); this.render()
     this.guard = event => { if (this.dirty) { event.preventDefault(); event.returnValue = "" } }
     this.visitGuard = event => { if (this.dirty && !window.confirm("Leave without saving your shelf?")) event.preventDefault() }
     window.addEventListener("beforeunload", this.guard)
@@ -15,16 +22,24 @@ export default class extends Controller {
   button(text, action, label) {
     const button = document.createElement("button")
     button.type = "button"; button.textContent = text
+    if (["←", "→"].includes(text)) {
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+      svg.setAttribute("viewBox", "0 0 24 24"); svg.setAttribute("aria-hidden", "true")
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path")
+      path.setAttribute("d", text === "←" ? "M20 12H5m6-6-6 6 6 6" : "M4 12h15m-6-6 6 6-6 6")
+      svg.append(path); button.replaceChildren(svg)
+    }
     if (label) button.setAttribute("aria-label", label)
     button.addEventListener("click", action)
     return button
   }
   render() {
+    if (!this.hasSlotsTarget) { this.preview(); return }
     const owner = this.slotsTarget.dataset.owner === "true"
     this.slotsTarget.replaceChildren()
     for (let index = 0; index < 5; index++) {
       const pick = this.picks[index], slot = document.createElement("article")
-      slot.className = "shelf-slot"
+      slot.className = "shelf-slot"; slot.dataset.mediaType = pick?.type || ""
       const cover = owner ? this.button(pick ? "Replace" : "+ Add favorite", () => this.open(index), `Choose favorite ${index + 1}`) : document.createElement("div")
       cover.className = "shelf-pick"
       if (pick?.cover) { const img = new Image(); img.src = pick.cover; img.alt = pick.title; cover.replaceChildren(img) }
@@ -78,47 +93,45 @@ export default class extends Controller {
       this.dirty = false; this.statusTarget.textContent = "Shelf saved. Your public shelf is ready to share."
     } catch (error) { this.statusTarget.textContent = error.message }
   }
+  theme(event) {
+    this.imageTheme = event.target.value
+    try { localStorage.setItem("trove-shelf-theme", this.imageTheme) } catch { /* Presentation still works without storage. */ }
+    this.applyTheme(); this.preview()
+  }
+  applyTheme() {
+    this.element.dataset.shelfTheme = this.imageTheme
+    this.element.querySelectorAll('[name="shelf-theme"]').forEach(input => { input.checked = input.value === this.imageTheme })
+    this.element.querySelectorAll('[data-shelf-link]').forEach(link => {
+      const url = new URL(link.href); url.searchParams.set("theme", this.imageTheme); link.href = url.href
+    })
+  }
+  format(event) { this.imageFormat = event.target.value; this.preview() }
+  async copyLink() {
+    if (this.dirty) { this.statusTarget.textContent = "Save your changes before sharing your public shelf."; return }
+    const url = new URL(window.location.href); url.searchParams.set("theme", this.imageTheme)
+    try { await navigator.clipboard.writeText(url.href); this.statusTarget.textContent = "Shelf link copied, including your theme." }
+    catch { this.statusTarget.textContent = `Copy this shelf link: ${url.href}` }
+  }
   async preview() {
     const version = this.version = (this.version || 0) + 1
-    const picks = [...this.picks]
-    const images = await Promise.all(picks.map(pick => new Promise(resolve => {
-      if (!pick.cover) return resolve(null)
-      const img = new Image(); img.crossOrigin = "anonymous"
-      img.onload = () => resolve(img); img.onerror = () => resolve(null)
-      img.src = `/media/covers/${encodeURIComponent(pick.type.replace(/([a-z])([A-Z])/g, "$1_$2").toLowerCase())}/${pick.id}`
-    })))
-    if (version !== this.version) return
-    const ctx = this.canvasTarget.getContext("2d")
-    ctx.fillStyle = "#f2ede4"; ctx.fillRect(0, 0, 1500, 1000)
-    ctx.fillStyle = "#392d4c"; ctx.font = "bold 30px sans-serif"; ctx.fillText("TROVE / THE THINGS THAT STAY WITH YOU", 70, 90)
-    ctx.font = "bold 66px sans-serif"; ctx.fillText(`My top five · ${this.categoryValue}`, 70, 190)
-    for (let i = 0; i < 5; i++) {
-      const x = 70 + i * 278, img = images[i]
-      ctx.fillStyle = "#dcd2e5"; ctx.fillRect(x, 265, 250, 375)
-      if (img) {
-        const scale = Math.max(250 / img.width, 375 / img.height)
-        ctx.save(); ctx.beginPath(); ctx.rect(x, 265, 250, 375); ctx.clip()
-        ctx.drawImage(img, x + (250 - img.width * scale) / 2, 265 + (375 - img.height * scale) / 2, img.width * scale, img.height * scale); ctx.restore()
-      }
-      ctx.fillStyle = "#392d4c"; ctx.font = "bold 28px sans-serif"; ctx.fillText(`${i + 1}`, x, 690)
-      ctx.font = "24px sans-serif"
-      const words = (picks[i]?.title || "Not picked yet").split(/\s+/); let line = "", y = 730
-      for (const word of words) {
-        if (ctx.measureText(`${line} ${word}`).width > 250 && line) { ctx.fillText(line, x, y, 250); y += 32; line = "" }
-        line += `${line ? " " : ""}${word}`
-        if (y >= 826) { line += "…"; break }
-      }
-      ctx.fillText(line, x, y, 250)
-    }
-    ctx.font = "bold 38px sans-serif"; ctx.fillText(`trove.schweg.xyz/@${this.handleValue}`, 70, 940)
+    const canvas = document.createElement("canvas")
+    await renderShelfImage(canvas, { picks: [...this.picks], shelves: this.shelvesValue,
+      overview: this.overviewValue, theme: this.imageTheme, format: this.imageFormat,
+      handle: this.handleValue, category: this.categoryValue })
+    if (version !== this.version || !this.element.isConnected) return
+    this.canvasTarget.width = canvas.width; this.canvasTarget.height = canvas.height
+    this.canvasTarget.getContext("2d").drawImage(canvas, 0, 0)
+    return canvas
   }
   async download() {
     if (this.dirty) { this.statusTarget.textContent = "Save your changes before downloading so the image matches your public shelf."; return }
-    await this.preview()
-    this.canvasTarget.toBlob(blob => {
+    this.statusTarget.textContent = "Preparing your share image…"
+    const canvas = await this.preview()
+    if (!canvas) { this.statusTarget.textContent = "Presentation changed. Download again to use the latest version."; return }
+    canvas.toBlob(blob => {
       if (!blob) { this.statusTarget.textContent = "Image export failed. Please try again."; return }
       const url = URL.createObjectURL(blob), link = document.createElement("a")
-      link.href = url; link.download = `trove-${this.handleValue}-${this.categoryValue.replaceAll(" ", "-")}.png`; link.click()
+      link.href = url; link.download = `trove-${this.handleValue}-${this.overviewValue ? "all-shelves" : this.categoryValue.replaceAll(" ", "-")}-${this.imageTheme}-${this.imageFormat}.png`; link.click()
       setTimeout(() => URL.revokeObjectURL(url), 1000); this.statusTarget.textContent = "PNG downloaded. Ready to share."
     }, "image/png")
   }
