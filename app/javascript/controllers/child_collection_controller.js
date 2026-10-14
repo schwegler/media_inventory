@@ -4,7 +4,19 @@ export default class extends Controller {
   static targets = ["search", "status", "entry", "result", "empty", "progress", "completed"]
 
   connect() { this.filter() }
-  entryTargetConnected() { if (this.hasSearchTarget) this.filter() }
+  // Stimulus connects every entry individually. Batch those callbacks so a
+  // large collection is scanned once, including after Turbo replaces entries.
+  entryTargetConnected() { this.scheduleFilter() }
+  entryTargetDisconnected() { this.scheduleFilter() }
+
+  scheduleFilter() {
+    if (this.filterScheduled) return
+    this.filterScheduled = true
+    queueMicrotask(() => {
+      this.filterScheduled = false
+      if (this.element.isConnected && this.hasSearchTarget) this.filter()
+    })
+  }
 
   filter() {
     const query = this.searchTarget.value.trim().toLocaleLowerCase()

@@ -120,18 +120,19 @@ class ConsumptionPasses
       pass.entries.pluck(:item_id).to_set
     end
 
-    def consumed?(child, user:, series_lib: nil, pass: nil, **options)
+    def consumed?(child, user:, **options)
       return false unless user
 
-      series_lib ||= series_library_item(user, child)
+      # Explicit nils from preloaded collections mean "absent", not "query again".
+      series_lib = options.fetch(:series_lib) { series_library_item(user, child) }
       return false unless series_lib
 
-      pass ||= current_pass(series_lib)
+      pass = options.fetch(:pass) { current_pass(series_lib) }
       if pass&.rewatch?
         entry_ids = options[:entry_ids] || pass_entry_ids(pass)
         entry_ids.include?(child.id)
       else
-        child_lib = options[:child_lib] || user.library_items.find_by(item: child)
+        child_lib = options.fetch(:child_lib) { user.library_items.find_by(item: child) }
         child_lib&.consumed? || false
       end
     end
