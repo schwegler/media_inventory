@@ -10,6 +10,47 @@ RSpec.describe 'Favorite shelves', type: :request do
     post login_path, params: { session: { email: user.email, password: 'password' } }
   end
 
+  it 'includes item destinations in the interactive shelf data and search results' do
+    user.favorite_shelves.create!(category: 'Movie', picks: [{ type: 'Movie', id: movie.id }])
+    get shelf_path(user.username, category: 'Movie')
+    page = Nokogiri::HTML(response.body)
+    picks = JSON.parse(page.at_css('.favorite-shelf')['data-favorite-shelf-picks-value'])
+    expect(picks.first['url']).to eq(movie_path(movie))
+    login
+    get search_shelves_path(category: 'Movie', q: 'favorite')
+    expect(response.parsed_body.first['url']).to eq(movie_path(movie))
+  end
+
+  it 'stores generated previews for public social cards and rejects stale previews' do
+    user.favorite_shelves.create!(category: 'Movie', picks: [{ type: 'Movie', id: movie.id }])
+    login
+    get shelf_path(user.username, category: 'Movie')
+    page = Nokogiri::HTML(response.body)
+    signature = page.at_css('.favorite-shelf')['data-favorite-shelf-preview-signature-value']
+    image = fixture_file_upload('transparent-logo.png', 'image/png')
+    patch shelf_path(user.username, category: 'Movie'), params: {
+      preview_image: image, preview_category: 'Movie', preview_signature: signature, theme: 'midnight'
+    }
+    expect(response).to have_http_status(:no_content)
+    delete logout_path
+    get shelf_path(user.username, category: 'Movie')
+    page = Nokogiri::HTML(response.body)
+    preview = page.at_css('meta[property="og:image"]')['content']
+    expect(preview).to include('/rails/active_storage/blobs/')
+    expect(page.at_css('meta[name="twitter:image"]')['content']).to eq(preview)
+    get shelf_path(user.username, category: 'Movie', theme: 'gallery')
+    expect(Nokogiri::HTML(response.body).at_css('meta[property="og:image"]')['content']).to end_with('/favicon.svg')
+    user.update!(shelf_headline: 'Changed')
+    get shelf_path(user.username, category: 'Movie')
+    expect(Nokogiri::HTML(response.body).at_css('meta[property="og:image"]')['content']).to end_with('/favicon.svg')
+    login
+    patch shelf_path(user.username, category: 'Movie'), params: {
+      preview_image: fixture_file_upload('transparent-logo.png', 'image/png'), preview_category: 'Movie',
+      preview_signature: signature, theme: 'midnight'
+    }
+    expect(response).to have_http_status(:conflict)
+  end
+
   it 'resolves handles and redirects legacy profile links while preserving tabs' do
     get handle_profile_path(user.username)
     expect(response).to have_http_status(:ok)
