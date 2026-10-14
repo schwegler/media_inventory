@@ -4,7 +4,7 @@
 <% flash.each do |type, message| %><p class="alert alert-<%= type %>" role="status"><%= message %></p><% end %>
 <section data-favorite-shelf-headline-value="<%= headline %>" class="favorite-shelf" data-shelf-theme="<%= @theme %>" data-controller="favorite-shelf" data-favorite-shelf-url-value="<%= shelf_path(@user.username, category: @category) %>" data-favorite-shelf-search-value="<%= search_shelves_path(category: @category) %>" data-favorite-shelf-picks-value="<%= shelf_pick_data(@items).to_json %>" data-favorite-shelf-shelves-value="<%= @shelves.map { |s| { label: s[:label], picks: shelf_pick_data(s[:items]) } }.to_json %>" data-favorite-shelf-overview-value="<%= @overview %>" data-favorite-shelf-handle-value="<%= @user.username %>" data-favorite-shelf-category-value="<%= FavoriteShelf::CATEGORIES[@category] %>">
   <nav class="shelf-toolbar" aria-label="Shelf navigation">
-    <div class="shelf-toolbar-links"><%= link_to 'Trove', root_path, class: 'shelf-wordmark' %><%= link_to 'All shelves', shelf_path(@user.username, theme: @theme), data: { shelf_link: true }, aria: { current: @overview ? 'page' : nil } %><a href="#shelf-sharing">Share</a></div>
+    <div class="shelf-toolbar-links"><%= link_to 'All shelves', shelf_path(@user.username, theme: @theme), data: { shelf_link: true }, aria: { current: @overview ? 'page' : nil } %><a href="#shelf-sharing">Share</a></div>
     <fieldset class="shelf-themes"><legend>Theme</legend><% %w[midnight gallery electric].each do |theme| %><label><input type="radio" name="shelf-theme" value="<%= theme %>" <%= 'checked' if @theme == theme %> data-action="favorite-shelf#theme"><span><%= theme.capitalize %></span></label><% end %></fieldset>
   </nav>
   <% if @overview %>
