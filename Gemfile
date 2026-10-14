@@ -18,7 +18,7 @@ gem 'dartsass-rails'
 gem 'propshaft'
 
 # Active Storage image variant processing
-gem 'image_processing', '~> 1.2'
+gem 'image_processing', '~> 2.2'
 
 # Constrain dependencies to avoid compilation issues with native extensions
 gem 'psych', '5.0.1'
