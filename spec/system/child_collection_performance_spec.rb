@@ -13,7 +13,7 @@ RSpec.describe 'Large child collections', type: :system do
     fill_in 'Search episodes', with: 'Episode 12'
     expect(page).to have_content('1 of 20 shown')
     fill_in 'Search episodes', with: ''
-    click_button 'Season 2'
+    select 'Season 2', from: 'Season'
     expect(page).to have_content('10 of 10 shown')
 
     # Exercise the same Stimulus target lifecycle used by initial load and Turbo.

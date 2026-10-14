@@ -220,6 +220,7 @@ SampleApp::Application.routes.draw do
   }
 
   resources :comic_issues, only: %i[show]
+  patch '/comics/:id/mark_all_read', to: 'comics#mark_all_read', as: 'mark_all_read_comic'
   patch '/comic_issues/:id/toggle_read', to: 'comic_issues#toggle_read', as: 'toggle_read_comic_issue'
   get '/comic_issues/:id/toggle_read', to: redirect { |params, _request|
     issue = ComicIssue.find_by(id: params[:id])

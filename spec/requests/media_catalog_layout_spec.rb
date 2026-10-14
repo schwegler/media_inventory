@@ -71,7 +71,7 @@ RSpec.describe 'Media catalog organization', type: :request do
     comic = Comic.create!(title: 'Comic series')
     issue = comic.comic_issues.create!(title: 'First issue', issue_number: 1)
     [show, comic].each { |parent| LibraryItem.create!(user: user, item: parent, is_collected: true) }
-    [[show, episode, 'Watch, rate, or review'], [comic, issue, 'Read, rate, or review']].each do |parent, child, label|
+    [[show, episode, 'Mark watched'], [comic, issue, 'Mark read']].each do |parent, child, label|
       get polymorphic_path(parent)
       follow_redirect! if response.redirect?
       expect(response).to have_http_status(:ok)

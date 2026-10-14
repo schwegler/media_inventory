@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = [ "tab", "content" ]
+  static targets = [ "tab", "content", "selector", "previous", "next" ]
   static values = { activeSeason: Number, showId: Number }
 
   connect() {
@@ -10,7 +10,7 @@ export default class extends Controller {
   }
 
   restore() {
-    const seasons = this.tabTargets.map(t => parseInt(t.dataset.season, 10))
+    const seasons = this.contentTargets.map(t => parseInt(t.dataset.season, 10))
     if (seasons.length > 0) {
       let savedSeason = this.activeSeasonValue
       try {
@@ -22,6 +22,17 @@ export default class extends Controller {
       const initialSeason = seasons.includes(savedSeason) ? savedSeason : seasons[0]
       this.switchSeason(initialSeason)
     }
+  }
+
+  choose() { this.switchSeason(Number(this.selectorTarget.value)) }
+
+  previous() { this.step(-1) }
+  next() { this.step(1) }
+
+  step(offset) {
+    const seasons = this.contentTargets.map(panel => Number(panel.dataset.season))
+    const season = seasons[seasons.indexOf(this.activeSeasonValue) + offset]
+    if (season !== undefined) this.switchSeason(season)
   }
 
   select(event) {
@@ -78,6 +89,12 @@ export default class extends Controller {
       content.classList.toggle("hidden", !isCurrent)
       content.hidden = !isCurrent
     })
+    if (this.hasSelectorTarget) {
+      this.selectorTarget.value = String(season)
+      this.selectorTarget.setAttribute('aria-controls', `season-panel-${season}`)
+    }
+    if (this.hasPreviousTarget) this.previousTarget.disabled = season === Number(this.contentTargets[0]?.dataset.season)
+    if (this.hasNextTarget) this.nextTarget.disabled = season === Number(this.contentTargets.at(-1)?.dataset.season)
     this.dispatch("change")
   }
 }

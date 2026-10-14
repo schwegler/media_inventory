@@ -94,7 +94,7 @@
       </div>
       <% if entries %>
         <section id="media-entries" data-controller="child-collection" data-action="season-tabs:change->child-collection#filter" class="media-section media-entries" aria-label="<%= entries_label %>">
-          <h2><%= entries_label %> in this Series</h2>
+          <h2><%= entries_label %> in this series</h2>
           <% if logged_in? %>
             <%
               # Use preloaded @child_library_items in-memory hash to avoid redundant SQL query
@@ -106,14 +106,14 @@
                             0
                           end
             %>
-            <p class="media-progress"><strong data-child-collection-target="completed"><%= completed %> / <%= entries.size %></strong> <%= entries_label.downcase %> <%= MediaLanguage.for(item)[:past] %></p>
+            <p class="media-progress"><strong data-child-collection-target="completed"><%= number_with_delimiter(completed) %> of <%= number_with_delimiter(entries.size) %></strong> <%= entries_label.downcase %> <%= MediaLanguage.for(item)[:past] %></p>
             <progress data-child-collection-target="progress" value="<%= completed %>" max="<%= [entries.size, 1].max %>" aria-label="<%= entries_label %> completed"></progress>
             <%= render 'shared/consumption_pass_panel', item: item, library_item: @library_item if @library_item.present? %>
           <% end %>
           <div class="child-collection-toolbar">
-            <div><label for="child-search">Search <%= entries_label.downcase %></label><input id="child-search" type="search" placeholder="Title or number…" data-child-collection-target="search" data-action="input->child-collection#filter"></div>
+            <div><label for="child-search">Search <%= entries_label.downcase %></label><input id="child-search" type="search" placeholder="Search by title or number" data-child-collection-target="search" data-action="input->child-collection#filter"></div>
             <% if @library_item.present? %>
-              <div><label for="child-status">Progress</label><select id="child-status" data-child-collection-target="status" data-action="change->child-collection#filter"><option value="all">All</option><option value="false"><%= item.is_a?(TvShow) ? 'Unwatched' : 'Unread' %></option><option value="true"><%= item.is_a?(TvShow) ? 'Watched' : 'Read' %></option></select></div>
+              <div><label for="child-status"><%= item.is_a?(TvShow) ? "Watch" : "Read" %> status</label><select id="child-status" data-child-collection-target="status" data-action="change->child-collection#filter"><option value="all">All <%= entries_label.downcase %></option><option value="false"><%= item.is_a?(TvShow) ? 'Unwatched' : 'Unread' %></option><option value="true"><%= item.is_a?(TvShow) ? 'Watched' : 'Read' %></option></select></div>
             <% end %>
             <p role="status" aria-live="polite" data-child-collection-target="result"></p>
           </div>

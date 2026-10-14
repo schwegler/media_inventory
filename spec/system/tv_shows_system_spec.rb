@@ -109,8 +109,8 @@ RSpec.describe 'TV Shows and Episodes Management', type: :system do
 
     visit tv_show_path(show)
     expect(page).to have_css('[data-controller="season-tabs"][data-connected="true"]')
-    click_button 'Season 3'
-    expect(page).to have_css('#season-tab-3[aria-selected="true"]')
+    select 'Season 3', from: 'Season'
+    expect(page).to have_select('Season', selected: 'Season 3')
     expect(page).to have_css('#season-panel-3', visible: true)
     expect(page).to have_no_css('#season-panel-1', visible: true)
 
@@ -121,15 +121,15 @@ RSpec.describe 'TV Shows and Episodes Management', type: :system do
       window.Turbo.visit(window.location.href, { action: "replace" })
     JS
     expect(page).to have_css('body[data-season-test-morphed="true"]')
-    expect(page).to have_css('#season-tab-3[aria-selected="true"]')
+    expect(page).to have_select('Season', selected: 'Season 3')
     page.refresh
-    expect(page).to have_css('#season-tab-3[aria-selected="true"]')
+    expect(page).to have_select('Season', selected: 'Season 3')
     expect(page).to have_css('#season-panel-3', visible: true)
     expect(page).to have_no_css('#season-panel-1', visible: true)
 
-    find('#season-tab-3').send_keys(:left)
-    expect(page).to have_css('#season-tab-1[aria-selected="true"]')
+    click_button 'Previous season'
+    expect(page).to have_select('Season', selected: 'Season 1')
     page.refresh
-    expect(page).to have_css('#season-tab-1[aria-selected="true"]')
+    expect(page).to have_select('Season', selected: 'Season 1')
   end
 end

@@ -30,7 +30,8 @@ RSpec.describe 'Metadata navigation and mobile layout', type: :system do
     fill_in 'Search issues', with: 'Alex Ross'
     expect(page).to have_css("#comic_issue_#{first.id}")
     expect(page).to have_no_css("#comic_issue_#{second.id}")
-    find("#comic_issue_#{first.id} summary").click
+    find("#comic_issue_#{first.id} .series-entry-details > summary").click
+    find("#comic_issue_#{first.id} .series-entry-metadata > summary").click
     click_link 'Alex Ross'
     expect(page).to have_css('.entity-hero h1', text: 'Alex Ross')
     expect(page).to have_link('Comic discovery #1: First')

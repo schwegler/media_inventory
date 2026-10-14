@@ -92,10 +92,10 @@ RSpec.describe 'Consumption passes' do
       get tv_show_path(show)
 
       expect(response).to have_http_status(:success)
-      expect(response.body).to include('0 / 3')
-      expect(response.body).to include('Re-watch #1')
-      expect(response.body).to include('Unwatched')
-      expect(response.body).to include('value="Watch"')
+      expect(response.body).to include('0 of 3')
+      expect(response.body).to include('Rewatch #1')
+      expect(response.body).to include('Mark watched')
+      expect(response.body).to include('Mark watched')
     end
 
     it 'marks an episode watched from the show page and updates re-watch progress' do
@@ -110,7 +110,7 @@ RSpec.describe 'Consumption passes' do
       expect(show_lib.consumption_passes.find_by(number: 1).entries.count).to eq(3)
 
       get tv_show_path(show)
-      expect(response.body).to include('1 / 3')
+      expect(response.body).to include('1 of 3')
     end
 
     it 'allows marking an episode watched during re-watch even if previously reviewed' do
@@ -118,7 +118,7 @@ RSpec.describe 'Consumption passes' do
       ep1_lib.update!(rating: '4.0', review: 'Great episode')
 
       get tv_show_path(show)
-      expect(response.body).to include('value="Watch"')
+      expect(response.body).to include('Mark watched')
 
       patch toggle_watched_tv_episode_path(ep1), params: { tv_episode: { consumed: true } }, as: :turbo_stream
       expect(response).to have_http_status(:success)
@@ -135,7 +135,7 @@ RSpec.describe 'Consumption passes' do
       patch toggle_watched_tv_episode_path(ep1),
             params: { tv_episode: { consumed: false, consumed_at: nil } }, as: :turbo_stream
       expect(response).to have_http_status(:success)
-      expect(response.body).to include('Unwatched')
+      expect(response.body).to include('Mark watched')
       expect(pass2.reload.entries).to be_empty
       expect(LibraryItem.find_by(user: user, item: ep1)).to be_consumed
     end

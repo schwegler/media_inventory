@@ -1,51 +1,29 @@
     <% if @tv_show.tv_episodes.any? %>
       <%
-        episodes_by_season = @tv_show.tv_episodes.with_attached_cover_image.includes(:tv_show).order(:season, :episode).group_by(&:season)
+        episodes_by_season = @tv_show.tv_episodes.with_attached_cover_image.includes(:tv_show, metadata_credits: :metadata_entity).order(:season, :episode).group_by(&:season)
         sorted_seasons = episodes_by_season.keys.sort
       %>
-      <div class="show-episodes-section" style="margin-top: 2.5rem; margin-bottom: 2.5rem;" data-controller="season-tabs" data-season-tabs-show-id-value="<%= @tv_show.id %>" data-action="turbo:morph@document->season-tabs#restore">
+      <div class="show-episodes-section"  data-controller="season-tabs" data-season-tabs-show-id-value="<%= @tv_show.id %>" data-action="turbo:morph@document->season-tabs#restore">
 
-        <div class="season-tabs-container">
-          <div class="season-tabs-strip" role="tablist" aria-label="Seasons">
-            <% sorted_seasons.each_with_index do |season, index| %>
-              <%
-                season_eps = episodes_by_season[season]
-                season_all_watched = logged_in? && season_eps.present? && season_eps.all? do |ep|
-                  ConsumptionPasses.consumed?(
-                    ep,
-                    user: current_user,
-                    series_lib: @series_library_item || @library_item,
-                    child_lib: (@child_library_items ? @child_library_items[ep.id] : nil),
-                    pass: @active_pass,
-                    entry_ids: @active_pass_entry_ids
-                  )
-                end
-              %>
-              <button type="button" class="season-tab <%= 'active-tab' if index == 0 %>"
-                      id="season-tab-<%= season %>"
-                      role="tab"
-                      aria-selected="<%= index == 0 ? 'true' : 'false' %>"
-                      aria-controls="season-panel-<%= season %>"
-                      tabindex="<%= index == 0 ? '0' : '-1' %>"
-                      data-season-tabs-target="tab"
-                      data-season="<%= season %>"
-                      data-action="click->season-tabs#select keydown->season-tabs#keydown">
-                Season <%= season %><%= " ✓" if season_all_watched %>
-              </button>
-            <% end %>
-          </div>
+        <div class="season-selector">
+          <label class="visually-hidden" for="series-season">Season</label>
+          <select id="series-season" data-season-tabs-target="selector" data-action="change->season-tabs#choose">
+            <% sorted_seasons.each do |season| %><option value="<%= season %>">Season <%= season %></option><% end %>
+          </select>
+          <button type="button" class="sleek-btn sleek-btn-secondary" aria-label="Previous season" data-season-tabs-target="previous" data-action="season-tabs#previous">‹</button>
+          <button type="button" class="sleek-btn sleek-btn-secondary" aria-label="Next season" data-season-tabs-target="next" data-action="season-tabs#next">›</button>
         </div>
 
         <div>
           <% sorted_seasons.each_with_index do |season, index| %>
             <div id="season-panel-<%= season %>"
-                 role="tabpanel"
-                 aria-labelledby="season-tab-<%= season %>"
+                 role="region"
+                 aria-label="Season <%= season %>"
                  tabindex="0"
                  data-season-tabs-target="content"
                  data-season="<%= season %>"
                  class="season-episodes-list <%= 'hidden' unless index == 0 %>"
-                 style="display: flex; flex-direction: column; gap: 12px;">
+                 >
               <% season_eps = episodes_by_season[season] %>
               <% if logged_in? %>
                 <%
@@ -70,18 +48,19 @@
                   </div>
                   <div class="season-panel-actions">
                     <% if all_watched %>
-                      <%= button_to "Undo Season #{season}",
+                      <%= button_to "Undo season",
                                     mark_season_watched_tv_show_path(@tv_show, season: season),
                                     method: :patch,
                                     params: { consumed: false },
                                     class: "sleek-btn sleek-btn-secondary episode-btn-unwatch",
                                     aria: { label: "Mark Season #{season} as unwatched" } %>
                     <% else %>
-                      <%= button_to "Mark Season #{season} Watched",
+                      <%= button_to "Mark season watched",
                                     mark_season_watched_tv_show_path(@tv_show, season: season),
                                     method: :patch,
                                     params: { consumed: true },
-                                    class: "sleek-btn sleek-btn-success season-btn-watch",
+                                    data: { turbo_confirm: "Mark all episodes in Season #{season} watched?" },
+                                    class: "sleek-btn sleek-btn-secondary season-btn-watch",
                                     aria: { label: "Mark Season #{season} as watched" } %>
                     <% end %>
                   </div>
