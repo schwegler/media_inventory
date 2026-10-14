@@ -21,7 +21,7 @@ This plan organizes the redesign into self-contained, reviewable slices. Each mo
 | **5. Empty States & Zero-Match** | Empty filter / 0-matches card with `facet_pose_02_gamer_mode.png`, consolidated `Log a Title` and `Reset Filters`, empty library card | `app/views/shared/_empty_state.html.erb`, `app/views/video_games/index.html.erb`, catalog specs | `DONE` |
 | **6. User Profile & Library Mix** | Profile header with `facet_pose_03_crate_digger.png`, visual horizontal bar breakdown for 6 media formats, dynamic Cataloging since date | `app/views/users/show.html.erb`, `_profile.scss`, profile library mix request specs | `DONE` |
 | **7. Media Detail & Disclosure Shell** | Unified disclosure component for episodes & issues, genre pills vs navigation chips, credit alignment | `app/views/shared/_series_entry.html.erb`, `_media_detail.scss`, detail specs | `DONE` |
-| **8. Games Dedicated Workspace** | Preserve 6-section workspace (Overview, My copies, Playthroughs, Sessions & journal, Artwork, Import/export) | `docs/video-game-tlc.md`, game workspace controllers/views, regression specs | `TODO` |
+| **8. Games Dedicated Workspace** | Preserve 6-section workspace (Overview, My copies, Playthroughs, Sessions & journal, Artwork, Import/export) | `docs/video-game-tlc.md`, game workspace controllers/views, regression specs | `DONE` |
 | **9. Public Reviews API Contract** | Revalidation and ETag caching semantics for `/api/reviews` | `docs/public-reviews-api.md`, `app/controllers/api/reviews_controller.rb`, API specs | `TODO` |
 | **10. Verification & Quality Gates** | Full RSpec suite, accessibility audit (WCAG 2.2 AA touch targets/contrast), responsive checks (320px–2000px) | Full test suite passes, zero broken routes | `TODO` |
 
@@ -76,6 +76,11 @@ This plan organizes the redesign into self-contained, reviewable slices. Each mo
   - Sized disclosure toggles and category pills with 44px touch targets and accessible focus-visible outlines.
   - Verified genre chips navigate to `/categories/genres/:name` while metadata features remain static pills.
   - Extended request specs in `spec/requests/child_card_expanders_spec.rb`.
+- **Commit 9:** `Establish video game dedicated workspace subnavigation and verify private data boundaries`
+  - Linked all 6 dedicated workspace sections in `_media_detail.html.erb`: Overview (`#overview`), My copies (`#game-copies`), Playthroughs & sessions (`#game-playthroughs`), Journal (`#game-journal`), Artwork gallery (`#game-artwork`), and Export & tools (`#game-tools`).
+  - Added `#game-tools` target anchor to `app/views/video_games/_tracking.html.erb`.
+  - Reinforced privacy boundaries so personal playthroughs, notes, journal entries, and milestones are strictly protected and inaccessible to other visitors.
+  - Added request spec `spec/requests/game_workspace_spec.rb`.
 
 ---
 

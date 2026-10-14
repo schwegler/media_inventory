@@ -60,8 +60,16 @@
     <% end %>
     <% if entries %><a href="#media-entries"><%= entries_label %> <span><%= entries.size %></span></a><% end %>
     <% if item.is_a?(VideoGame) %>
-      <% if @library_item %><a href="#my-game-tracking">Gaming record</a><% end %>
+      <% if @library_item %>
+        <a href="#my-game-tracking">Gaming record</a>
+        <a href="#game-copies">My copies</a>
+        <a href="#game-playthroughs">Playthroughs</a>
+        <a href="#game-journal">Journal</a>
+      <% end %>
       <a href="#game-artwork">Artwork</a>
+      <% if @library_item %>
+        <a href="#game-tools">Export &amp; tools</a>
+      <% end %>
     <% end %>
     <a href="#community">Community</a>
     <a href="#comments">Comments</a>
