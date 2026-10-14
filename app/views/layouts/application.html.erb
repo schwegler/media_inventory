@@ -15,7 +15,7 @@
   <!-- Open Graph -->
   <meta property="og:site_name" content="Trove">
   <meta property="og:title" content="<%= full_title(yield(:title)) %>">
-  <meta property="og:description" content="<%= yield(:meta_description).presence || "Track and share your movies, albums, comics, and more on Trove." %>">
+  <meta property="og:description" content="<%= yield(:meta_description).presence || "A home for every story, album, and game you're into. Log what you watch, read, play, and spin—without algorithmic clutter. Build your shelf across 6 media formats, track active series, and share honest takes on Trove." %>">
   <meta property="og:image" content="<%= public_preview_image_url(yield(:meta_image)) %>">
   <meta property="og:url" content="<%= yield(:canonical_url).presence || request.original_url %>">
   <% if content_for?(:canonical_url) %><link rel="canonical" href="<%= yield(:canonical_url) %>"><% end %>
@@ -24,10 +24,16 @@
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="<%= full_title(yield(:title)) %>">
-  <meta name="twitter:description" content="<%= yield(:meta_description).presence || "Track and share your movies, albums, comics, and more on Trove." %>">
+  <meta name="twitter:description" content="<%= yield(:meta_description).presence || "A home for every story, album, and game you're into. Log what you watch, read, play, and spin—without algorithmic clutter. Build your shelf across 6 media formats, track active series, and share honest takes on Trove." %>">
   <meta name="twitter:image" content="<%= public_preview_image_url(yield(:meta_image)) %>">
 
+  <!-- Favicons and App Icons -->
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/brand/trove_favicon_32px.png" type="image/png" sizes="32x32">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="/brand/trove_rounded_app_icon.png">
+  <meta name="theme-color" content="#7C3AED" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#161320" media="(prefers-color-scheme: dark)">
   <%= stylesheet_link_tag "application", "data-turbo-track": Rails.env.production? ? "reload" : "" %>
   <%= javascript_importmap_tags %>
   <%= csrf_meta_tags %>

@@ -91,6 +91,12 @@ This plan organizes the redesign into self-contained, reviewable slices. Each mo
   - Mirrored brand logo and mascot assets to `public/brand/` for standalone static error page serving.
   - Verified 404 page content and structure in `spec/requests/error_pages_spec.rb`.
   - Executed full RSpec test suite: 778 examples, 0 failures across all request, model, service, helper, and job specs with 81.6% line coverage.
+- **Commit 12:** `Update Trove metadata branding, OpenGraph image fallback, and complete favicon asset suite`
+  - Updated `public/favicon.svg` to feature Trove's signature violet/lavender faceted prism vector and gold crown accent.
+  - Added physical `favicon.ico`, `favicon.png`, `apple-touch-icon.png`, and `icon.png` to `public/`.
+  - Added light/dark `theme-color` meta tags (`#7C3AED` and `#161320`) and complete favicon link tags to `application.html.erb` and `shelf.html.erb`.
+  - Enhanced Open Graph and Twitter Card description defaults covering all 6 formats and replaced SVG preview image fallback with `trove_logo_dark_card.png` in `ItemSharingHelper`.
+  - Added RSpec test coverage in `spec/requests/branding_metadata_spec.rb`.
 
 ---
 

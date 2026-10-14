@@ -29,9 +29,9 @@ module ItemSharingHelper
     return "#{public_trove_origin}#{uri}" if uri.relative? && uri.path.start_with?('/') && !uri.host
     return uri.to_s if uri.is_a?(URI::HTTPS) && uri.host.present? && uri.userinfo.nil?
 
-    "#{public_trove_origin}/favicon.svg"
+    "#{public_trove_origin}/brand/trove_logo_dark_card.png"
   rescue URI::InvalidURIError
-    "#{public_trove_origin}/favicon.svg"
+    "#{public_trove_origin}/brand/trove_logo_dark_card.png"
   end
 
   def item_preview_image_url(item)

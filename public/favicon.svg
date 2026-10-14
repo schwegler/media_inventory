@@ -1,19 +1,25 @@
 <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="trove-bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#2a1f3d"/>
-      <stop offset="100%" stop-color="#14101f"/>
+      <stop offset="0%" stop-color="#241B35"/>
+      <stop offset="100%" stop-color="#0F0C18"/>
     </linearGradient>
     <linearGradient id="trove-gem" x1="12" y1="14" x2="52" y2="54" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#ff6b35"/>
-      <stop offset="100%" stop-color="#f7c948"/>
+      <stop offset="0%" stop-color="#7C3AED"/>
+      <stop offset="50%" stop-color="#A855F7"/>
+      <stop offset="100%" stop-color="#DDD6FE"/>
+    </linearGradient>
+    <linearGradient id="trove-gold-edge" x1="18" y1="16" x2="46" y2="16" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#FCD34D"/>
     </linearGradient>
   </defs>
   <rect width="64" height="64" rx="14" fill="url(#trove-bg)"/>
   <!-- gem outline -->
   <path d="M18 16H46L55 27L32 52L9 27L18 16Z" fill="url(#trove-gem)"/>
   <!-- facets -->
-  <path d="M9 27H55L32 52L9 27Z" fill="#000" fill-opacity="0.18"/>
-  <path d="M18 16L24 27L32 16L40 27L46 16" stroke="#fff" stroke-opacity="0.55" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M24 27L32 52L40 27" stroke="#fff" stroke-opacity="0.35" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M9 27H55L32 52L9 27Z" fill="#000000" fill-opacity="0.22"/>
+  <path d="M18 16L24 27L32 16L40 27L46 16" stroke="#FFFFFF" stroke-opacity="0.75" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M24 27L32 52L40 27" stroke="#FFFFFF" stroke-opacity="0.45" stroke-width="2" stroke-linejoin="round"/>
+  <line x1="18" y1="16" x2="46" y2="16" stroke="url(#trove-gold-edge)" stroke-width="2.5" stroke-linecap="round"/>
 </svg>
