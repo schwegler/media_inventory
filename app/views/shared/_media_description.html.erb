@@ -8,7 +8,11 @@
   <section id="title-details" class="media-description" aria-labelledby="title-details-heading">
     <h2 id="title-details-heading"><%= heading %></h2>
     <% if synopsis.present? %>
-      <div class="media-description-prose"><%= simple_format(strip_tags(synopsis)) %></div>
+      <% if item.is_a?(VideoGame) %>
+        <%= render 'video_games/description', synopsis: synopsis %>
+      <% else %>
+        <div class="media-description-prose"><%= simple_format(strip_tags(synopsis)) %></div>
+      <% end %>
     <% end %>
     <dl class="media-description-facts">
       <% facts.each do |label, value, attribute| %>

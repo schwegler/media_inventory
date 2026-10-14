@@ -1,0 +1,14 @@
+<% if strip_tags(synopsis).squish.present? %>
+  <section class="child-description game-description" aria-label="Game description">
+    <h3>Description</h3>
+    <% if strip_tags(synopsis).length > 650 %>
+      <details class="child-description-disclosure">
+        <summary><span class="child-description-more">Read full description</span><span class="child-description-less">Show less</span></summary>
+        <div class="child-description-prose"><%= game_description_prose(synopsis) %></div>
+      </details>
+      <p class="child-description-preview"><%= game_description_preview(synopsis) %></p>
+    <% else %>
+      <div class="child-description-prose"><%= game_description_prose(synopsis) %></div>
+    <% end %>
+  </section>
+<% end %>
