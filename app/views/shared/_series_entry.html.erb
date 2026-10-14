@@ -5,9 +5,10 @@
 <% date = is_episode ? item.air_date : item.release_date %>
 <% date = Date.iso8601(date) if date.is_a?(String) && date.match?(/\A\d{4}-\d{2}-\d{2}\z/) && Date.valid_date?(*date.split("-").map(&:to_i)) %>
 <% search_text = [title, (item.display_title if item.respond_to?(:display_title)), item.credits.map { |credit| [credit['name'], credit['aliases']] }].flatten.compact.join(' ') %>
+<% has_track = logged_in? && series_lib.present? %>
 <%= turbo_frame_tag "#{model_key}_#{item.id}", data: { child_collection_target: "entry", search: search_text, completed: completed.to_s } do %>
   <article class="series-entry <%= 'series-entry-issue' unless is_episode %>">
-    <div class="series-entry-row">
+    <div class="series-entry-row <%= 'has-track-action' if has_track %>">
       <% if item.stored_cover_url.present? %>
         <img src="<%= item.stored_cover_url %>" alt="" class="series-entry-artwork" loading="lazy" decoding="async">
       <% end %>
@@ -15,7 +16,7 @@
         <%= link_to title, polymorphic_path(item), data: { turbo_frame: "_top" } %>
         <% if date.present? %><p><%= is_episode ? 'Aired' : 'Published' %> <%= date.respond_to?(:strftime) ? date.strftime('%b %-d, %Y') : date %></p><% end %>
       </div>
-      <% if logged_in? && series_lib.present? %>
+      <% if has_track %>
         <%= button_to completed ? "✓ #{past.capitalize} · Undo" : "Mark #{past}", toggle_path, method: :patch,
                       params: { model_key => { consumed: !completed, consumed_at: completed ? nil : Date.current } },
                       class: "sleek-btn sleek-btn-secondary", form_class: "series-entry-track",
@@ -23,7 +24,12 @@
       <% end %>
     </div>
     <details class="series-entry-details">
-      <summary aria-label="Details for <%= title %>">Details <span aria-hidden="true">⌄</span></summary>
+      <summary class="series-entry-toggle" aria-label="Details for <%= title %>">
+        <span>Details</span>
+        <svg class="series-entry-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </summary>
       <div class="series-entry-body">
         <%= render 'shared/child_description', item: item %>
         <% if item.credits.present? || item.metadata_details.present? || item.metadata_credits.any? %>

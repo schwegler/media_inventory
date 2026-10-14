@@ -28,20 +28,69 @@
   .season-episodes-list { display: block; }
   .season-episodes-list.hidden, [hidden] { display: none !important; }
 }
-.series-entry { position: relative; border-bottom: 1px solid var(--border); padding: 1.25rem 0; }
-.series-entry-row { display: flex; align-items: center; gap: 1rem; padding-right: 5rem; }
+.series-entry {
+  position: relative;
+  border-bottom: 1px solid var(--border);
+  padding: 1.25rem 1rem;
+  border-radius: 8px;
+  transition: background-color .15s ease;
+}
+.series-entry-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-right: 6.5rem;
+}
+.series-entry-row.has-track-action {
+  padding-right: 13.5rem;
+}
 .series-entry-artwork { width: 120px; height: 68px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
 .series-entry-issue .series-entry-artwork { width: 54px; height: 80px; }
 .series-entry-title { flex: 1; min-width: 0; }
 .series-entry-title > a { font-size: 1rem; font-weight: 600; color: var(--text); text-decoration: none; }
 .series-entry-title p { font-size: .85rem; color: var(--text-secondary); margin: .35rem 0 0; }
 .series-entry-track { margin: 0; flex-shrink: 0; }
-.series-entry-track button { min-height: 44px; font-size: .85rem; }
-.series-entry-details > summary { position: absolute; top: 1.9rem; right: 0; min-height: 44px; display: flex; gap: .4rem; align-items: center; cursor: pointer; font-size: .8rem; color: var(--text-secondary); list-style: none; }
-.series-entry-details > summary::-webkit-details-marker { display: none; }
-.series-entry-details[open] > summary span { transform: rotate(180deg); }
-.series-entry:has(> .series-entry-details[open]) { background: var(--inset); border-radius: 8px; }
-.series-entry-body { padding: 1.25rem 1rem 0; font-size: .95rem; }
+.series-entry-track button { min-height: 38px; font-size: .85rem; padding: .4rem .75rem; }
+.series-entry-details > summary.series-entry-toggle {
+  position: absolute;
+  top: 1.25rem;
+  right: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  min-height: 38px;
+  padding: .4rem .75rem;
+  border-radius: 6px;
+  font: 500 .85rem/1.4 'Instrument Sans', system-ui, sans-serif;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  transition: all .15s ease;
+}
+.series-entry-details > summary.series-entry-toggle::-webkit-details-marker { display: none; }
+.series-entry-details > summary.series-entry-toggle:hover {
+  background: var(--inset);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+.series-entry-toggle-icon {
+  flex-shrink: 0;
+  transition: transform .2s ease;
+}
+.series-entry-details[open] > summary.series-entry-toggle {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--surface);
+}
+.series-entry-details[open] > summary .series-entry-toggle-icon {
+  transform: rotate(180deg);
+}
+.series-entry:has(> .series-entry-details[open]) { background: var(--inset); }
+.series-entry-body { padding: 1.25rem 0 0; font-size: .95rem; }
 .series-entry-body .child-description { border: 0; padding: 0; background: transparent; margin: 0 0 1rem; }
 .series-entry-body .child-description > h3 { display: none; }
 .series-entry-body .child-description-prose p { margin-top: 0; }
@@ -67,11 +116,14 @@
   .media-entries .consumption-pass-status { width: 100%; }
   .media-entries .child-collection-toolbar { grid-template-columns: minmax(0, 1fr); }
   .media-entries .season-panel-header { flex-wrap: wrap; gap: .75rem; }
-  .series-entry-row { flex-wrap: wrap; gap: .75rem; padding-right: 4.5rem; }
+  .series-entry { padding: 1rem .75rem; }
+  .series-entry-row { flex-wrap: wrap; gap: .75rem; }
   .series-entry-artwork { width: 80px; height: 45px; }
-  .series-entry-track { width: 100%; }
+  .series-entry-actions { width: 100%; justify-content: flex-end; }
+  .series-entry-track { flex: 1; }
   .series-entry-track button { width: 100%; }
-  .series-entry-body { padding: 1rem .5rem 0; }
+  .series-entry-toggle { min-height: 38px; padding: .4rem .75rem; font-size: .85rem; }
+  .series-entry-body { padding: 1rem 0 0; }
   .modal-container.review-drawer { width: 100%; max-width: none; }
 }
 .review-drawer-overlay { background: rgb(0 0 0 / 18%); backdrop-filter: none; -webkit-backdrop-filter: none; }
