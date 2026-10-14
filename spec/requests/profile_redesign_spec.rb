@@ -33,7 +33,8 @@ RSpec.describe 'Profile redesign', type: :request do
   end
 
   it 'serves readable and legacy numeric URLs, case-insensitively, with a stable canonical link' do
-    [handle_profile_path(owner.username), user_path(owner), "/users/#{owner.id}", '/users/LIBRARY_OWNER', '/@LIBRARY_OWNER'].each do |url|
+    [handle_profile_path(owner.username), user_path(owner), "/users/#{owner.id}", '/users/LIBRARY_OWNER',
+     '/@LIBRARY_OWNER'].each do |url|
       get url
       unless url == handle_profile_path(owner.username)
         expect(response).to have_http_status(:moved_permanently)
