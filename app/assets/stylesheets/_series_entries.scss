@@ -62,6 +62,16 @@
   min-height: 38px;
   padding: .4rem .75rem;
   border-radius: 6px;
+<<<<<<< HEAD
+  font: 600 .85rem/1.4 'Instrument Sans', system-ui, sans-serif;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  transition: background-color .15s ease, border-color .15s ease;
+=======
   font: 500 .85rem/1.4 'Instrument Sans', system-ui, sans-serif;
   border: 1px solid var(--border);
   background: var(--surface);
@@ -70,10 +80,21 @@
   list-style: none;
   user-select: none;
   transition: all .15s ease;
+>>>>>>> 41e570f (Refine series entry details toggle button styling and SVG chevron icon)
 }
 .series-entry-details > summary.series-entry-toggle::-webkit-details-marker { display: none; }
 .series-entry-details > summary.series-entry-toggle:hover {
   background: var(--inset);
+<<<<<<< HEAD
+  border-color: var(--accent);
+}
+.series-entry-toggle-icon {
+  display: inline-block;
+  font-size: .9rem;
+  transition: transform .15s ease;
+}
+.series-entry-details[open] > summary .series-entry-toggle-icon { transform: rotate(180deg); }
+=======
   color: var(--text);
   border-color: var(--border-strong);
 }
@@ -89,6 +110,7 @@
 .series-entry-details[open] > summary .series-entry-toggle-icon {
   transform: rotate(180deg);
 }
+>>>>>>> 41e570f (Refine series entry details toggle button styling and SVG chevron icon)
 .series-entry:has(> .series-entry-details[open]) { background: var(--inset); }
 .series-entry-body { padding: 1.25rem 0 0; font-size: .95rem; }
 .series-entry-body .child-description { border: 0; padding: 0; background: transparent; margin: 0 0 1rem; }
@@ -117,12 +139,21 @@
   .media-entries .child-collection-toolbar { grid-template-columns: minmax(0, 1fr); }
   .media-entries .season-panel-header { flex-wrap: wrap; gap: .75rem; }
   .series-entry { padding: 1rem .75rem; }
+<<<<<<< HEAD
+  .series-entry-row { flex-wrap: wrap; gap: .75rem; padding-right: 5.5rem; }
+  .series-entry-row.has-track-action { padding-right: 5.5rem; }
+=======
   .series-entry-row { flex-wrap: wrap; gap: .75rem; }
+>>>>>>> 41e570f (Refine series entry details toggle button styling and SVG chevron icon)
   .series-entry-artwork { width: 80px; height: 45px; }
   .series-entry-actions { width: 100%; justify-content: flex-end; }
   .series-entry-track { flex: 1; }
   .series-entry-track button { width: 100%; }
+<<<<<<< HEAD
+  .series-entry-details > summary.series-entry-toggle { top: 1rem; right: .75rem; min-height: 36px; padding: .35rem .6rem; font-size: .8rem; }
+=======
   .series-entry-toggle { min-height: 38px; padding: .4rem .75rem; font-size: .85rem; }
+>>>>>>> 41e570f (Refine series entry details toggle button styling and SVG chevron icon)
   .series-entry-body { padding: 1rem 0 0; }
   .modal-container.review-drawer { width: 100%; max-width: none; }
 }
