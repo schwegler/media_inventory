@@ -54,6 +54,7 @@ class CategoriesController < ApplicationController
       'tv_shows' => matches.count { |i| i.is_a?(TvShow) },
       'albums' => matches.count { |i| i.is_a?(Album) },
       'comics' => matches.count { |i| i.is_a?(Comic) },
+      'books' => matches.count { |i| i.is_a?(Book) },
       'video_games' => matches.count { |i| i.is_a?(VideoGame) }
     }
   end

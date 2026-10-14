@@ -151,6 +151,27 @@ RSpec.describe 'Categories', type: :request do
       expect(response.body).to include(category_item_path(category_type: 'genres', name: 'Western'))
     end
   end
+  describe 'shared writers and authors category detail views' do
+    let!(:book) { Book.create!(title: 'Stardust', author: 'Neil Gaiman', release_year: 1999) }
+    let!(:comic) { Comic.create!(title: 'The Sandman', writer: 'Neil Gaiman') }
+
+    it 'renders books and comics on authors category page with Books tab' do
+      get category_item_path(category_type: 'authors', name: 'Neil Gaiman')
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include('Stardust')
+      expect(response.body).to include('The Sandman')
+      expect(response.body).to include('Books (1)')
+      expect(response.body).to include('Comics (1)')
+    end
+
+    it 'filters books on authors category page by books media type' do
+      get category_item_path(category_type: 'authors', name: 'Neil Gaiman', type: 'books')
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include('Stardust')
+      expect(response.body).not_to include('The Sandman')
+    end
+  end
+
   describe 'video game platform categories' do
     let!(:game) { VideoGame.create!(title: 'Portal', platform: 'PC, Nintendo Switch') }
 

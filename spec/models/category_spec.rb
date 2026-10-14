@@ -109,6 +109,33 @@ RSpec.describe Category, type: :model do
       expect(items).to eq([wick, matrix])
     end
   end
+  describe 'shared writers and authors filtering' do
+    let!(:book) { Book.create!(title: 'American Gods', author: 'Neil Gaiman', release_year: 2001) }
+    let!(:comic) { Comic.create!(title: 'The Sandman', writer: 'Neil Gaiman') }
+    let!(:tv_show) { TvShow.create!(title: 'Good Omens', writer: 'Neil Gaiman', release_year: 2019) }
+    let!(:movie) { Movie.create!(title: 'Coraline', writer: 'Neil Gaiman', release_year: 2009) }
+
+    it 'finds all works by an author/writer across books, comics, tv shows, and movies for writers category' do
+      items = Category.items_for('writers', 'Neil Gaiman')
+      expect(items).to match_array([book, comic, tv_show, movie])
+    end
+
+    it 'finds all works by an author/writer across books, comics, tv shows, and movies for authors category' do
+      items = Category.items_for('authors', 'Neil Gaiman')
+      expect(items).to match_array([book, comic, tv_show, movie])
+    end
+
+    it 'aggregates counts across books, comics, tv shows, and movies' do
+      writer_entry = Category.list_for('writers').find { |c| c.name.casecmp?('Neil Gaiman') }
+      expect(writer_entry).not_to be_nil
+      expect(writer_entry.count).to eq(4)
+
+      author_entry = Category.list_for('authors').find { |c| c.name.casecmp?('Neil Gaiman') }
+      expect(author_entry).not_to be_nil
+      expect(author_entry.count).to eq(4)
+    end
+  end
+
   describe 'video game platforms' do
     let!(:game) { VideoGame.create!(title: 'Portal', platform: 'PC, Nintendo Switch') }
     let!(:other_game) { VideoGame.create!(title: 'Portal 2', platform: 'pc; PlayStation 3') }
