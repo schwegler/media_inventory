@@ -111,12 +111,15 @@ class Category
   end
 
   def self.entity_categories(type)
-    works = entity_credits(type).select(:metadata_entity_id, :item_type, :item_id).distinct
-    counts = MetadataCredit.from("(#{works.to_sql}) counted_works").group(:metadata_entity_id).count
+    credits = entity_credits(type)
+    credits = credits.joins(:metadata_entity) unless credits.joins_values.include?(:metadata_entity)
+    works = credits.select('metadata_entities.id AS entity_id', 'metadata_entities.name AS entity_name',
+                           :item_type, :item_id).distinct
+    counts = MetadataCredit.from("(#{works.to_sql}) counted_works").group('entity_id', 'entity_name').count
     return [] if counts.empty?
 
-    MetadataEntity.where(id: counts.keys).pluck(:id, :name).map do |id, name|
-      new(name: name, type: type, count: counts[id] || 0)
+    counts.map do |(_id, name), count|
+      new(name: name, type: type, count: count)
     end
   end
 
@@ -132,7 +135,7 @@ class Category
     casing = {}
     attributes = type == 'comic-creators' ? %i[writer artist] : [attribute]
     models.each do |m|
-      attributes.each { |attr| count_model_attributes(m, attr, counts, casing) }
+      count_model_attributes(m, attributes, counts, casing)
     end
     counts.map { |key, count| new(name: casing[key], type: type, count: count) }
   end
@@ -145,16 +148,31 @@ class Category
     nil
   end
 
-  def self.count_model_attributes(model, attribute, counts, casing)
-    attr_name = target_attribute(model, attribute)
-    return unless attr_name
+  def self.count_model_attributes(model, attributes, counts, casing)
+    valid_attrs = Array(attributes).map { |attr| target_attribute(model, attr) }.compact.uniq
+    return if valid_attrs.empty?
 
-    model.where.not(id: MetadataCredit.where(item_type: model.name).select(:item_id))
-         .where.not(attr_name => [nil, '']).pluck(attr_name).each do |raw|
-      split_names(raw).each do |name|
-        key = name.downcase
-        casing[key] ||= name
-        counts[key] += 1
+    credited_ids = MetadataCredit.where(item_type: model.name).select(:item_id)
+    scope = model.where.not(id: credited_ids)
+
+    if valid_attrs.size == 1
+      attr_name = valid_attrs.first
+      scope.where.not(attr_name => [nil, '']).pluck(attr_name).each do |raw|
+        split_names(raw).each do |name|
+          key = name.downcase
+          casing[key] ||= name
+          counts[key] += 1
+        end
+      end
+    else
+      scope.pluck(*valid_attrs).each do |row|
+        row.compact.each do |raw|
+          split_names(raw).each do |name|
+            key = name.downcase
+            casing[key] ||= name
+            counts[key] += 1
+          end
+        end
       end
     end
   end
