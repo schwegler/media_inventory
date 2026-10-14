@@ -5,8 +5,9 @@
   active = passes.find(&:active?)
   latest = passes.first
   noun = is_tv ? "watch" : "read"
-  again = is_tv ? "re-watch" : "re-read"
+  again = is_tv ? "rewatch" : "reread"
 %>
+<% if latest.present? %>
 <div class="consumption-pass-panel" id="consumption-pass-panel">
   <% if active %>
     <p class="consumption-pass-status">
@@ -14,16 +15,18 @@
       is on your In progress list.
     </p>
     <%= button_to "Dismiss from In progress", dismiss_consumption_pass_path(active), method: :patch,
-                  class: "sleek-btn", form_class: "consumption-pass-form" %>
+                  class: "sleek-btn sleek-btn-secondary", form_class: "consumption-pass-form" %>
   <% else %>
     <% if latest&.dismissed? %>
-      <p class="consumption-pass-status">Dismissed from In progress. Your progress is kept.</p>
+      <p class="consumption-pass-status"><strong>Tracking paused</strong><span>Your <%= is_tv ? "watch" : "reading" %> history is saved.</span></p>
       <%= button_to "Resume tracking", resume_consumption_pass_path(latest), method: :patch,
-                    class: "sleek-btn", form_class: "consumption-pass-form" %>
+                    class: "sleek-btn sleek-btn-primary", form_class: "consumption-pass-form" %>
     <% end %>
     <% if latest.present? %>
       <%= button_to "Start #{again}", consumption_passes_path(library_item_id: library_item.id), method: :post,
-                    class: "sleek-btn", form_class: "consumption-pass-form" %>
+                    class: "sleek-btn sleek-btn-secondary", form_class: "consumption-pass-form" %>
     <% end %>
   <% end %>
 </div>
+
+<% end %>

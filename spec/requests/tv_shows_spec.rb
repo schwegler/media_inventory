@@ -179,14 +179,14 @@ RSpec.describe 'TvShows', type: :request do
 
     it 'renders season watched actions and tallies in the UI' do
       get tv_show_path(tv_show)
-      expect(response.body).to include('Mark Season 1 Watched')
+      expect(response.body).to include('Mark season watched')
       expect(response.body).to include('0</strong> of <strong>2</strong> watched')
 
       patch mark_season_watched_tv_show_path(tv_show, season: 1)
       get tv_show_path(tv_show)
-      expect(response.body).to include('Undo Season 1')
+      expect(response.body).to include('Undo season')
       expect(response.body).to include('2</strong> of <strong>2</strong> watched')
-      expect(response.body).to include('Season 1 ✓')
+      expect(response.body).to include('Season 1')
     end
   end
 end

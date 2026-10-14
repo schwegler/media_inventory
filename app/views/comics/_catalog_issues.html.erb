@@ -1,8 +1,20 @@
       <% if @comic.comic_issues.any? %>
-        <div class="show-episodes-section" style="margin-top: 2.5rem; margin-bottom: 2.5rem;">
+        <div class="show-episodes-section" >
 
-          <div class="season-episodes-list" style="display: flex; flex-direction: column; gap: 12px;">
-            <% @comic.comic_issues.with_attached_cover_image.includes(:comic).order(:issue_number).each do |issue| %>
+          <% if logged_in? && @library_item.present? %>
+            <% issues = @comic.comic_issues.to_a %>
+            <% read_count = issues.count { |issue| ConsumptionPasses.consumed?(issue, user: current_user, series_lib: @library_item, child_lib: @child_library_items&.[](issue.id), pass: @active_pass, entry_ids: @active_pass_entry_ids) } %>
+            <div class="season-panel-header">
+              <span class="issue-read-tally"><strong><%= read_count %></strong> of <%= issues.size %> read</span>
+              <div class="issue-bulk-actions">
+              <%= button_to read_count == issues.size ? 'Undo all read' : 'Mark all read', mark_all_read_comic_path(@comic), method: :patch,
+                            params: { consumed: read_count != issues.size }, class: 'sleek-btn sleek-btn-secondary',
+                            data: { turbo_confirm: read_count == issues.size ? 'Mark all issues unread in this pass?' : 'Mark all issues read in this pass?' } %>
+              </div>
+            </div>
+          <% end %>
+          <div class="season-episodes-list" >
+            <% @comic.comic_issues.with_attached_cover_image.includes(:comic, metadata_credits: :metadata_entity).order(:issue_number).each do |issue| %>
               <%= render 'comics/comic_issue', issue: issue, comic: @comic %>
             <% end %>
           </div>

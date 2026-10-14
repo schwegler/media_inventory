@@ -22,6 +22,7 @@
 @use "game_workspace";
 @use "collection_workspace";
 @use "ui_icons";
+@use "series_entries";
 
 @include editorial.styles;
 @include profile.styles;
@@ -73,3 +74,5 @@
 .artwork-lightbox img { display: block; width: auto; height: auto; max-width: 100%; max-height: 80dvh; object-fit: contain; margin: 1rem auto 0; }
 .artwork-lightbox button { float: right; cursor: pointer; padding: .5rem 1rem; }
 .artwork-lightbox a { color: inherit; }
+
+@include series_entries.styles;

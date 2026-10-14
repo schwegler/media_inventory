@@ -35,7 +35,7 @@ RSpec.describe 'Reviews', type: :request do
 
         get edit_review_path(item_type: 'TvEpisode', item_id: tv_episode.id), headers: { 'Turbo-Frame' => 'modal' }
         expect(response).to have_http_status(:success)
-        expect(response.body).to include('Edit Review')
+        expect(response.body).to include('Review Episode 16')
         expect(response.body).to include('2010')
         expect(response.body).to include('Awesome episode')
         expect(response.body).to include('4.0')
@@ -130,10 +130,11 @@ RSpec.describe 'Reviews', type: :request do
         expect(response.body).not_to include("child-review-#{tv_episode.id}")
       end
 
-      it 'shows inline form for unreviewed episode' do
+      it 'offers a review drawer for unreviewed episodes without an inline form' do
         get tv_show_path(tv_show)
         expect(response).to have_http_status(:success)
-        expect(response.body).to include("child-review-#{tv_episode.id}")
+        expect(response.body).not_to include("child-review-#{tv_episode.id}")
+        expect(response.body).to include('Write review')
       end
 
       it 'does not show inline review form for reviewed show, shows edit review modal link instead' do

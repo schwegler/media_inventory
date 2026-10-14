@@ -80,7 +80,7 @@ class ConsumptionPasses
       series_lib = series_library_item(user, child)
       return false unless series_lib
 
-      pass = current_pass(series_lib)
+      pass = current_pass(series_lib) || series_lib.consumption_passes.recent_first.first
       pass.present? && pass.rewatch?
     end
 

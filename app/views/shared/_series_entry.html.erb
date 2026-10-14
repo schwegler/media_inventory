@@ -1,0 +1,46 @@
+<% is_episode = item.is_a?(TvEpisode) %>
+<% past = is_episode ? 'watched' : 'read' %>
+<% model_key = item.model_name.param_key %>
+<% title = is_episode ? "#{item.episode}. #{item.name}" : "##{item.issue_number}: #{item.title.presence || 'Untitled issue'}" %>
+<% date = is_episode ? item.air_date : item.release_date %>
+<% date = Date.iso8601(date) if date.is_a?(String) && date.match?(/\A\d{4}-\d{2}-\d{2}\z/) && Date.valid_date?(*date.split("-").map(&:to_i)) %>
+<% search_text = [title, (item.display_title if item.respond_to?(:display_title)), item.credits.map { |credit| [credit['name'], credit['aliases']] }].flatten.compact.join(' ') %>
+<%= turbo_frame_tag "#{model_key}_#{item.id}", data: { child_collection_target: "entry", search: search_text, completed: completed.to_s } do %>
+  <article class="series-entry <%= 'series-entry-issue' unless is_episode %>">
+    <div class="series-entry-row">
+      <% if item.stored_cover_url.present? %>
+        <img src="<%= item.stored_cover_url %>" alt="" class="series-entry-artwork" loading="lazy" decoding="async">
+      <% end %>
+      <div class="series-entry-title">
+        <%= link_to title, polymorphic_path(item), data: { turbo_frame: "_top" } %>
+        <% if date.present? %><p><%= is_episode ? 'Aired' : 'Published' %> <%= date.respond_to?(:strftime) ? date.strftime('%b %-d, %Y') : date %></p><% end %>
+      </div>
+      <% if logged_in? && series_lib.present? %>
+        <%= button_to completed ? "✓ #{past.capitalize} · Undo" : "Mark #{past}", toggle_path, method: :patch,
+                      params: { model_key => { consumed: !completed, consumed_at: completed ? nil : Date.current } },
+                      class: "sleek-btn sleek-btn-secondary", form_class: "series-entry-track",
+                      aria: { label: "#{completed ? 'Undo' : "Mark #{past}"}: #{title}" } %>
+      <% end %>
+    </div>
+    <details class="series-entry-details">
+      <summary aria-label="Details for <%= title %>">Details <span aria-hidden="true">⌄</span></summary>
+      <div class="series-entry-body">
+        <%= render 'shared/child_description', item: item %>
+        <% if item.credits.present? || item.metadata_details.present? || item.metadata_credits.any? %>
+          <details class="series-entry-metadata"><summary><%= is_episode ? 'Episode' : 'Issue' %> details</summary><%= render 'shared/child_metadata', item: item %></details>
+        <% end %>
+        <% if child_lib&.rating.present? || child_lib&.review.present? %>
+          <div class="series-entry-review">
+            <% if child_lib.rating.present? %><p><%= child_lib.rating %> ★</p><% end %>
+            <% if child_lib.review.present? %><%= simple_format(child_lib.review) %><% end %>
+          </div>
+        <% end %>
+        <% if logged_in? && series_lib.present? %>
+          <%= link_to child_lib&.review.present? || child_lib&.rating.present? ? 'Edit review' : 'Write review',
+                      edit_review_path(item_type: item.class.name, item_id: item.id),
+                      class: "series-entry-review-link", data: { turbo_frame: "modal" } %>
+        <% end %>
+      </div>
+    </details>
+  </article>
+<% end %>

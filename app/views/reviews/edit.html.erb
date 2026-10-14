@@ -1,4 +1,7 @@
 <%= turbo_frame_tag "modal" do %>
+  <% if @item.is_a?(TvEpisode) || @item.is_a?(ComicIssue) %>
+    <%= render "child_drawer" %>
+  <% else %>
   <div class="modal-overlay" data-controller="modal" data-modal-target="overlay" data-action="click->modal#closeOnBackdrop keydown@window->modal#closeOnEsc">
     <div class="modal-container" role="dialog" aria-modal="true" style="max-width: 560px;">
       <div class="modal-header">
@@ -37,4 +40,5 @@
       </div>
     </div>
   </div>
+  <% end %>
 <% end %>

@@ -1,0 +1,30 @@
+<div class="modal-overlay review-drawer-overlay" data-controller="modal" data-modal-target="overlay" data-action="click->modal#closeOnBackdrop keydown@window->modal#closeOnEsc">
+  <div class="modal-container review-drawer" role="dialog" aria-modal="true" aria-labelledby="child-review-heading">
+    <div class="modal-header">
+      <h2 id="child-review-heading">Review <%= @item.is_a?(TvEpisode) ? "Episode #{@item.episode}" : "Issue ##{@item.issue_number}" %></h2>
+      <button type="button" class="modal-close" data-action="modal#close" aria-label="Close review">×</button>
+    </div>
+    <%= form_with url: review_path, method: :patch, class: "review-drawer-form standard-form" do |form| %>
+      <%= hidden_field_tag :item_type, @item.class.name %>
+      <%= hidden_field_tag :item_id, @item.id %>
+      <% if @library_item.errors.any? %><p role="alert"><%= @library_item.errors.full_messages.to_sentence %></p><% end %>
+      <p class="modal-subtitle"><%= @item.respond_to?(:display_title) ? @item.display_title : @item.name %></p>
+      <div class="form-group">
+        <%= form.label :rating, 'Rating' %>
+        <%= form.select :rating, [['Select rating', '']] + (1..10).map { |n| ["#{n / 2.0} ★", n / 2.0] }, { selected: @library_item.rating }, class: 'form-control' %>
+      </div>
+      <div class="form-group">
+        <%= form.label :review, 'Your review (optional)' %>
+        <%= form.text_area :review, value: @library_item.review, rows: 7, class: 'form-control', placeholder: 'What did you think?' %>
+      </div>
+      <div class="form-group">
+        <%= form.label :is_public, 'Visibility' %>
+        <%= form.select :is_public, [['Private — only you', false], ['Public — visible to others', true]], { selected: @library_item.is_public? }, class: 'form-control' %>
+      </div>
+      <div class="review-drawer-actions">
+        <button type="button" class="sleek-btn sleek-btn-secondary" data-action="modal#close">Cancel</button>
+        <%= form.submit 'Save review', class: 'sleek-btn sleek-btn-primary' %>
+      </div>
+    <% end %>
+  </div>
+</div>
