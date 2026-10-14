@@ -5,7 +5,7 @@ SampleApp::Application.routes.draw do
   get 'shelves/search', to: 'shelves#search', as: :search_shelves
   get '/@:username/shelf', to: 'shelves#show', as: :shelf
   patch '/@:username/shelf', to: 'shelves#update'
-  get '/@:id', to: 'users#show', as: :handle_profile
+  get '/@:username', to: 'users#show', as: :handle_profile
 
   resources :game_library_views, only: %i[create destroy]
   get 'media/artwork/renditions/:token', to: 'media_artwork_renditions#show', as: :artwork_rendition

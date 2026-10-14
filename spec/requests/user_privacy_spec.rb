@@ -17,18 +17,18 @@ RSpec.describe 'User Profile Privacy', type: :request do
   end
 
   it 'shows collected items to other users even when the review is private' do
-    get user_path(owner)
+    get handle_profile_path(owner.username)
     expect(response.body).to include('Collected Movie')
   end
 
   it 'hides private review content from other users' do
-    get user_path(owner)
+    get handle_profile_path(owner.username)
     expect(response.body).not_to include('Hidden thoughts')
   end
 
   it 'shows private reviews to the owner' do
     post login_path, params: { session: { email: owner.email, password: 'password' } }
-    get user_path(owner)
+    get handle_profile_path(owner.username)
     expect(response.body).to include('Collected Movie', 'Hidden thoughts')
   end
 end

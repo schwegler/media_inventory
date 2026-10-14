@@ -114,8 +114,8 @@ class UsersController < ApplicationController
   private
 
   def load_canonical_profile
-    @user = if request.path.start_with?('/@')
-              User.where('LOWER(username) = ?', params[:id].to_s.downcase).first!
+    @user = if params[:username].present?
+              User.where('LOWER(username) = ?', params[:username].to_s.downcase).first!
             else
               User.find_by_profile_param!(params[:id])
             end
