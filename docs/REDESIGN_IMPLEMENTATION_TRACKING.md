@@ -20,7 +20,7 @@ This plan organizes the redesign into self-contained, reviewable slices. Each mo
 | **4. Authentication Polish** | `/login` ("Unlock Your Media Vault" + `facet_pose_04_five_star.png`), `/signup` ("Claim Your Shelf in Trove" + `facet_pose_01_bookworm.png`), Fediverse sign-in visibility | `app/views/sessions/new.html.erb`, `app/views/users/new.html.erb`, session/signup request specs | `DONE` |
 | **5. Empty States & Zero-Match** | Empty filter / 0-matches card with `facet_pose_02_gamer_mode.png`, consolidated `Log a Title` and `Reset Filters`, empty library card | `app/views/shared/_empty_state.html.erb`, `app/views/video_games/index.html.erb`, catalog specs | `DONE` |
 | **6. User Profile & Library Mix** | Profile header with `facet_pose_03_crate_digger.png`, visual horizontal bar breakdown for 6 media formats, dynamic Cataloging since date | `app/views/users/show.html.erb`, `_profile.scss`, profile library mix request specs | `DONE` |
-| **7. Media Detail & Disclosure Shell** | Unified disclosure component for episodes & issues, genre pills vs navigation chips, credit alignment | `app/views/shared/_series_entry.html.erb`, `_media_detail.scss`, detail specs | `TODO` |
+| **7. Media Detail & Disclosure Shell** | Unified disclosure component for episodes & issues, genre pills vs navigation chips, credit alignment | `app/views/shared/_series_entry.html.erb`, `_media_detail.scss`, detail specs | `DONE` |
 | **8. Games Dedicated Workspace** | Preserve 6-section workspace (Overview, My copies, Playthroughs, Sessions & journal, Artwork, Import/export) | `docs/video-game-tlc.md`, game workspace controllers/views, regression specs | `TODO` |
 | **9. Public Reviews API Contract** | Revalidation and ETag caching semantics for `/api/reviews` | `docs/public-reviews-api.md`, `app/controllers/api/reviews_controller.rb`, API specs | `TODO` |
 | **10. Verification & Quality Gates** | Full RSpec suite, accessibility audit (WCAG 2.2 AA touch targets/contrast), responsive checks (320px–2000px) | Full test suite passes, zero broken routes | `TODO` |
@@ -70,6 +70,12 @@ This plan organizes the redesign into self-contained, reviewable slices. Each mo
   - Added on-brand zero-match note for Video Games (`0 logged yet · (backlog incoming)`).
   - Computed dynamic `Cataloging since [Month Year]` from `@user.created_at` instead of hardcoding dates.
   - Added request spec `spec/requests/profile_library_mix_spec.rb`.
+- **Commit 8:** `Unify episode and comic issue disclosure shell and enforce genre navigation chips`
+  - Validated unified disclosure architecture for TV episodes and comic issues across `_series_entry.html.erb` and `_series_entries.scss`.
+  - Enforced clear separation between "Open" links, "Mark read/watched" primary action, and the "Details" disclosure toggle with zero nested interactive element collisions.
+  - Sized disclosure toggles and category pills with 44px touch targets and accessible focus-visible outlines.
+  - Verified genre chips navigate to `/categories/genres/:name` while metadata features remain static pills.
+  - Extended request specs in `spec/requests/child_card_expanders_spec.rb`.
 
 ---
 
