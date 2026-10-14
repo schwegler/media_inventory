@@ -32,7 +32,18 @@ Push each tested checkpoint to the branch's upstream so work can resume elsewher
 - Completed: the first full run exercised 875 examples, with only one whitespace-sensitive
   assertion failing after formatting the genre template. Normalize that assertion's text;
   all 19 related request examples now pass, and the displayed labels remain unchanged.
-- In progress: rerun the full suite at the final code state before marking the PR ready.
+- Completed: final full suite passes: 876 examples, zero failures, nine existing pending
+  examples (seed 4160). GitHub Actions run 38620734284 passes lint/security, asset builds,
+  regular tests and the dedicated browser regressions at code commit `ee1c53a`.
+
+## Resume checkpoint
+
+PR: https://github.com/schwegler/media_inventory/pull/593
+Passing CI: https://github.com/schwegler/media_inventory/actions/runs/38620734284
+The branch tracks `origin/codex/fix-metadata-review`; all implementation commits are pushed.
+Fetch and check out that branch to resume. No deployment or production changes were made.
+Visual verification used Chromium with local fixture data; Safari, Firefox and live provider
+responses were not exercised. PRs #590 and #592 need not be merged for these fixes.
 
 ## Verification and known baseline issues
 
