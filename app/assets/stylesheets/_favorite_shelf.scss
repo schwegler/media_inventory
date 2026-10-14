@@ -27,6 +27,7 @@
   input[type="radio"] { padding: 0; box-shadow: none; }
   .shelf-heading > a { font: 19px Georgia, serif; }
   h1, h2, h3, p { color: inherit; }
+  h2 { border: 0; padding: 0; }
   .shelf-heading h1 { font: 400 clamp(46px, 6.9vw, 100px)/.92 Georgia, 'Times New Roman', serif; letter-spacing: -.055em; margin: 18px 0 0; }
   .shelf-exhibition { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); column-gap: 32px; }
   .shelf-exhibit { display: grid; grid-template-columns: 110px minmax(0,1fr); align-items: end; gap: 12px; padding: 28px 0 20px; border-top: 1px solid var(--shelf-line); min-width: 0; }
