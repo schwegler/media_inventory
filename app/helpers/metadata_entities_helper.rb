@@ -29,6 +29,16 @@ module MetadataEntitiesHelper
     link_to(title, item)
   end
 
+  def entity_work_link(item)
+    if item.is_a?(ComicIssue)
+      link_to("##{item.issue_number} · #{item.title.presence || 'Untitled issue'}", item, title: item.display_title)
+    elsif item.is_a?(TvEpisode)
+      link_to("S#{item.season} · E#{item.episode} · #{item.name}", item, title: item.title)
+    else
+      metadata_work_link(item)
+    end
+  end
+
   def entity_credit_links(credits)
     safe_join(credits.map do |credit|
       link_to(credit.metadata_entity.name, metadata_entity_path(credit.metadata_entity), class: 'media-category-link',

@@ -1,0 +1,72 @@
+@mixin styles {
+  .entity-page .entity-hero { display: flex; gap: 1.5rem; align-items: center; padding: 1rem 0 1.5rem; margin: 0; background: transparent; box-shadow: none; border: 0; border-radius: 0; }
+  .entity-page .entity-profile { min-width: 0; flex: 1; }
+  .entity-page .entity-hero h1 { font-size: clamp(1.75rem, 3.5vw, 2.5rem); line-height: 1.15; margin: .4rem 0 .85rem; overflow-wrap: anywhere; }
+  .entity-photo { width: 112px; flex-shrink: 0; }
+  .entity-page .entity-portrait { width: 112px; height: 140px; object-fit: cover; border-radius: 8px; }
+  .entity-photo-source, .entity-photo small { display: block; font-size: .7rem; margin-top: .4rem; color: var(--text-secondary); }
+  .entity-photo-source { color: var(--accent); }
+  .entity-photo-credit { font-size: .7rem; margin-top: .35rem; color: var(--text-secondary); }
+  .entity-photo-credit summary { cursor: pointer; min-height: 24px; }
+  .entity-credit-summary { margin: 0; font-size: 1rem; }
+  .entity-credit-summary span, .entity-bio, .entity-aliases { color: var(--text-secondary); }
+  .entity-filters { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 1rem; margin: 0 0 1.5rem; padding: 1.25rem 0; border-top: 1px solid var(--border); }
+  .entity-filters label { display: block; font-size: .8rem; margin-bottom: .4rem; }
+  .entity-filters select { min-width: 160px; min-height: 44px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; padding: .5rem .75rem; }
+  .entity-filter-reset { display: inline-flex; min-height: 44px; align-items: center; font-size: .85rem; color: var(--accent); }
+  .entity-work-heading { display: flex; flex-wrap: wrap; gap: 1rem; align-items: baseline; border-bottom: 1px solid var(--border); padding-bottom: .8rem; }
+  .entity-work-heading h2 { margin: 0; font-size: 1.35rem; padding: 0; border: 0; }
+  .entity-work-heading span { color: var(--text-secondary); font-size: .85rem; }
+  .entity-works { margin: 0 0 2rem; }
+  .entity-works .entity-work-row { display: flex; align-items: center; gap: 1rem; padding: .85rem 0; }
+  .entity-work-artwork, .entity-work-placeholder { width: 48px; height: 68px; object-fit: cover; border-radius: 4px; flex-shrink: 0; }
+  .entity-work-placeholder { display: grid; place-items: center; background: var(--inset); color: var(--text-secondary); }
+  .entity-work-landscape { width: 80px; height: 45px; }
+  .entity-work-title { min-width: 0; flex: 1; }
+  .entity-work-title > span, .entity-work-title > small { display: block; color: var(--text-secondary); font-size: .85rem; }
+  .entity-work-title > a { font-size: 1rem; font-weight: 600; color: var(--text); text-decoration: none; }
+  .entity-work-title > a:hover { color: var(--accent); text-decoration: underline; }
+  .entity-work-role { color: var(--text-secondary); font-size: .85rem; }
+  .media-child-detail .media-overview { grid-template-columns: 140px minmax(0, 1fr); gap: .75rem 1.5rem; }
+  .media-child-detail .media-overview .media-cover { width: 140px; max-height: 210px; }
+  .media-child-detail[data-media-kind='TvEpisode'] .media-cover { aspect-ratio: 16 / 9; }
+  .media-child-detail .media-overview h1 { font-size: clamp(1.7rem, 3vw, 2.4rem); }
+  .media-child-detail .media-overview-stats { grid-column: 2; padding: 0; background: transparent; border: 0; box-shadow: none; justify-self: start; }
+  .child-progress-band { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; padding: 1rem 0; margin: 1.5rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .child-progress-band h2 { font-size: 1rem; margin: 0 auto 0 0; padding: 0; border: 0; }
+  .child-progress-band form { margin: 0; }
+  .child-progress-band > p { flex: 1; margin: 0; }
+  .child-progress-state { font-size: .9rem; color: var(--text-secondary); }
+  .child-review-action { color: var(--accent); display: inline-flex; min-height: 44px; align-items: center; }
+  .child-review-summary { flex-basis: 100%; color: var(--text-secondary); }
+  .child-detail-content { display: grid; grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr); gap: 2rem; }
+  .child-detail-synopsis .child-description { padding: 0; border: 0; background: transparent; }
+  .child-detail-content h3, .child-detail-credits h2, .child-detail-community h2 { font-size: 1.15rem; margin: 0 0 1rem; padding: 0; border: 0; }
+  .child-detail-facts { border-left: 1px solid var(--border); padding-left: 1.5rem; }
+  .child-detail-facts .child-metadata { padding: 0; border: 0; border-radius: 0; background: transparent; }
+  .child-detail-facts .media-description-facts { display: block; }
+  .child-detail-facts .media-description-row { display: grid; grid-template-columns: minmax(85px, 1fr) minmax(0, 2fr); gap: 1rem; padding: .65rem 0; }
+  .child-detail-facts dd { overflow-wrap: anywhere; margin: 0; }
+  .child-detail-credits { margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+  .child-detail-credits dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; }
+  .child-detail-credits dt { color: var(--text-secondary); font-size: .8rem; margin-bottom: .5rem; }
+  .child-detail-credits dd { margin: 0; font-size: .9rem; line-height: 1.6; }
+  .child-detail-credits a { color: var(--accent); }
+  .child-detail-community { margin-top: 2rem; padding: 1.25rem 0; border-top: 1px solid var(--border); }
+  .child-community-heading { display: flex; justify-content: space-between; align-items: center; }
+  @media (max-width: 640px) {
+    .entity-page .entity-hero { gap: 1rem; align-items: flex-start; }
+    .entity-photo, .entity-page .entity-portrait { width: 80px; }
+    .entity-page .entity-portrait { height: 100px; }
+    .entity-filters > div { flex: 1 1 140px; min-width: 0; }
+    .entity-filters select { width: 100%; min-width: 0; }
+    .entity-work-role { display: none; }
+    .media-child-detail .media-overview { grid-template-columns: 90px minmax(0, 1fr); gap: 1rem; }
+    .media-child-detail .media-overview .media-cover { width: 90px; }
+    .media-child-detail .media-overview-stats { grid-column: 1 / -1; }
+    .child-detail-content { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+    .child-detail-facts { padding-left: 0; border-left: 0; }
+    .child-progress-band h2 { flex-basis: 100%; }
+    .child-detail-credits dl { grid-template-columns: minmax(0, 1fr); }
+  }
+}

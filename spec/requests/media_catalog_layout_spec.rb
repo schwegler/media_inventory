@@ -79,7 +79,7 @@ RSpec.describe 'Media catalog organization', type: :request do
       get polymorphic_path(child)
       follow_redirect! if response.redirect?
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include('My Progress', 'Review &amp; rating')
+      expect(response.body).to include('My Progress', 'Write review')
     end
   end
 

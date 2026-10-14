@@ -1,0 +1,28 @@
+<% is_episode = item.is_a?(TvEpisode) %>
+<% past = is_episode ? 'watched' : 'read' %>
+<% series_lib = LibraryItem.find_by(user: current_user, item: parent) if logged_in? %>
+<div class="child-progress-band">
+  <h2>My Progress</h2>
+  <% if logged_in? && series_lib.present? %>
+    <% completed = ConsumptionPasses.consumed?(item, user: current_user, series_lib: series_lib, child_lib: @library_item) %>
+    <span class="child-progress-state"><%= completed ? "✓ #{past.capitalize}" : "Not #{past.capitalize}" %></span>
+    <%= button_to completed ? "Mark #{is_episode ? 'unwatched' : 'unread'}" : "Mark #{past}",
+                  is_episode ? toggle_watched_tv_episode_path(item) : toggle_read_comic_issue_path(item), method: :patch,
+                  params: { item.model_name.param_key => { consumed: !completed, consumed_at: completed ? nil : Date.current },
+                            (is_episode ? :back_to_episode : :back_to_issue) => true },
+                  class: "sleek-btn #{completed ? 'sleek-btn-secondary' : 'sleek-btn-primary'}" %>
+    <%= link_to @library_item&.review.present? || @library_item&.rating.present? ? 'Edit review' : 'Write review',
+                edit_review_path(item_type: item.class.name, item_id: item.id), class: 'child-review-action', data: { turbo_frame: 'modal' } %>
+    <% if @library_item&.review.present? || @library_item&.rating.present? %>
+      <div class="child-review-summary">
+        <% if @library_item.rating.present? %><p><%= render_stars(@library_item.rating) %></p><% end %>
+        <% if @library_item.review.present? %><%= simple_format(@library_item.review) %><% end %>
+      </div>
+    <% end %>
+  <% elsif logged_in? %>
+    <p>Add <%= link_to parent.title, parent %> to your library to track <%= is_episode ? 'episodes' : 'issues' %>.</p>
+    <%= button_to 'Add series to my library', polymorphic_path(parent), method: :patch, params: { parent.model_name.param_key => { is_collected: true } }, class: 'sleek-btn sleek-btn-primary' %>
+  <% else %>
+    <p><%= link_to 'Log in', login_path %> to track your progress.</p>
+  <% end %>
+</div>

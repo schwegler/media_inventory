@@ -1,0 +1,15 @@
+<% linked = item.metadata_credits.includes(:metadata_entity).to_a %>
+<% if linked.any? || item.credits.present? %>
+  <section class="child-detail-credits" aria-label="People and credits">
+    <h2>People &amp; credits</h2>
+    <dl>
+      <% if linked.any? %>
+        <% linked.group_by(&:role).each do |role, credits| %>
+          <div><dt><%= role %></dt><dd><%= safe_join(credits.map { |credit| safe_join([link_to(credit.metadata_entity.name, metadata_entity_path(credit.metadata_entity), data: { turbo_frame: '_top' }), (" as #{credit.details['character']}" if credit.details['character'].present?)].compact) }, ', ') %></dd></div>
+        <% end %>
+      <% else %>
+        <% item.credits.group_by { |credit| credit['role'] }.each do |role, credits| %><div><dt><%= role.to_s.humanize %></dt><dd><%= credits.map { |credit| [credit['name'], credit['character'].presence].compact.join(' as ') }.uniq.join(', ') %></dd></div><% end %>
+      <% end %>
+    </dl>
+  </section>
+<% end %>

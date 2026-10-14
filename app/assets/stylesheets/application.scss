@@ -23,6 +23,7 @@
 @use "collection_workspace";
 @use "ui_icons";
 @use "series_entries";
+@use "entity_refinement";
 
 @include editorial.styles;
 @include profile.styles;
@@ -76,3 +77,5 @@
 .artwork-lightbox a { color: inherit; }
 
 @include series_entries.styles;
+
+@include entity_refinement.styles;
