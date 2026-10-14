@@ -16,9 +16,17 @@
     </div>
     <div class="entity-profile"><p class="entity-eyebrow"><%= @entity.kind.titleize %></p><h1 id="entity-heading"><%= @entity.name %></h1>
       <p class="entity-credit-summary"><%= @roles.keys.join(' · ') %><% if @roles.any? %> · <% end %><%= pluralize(@work_count, 'credited work') %><span> in <%= @library == 'mine' ? 'your library' : 'Trove' %></span></p>
-      <% if @entity.description.present? %><p class="entity-bio"><%= truncate(strip_tags(@entity.description), length: 800) %></p><% end %>
-      <% if @entity.aliases.present? %><p class="entity-aliases">Also known as <%= @entity.aliases.join(', ') %></p><% end %>
     </div>
+    <% if @entity.description.present? || @entity.aliases.present? %>
+      <div class="entity-description">
+        <% if @entity.description.present? %>
+          <p class="entity-bio"><%= truncate(strip_tags(@entity.description), length: 800) %></p>
+        <% end %>
+        <% if @entity.aliases.present? %>
+          <p class="entity-aliases">Also known as <%= @entity.aliases.join(', ') %></p>
+        <% end %>
+      </div>
+    <% end %>
   </header>
   <%= form_with url: metadata_entity_path(@entity), method: :get, class: 'catalog-toolbar entity-filters' do |f| %>
     <div><%= f.label :role, 'Role' %><%= f.select :role, [['All roles', '']] + @roles.keys.map { |role| [role, role] }, selected: params[:role] %></div>

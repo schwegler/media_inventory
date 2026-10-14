@@ -15,7 +15,7 @@
   .child-collection-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) 200px; gap: 1rem; margin: 0 0 1.25rem; }
   .child-collection-toolbar > div { min-width: 0; }
   .child-collection-toolbar label { display: block; font-size: .85rem; margin-bottom: .4rem; }
-  .child-collection-toolbar input, .child-collection-toolbar select, .season-selector select { width: 100%; min-height: 44px; padding: .65rem .85rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; }
+  .child-collection-toolbar input, .child-collection-toolbar select, .season-selector select { width: 100%; min-height: 44px; padding: .65rem .85rem; border: 1px solid var(--border); border-radius: 8px; background-color: var(--surface); color: var(--text); font: inherit; }
   .child-collection-toolbar > p { grid-column: 1 / -1; font-size: .85rem; margin: 0; color: var(--text-secondary); }
   .show-episodes-section { margin: 0; }
   .season-selector { display: flex; align-items: center; gap: .5rem; margin-bottom: 1rem; }
@@ -50,7 +50,7 @@
 .series-entry-title > a { font-size: 1rem; font-weight: 600; color: var(--text); text-decoration: none; }
 .series-entry-title p { font-size: .85rem; color: var(--text-secondary); margin: .35rem 0 0; }
 .series-entry-track { margin: 0; flex-shrink: 0; }
-.series-entry-track button { min-height: 38px; font-size: .85rem; padding: .4rem .75rem; }
+.series-entry-track button { min-height: 44px; font-size: .85rem; padding: .4rem .75rem; }
 .series-entry-details > summary.series-entry-toggle {
   position: absolute;
   top: 1.25rem;
@@ -59,7 +59,7 @@
   align-items: center;
   justify-content: center;
   gap: .35rem;
-  min-height: 38px;
+  min-height: 44px;
   padding: .4rem .75rem;
   border-radius: 6px;
   font: 600 .85rem/1.4 'Instrument Sans', system-ui, sans-serif;
@@ -76,11 +76,13 @@
   background: var(--inset);
   border-color: var(--accent);
 }
+.series-entry-details > summary.series-entry-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .series-entry-toggle-icon {
-  display: inline-block;
-  font-size: .9rem;
+  display: inline-flex;
+  flex-shrink: 0;
   transition: transform .15s ease;
 }
+.series-entry-toggle-icon .ui-icon { width: 14px; height: 14px; }
 .series-entry-details[open] > summary .series-entry-toggle-icon { transform: rotate(180deg); }
 .series-entry:has(> .series-entry-details[open]) { background: var(--inset); }
 .series-entry-body { padding: 1.25rem 0 0; font-size: .95rem; }
@@ -115,9 +117,12 @@
   .series-entry-artwork { width: 80px; height: 45px; }
   .series-entry-track { width: 100%; }
   .series-entry-track button { width: 100%; }
-  .series-entry-details > summary.series-entry-toggle { top: 1rem; right: .75rem; min-height: 36px; padding: .35rem .6rem; font-size: .8rem; }
+  .series-entry-details > summary.series-entry-toggle { top: 1rem; right: .75rem; padding: .35rem .6rem; font-size: .8rem; }
   .series-entry-body { padding: 1rem 0 0; }
   .modal-container.review-drawer { width: 100%; max-width: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .series-entry, .series-entry-toggle-icon, .series-entry-details > summary.series-entry-toggle { transition: none; }
 }
 .review-drawer-overlay { background: rgb(0 0 0 / 18%); backdrop-filter: none; -webkit-backdrop-filter: none; }
 .review-drawer { box-shadow: none; background: var(--surface); color: var(--text); }

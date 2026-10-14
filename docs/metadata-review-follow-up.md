@@ -12,10 +12,17 @@ Push each tested checkpoint to the branch's upstream so work can resume elsewher
 - Completed: deduplicate legacy creator counts per work and repair the removed
   disclosure selector. All 33 focused examples (including browser system tests) pass;
   changed-file lint passes. The category query optimization already merged in #589 is preserved.
-- Pending: wrap source labels, use meaningful source icons, distinguish interactive genre
+- Completed: wrap source labels, use meaningful source icons, distinguish interactive genre
   chips, enlarge touch targets, respect reduced motion, fix mobile entity filters and dark
   select arrows, allow biographies to span mobile widths, and simplify dense view logic.
-- Pending: remove the committed Puma log, run full checks and desktop/mobile browser QA.
+- Completed: use the valid SVG chevron idea from #592 without its conflict markers;
+  preserve #591's button design while restoring 44px targets and visible keyboard focus.
+- Completed: remove the committed Puma log and ignore the runtime file.
+- Completed: build Sass, pass 18 focused request examples and six browser system examples;
+  verify all 45 desktop/mobile/dark page combinations render with no horizontal overflow
+  or clipped source labels. Existing analytics CSP errors remain unrelated.
+- Next: make browser regressions run in CI, modernize stale series system tests, and run
+  the complete suite. Recheck narrow layouts, authenticated interactions and reduced motion.
 
 ## Verification and known baseline issues
 

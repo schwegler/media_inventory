@@ -25,7 +25,7 @@
     </div>
     <details class="series-entry-details">
       <summary class="series-entry-toggle" aria-label="Details for <%= title %>">
-        Details <span class="series-entry-toggle-icon" aria-hidden="true">⌄</span>
+        Details <span class="series-entry-toggle-icon" aria-hidden="true"><%= ui_icon('chevron-down') %></span>
       </summary>
       <div class="series-entry-body">
         <%= render 'shared/child_description', item: item %>
