@@ -17,12 +17,15 @@ export default class extends Controller {
       if (this.isOpen && !this.element.contains(event.target)) this.close()
     }
     this.onBeforeCache = () => this.close()
+    this.onResize = () => { if (window.innerWidth >= 1100) this.close() }
+    window.addEventListener("resize", this.onResize)
     document.addEventListener("keydown", this.onKeydown)
     document.addEventListener("click", this.onClick)
     document.addEventListener("turbo:before-cache", this.onBeforeCache)
   }
 
   disconnect() {
+    window.removeEventListener("resize", this.onResize)
     document.removeEventListener("keydown", this.onKeydown)
     document.removeEventListener("click", this.onClick)
     document.removeEventListener("turbo:before-cache", this.onBeforeCache)
@@ -39,6 +42,10 @@ export default class extends Controller {
     this.isOpen = true
     this.render()
     this.menuTarget.querySelector("input")?.focus()
+  }
+
+  navigate(event) {
+    if (event.target.closest("a")) this.close()
   }
 
   close() {
