@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title><%= full_title(yield(:title)) %></title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="<%= yield(:meta_description) %>">
+  <meta property="og:title" content="<%= yield(:title) %>">
+  <meta property="og:description" content="<%= yield(:meta_description) %>">
+  <meta property="og:url" content="<%= request.original_url %>">
+  <meta property="og:site_name" content="Trove">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <%= stylesheet_link_tag 'application', 'data-turbo-track': 'reload' %>
+  <%= javascript_importmap_tags %>
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+</head>
+<body class="shelf-page">
+  <a class="skip-link" href="#main-content">Skip to shelves</a>
+  <main id="main-content"><%= yield %></main>
+</body>
+</html>

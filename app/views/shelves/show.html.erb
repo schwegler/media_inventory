@@ -1,16 +1,29 @@
 <% content_for :title, "#{@user.name}’s Shelf" %>
-<section class="favorite-shelf" data-controller="favorite-shelf" data-favorite-shelf-url-value="<%= shelf_path(@user.username, category: @category) %>" data-favorite-shelf-search-value="<%= search_shelves_path(category: @category) %>" data-favorite-shelf-picks-value="<%= @items.map { |i| { id: i.id, type: i.class.name, title: i.title, cover: i.respond_to?(:stored_cover_url) ? i.stored_cover_url : nil } }.to_json %>" data-favorite-shelf-handle-value="<%= @user.username %>" data-favorite-shelf-category-value="<%= FavoriteShelf::CATEGORIES[@category] %>">
-  <div class="shelf-heading"><p>THE THINGS THAT STAY WITH YOU</p><h1><%= @user.name %>’s Shelf</h1><p>Five favorites. Entirely personal.</p><%= link_to "@#{@user.username}", handle_profile_path(@user.username) %></div>
-  <div class="shelf-categories" role="navigation" aria-label="Shelf categories"><% FavoriteShelf::CATEGORIES.each do |key, label| %><%= link_to label, shelf_path(@user.username, category: key), aria: { current: @category == key ? 'page' : nil } %><% end %></div>
-  <h2>Top five · <%= FavoriteShelf::CATEGORIES[@category] %></h2>
-  <% if current_user?(@user) %><p>Tap a slot to find a favorite. Use the arrows to rank your picks. Your saved shelves are public.</p><% end %>
-  <div class="favorite-shelf-slots" data-favorite-shelf-target="slots" data-owner="<%= current_user?(@user) %>"></div>
-  <noscript><ol><% @items.each do |item| %><li><%= link_to item.title, item %></li><% end %></ol><p>Enable JavaScript to edit your shelf and download its share image.</p></noscript>
-  <% if current_user?(@user) %>
-    <button class="sleek-btn sleek-btn-primary" data-action="favorite-shelf#save">Save shelf</button>
-    <dialog data-favorite-shelf-target="dialog"><div class="shelf-picker"><h2>Find a favorite</h2><button data-action="favorite-shelf#close" aria-label="Close search">Close</button><label for="shelf-search">Search titles</label><input id="shelf-search" type="search" placeholder="Start typing a title…" autocomplete="off" data-favorite-shelf-target="query" data-action="input->favorite-shelf#search"><div data-favorite-shelf-target="results" aria-live="polite">Search across the catalog. No need to add it to your library first.</div></div></dialog>
+<% content_for :meta_description, "The things that stay with #{@user.name}. Explore seven shelves of personal favorites on Trove." %>
+<section class="favorite-shelf" data-shelf-theme="<%= @theme %>" data-controller="favorite-shelf" data-favorite-shelf-url-value="<%= shelf_path(@user.username, category: @category) %>" data-favorite-shelf-search-value="<%= search_shelves_path(category: @category) %>" data-favorite-shelf-picks-value="<%= shelf_pick_data(@items).to_json %>" data-favorite-shelf-shelves-value="<%= @shelves.map { |s| { label: s[:label], picks: shelf_pick_data(s[:items]) } }.to_json %>" data-favorite-shelf-overview-value="<%= @overview %>" data-favorite-shelf-handle-value="<%= @user.username %>" data-favorite-shelf-category-value="<%= FavoriteShelf::CATEGORIES[@category] %>">
+  <nav class="shelf-toolbar" aria-label="Shelf navigation">
+    <div class="shelf-toolbar-links"><%= link_to 'Trove', root_path, class: 'shelf-wordmark' %><%= link_to 'All shelves', shelf_path(@user.username, theme: @theme), data: { shelf_link: true }, aria: { current: @overview ? 'page' : nil } %><a href="#shelf-sharing">Share</a></div>
+    <fieldset class="shelf-themes"><legend>Theme</legend><% %w[midnight gallery electric].each do |theme| %><label><input type="radio" name="shelf-theme" value="<%= theme %>" <%= 'checked' if @theme == theme %> data-action="favorite-shelf#theme"><span><%= theme.capitalize %></span></label><% end %></fieldset>
+  </nav>
+  <% if @overview %>
+    <div class="shelf-introduction"><header class="shelf-heading"><%= link_to "#{@user.name}’s Shelf", handle_profile_path(@user.username) %><h1>The things<br>I keep.</h1></header><%= render 'exhibit', shelf: @shelves.first, index: 0, featured: true %></div>
+    <div class="shelf-exhibition"><% @shelves.drop(1).each_with_index do |shelf, index| %><%= render 'exhibit', shelf: shelf, index: index + 1, featured: false %><% end %></div>
+  <% else %>
+    <header class="shelf-heading shelf-detail-heading"><%= link_to "#{@user.name}’s Shelf", handle_profile_path(@user.username) %><h1><%= FavoriteShelf::CATEGORIES[@category] %><span>Five favorites. Entirely personal.</span></h1></header>
+    <nav class="shelf-categories" aria-label="Shelf categories"><% FavoriteShelf::CATEGORIES.each do |key, label| %><%= link_to label, shelf_path(@user.username, category: key, theme: @theme), data: { shelf_link: true }, aria: { current: @category == key ? 'page' : nil } %><% end %></nav>
+    <% if current_user?(@user) %><p class="shelf-edit-hint">Choose a cover to find a favorite. Reorder your picks, then save your public shelf.</p><% end %>
+    <div class="favorite-shelf-slots" data-favorite-shelf-target="slots" data-owner="<%= current_user?(@user) %>"></div>
+    <noscript><ol><% @items.each do |item| %><li><%= link_to item.title, item %></li><% end %></ol><p>Enable JavaScript to edit your shelf and download its share image.</p></noscript>
+    <% if current_user?(@user) %>
+      <button type="button" class="shelf-primary" data-action="favorite-shelf#save">Save shelf</button>
+      <dialog data-favorite-shelf-target="dialog"><div class="shelf-picker"><h2>Find a favorite</h2><button type="button" data-action="favorite-shelf#close" aria-label="Close search">Close</button><label for="shelf-search">Search titles</label><input id="shelf-search" type="search" placeholder="Start typing a title…" autocomplete="off" data-favorite-shelf-target="query" data-action="input->favorite-shelf#search"><div data-favorite-shelf-target="results" aria-live="polite">Search across the catalog. No need to add it to your library first.</div></div></dialog>
+    <% end %>
   <% end %>
-  <button class="sleek-btn sleek-btn-secondary" data-action="favorite-shelf#download">Download share image</button>
+  <section class="shelf-sharing" id="shelf-sharing" aria-labelledby="shelf-share-heading">
+    <div><h2 id="shelf-share-heading">Share your shelf</h2><p>Save a little piece of your world.<br>Ready for your feed or your story.</p></div>
+    <fieldset class="shelf-formats"><legend>Image format</legend><label><input type="radio" name="shelf-format" value="landscape" checked data-action="favorite-shelf#format"><span class="shelf-format-shape landscape" aria-hidden="true"></span><span>Landscape<small>1200 × 630</small></span></label><label><input type="radio" name="shelf-format" value="portrait" data-action="favorite-shelf#format"><span class="shelf-format-shape portrait" aria-hidden="true"></span><span>Portrait<small>1080 × 1920</small></span></label></fieldset>
+    <div class="shelf-share-actions"><button type="button" class="shelf-primary" data-action="favorite-shelf#download"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 15v6h16v-6"/></svg>Download share image</button><button type="button" class="shelf-copy" data-action="favorite-shelf#copyLink">Copy shelf link</button></div>
+  </section>
   <p role="status" aria-live="polite" data-favorite-shelf-target="status"></p>
-  <details><summary>Share image preview</summary><canvas width="1500" height="1000" data-favorite-shelf-target="canvas" aria-label="Shelf share image preview"></canvas></details>
+  <details class="shelf-preview"><summary>Share image preview</summary><canvas width="1200" height="630" data-favorite-shelf-target="canvas" aria-label="Shelf share image preview"></canvas></details>
 </section>

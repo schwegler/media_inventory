@@ -8,11 +8,12 @@ class FavoriteShelf < ApplicationRecord
   validate :valid_picks
 
   def items
-    Array(picks).filter_map do |pick|
-      next unless CATEGORIES.key?(pick['type']) && pick['type'] != 'overall'
-
-      pick['type'].constantize.find_by(id: pick['id'])
+    valid = Array(picks).select { |pick| CATEGORIES.key?(pick['type']) && pick['type'] != 'overall' }
+    records = valid.group_by { |pick| pick['type'] }.transform_values do |group|
+      group.first['type'].constantize.where(id: group.map { |pick| pick['id'] })
+           .with_attached_cover_image.index_by(&:id)
     end
+    valid.filter_map { |pick| records[pick['type']][pick['id'].to_i] }
   end
 
   private
