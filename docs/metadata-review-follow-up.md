@@ -29,8 +29,10 @@ Push each tested checkpoint to the branch's upstream so work can resume elsewher
   readable width beside progress controls. Validate authenticated layouts at 320/390/768/1440px,
   keyboard navigation, filters/reset, source alignment and reduced motion.
 - Completed: all 529 Ruby files pass lint; Brakeman reports no new security warnings.
-- In progress: the full randomized suite is running; one failure appeared that did not
-  reproduce in focused runs. Triage it before considering the branch ready to merge.
+- Completed: the first full run exercised 875 examples, with only one whitespace-sensitive
+  assertion failing after formatting the genre template. Normalize that assertion's text;
+  all 19 related request examples now pass, and the displayed labels remain unchanged.
+- In progress: rerun the full suite at the final code state before marking the PR ready.
 
 ## Verification and known baseline issues
 

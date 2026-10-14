@@ -33,8 +33,8 @@ RSpec.describe 'Media title details', type: :request do
     follow_redirect! if response.redirect?
     document = Nokogiri::HTML(response.body)
     expect(document.at_css('.game-description .child-description-prose').text).to include('A readable synopsis.')
-    expect(document.css('.media-description-tags li').map(&:text)).to eq(['Action', 'Adventure', 'Single-player',
-                                                                          'Steam Cloud'])
+    labels = document.css('.media-description-tags li').map { |tag| tag.text.strip }
+    expect(labels).to eq(['Action', 'Adventure', 'Single-player', 'Steam Cloud'])
     expect(document.at_css('.media-description-disclosure p').text).to eq('English*, French*')
     expect(document.at_css('.media-description-disclosure small').text).to eq('* Full audio support')
     expect(document.at_css('#title-details').text).to include('Full')
