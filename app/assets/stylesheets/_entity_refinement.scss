@@ -13,7 +13,8 @@
   .entity-credit-summary span, .entity-bio, .entity-aliases { color: var(--text-secondary); }
   .entity-filters { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 1rem; margin: 0 0 1.5rem; padding: 1.25rem 0; border-top: 1px solid var(--border); }
   .entity-filters label { display: block; font-size: .8rem; margin-bottom: .4rem; }
-  .entity-filters select { min-width: 160px; min-height: 44px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; padding: .5rem .75rem; }
+  .entity-filters select { min-width: 160px; min-height: 44px; border: 1px solid var(--border); border-radius: 8px; background-color: var(--surface); color: var(--text); font: inherit; padding: .5rem .75rem; }
+  .entity-filters .sleek-btn, .entity-filters input[type='submit'] { min-height: 44px; padding-inline: 1rem; white-space: nowrap; }
   .entity-filter-reset { display: inline-flex; min-height: 44px; align-items: center; font-size: .85rem; color: var(--accent); }
   .entity-work-heading { display: flex; flex-wrap: wrap; gap: 1rem; align-items: baseline; border-bottom: 1px solid var(--border); padding-bottom: .8rem; }
   .entity-work-heading h2 { margin: 0; font-size: 1.35rem; padding: 0; border: 0; }
@@ -61,6 +62,7 @@
     .entity-page .entity-portrait { height: 100px; }
     .entity-filters > div { flex: 1 1 140px; min-width: 0; }
     .entity-filters select { width: 100%; min-width: 0; }
+    .entity-filters .sleek-btn, .entity-filters input[type='submit'] { flex: 0 0 auto; min-width: 120px; }
     .entity-work-role { display: none; }
     .media-child-detail .media-overview { grid-template-columns: 90px minmax(0, 1fr); gap: 1rem; }
     .media-child-detail .media-overview .media-cover { width: 90px; }

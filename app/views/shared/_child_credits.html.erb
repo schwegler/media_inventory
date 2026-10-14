@@ -1,11 +1,6 @@
 <%
   linked = item.metadata_credits.to_a
-  if linked.empty? && item.respond_to?(:credits) && item.credits.present?
-    names = item.credits.map { |c| c['name'] }.compact.uniq
-    entities = MetadataEntity.where(normalized_name: names.map { |n| MetadataEntity.normalize(n) }).index_by(&:normalized_name)
-  else
-    entities = {}
-  end
+  entities = linked.empty? && item.respond_to?(:credits) && item.credits.present? ? resolve_raw_credits(item.credits) : {}
 %>
 <% if linked.any? || (item.respond_to?(:credits) && item.credits.present?) %>
   <section class="child-detail-credits" aria-label="People and credits">
@@ -22,7 +17,7 @@
             <dd>
               <%= safe_join(raw_credits.map do |credit|
                 name = credit['name']
-                entity = entities[MetadataEntity.normalize(name)]
+                entity = entities[credit]
                 link = entity ? link_to(name, metadata_entity_path(entity), data: { turbo_frame: '_top' }) : ERB::Util.html_escape(name)
                 credit['character'].present? ? safe_join([link, " as #{credit['character']}"]) : link
               end.uniq, ', ') %>

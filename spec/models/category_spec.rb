@@ -136,6 +136,21 @@ RSpec.describe Category, type: :model do
     end
   end
 
+  describe 'comic creators deduplication' do
+    it 'counts a creator once per work when listed as both writer and artist' do
+      Comic.create!(title: 'Watchmen', writer: 'Alan Moore', artist: 'Dave Gibbons')
+      Comic.create!(title: 'Maus', writer: 'Art Spiegelman', artist: 'Art Spiegelman')
+
+      creators = Category.list_for('comic-creators')
+      art = creators.find { |c| c.name == 'Art Spiegelman' }
+      expect(art).not_to be_nil
+      expect(art.count).to eq(1)
+
+      items = Category.items_for('comic-creators', 'Art Spiegelman')
+      expect(items.size).to eq(1)
+    end
+  end
+
   describe 'video game platforms' do
     let!(:game) { VideoGame.create!(title: 'Portal', platform: 'PC, Nintendo Switch') }
     let!(:other_game) { VideoGame.create!(title: 'Portal 2', platform: 'pc; PlayStation 3') }

@@ -132,7 +132,7 @@ class Category
     casing = {}
     attributes = type == 'comic-creators' ? %i[writer artist] : [attribute]
     models.each do |m|
-      attributes.each { |attr| count_model_attributes(m, attr, counts, casing) }
+      count_model_attributes(m, attributes, counts, casing)
     end
     counts.map { |key, count| new(name: casing[key], type: type, count: count) }
   end
@@ -145,13 +145,19 @@ class Category
     nil
   end
 
-  def self.count_model_attributes(model, attribute, counts, casing)
-    attr_name = target_attribute(model, attribute)
-    return unless attr_name
+  def self.count_model_attributes(model, attributes, counts, casing)
+    attr_names = Array(attributes).map { |attr| target_attribute(model, attr) }.compact.uniq
+    return if attr_names.empty?
 
-    model.where.not(id: MetadataCredit.where(item_type: model.name).select(:item_id))
-         .where.not(attr_name => [nil, '']).pluck(attr_name).each do |raw|
-      split_names(raw).each do |name|
+    scope = model.where.not(id: MetadataCredit.where(item_type: model.name).select(:item_id))
+    conditions = attr_names.map { |col| "#{col} IS NOT NULL AND #{col} != ''" }.join(' OR ')
+    records = scope.where(conditions).pluck(*attr_names)
+
+    records.each do |row|
+      raw_values = Array(row)
+      names_for_work = raw_values.flat_map { |raw| split_names(raw) }
+      unique_names = names_for_work.uniq(&:downcase)
+      unique_names.each do |name|
         key = name.downcase
         casing[key] ||= name
         counts[key] += 1
