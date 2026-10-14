@@ -99,6 +99,6 @@ export async function renderShelfImage(canvas, { picks, shelves, overview, theme
   }
   ctx.strokeStyle = theme.line; ctx.beginPath(); ctx.moveTo(48, h - 65); ctx.lineTo(w - 48, h - 65); ctx.stroke()
   ctx.fillStyle = theme.muted; ctx.font = `${portrait ? 24 : 16}px sans-serif`
-  text(ctx, `${window.location.host}/@${handle}/shelf`, 48, h - 29, w - 96, portrait ? 24 : 16, 1)
+  text(ctx, `${window.location.host}/@${handle}`, 48, h - 29, w - 96, portrait ? 24 : 16, 1)
   canvas.width = w; canvas.height = h; canvas.getContext('2d').drawImage(output, 0, 0)
 }
