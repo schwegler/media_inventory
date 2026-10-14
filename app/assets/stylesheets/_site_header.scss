@@ -69,4 +69,35 @@
     .header-shell .app-header .btn-log { display: inline-flex; background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
   }
 
+  // Anchor the panel to the header, rather than the page or a distant ancestor.
+  .header-shell .app-header:not(.combined-header) { position: relative; }
+  .header-shell .app-header .mobile-nav-panel.active {
+    box-sizing: border-box;
+    right: 12px;
+    width: min(420px, calc(100% - 24px));
+    max-height: min(720px, calc(100dvh - 100px - env(safe-area-inset-bottom)));
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: 1rem;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  .header-shell .app-header.combined-header .mobile-nav-panel.active { right: 0; width: min(420px, 100%); }
+  .header-shell .mobile-nav-panel > * { flex-shrink: 0; min-width: 0; }
+  .header-shell .mobile-nav-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .375rem; }
+  .header-shell .mobile-nav-links li a { border-radius: 8px; background: var(--canvas); padding-inline: .75rem; }
+  .header-shell .mobile-nav-links li a[aria-current='page'] { background: var(--canvas); box-shadow: inset 3px 0 var(--accent); padding-inline: .75rem; }
+  .header-shell .mobile-user-profile { display: flex; align-items: flex-start; margin: 0 0 1rem; gap: .75rem; }
+  .header-shell .mobile-user-profile > img { flex-shrink: 0; }
+  .header-shell .mobile-user-info { flex: 1; min-width: 0; }
+  .header-shell .mobile-user-info .nav-username { display: block; white-space: normal; overflow-wrap: anywhere; font-size: 1rem; }
+  .header-shell .mobile-user-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .25rem; }
+  .header-shell .mobile-user-links .mobile-link { display: flex; align-items: center; width: 100%; min-height: 44px; padding: .5rem .25rem; box-sizing: border-box; font: inherit; font-size: .875rem; text-align: left; text-decoration: none; color: var(--text-secondary); overflow-wrap: anywhere; }
+  .header-shell .mobile-user-links form { margin: 0; min-width: 0; }
+  .header-shell .mobile-log-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; margin: 0; }
+  .header-shell .mobile-log-header { grid-column: 1 / -1; margin: 0 0 .25rem; font-size: .75rem; letter-spacing: .06em; }
+  .header-shell .mobile-log-actions .mobile-log-btn { min-height: 44px; display: flex; align-items: center; padding: .625rem; font-size: .875rem; }
+  .header-shell .mobile-nav-search .global-search-form { box-sizing: border-box; }
+  @media (min-width: 360px) { .header-shell .mobile-nav-search { display: none; } }
+  @media (min-width: 1100px) { .header-shell .app-header .mobile-nav-panel.active { display: none; } }
+
 }
