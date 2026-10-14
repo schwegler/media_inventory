@@ -55,11 +55,14 @@
   .home-steps { list-style: none; padding: 0; margin: 16px 0 0; counter-reset: steps; }
   .home-steps li { display: flex; align-items: center; gap: 22px; color: var(--text-muted); margin-bottom: 14px; font-size: 17px; counter-increment: steps; }
   .home-steps li::before { content: counter(steps); width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: var(--bg-surface); display: grid; place-items: center; }
-  .home-empty-state { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 12px; text-align: center; padding: 64px 24px; min-height: 235px; }
+  .home-empty-state { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 12px; text-align: center; padding: 48px 24px; min-height: 235px; }
   .home-empty-state h2 { border: 0; padding: 0; font-size: 23px; letter-spacing: -0.03em; margin: 0 0 8px; }
   .home-empty-state h3 { font-size: 23px; letter-spacing: -0.03em; margin-bottom: 8px; }
   .home-empty-state p { font-size: 17px; margin-bottom: 16px; }
   .home-empty-state a { font-size: 17px; }
+  .mascot-empty-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+  .empty-state-mascot { margin-bottom: 8px; }
+  .empty-state-actions { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
   .media-grid-2026 > .home-empty-state { grid-column: 1 / -1; }
   .dashboard-welcome h1 { font-size: 40px; font-weight: 600; color: var(--text-main); letter-spacing: -0.04em; }
   .dashboard-welcome > p { font-size: 18px; margin-top: 10px; }

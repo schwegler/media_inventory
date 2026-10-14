@@ -18,7 +18,7 @@ This plan organizes the redesign into self-contained, reviewable slices. Each mo
 | **2. Global Shell & Brand** | Trove faceted prism logo in navbar, companion link to `tacobout.online`, header navigation offsets | `app/views/shared/_site_navigation.html.erb`, `app/assets/stylesheets/_site_header.scss`, navigation specs | `DONE` |
 | **3. Public Home & Companion Bridge** | "A home for every story, album, and game you're into", 6-format hero, "The Vault. The Broadcast." companion card, logged-out vs member dashboard separation | `app/views/landing/index.html.erb`, `app/assets/stylesheets/_dashboard.scss`, landing specs | `DONE` |
 | **4. Authentication Polish** | `/login` ("Unlock Your Media Vault" + `facet_pose_04_five_star.png`), `/signup` ("Claim Your Shelf in Trove" + `facet_pose_01_bookworm.png`), Fediverse sign-in visibility | `app/views/sessions/new.html.erb`, `app/views/users/new.html.erb`, session/signup request specs | `DONE` |
-| **5. Empty States & Zero-Match** | Empty filter / 0-matches card with `facet_pose_02_gamer_mode.png`, consolidated `Log a Title` and `Reset Filters`, empty library card | `app/views/shared/_empty_state.html.erb`, `app/views/video_games/index.html.erb`, catalog specs | `TODO` |
+| **5. Empty States & Zero-Match** | Empty filter / 0-matches card with `facet_pose_02_gamer_mode.png`, consolidated `Log a Title` and `Reset Filters`, empty library card | `app/views/shared/_empty_state.html.erb`, `app/views/video_games/index.html.erb`, catalog specs | `DONE` |
 | **6. User Profile & Library Mix** | Profile header with `facet_pose_03_crate_digger.png`, visual horizontal bar breakdown for 6 media formats, active-series progress bars | `app/views/users/show.html.erb`, `app/views/users/_library_mix.html.erb`, `_profile.scss`, profile specs | `TODO` |
 | **7. Media Detail & Disclosure Shell** | Unified disclosure component for episodes & issues, genre pills vs navigation chips, credit alignment | `app/views/shared/_series_entry.html.erb`, `_media_detail.scss`, detail specs | `TODO` |
 | **8. Games Dedicated Workspace** | Preserve 6-section workspace (Overview, My copies, Playthroughs, Sessions & journal, Artwork, Import/export) | `docs/video-game-tlc.md`, game workspace controllers/views, regression specs | `TODO` |
@@ -53,6 +53,11 @@ This plan organizes the redesign into self-contained, reviewable slices. Each mo
   - Preserved multi-tab auth container supporting Email, Bluesky, and Mastodon flows.
   - Updated `_editorial.scss` with auth header and mascot layout rules.
   - Added request spec `spec/requests/authentication_redesign_spec.rb`.
+- **Commit 5:** `Implement Mascot Empty-State Cards across video games and media catalogs`
+  - Added centered `.mascot-empty-card` with `facet_pose_02_gamer_mode.png` for zero-match filter views.
+  - Added `.mascot-empty-card` with `facet_pose_01_bookworm.png` for empty personal collection shelves.
+  - Added styles for `.mascot-empty-card`, `.empty-state-mascot`, and `.empty-state-actions` in `_editorial.scss`.
+  - Added request spec `spec/requests/empty_states_redesign_spec.rb`.
 
 ---
 

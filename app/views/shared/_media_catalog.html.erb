@@ -47,9 +47,28 @@
   </div>
   <% if items.empty? %>
     <% if @personal_library %>
-      <div class="home-empty-state"><h2><%= @library_statistics[:all].zero? ? "Your library starts here" : "No titles on this shelf" %></h2><p><%= @library_statistics[:all].zero? ? "Log a title to start building your personal collection." : "Try another shelf or clear your filters." %></p><%= link_to "All my #{config[:noun]}", polymorphic_path(klass, library: "mine"), class: "sleek-btn sleek-btn-secondary" %> <%= link_to "Log a #{singular.downcase}", new_polymorphic_path(klass), class: "sleek-btn sleek-btn-primary" %></div>
+      <div class="home-empty-state mascot-empty-card" role="status">
+        <div class="empty-state-mascot" aria-hidden="true">
+          <%= image_tag 'brand/facet_pose_01_bookworm.png', class: 'mascot-sticker mascot-slot-empty', width: 85, height: 150, alt: '' %>
+        </div>
+        <h2><%= @library_statistics[:all].zero? ? "Your library starts here" : "No titles on this shelf" %></h2>
+        <p><%= @library_statistics[:all].zero? ? "Log a title to start building your personal collection." : "Try another shelf or clear your filters." %></p>
+        <div class="empty-state-actions">
+          <%= link_to "All my #{config[:noun]}", polymorphic_path(klass, library: "mine"), class: "sleek-btn sleek-btn-secondary" %>
+          <%= link_to "Log a #{singular.downcase}", new_polymorphic_path(klass), class: "sleek-btn sleek-btn-primary" %>
+        </div>
+      </div>
     <% elsif params[:q].present? || params[:status].present? %>
-      <div class="home-empty-state"><h2>No matching titles</h2><p>Try another title or library status.</p><%= link_to 'View all titles', polymorphic_path(klass), class: 'sleek-btn sleek-btn-secondary' %></div>
+      <div class="home-empty-state mascot-empty-card" role="status">
+        <div class="empty-state-mascot" aria-hidden="true">
+          <%= image_tag 'brand/facet_pose_02_gamer_mode.png', class: 'mascot-sticker mascot-slot-empty', width: 85, height: 160, alt: '' %>
+        </div>
+        <h2>0 matches in the vault</h2>
+        <p>No matching titles. Try another title or library status.</p>
+        <div class="empty-state-actions">
+          <%= link_to 'View all titles', polymorphic_path(klass), class: 'sleek-btn sleek-btn-secondary' %>
+        </div>
+      </div>
     <% else %>
       <%= render 'shared/catalog_empty_state', media_name: title.downcase, singular_name: singular.downcase, article: klass == Album ? 'an' : 'a', new_item_path: new_polymorphic_path(klass) %>
     <% end %>

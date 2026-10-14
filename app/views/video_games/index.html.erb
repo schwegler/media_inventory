@@ -51,7 +51,17 @@
 <% end %>
 </div>
 <% if @video_games.empty? %>
-  <p role="status">No games match this view. <%= link_to 'Clear filters', video_games_path(library: @personal_library ? 'mine' : 'all') %> or <%= link_to 'log a game', new_video_game_path %>.</p>
+  <div class="home-empty-state mascot-empty-card" role="status">
+    <div class="empty-state-mascot" aria-hidden="true">
+      <%= image_tag 'brand/facet_pose_02_gamer_mode.png', class: 'mascot-sticker mascot-slot-empty', width: 90, height: 171, alt: '' %>
+    </div>
+    <h2>0 matches in the vault</h2>
+    <p>No games match this view. Even Facet checked the back of the cartridge shelf and came up empty.</p>
+    <div class="empty-state-actions">
+      <%= link_to 'Clear filters', video_games_path(library: @personal_library ? 'mine' : 'all'), class: 'sleek-btn sleek-btn-secondary' %>
+      <%= link_to 'Log a game', new_video_game_path, class: 'sleek-btn sleek-btn-primary' %>
+    </div>
+  </div>
 <% elsif @layout == 'table' %>
   <%= render 'library_table' %>
 <% else %>
