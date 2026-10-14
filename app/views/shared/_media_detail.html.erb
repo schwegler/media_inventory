@@ -94,10 +94,13 @@
           <h2><%= entries_label %> in this Series</h2>
           <% if logged_in? %>
             <%
+              # Use preloaded @child_library_items in-memory hash to avoid redundant SQL query
               completed = if @active_pass&.rewatch?
                             @active_pass_entry_ids.size
+                          elsif @child_library_items
+                            @child_library_items.values.count(&:consumed?)
                           else
-                            LibraryItem.where(user: current_user, item_type: entries.klass.name, item_id: entries.select(:id), consumed: true).count
+                            0
                           end
             %>
             <p class="media-progress"><strong data-child-collection-target="completed"><%= completed %> / <%= entries.size %></strong> <%= entries_label.downcase %> <%= MediaLanguage.for(item)[:past] %></p>
