@@ -31,14 +31,15 @@ class Category
       title: 'Writers',
       singular: 'Writer',
       attribute: :writer,
-      models: -> { [Movie, TvShow, Comic] }
+      models: -> { [Movie, TvShow, Comic, Book] }
     }
   }.merge({
             'artists' => { title: 'Music Artists', singular: 'Artist', attribute: :artist, models: -> { [Album] } },
             'comic-creators' => { title: 'Comic Creators', singular: 'Creator', attribute: :writer, models: lambda {
               [Comic]
             } },
-            'authors' => { title: 'Authors', singular: 'Author', attribute: :author, models: -> { [Book] } },
+            'authors' => { title: 'Authors', singular: 'Author', attribute: :author,
+                           models: -> { [Book, Movie, TvShow, Comic] } },
             'publishers' => { title: 'Publishers', singular: 'Publisher', attribute: :publisher,
                               models: -> { [Book, Comic, VideoGame] } },
             'developers' => { title: 'Developers', singular: 'Developer', attribute: :developer, models: lambda {
@@ -90,9 +91,10 @@ class Category
   end
 
   ENTITY_ROLES = {
-    'actors' => ['Actor', 'Guest star'], 'directors' => ['Director'], 'writers' => %w[Writer Screenwriter],
+    'actors' => ['Actor', 'Guest star'], 'directors' => ['Director'],
+    'writers' => %w[Writer Screenwriter Author],
     'artists' => ['Album artist', 'Track artist', 'Featured artist', 'Performer', 'Composer', 'Producer'],
-    'authors' => %w[Author Illustrator Translator Narrator], 'publishers' => ['Publisher'],
+    'authors' => %w[Author Illustrator Translator Narrator Writer Screenwriter], 'publishers' => ['Publisher'],
     'developers' => ['Developer'], 'networks' => ['Network'], 'platforms' => ['Platform'], 'genres' => ['Genre']
   }.freeze
 
@@ -128,11 +130,20 @@ class Category
     counts.map { |key, count| new(name: casing[key], type: type, count: count) }
   end
 
+  def self.target_attribute(model, attribute)
+    return attribute if model.column_names.include?(attribute.to_s)
+    return :author if attribute.to_sym == :writer && model.column_names.include?('author')
+    return :writer if attribute.to_sym == :author && model.column_names.include?('writer')
+
+    nil
+  end
+
   def self.count_model_attributes(model, attribute, counts, casing)
-    return unless model.column_names.include?(attribute.to_s)
+    attr_name = target_attribute(model, attribute)
+    return unless attr_name
 
     model.where.not(id: MetadataCredit.where(item_type: model.name).select(:item_id))
-         .where.not(attribute => [nil, '']).pluck(attribute).each do |raw|
+         .where.not(attr_name => [nil, '']).pluck(attr_name).each do |raw|
       split_names(raw).each do |name|
         key = name.downcase
         casing[key] ||= name
@@ -185,15 +196,18 @@ class Category
   end
 
   def self.fetch_model_items(model, attribute, name)
+    attr_name = target_attribute(model, attribute)
+    return [] unless attr_name
+
     search_name = name.to_s.strip.downcase
     sanitized = model.sanitize_sql_like(search_name, '!')
     scope = model.where.not(id: MetadataCredit.where(item_type: model.name).select(:item_id))
     scope = scope.with_attached_cover_image if scope.respond_to?(:with_attached_cover_image)
 
-    scope.where(like_clause(attribute), exact: search_name, starts: "#{sanitized},%",
+    scope.where(like_clause(attr_name), exact: search_name, starts: "#{sanitized},%",
                                         ends: "%, #{sanitized}", middle: "%, #{sanitized},%",
                                         substr: "%#{sanitized}%")
-         .select { |record| split_names(record.public_send(attribute)).any? { |v| v.casecmp?(name.to_s.strip) } }
+         .select { |record| split_names(record.public_send(attr_name)).any? { |v| v.casecmp?(name.to_s.strip) } }
   end
 
   def self.like_clause(attribute)

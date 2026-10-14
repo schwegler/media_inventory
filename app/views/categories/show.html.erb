@@ -33,6 +33,9 @@
     <% if @media_counts['comics'] > 0 %>
       <%= link_to "Comics (#{@media_counts['comics']})", category_item_path(category_type: @category_type, name: @name, type: 'comics', sort: params[:sort]), aria: { current: params[:type] == 'comics' ? 'page' : nil } %>
     <% end %>
+    <% if @media_counts['books'] && @media_counts['books'] > 0 %>
+      <%= link_to "Books (#{@media_counts['books']})", category_item_path(category_type: @category_type, name: @name, type: 'books', sort: params[:sort]), aria: { current: params[:type] == 'books' ? 'page' : nil } %>
+    <% end %>
     <% if @media_counts['video_games'] > 0 %>
       <%= link_to "Video Games (#{@media_counts['video_games']})", category_item_path(category_type: @category_type, name: @name, type: 'video_games', sort: params[:sort]), aria: { current: params[:type] == 'video_games' ? 'page' : nil } %>
     <% end %>
