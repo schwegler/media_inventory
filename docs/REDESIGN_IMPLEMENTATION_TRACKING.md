@@ -22,7 +22,7 @@ This plan organizes the redesign into self-contained, reviewable slices. Each mo
 | **6. User Profile & Library Mix** | Profile header with `facet_pose_03_crate_digger.png`, visual horizontal bar breakdown for 6 media formats, dynamic Cataloging since date | `app/views/users/show.html.erb`, `_profile.scss`, profile library mix request specs | `DONE` |
 | **7. Media Detail & Disclosure Shell** | Unified disclosure component for episodes & issues, genre pills vs navigation chips, credit alignment | `app/views/shared/_series_entry.html.erb`, `_media_detail.scss`, detail specs | `DONE` |
 | **8. Games Dedicated Workspace** | Preserve 6-section workspace (Overview, My copies, Playthroughs, Sessions & journal, Artwork, Import/export) | `docs/video-game-tlc.md`, game workspace controllers/views, regression specs | `DONE` |
-| **9. Public Reviews API Contract** | Revalidation and ETag caching semantics for `/api/reviews` | `docs/public-reviews-api.md`, `app/controllers/api/reviews_controller.rb`, API specs | `TODO` |
+| **9. Public Reviews API Contract** | Revalidation and ETag caching semantics for `/api/reviews` | `docs/public-reviews-api.md`, `app/controllers/public_reviews_controller.rb`, API specs | `DONE` |
 | **10. Verification & Quality Gates** | Full RSpec suite, accessibility audit (WCAG 2.2 AA touch targets/contrast), responsive checks (320px–2000px) | Full test suite passes, zero broken routes | `TODO` |
 
 ---
@@ -81,6 +81,11 @@ This plan organizes the redesign into self-contained, reviewable slices. Each mo
   - Added `#game-tools` target anchor to `app/views/video_games/_tracking.html.erb`.
   - Reinforced privacy boundaries so personal playthroughs, notes, journal entries, and milestones are strictly protected and inaccessible to other visitors.
   - Added request spec `spec/requests/game_workspace_spec.rb`.
+- **Commit 10:** `Verify public reviews API contract, ETag revalidation semantics, and privacy boundaries`
+  - Verified `/api/reviews` endpoint implementation against `docs/public-reviews-api.md`.
+  - Enforced representation-derived ETags and `Cache-Control: public, no-cache` conditional revalidation (304 Not Modified).
+  - Ensured immediate 200 payload invalidation on review edits, deletions, or visibility toggle to private (`is_public: false`).
+  - All 10 API request examples in `spec/requests/public_reviews_spec.rb` confirmed passing.
 
 ---
 
