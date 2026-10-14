@@ -46,12 +46,8 @@
     </div>
     </summary>
     <div class="child-entry-body">
+        <%= render 'shared/child_description', item: ep %>
         <%= render 'shared/child_metadata', item: ep %>
-        <% if ep.summary.present? %>
-          <div class="episode-summary">
-            <%= strip_tags(ep.summary) %>
-          </div>
-        <% end %>
 
         <% has_reviewed = is_watched && (ep_lib&.review.present? || ep_lib&.rating.present?) %>
         <% if has_reviewed %>

@@ -397,7 +397,7 @@
 
 }
 
-.issue-description {
+.child-description {
   margin-block: 1.25rem;
   padding: 1.1rem 1.25rem;
   border-inline-start: 3px solid var(--accent);
@@ -407,7 +407,7 @@
 
   h3 { margin: 0 0 .7rem; color: var(--text); font: 700 .875rem/1.4 'Instrument Sans', sans-serif; }
 }
-.issue-description-prose, .issue-description-preview {
+.child-description-prose, .child-description-preview {
   max-width: 72ch;
   color: var(--text-secondary);
   font-size: .9375rem;
@@ -418,34 +418,34 @@
   li + li { margin-top: .3rem; }
   strong, b { color: var(--text); font-weight: 600; }
 }
-.issue-description-preview { margin: 0; }
-.issue-description-disclosure {
+.child-description-preview { margin: 0; }
+.child-description-disclosure {
   display: flex;
   flex-direction: column;
   summary { width: fit-content; margin-top: .75rem; color: var(--accent); font-size: .8125rem; font-weight: 600; cursor: pointer; }
   summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-  &[open] .issue-description-prose { margin-top: .85rem; }
+  &[open] .child-description-prose { margin-top: .85rem; }
 }
-.issue-description-less { display: none; }
-.issue-description-disclosure[open] {
-  .issue-description-more { display: none; }
-  .issue-description-less { display: inline; }
-  + .issue-description-preview { display: none; }
+.child-description-less { display: none; }
+.child-description-disclosure[open] {
+  .child-description-more { display: none; }
+  .child-description-less { display: inline; }
+  + .child-description-preview { display: none; }
 }
-.issue-description:has(.issue-description-disclosure:not([open])) {
+.child-description:has(.child-description-disclosure:not([open])) {
   display: flex;
   flex-direction: column;
-  .issue-description-preview { order: 1; }
-  .issue-description-disclosure { order: 2; }
+  .child-description-preview { order: 1; }
+  .child-description-disclosure { order: 2; }
 }
 @media (max-width: 480px) {
-  .issue-description { padding: .9rem 1rem; }
+  .child-description { padding: .9rem 1rem; }
 }
-.issue-description-prose :is(h2, h3, h4) {
+.child-description-prose :is(h2, h3, h4) {
   margin: 1rem 0 .5rem;
   color: var(--text);
   font: 600 1rem/1.5 'Instrument Sans', sans-serif;
   letter-spacing: normal;
   text-transform: none;
 }
-.issue-description-prose > :first-child { margin-top: 0; }
+.child-description-prose > :first-child { margin-top: 0; }
