@@ -1,34 +1,13 @@
-<%
-  linked = item.metadata_credits.to_a
-  if linked.empty? && item.respond_to?(:credits) && item.credits.present?
-    names = item.credits.map { |c| c['name'] }.compact.uniq
-    entities = MetadataEntity.where(normalized_name: names.map { |n| MetadataEntity.normalize(n) }).index_by(&:normalized_name)
-  else
-    entities = {}
-  end
-%>
-<% if linked.any? || (item.respond_to?(:credits) && item.credits.present?) %>
+<% groups = child_credit_groups(item) %>
+<% if groups.any? %>
   <section class="child-detail-credits" aria-label="People and credits">
     <h2>People &amp; credits</h2>
     <dl>
-      <% if linked.any? %>
-        <% linked.group_by(&:role).each do |role, credits| %>
-          <div><dt><%= role %></dt><dd><%= safe_join(credits.map { |credit| safe_join([link_to(credit.metadata_entity.name, metadata_entity_path(credit.metadata_entity), data: { turbo_frame: '_top' }), (" as #{credit.details['character']}" if credit.details['character'].present?)].compact) }, ', ') %></dd></div>
-        <% end %>
-      <% else %>
-        <% item.credits.group_by { |credit| credit['role'].to_s.humanize }.each do |role, raw_credits| %>
-          <div>
-            <dt><%= role %></dt>
-            <dd>
-              <%= safe_join(raw_credits.map do |credit|
-                name = credit['name']
-                entity = entities[MetadataEntity.normalize(name)]
-                link = entity ? link_to(name, metadata_entity_path(entity), data: { turbo_frame: '_top' }) : ERB::Util.html_escape(name)
-                credit['character'].present? ? safe_join([link, " as #{credit['character']}"]) : link
-              end.uniq, ', ') %>
-            </dd>
-          </div>
-        <% end %>
+      <% groups.each do |role, credits| %>
+        <div>
+          <dt><%= role %></dt>
+          <dd><%= credits %></dd>
+        </div>
       <% end %>
     </dl>
   </section>

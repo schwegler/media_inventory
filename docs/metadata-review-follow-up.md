@@ -1,20 +1,29 @@
 # Metadata review follow-up
 
-Branch: `codex/fix-metadata-review`, based on master after PRs #586 and #587.
+Branch: `codex/fix-metadata-review`, synced with master through PR #591.
 Push each tested checkpoint to the branch's upstream so work can resume elsewhere.
 
 ## Progress
 
 - Completed: register the missing globe icon and cover official-source rendering
   across all six parent media types (7 request examples pass; changed-file lint passes).
-- Next: resolve raw child credits by provider identity, leaving ambiguous names unlinked;
-  deduplicate legacy creator counts per work and repair the removed disclosure selector.
+- Completed: batch-resolve raw child credits by provider identity, compatible kind and
+  unambiguous name; preserve unknown names without writing entities during rendering.
+- Completed: deduplicate legacy creator counts per work and repair the removed
+  disclosure selector. All 33 focused examples (including browser system tests) pass;
+  changed-file lint passes. The category query optimization already merged in #589 is preserved.
 - Pending: wrap source labels, use meaningful source icons, distinguish interactive genre
   chips, enlarge touch targets, respect reduced motion, fix mobile entity filters and dark
   select arrows, allow biographies to span mobile widths, and simplify dense view logic.
 - Pending: remove the committed Puma log, run full checks and desktop/mobile browser QA.
 
 ## Verification and known baseline issues
+
+Jules PR #590 duplicates some completed work. Its remaining identity lookup can still
+fall back to a different provider ID and makes queries per identity; its deduplication test
+creates graph-backed records instead of legacy ones. The fixes here cover those cases.
+PR #592 contains committed merge-conflict markers in SCSS and ERB; do not merge it as-is.
+The valid predecessor's disclosure-button layout already merged in #591 is preserved.
 
 The initial review ran 843 examples on #586: 4 failures and 9 pending.
 Three failures also occur on the base branch: stale selectors and copy in
