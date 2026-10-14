@@ -113,7 +113,11 @@ class Category
   def self.entity_categories(type)
     works = entity_credits(type).select(:metadata_entity_id, :item_type, :item_id).distinct
     counts = MetadataCredit.from("(#{works.to_sql}) counted_works").group(:metadata_entity_id).count
-    MetadataEntity.where(id: counts.keys).map { |entity| new(name: entity.name, type: type, count: counts[entity.id]) }
+    return [] if counts.empty?
+
+    MetadataEntity.where(id: counts.keys).pluck(:id, :name).map do |id, name|
+      new(name: name, type: type, count: counts[id] || 0)
+    end
   end
 
   def self.combine_counts(categories, legacy)
@@ -126,7 +130,10 @@ class Category
   def self.aggregate_categories(models, attribute, type)
     counts = Hash.new(0)
     casing = {}
-    models.each { |m| count_model_attributes(m, attribute, counts, casing) }
+    attributes = type == 'comic-creators' ? %i[writer artist] : [attribute]
+    models.each do |m|
+      attributes.each { |attr| count_model_attributes(m, attr, counts, casing) }
+    end
     counts.map { |key, count| new(name: casing[key], type: type, count: count) }
   end
 
@@ -169,21 +176,28 @@ class Category
     config = config_for(type)
     return [] unless config && name.present?
 
+    matched = matched_entity_items(type, name, media_type) + matched_model_items(config, type, name, media_type)
+    sort_items(matched.uniq, sort)
+  end
+
+  def self.matched_entity_items(type, name, media_type)
     credits = entity_credits(type).joins(:metadata_entity)
                                   .where(metadata_entities: { normalized_name: MetadataEntity.normalize(name) })
-    matched = credits.pluck(:item_type, :item_id).uniq.group_by(&:first).flat_map do |kind, entries|
+    credits.pluck(:item_type, :item_id).uniq.group_by(&:first).flat_map do |kind, entries|
       model = kind.constantize
       next [] if media_type.present? && !media_type_matches?(model, media_type)
 
       entity_items(model, entries.map(&:last))
     end
+  end
 
-    matched += config[:models].call.flat_map do |model|
+  def self.matched_model_items(config, type, name, media_type)
+    attributes = type == 'comic-creators' ? %i[writer artist] : [config[:attribute]]
+    config[:models].call.flat_map do |model|
       next [] if media_type.present? && !media_type_matches?(model, media_type)
 
-      fetch_model_items(model, config[:attribute], name)
+      attributes.flat_map { |attr| fetch_model_items(model, attr, name) }
     end
-    sort_items(matched.uniq, sort)
   end
 
   def self.entity_items(model, ids)

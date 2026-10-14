@@ -1,5 +1,6 @@
 @mixin styles {
-  .entity-page .entity-hero { display: flex; gap: 1.5rem; align-items: center; padding: 1rem 0 1.5rem; margin: 0; background: transparent; box-shadow: none; border: 0; border-radius: 0; }
+  .entity-page { position: relative; isolation: isolate; padding-top: .5rem; }
+  .entity-page .entity-hero { display: flex; gap: 1.5rem; align-items: center; padding: 1rem 0 1.5rem; margin: 0 0 1.5rem; background: transparent; box-shadow: none; border: 0; border-radius: 0; overflow: hidden; position: relative; z-index: 1; }
   .entity-page .entity-profile { min-width: 0; flex: 1; }
   .entity-page .entity-hero h1 { font-size: clamp(1.75rem, 3.5vw, 2.5rem); line-height: 1.15; margin: .4rem 0 .85rem; overflow-wrap: anywhere; }
   .entity-photo { width: 112px; flex-shrink: 0; }

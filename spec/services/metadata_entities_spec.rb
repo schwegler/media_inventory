@@ -102,7 +102,7 @@ RSpec.describe 'Metadata entity graph' do
     rows = [{ wrapperType: 'collection', collectionName: 'Album', artistName: 'Main Artist', artistId: 7 },
             { wrapperType: 'track', kind: 'song', trackId: 9, trackName: 'Song', artistName: 'Guest Artist', artistId: 8,
               discNumber: 2, trackNumber: 3, trackTimeMillis: 187_000, trackExplicitness: 'explicit' }]
-    stub_request(:get, 'https://itunes.apple.com/lookup').with(query: { id: '42', entity: 'song' })
+    stub_request(:get, 'https://itunes.apple.com/lookup').with(query: hash_including({ id: '42', entity: 'song' }))
                                                          .to_return(body: { results: rows }.to_json)
     fields, tracks = MetadataProvider.new(album).call
     album.update!(fields.except(:thumbnail_url))

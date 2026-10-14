@@ -319,7 +319,10 @@ class MetadataProvider
     @provider = 'iTunes'
     active!('itunes')
     query = { id: numeric_id('itunes_') }
-    query[:entity] = 'song' if @include_children
+    if @include_children
+      query[:entity] = 'song'
+      query[:limit] = 200
+    end
     data = json('https://itunes.apple.com/lookup', query).fetch('results')
     album = data.find { |row| row['wrapperType'] == 'collection' } || data.first
     raise Unavailable unless album.is_a?(Hash)
@@ -330,7 +333,10 @@ class MetadataProvider
                release_year: year(album['releaseDate']), metadata_credits_data: credits,
                metadata_details: album.slice('collectionExplicitness', 'copyright', 'trackCount', 'releaseDate'),
                thumbnail_url: album['artworkUrl100']&.sub('100x100bb', '600x600bb') }
-    [fields, @include_children ? AlbumMetadata.itunes(data) : []]
+    extracted_tracks = @include_children ? AlbumMetadata.itunes(data) : []
+    declared_count = album['trackCount'].to_i
+    @partial = true if declared_count.positive? && extracted_tracks.size < declared_count
+    [fields, extracted_tracks]
   end
 
   def tmdb_details(data)

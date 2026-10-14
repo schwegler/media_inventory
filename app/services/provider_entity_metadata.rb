@@ -6,7 +6,10 @@ class ProviderEntityMetadata
             'Screenplay' => 'Screenwriter', 'Writing' => 'Writer', 'Executive Producer' => 'Executive producer',
             'album artist' => 'Album artist', 'track artist' => 'Track artist', 'guest star' => 'Guest star',
             'cover' => 'Cover artist', 'cover artist' => 'Cover artist', 'penciller' => 'Penciler',
-            'pencils' => 'Penciler', 'inks' => 'Inker', 'colors' => 'Colorist', 'letters' => 'Letterer' }.freeze
+            'pencils' => 'Penciler', 'inks' => 'Inker', 'colors' => 'Colorist', 'letters' => 'Letterer',
+            'writer' => 'Writer', 'artist' => 'Artist', 'editor' => 'Editor', 'colorist' => 'Colorist',
+            'letterer' => 'Letterer', 'penciler' => 'Penciler', 'inker' => 'Inker', 'author' => 'Author',
+            'illustrator' => 'Illustrator', 'translator' => 'Translator', 'narrator' => 'Narrator' }.freeze
 
   def self.credit(row, role, provider, **options)
     return if row['name'].blank?

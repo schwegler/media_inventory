@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_14_160000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_14_170000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -50,6 +50,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_160000) do
     t.index ["created_at"], name: "index_activities_on_created_at"
     t.index ["trackable_type", "trackable_id"], name: "index_activities_on_trackable"
     t.index ["user_id"], name: "index_activities_on_user_id"
+  end
+
+  create_table "album_tracks", force: :cascade do |t|
+    t.integer "album_id", null: false
+    t.string "provider_id", null: false
+    t.string "title", null: false
+    t.integer "disc_number"
+    t.integer "track_number"
+    t.integer "duration_ms"
+    t.string "isrc"
+    t.string "content_rating"
+    t.string "release_date"
+    t.json "credits", default: [], null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["album_id", "disc_number", "track_number"], name: "idx_on_album_id_disc_number_track_number_43074271be"
+    t.index ["album_id", "provider_id"], name: "index_album_tracks_on_album_id_and_provider_id", unique: true
+    t.index ["album_id"], name: "index_album_tracks_on_album_id"
   end
 
   create_table "albums", force: :cascade do |t|
@@ -431,6 +449,52 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_160000) do
     t.index ["source_hash"], name: "index_media_artwork_sources_on_source_hash", unique: true
   end
 
+  create_table "metadata_credits", force: :cascade do |t|
+    t.integer "metadata_entity_id", null: false
+    t.string "item_type", null: false
+    t.integer "item_id", null: false
+    t.string "role", null: false
+    t.string "source", null: false
+    t.integer "position", default: 0, null: false
+    t.json "details", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["item_type", "item_id", "metadata_entity_id", "role", "source"], name: "idx_metadata_credit_identity", unique: true
+    t.index ["item_type", "item_id"], name: "index_metadata_credits_on_item"
+    t.index ["item_type", "metadata_entity_id"], name: "idx_credits_type_entity"
+    t.index ["metadata_entity_id"], name: "index_metadata_credits_on_metadata_entity_id"
+    t.index ["role", "item_type", "metadata_entity_id"], name: "idx_credits_role_type_entity"
+    t.index ["role", "metadata_entity_id"], name: "index_metadata_credits_on_role_and_metadata_entity_id"
+  end
+
+  create_table "metadata_entities", force: :cascade do |t|
+    t.string "kind", null: false
+    t.string "name", null: false
+    t.string "normalized_name", null: false
+    t.string "identity_key", null: false
+    t.string "slug", null: false
+    t.json "aliases", default: [], null: false
+    t.text "description"
+    t.string "thumbnail_url"
+    t.datetime "portrait_checked_at"
+    t.json "portrait_metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["identity_key"], name: "index_metadata_entities_on_identity_key", unique: true
+    t.index ["kind", "normalized_name"], name: "index_metadata_entities_on_kind_and_normalized_name"
+    t.index ["normalized_name"], name: "index_metadata_entities_on_normalized_name"
+  end
+
+  create_table "metadata_identities", force: :cascade do |t|
+    t.integer "metadata_entity_id", null: false
+    t.string "provider", null: false
+    t.string "external_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["metadata_entity_id"], name: "index_metadata_identities_on_metadata_entity_id"
+    t.index ["provider", "external_id"], name: "index_metadata_identities_on_provider_and_external_id", unique: true
+  end
+
   create_table "metadata_refreshes", force: :cascade do |t|
     t.string "item_type", null: false
     t.integer "item_id", null: false
@@ -628,71 +692,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_160000) do
     t.index ["created_at"], name: "index_video_games_on_created_at"
   end
 
-  create_table "album_tracks", force: :cascade do |t|
-    t.integer "album_id", null: false
-    t.string "provider_id", null: false
-    t.string "title", null: false
-    t.integer "disc_number"
-    t.integer "track_number"
-    t.integer "duration_ms"
-    t.string "isrc"
-    t.string "content_rating"
-    t.string "release_date"
-    t.json "credits", default: [], null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["album_id", "disc_number", "track_number"], name: "idx_on_album_id_disc_number_track_number_43074271be"
-    t.index ["album_id", "provider_id"], name: "index_album_tracks_on_album_id_and_provider_id", unique: true
-    t.index ["album_id"], name: "index_album_tracks_on_album_id"
-  end
-
-  create_table "metadata_entities", force: :cascade do |t|
-    t.string "kind", null: false
-    t.string "name", null: false
-    t.string "normalized_name", null: false
-    t.string "identity_key", null: false
-    t.string "slug", null: false
-    t.json "aliases", default: [], null: false
-    t.text "description"
-    t.string "thumbnail_url"
-    t.datetime "portrait_checked_at"
-    t.json "portrait_metadata", default: {}, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["identity_key"], name: "index_metadata_entities_on_identity_key", unique: true
-    t.index ["kind", "normalized_name"], name: "index_metadata_entities_on_kind_and_normalized_name"
-    t.index ["normalized_name"], name: "index_metadata_entities_on_normalized_name"
-  end
-
-  create_table "metadata_identities", force: :cascade do |t|
-    t.integer "metadata_entity_id", null: false
-    t.string "provider", null: false
-    t.string "external_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["metadata_entity_id"], name: "index_metadata_identities_on_metadata_entity_id"
-    t.index ["provider", "external_id"], name: "index_metadata_identities_on_provider_and_external_id", unique: true
-  end
-
-  create_table "metadata_credits", force: :cascade do |t|
-    t.integer "metadata_entity_id", null: false
-    t.string "item_type", null: false
-    t.integer "item_id", null: false
-    t.string "role", null: false
-    t.string "source", null: false
-    t.integer "position", default: 0, null: false
-    t.json "details", default: {}, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["item_type", "item_id", "metadata_entity_id", "role", "source"], name: "idx_metadata_credit_identity", unique: true
-    t.index ["item_type", "item_id"], name: "index_metadata_credits_on_item"
-    t.index ["metadata_entity_id"], name: "index_metadata_credits_on_metadata_entity_id"
-    t.index ["role", "metadata_entity_id"], name: "index_metadata_credits_on_role_and_metadata_entity_id"
-  end
-
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "activities", "users", on_delete: :cascade
+  add_foreign_key "album_tracks", "albums"
   add_foreign_key "borrow_requests", "library_items", on_delete: :cascade
   add_foreign_key "borrow_requests", "users", column: "borrower_id", on_delete: :cascade
   add_foreign_key "borrow_requests", "users", column: "lender_id", on_delete: :cascade
@@ -718,10 +721,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_160000) do
   add_foreign_key "media_artwork_renditions", "active_storage_blobs", column: "blob_id", on_delete: :cascade
   add_foreign_key "media_artwork_renditions", "active_storage_blobs", column: "source_blob_id", on_delete: :cascade
   add_foreign_key "media_artwork_sources", "active_storage_blobs", column: "blob_id", on_delete: :cascade
+  add_foreign_key "metadata_credits", "metadata_entities"
+  add_foreign_key "metadata_identities", "metadata_entities"
   add_foreign_key "posts", "users"
   add_foreign_key "steam_library_syncs", "users"
   add_foreign_key "tv_episodes", "tv_shows", on_delete: :cascade
-  add_foreign_key "album_tracks", "albums"
-  add_foreign_key "metadata_credits", "metadata_entities"
-  add_foreign_key "metadata_identities", "metadata_entities"
 end
