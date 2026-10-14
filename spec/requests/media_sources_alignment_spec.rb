@@ -13,22 +13,21 @@ RSpec.describe 'Find This Title Links Alignment', type: :request do
     expect(response.body).to include('Find this title')
   end
 
-  it 'renders official source globe fallback icon for generic external URLs without 500 KeyError' do
-    book = Book.create!(title: 'Goodreads Book', external_url: 'https://www.goodreads.com/book/show/123')
-    get book_path(book)
-    expect(response).to have_http_status(:ok)
-    expect(response.body).to include('ui-icon--globe')
-    expect(response.body).to include('View Official Source')
+  [Movie, TvShow, Book, Album, Comic, VideoGame].each do |model|
+    it "renders an official source for #{model.name} without crashing" do
+      source_url = 'https://example.com/catalog/title'
+      item = model.create!(title: 'Official source', external_url: source_url)
 
-    comic = Comic.create!(title: 'ComicVine Comic', external_url: 'https://comicvine.gamespot.com/comic/4000-123/')
-    get comic_path(comic)
-    expect(response).to have_http_status(:ok)
-    expect(response.body).to include('ui-icon--globe')
+      get polymorphic_path(item)
 
-    movie_tmdb = Movie.create!(title: 'TMDB Movie', external_url: 'https://www.themoviedb.org/movie/123')
-    get movie_path(movie_tmdb)
-    expect(response).to have_http_status(:ok)
-    expect(response.body).to include('ui-icon--globe')
+      expect(response).to have_http_status(:ok)
+      link = Nokogiri::HTML(response.body).at_css('.btn-stream-source')
+      expect(link['href']).to eq(source_url)
+      expect(link.text.strip).to eq('View Official Source')
+      expect(link.at_css('.ui-icon--globe')).to be_present
+      expect(link['target']).to eq('_blank')
+      expect(link['rel']).to include('noopener')
+    end
   end
 
   it 'renders specialized icon and label for iTunes, Open Library, TVMaze, and Steam links' do

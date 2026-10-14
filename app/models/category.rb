@@ -111,12 +111,15 @@ class Category
   end
 
   def self.entity_categories(type)
-    works = entity_credits(type).select(:metadata_entity_id, :item_type, :item_id).distinct
-    counts = MetadataCredit.from("(#{works.to_sql}) counted_works").group(:metadata_entity_id).count
+    credits = entity_credits(type)
+    credits = credits.joins(:metadata_entity) unless credits.joins_values.include?(:metadata_entity)
+    works = credits.select('metadata_entities.id AS entity_id', 'metadata_entities.name AS entity_name',
+                           :item_type, :item_id).distinct
+    counts = MetadataCredit.from("(#{works.to_sql}) counted_works").group('entity_id', 'entity_name').count
     return [] if counts.empty?
 
-    MetadataEntity.where(id: counts.keys).pluck(:id, :name).map do |id, name|
-      new(name: name, type: type, count: counts[id] || 0)
+    counts.map do |(_id, name), count|
+      new(name: name, type: type, count: count)
     end
   end
 
