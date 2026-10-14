@@ -53,6 +53,11 @@ RSpec.describe 'Favorite shelves', type: :request do
         expect(page.at_css("#mobile-navigation a[href='#{movies_path}']")).to be_present
         expect(page.at_css('.favorite-shelf')['data-shelf-theme']).to eq('electric')
         expect(page.at_css('turbo-frame#modal')).to be_present
+        expect(page.at_css('button[data-action="favorite-shelf#copyAltText"]').text).to eq('Copy image alt text')
+        expect(page.at_css('textarea[data-favorite-shelf-target="altText"]')['readonly']).to be_present
+        toolbar_links = page.css('.shelf-toolbar-links a')
+        expect(toolbar_links.map(&:text)).to eq(category ? ['All shelves', 'Share'] : ['Share'])
+        expect(toolbar_links.first['href']).to eq(shelf_path(user.username, theme: 'electric')) if category
         if signed_in
           expect(page.at_css('[aria-label="Account menu"]')).to be_present
         else

@@ -78,6 +78,9 @@
   .shelf-formats small { display: block; margin-top: 3px; color: var(--shelf-muted); font-size: 11px; }
   .shelf-primary { display: inline-flex; justify-content: center; align-items: center; gap: 12px; border: 0; padding: 16px 24px; border-radius: 40px; background: var(--shelf-accent); color: var(--shelf-bg); font-weight: 600; }
   .shelf-copy { display: block; margin: 14px auto 0; color: var(--shelf-muted); border: 0; background: transparent; text-decoration: underline; text-underline-offset: 4px; }
+  .shelf-alt-text { margin-top: 24px; color: var(--shelf-muted); font-size: 13px; }
+  .shelf-alt-text label { display: block; margin: 16px 0 8px; }
+  .shelf-alt-text textarea { display: block; width: 100%; padding: 12px; color: var(--shelf-text); background: var(--shelf-surface); border: 1px solid var(--shelf-line); border-radius: 5px; resize: vertical; }
   [role="status"] { font-size: 13px; color: var(--shelf-accent); }
   .shelf-preview { font-size: 12px; color: var(--shelf-muted); margin-top: 24px; } summary { cursor: pointer; }
   canvas { display: block; max-width: 100%; max-height: 720px; width: auto; height: auto; margin: 20px auto 0; }
