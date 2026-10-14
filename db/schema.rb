@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_14_010000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_14_020000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -368,7 +368,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_010000) do
     t.text "review"
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
+    t.datetime "review_published_at"
     t.index ["created_at"], name: "index_library_items_on_created_at"
+    t.index ["is_public", "review_published_at", "id"], name: "index_library_items_on_public_reviews"
     t.index ["item_type", "item_id"], name: "index_library_items_on_item"
     t.index ["user_id", "in_backlog", "created_at"], name: "index_library_items_on_user_id_and_in_backlog_and_created_at"
     t.index ["user_id", "is_collected", "created_at"], name: "index_library_items_on_user_id_and_is_collected_and_created_at"

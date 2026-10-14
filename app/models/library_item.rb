@@ -3,6 +3,8 @@
 class LibraryItem < ApplicationRecord
   include Trackable
 
+  before_save :stamp_review_publication
+
   has_one_attached :game_cover_image
 
   belongs_to :user
@@ -54,6 +56,10 @@ class LibraryItem < ApplicationRecord
   end
 
   private
+
+  def stamp_review_publication
+    self.review_published_at ||= Time.current if is_public? && review.present?
+  end
 
   def record_pass_entry
     if consumed?
