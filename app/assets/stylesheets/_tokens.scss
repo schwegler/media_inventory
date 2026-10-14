@@ -5,31 +5,35 @@
 }
 @mixin dark {
   color-scheme: dark;
-  --canvas: #111113; --surface: #1c1c20; --inset: #242429;
-  --text: #f5f3f7; --text-secondary: #c0bbc6; --text-tertiary: #aaa4b0;
-  --border: #3a363f; --border-strong: #625c6a;
-  --violet: #c5adff; --violet-hover: #dfcfff; --violet-subtle: #30263f;
+  --canvas: #111119; --surface: #1b1b26; --inset: #232330;
+  --text: #f3f2f8; --text-secondary: #b8b5c8; --text-tertiary: #9591a6;
+  --border: #393744; --border-strong: #595568;
+  --violet: #cab5ff; --violet-hover: #dfcfff; --violet-subtle: #2d2442;
   --ink: #d1cdd8; --ink-hover: #f4effc; --ink-subtle: #302d36;
   --moss: #a6c8a3; --moss-hover: #c4e5c1; --moss-subtle: #233329;
+  --highlight-gold: #e4b65b; --highlight-gold-subtle: #382c16;
   --on-accent: #17131e; --positive: #a4cfb6; --positive-hover: #c2e6d1;
-  --warning: #e9c685; --destructive: #ffb3b3; --info: #abc7dd;
-  --hero-gradient-base: 17, 17, 19; --rgb-inverse: 255, 255, 255;
+  --warning: #e4b65b; --destructive: #ffb3b3; --info: #abc7dd;
+  --hero-gradient-base: 17, 17, 25; --rgb-inverse: 255, 255, 255;
   --hero-brightness: .35;
 }
 :root {
   color-scheme: light;
-  --canvas: #fafafa; --surface: #ffffff; --inset: #f1eff3;
-  --text: #17151b; --text-secondary: #5f5967; --text-tertiary: #6d6575;
-  --border: #ddd8e2; --border-strong: #8b8296;
-  --violet: #654098; --violet-hover: #4c2c79; --violet-subtle: #efe8f8;
+  --canvas: #f7f7fa; --surface: #ffffff; --inset: #f1f0f5;
+  --text: #20202b; --text-secondary: #5d5b6c; --text-tertiary: #757285;
+  --border: #dedce7; --border-strong: #8b8296;
+  --violet: #6d3acb; --violet-hover: #582ca8; --violet-subtle: #f3effa;
   --ink: #47414f; --ink-hover: #29242f; --ink-subtle: #ebe8ef;
   --moss: #3e6544; --moss-hover: #294c2f; --moss-subtle: #e7f0e7;
+  --highlight-gold: #b8750b; --highlight-gold-subtle: #fbf5e8;
   --on-accent: #ffffff; --positive: #326448; --positive-hover: #244d36;
-  --warning: #79551a; --destructive: #a52d39; --info: #365d75;
+  --warning: #b8750b; --destructive: #a52d39; --info: #365d75;
   --overlay: rgba(12, 10, 17, .72); --selection: var(--accent-subtle);
   --space-1: .25rem; --space-2: .5rem; --space-3: .75rem; --space-4: 1rem;
   --space-5: 1.5rem; --space-6: 2rem; --space-7: 3rem; --space-8: 4rem;
-  --hero-gradient-base: 250, 250, 250; --rgb-inverse: 0, 0, 0; --hero-brightness: .55;
+  --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-pill: 999px;
+  --target-size: 44px;
+  --hero-gradient-base: 247, 247, 250; --rgb-inverse: 0, 0, 0; --hero-brightness: .55;
 }
 :root[data-theme='dark'] { @include dark; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme='light']):not([data-theme='dark']) { @include dark; } }
@@ -51,4 +55,44 @@
   --accent-green: var(--positive); --accent-green-hover: var(--positive-hover);
   --danger-color: var(--destructive); --danger-hover-color: var(--destructive);
   --secondary-color: var(--accent); --txt-btn-contrast: var(--on-accent);
+}
+
+// Mascot design system tokens & stickers
+.mascot-sticker {
+  display: inline-block;
+  max-width: 100%;
+  height: auto;
+  filter: drop-shadow(0 4px 12px rgba(15, 14, 23, 0.12));
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  vertical-align: middle;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+    &:hover { transform: none; }
+  }
+}
+
+.mascot-sticker:hover {
+  transform: translateY(-2px);
+}
+
+.mascot-slot-hero {
+  max-height: 160px;
+  @media (max-width: 768px) {
+    max-height: 96px;
+  }
+}
+
+.mascot-slot-empty {
+  max-height: 120px;
+  @media (max-width: 768px) {
+    max-height: 80px;
+  }
+}
+
+.mascot-slot-auth {
+  max-height: 96px;
+  @media (max-width: 768px) {
+    max-height: 72px;
+  }
 }

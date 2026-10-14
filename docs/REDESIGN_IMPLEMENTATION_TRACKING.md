@@ -13,8 +13,8 @@ This plan organizes the redesign into self-contained, reviewable slices. Each mo
 
 | Phase / Module | Description | Key Deliverables & Evidence | Status |
 | :--- | :--- | :--- | :--- |
-| **0. Tracking & Git Hygiene** | Set up tracking register and workspace build ignore rules | `docs/REDESIGN_IMPLEMENTATION_TRACKING.md`, `.gitignore` | `IN PROGRESS` |
-| **1. Foundation & Assets** | Palette tokens, typography, `.mascot-sticker` system, Facet mascot PNGs, Trove app icon & favicon | `app/assets/stylesheets/_tokens.scss`, `app/assets/images/brand/*`, `public/favicon.svg`, asset specs | `TODO` |
+| **0. Tracking & Git Hygiene** | Set up tracking register and workspace build ignore rules | `docs/REDESIGN_IMPLEMENTATION_TRACKING.md`, `.gitignore` | `DONE` |
+| **1. Foundation & Assets** | Palette tokens, typography, `.mascot-sticker` system, Facet mascot PNGs, Trove app icon & favicon | `app/assets/stylesheets/_tokens.scss`, `app/assets/images/brand/*`, `public/favicon.svg`, asset specs | `DONE` |
 | **2. Global Shell & Brand** | Trove faceted prism logo in navbar, companion link to `tacobout.online`, header navigation offsets | `app/views/shared/_site_navigation.html.erb`, `app/assets/stylesheets/_site_header.scss`, navigation specs | `TODO` |
 | **3. Public Home & Companion Bridge** | "A home for every story, album, and game you're into", 6-format hero, "The Vault. The Broadcast." companion card, logged-out vs member dashboard separation | `app/views/landing/index.html.erb`, `app/assets/stylesheets/_dashboard.scss`, landing specs | `TODO` |
 | **4. Authentication Polish** | `/login` ("Unlock Your Media Vault" + `facet_pose_04_five_star.png`), `/signup` ("Claim Your Shelf in Trove" + `facet_pose_01_bookworm.png`), Fediverse sign-in visibility | `app/views/sessions/new.html.erb`, `app/views/users/new.html.erb`, session/signup request specs | `TODO` |
@@ -32,7 +32,10 @@ This plan organizes the redesign into self-contained, reviewable slices. Each mo
 - **Commit 0:** `Add redesign implementation tracking document and ignore native build artifacts`
   - Added `docs/REDESIGN_IMPLEMENTATION_TRACKING.md`.
   - Updated `.gitignore` to ignore `native/ios/MediaInventory/.build/`.
-- *(Subsequent commits will be recorded here as each module completes)*
+- **Commit 1:** `Establish redesign design tokens, brand palette, and mascot asset system`
+  - Added official Facet mascots and Trove logos to `app/assets/images/brand/`.
+  - Updated `app/assets/stylesheets/_tokens.scss` with refined color palette, spacing, and `.mascot-sticker` system.
+  - Added request spec `spec/requests/brand_system_spec.rb`.
 
 ---
 
