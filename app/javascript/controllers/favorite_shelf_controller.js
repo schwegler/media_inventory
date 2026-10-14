@@ -3,7 +3,7 @@ import { renderShelfImage, SHELF_THEMES } from "controllers/shelf_image"
 
 export default class extends Controller {
   static targets = ["slots", "dialog", "query", "results", "status", "canvas"]
-  static values = { picks: Array, url: String, search: String, handle: String, category: String, shelves: Array, overview: Boolean }
+  static values = { picks: Array, url: String, search: String, handle: String, category: String, shelves: Array, overview: Boolean, headline: String }
 
   connect() {
     this.picks = this.picksValue; this.dirty = false; this.imageFormat = this.element.querySelector('[name="shelf-format"]:checked')?.value || "landscape"
@@ -116,7 +116,7 @@ export default class extends Controller {
     const version = this.version = (this.version || 0) + 1
     const canvas = document.createElement("canvas")
     await renderShelfImage(canvas, { picks: [...this.picks], shelves: this.shelvesValue,
-      overview: this.overviewValue, theme: this.imageTheme, format: this.imageFormat,
+      overview: this.overviewValue, headline: this.headlineValue, theme: this.imageTheme, format: this.imageFormat,
       handle: this.handleValue, category: this.categoryValue })
     if (version !== this.version || !this.element.isConnected) return
     this.canvasTarget.width = canvas.width; this.canvasTarget.height = canvas.height

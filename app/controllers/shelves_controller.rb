@@ -27,6 +27,8 @@ class ShelvesController < ApplicationController
   def update
     return head :forbidden unless current_user?(@user)
 
+    return update_headline if params.key?(:shelf_headline)
+
     shelf = @user.favorite_shelves.find_or_initialize_by(category: params[:category])
     input = params[:picks]
     unless input.is_a?(Array) && input.all? { |pick| pick.respond_to?(:permit) }
@@ -59,6 +61,18 @@ class ShelvesController < ApplicationController
   end
 
   private
+
+  def update_headline
+    headline = params[:shelf_headline]
+    return head :unprocessable_content unless headline.is_a?(String)
+
+    if @user.update(shelf_headline: headline.strip.presence)
+      redirect_to shelf_path(@user.username, theme: params[:theme]), notice: 'Shelf headline saved.', status: :see_other
+    else
+      redirect_to shelf_path(@user.username, theme: params[:theme]), alert: @user.errors.full_messages.to_sentence,
+                                                                     status: :see_other
+    end
+  end
 
   def load_user
     @user = User.where('LOWER(username) = ?', params[:username].to_s.downcase).first!

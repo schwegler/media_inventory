@@ -1,12 +1,24 @@
 <% content_for :title, "#{@user.name}’s Shelf" %>
 <% content_for :meta_description, "The things that stay with #{@user.name}. Explore seven shelves of personal favorites on Trove." %>
-<section class="favorite-shelf" data-shelf-theme="<%= @theme %>" data-controller="favorite-shelf" data-favorite-shelf-url-value="<%= shelf_path(@user.username, category: @category) %>" data-favorite-shelf-search-value="<%= search_shelves_path(category: @category) %>" data-favorite-shelf-picks-value="<%= shelf_pick_data(@items).to_json %>" data-favorite-shelf-shelves-value="<%= @shelves.map { |s| { label: s[:label], picks: shelf_pick_data(s[:items]) } }.to_json %>" data-favorite-shelf-overview-value="<%= @overview %>" data-favorite-shelf-handle-value="<%= @user.username %>" data-favorite-shelf-category-value="<%= FavoriteShelf::CATEGORIES[@category] %>">
+<% headline = @user.shelf_headline.presence || "The things I keep." %>
+<% flash.each do |type, message| %><p class="alert alert-<%= type %>" role="status"><%= message %></p><% end %>
+<section data-favorite-shelf-headline-value="<%= headline %>" class="favorite-shelf" data-shelf-theme="<%= @theme %>" data-controller="favorite-shelf" data-favorite-shelf-url-value="<%= shelf_path(@user.username, category: @category) %>" data-favorite-shelf-search-value="<%= search_shelves_path(category: @category) %>" data-favorite-shelf-picks-value="<%= shelf_pick_data(@items).to_json %>" data-favorite-shelf-shelves-value="<%= @shelves.map { |s| { label: s[:label], picks: shelf_pick_data(s[:items]) } }.to_json %>" data-favorite-shelf-overview-value="<%= @overview %>" data-favorite-shelf-handle-value="<%= @user.username %>" data-favorite-shelf-category-value="<%= FavoriteShelf::CATEGORIES[@category] %>">
   <nav class="shelf-toolbar" aria-label="Shelf navigation">
     <div class="shelf-toolbar-links"><%= link_to 'Trove', root_path, class: 'shelf-wordmark' %><%= link_to 'All shelves', shelf_path(@user.username, theme: @theme), data: { shelf_link: true }, aria: { current: @overview ? 'page' : nil } %><a href="#shelf-sharing">Share</a></div>
     <fieldset class="shelf-themes"><legend>Theme</legend><% %w[midnight gallery electric].each do |theme| %><label><input type="radio" name="shelf-theme" value="<%= theme %>" <%= 'checked' if @theme == theme %> data-action="favorite-shelf#theme"><span><%= theme.capitalize %></span></label><% end %></fieldset>
   </nav>
   <% if @overview %>
-    <div class="shelf-introduction"><header class="shelf-heading"><%= link_to "#{@user.name}’s Shelf", handle_profile_path(@user.username) %><h1>The things<br>I keep.</h1></header><%= render 'exhibit', shelf: @shelves.first, index: 0, featured: true %></div>
+    <div class="shelf-introduction"><header class="shelf-heading"><%= link_to "#{@user.name}’s Shelf", handle_profile_path(@user.username) %><h1><% if @user.shelf_headline.present? %><%= @user.shelf_headline %><% else %>The things<br>I keep.<% end %></h1>
+      <% if current_user?(@user) %>
+        <details class="shelf-headline-editor"><summary>Edit headline</summary>
+          <%= form_with url: shelf_path(@user.username, theme: @theme), method: :patch do |form| %>
+            <%= form.label :shelf_headline, 'Shelf headline' %>
+            <%= form.text_field :shelf_headline, value: @user.shelf_headline, placeholder: 'The things I keep.', maxlength: 80, aria: { describedby: 'shelf-headline-hint' } %>
+            <p id="shelf-headline-hint">Up to 80 characters. Leave blank to use the default.</p>
+            <%= form.submit 'Save headline', class: 'shelf-primary' %>
+          <% end %>
+        </details>
+      <% end %></header><%= render 'exhibit', shelf: @shelves.first, index: 0, featured: true %></div>
     <div class="shelf-exhibition"><% @shelves.drop(1).each_with_index do |shelf, index| %><%= render 'exhibit', shelf: shelf, index: index + 1, featured: false %><% end %></div>
   <% else %>
     <header class="shelf-heading shelf-detail-heading"><%= link_to "#{@user.name}’s Shelf", handle_profile_path(@user.username) %><h1><%= FavoriteShelf::CATEGORIES[@category] %><span>Five favorites. Entirely personal.</span></h1></header>

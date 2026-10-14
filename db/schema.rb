@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_14_020000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -593,6 +593,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_020000) do
     t.string "theme", default: "os", null: false
     t.datetime "updated_at", null: false
     t.string "username"
+    t.string "shelf_headline"
     t.index ["created_at"], name: "index_users_on_created_at"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["username"], name: "index_users_on_username", unique: true
