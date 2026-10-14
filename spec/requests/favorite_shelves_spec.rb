@@ -50,13 +50,13 @@ RSpec.describe 'Favorite shelves', type: :request do
         page = Nokogiri::HTML(response.body)
         expect(page.css('.app-header').size).to eq(1)
         expect(page.at_css('.brand-link')['href']).to eq(root_path)
-        expect(page.at_css('#mobile-navigation a[href="' + movies_path + '"]')).to be_present
+        expect(page.at_css("#mobile-navigation a[href='#{movies_path}']")).to be_present
         expect(page.at_css('.favorite-shelf')['data-shelf-theme']).to eq('electric')
         expect(page.at_css('turbo-frame#modal')).to be_present
         if signed_in
           expect(page.at_css('[aria-label="Account menu"]')).to be_present
         else
-          expect(page.at_css('.app-header a[href="' + login_path + '"]')).to be_present
+          expect(page.at_css(".app-header a[href='#{login_path}']")).to be_present
         end
       end
     end
