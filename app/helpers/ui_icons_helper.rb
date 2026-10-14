@@ -13,6 +13,7 @@ module UiIconsHelper
                  '7 7 7Z"/><path d="M6 11v4m-2-2h4m8-2h.01M19 14h.01"/>',
     'archive' => '<rect x="3" y="3" width="18" height="5" rx="1"/><path d="M5 8v13h14V8m-9 4h4"/>',
     'folder' => '<path d="M3 7V5a2 2 0 0 1 2-2h4l3 4h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/>',
+    'globe' => '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a18 18 0 0 1 0 18 18 18 0 0 1 0-18Z"/>',
     'wrestling' => '<path d="m3 8 9-4 9 4v10l-9 3-9-3V8Zm0 5 9 4 9-4M3 8l9 4 9-4m-9 4v9"/>',
     'user' => '<circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/>',
     'bluesky' => '<path d="M12 11C9 5 3 2 3 6v6c0 3 4 4 7 2-6 3-3 8 0 6l2-3 2 3c3 2 6-3 0-6 3 2 7 1 7-2V6c0-4-6-1-9 5Z"/>',
