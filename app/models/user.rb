@@ -9,6 +9,8 @@ class User < ApplicationRecord
   before_validation { self.email = nil if email.blank? }
   before_save { self.email = email.downcase if email.present? }
 
+  validates :shelf_headline, length: { maximum: 80 }, allow_nil: true
+
   validates :name, presence: true, length: { maximum: 50 }
   validates :email, length: { maximum: 255 },
                     format: { with: URI::MailTo::EMAIL_REGEXP },

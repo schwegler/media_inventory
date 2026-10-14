@@ -41,7 +41,7 @@ function artwork(ctx, image, x, y, width, height, theme, rank, pick) {
   ctx.strokeStyle = theme.line; ctx.strokeRect(x, y, width, height)
 }
 
-export async function renderShelfImage(canvas, { picks, shelves, overview, theme: themeName, format, handle, category }) {
+export async function renderShelfImage(canvas, { picks, shelves, overview, theme: themeName, format, handle, category, headline }) {
   const portrait = format === 'portrait', theme = SHELF_THEMES[themeName] || SHELF_THEMES.midnight
   const source = overview ? shelves : [{ label: category, picks }]
   const images = await Promise.all(source.map(shelf => Promise.all(shelf.picks.map(cover))))
@@ -53,7 +53,7 @@ export async function renderShelfImage(canvas, { picks, shelves, overview, theme
   ctx.fillStyle = theme.text; ctx.font = `${portrait ? 40 : 26}px Georgia`; ctx.fillText('Trove', 48, portrait ? 70 : 44)
   ctx.fillStyle = theme.muted; ctx.font = `${portrait ? 24 : 15}px sans-serif`; ctx.fillText(`@${handle}’s Shelf`, 48, portrait ? 116 : 74)
   ctx.fillStyle = theme.text; ctx.font = `${portrait ? 86 : 52}px Georgia`
-  textHeading(overview ? 'The things I keep.' : `My top five · ${category}`, portrait ? 208 : 137)
+  textHeading(overview ? (headline || 'The things I keep.') : `My top five · ${category}`, portrait ? 208 : 137)
   function textHeading(value, y) {
     let size = portrait ? 86 : 52
     while (ctx.measureText(value).width > w - 96 && size > 34) { size -= 2; ctx.font = `${size}px Georgia` }

@@ -41,6 +41,27 @@ RSpec.describe 'Favorite shelves', type: :request do
     expect(page.css('.favorite-shelf-slots')).to be_empty
   end
 
+  it 'renders site navigation on public and signed-in shelves' do
+    [false, true].each do |signed_in|
+      login if signed_in
+      [nil, 'Movie'].each do |category|
+        get shelf_path(user.username, category: category, theme: 'electric')
+        expect(response).to have_http_status(:ok)
+        page = Nokogiri::HTML(response.body)
+        expect(page.css('.app-header').size).to eq(1)
+        expect(page.at_css('.brand-link')['href']).to eq(root_path)
+        expect(page.at_css("#mobile-navigation a[href='#{movies_path}']")).to be_present
+        expect(page.at_css('.favorite-shelf')['data-shelf-theme']).to eq('electric')
+        expect(page.at_css('turbo-frame#modal')).to be_present
+        if signed_in
+          expect(page.at_css('[aria-label="Account menu"]')).to be_present
+        else
+          expect(page.at_css(".app-header a[href='#{login_path}']")).to be_present
+        end
+      end
+    end
+  end
+
   it 'carries supported themes through shelf links and safely defaults unknown themes' do
     get shelf_path(user.username, theme: 'gallery')
     page = Nokogiri::HTML(response.body)
@@ -48,6 +69,35 @@ RSpec.describe 'Favorite shelves', type: :request do
     expect(page.css('.shelf-exhibit').all? { |link| link['href'].include?('theme=gallery') }).to be(true)
     get shelf_path(user.username, theme: 'unknown')
     expect(Nokogiri::HTML(response.body).at_css('.favorite-shelf')['data-shelf-theme']).to eq('midnight')
+  end
+
+  it 'lets the owner save a public headline and restore the default' do
+    login
+    patch shelf_path(user.username, theme: 'electric'), params: { shelf_headline: '  My favorite distractions.  ' }
+    expect(response).to redirect_to(shelf_path(user.username, theme: 'electric'))
+    expect(user.reload.shelf_headline).to eq('My favorite distractions.')
+    get shelf_path(user.username)
+    expect(Nokogiri::HTML(response.body).at_css('h1').text).to eq('My favorite distractions.')
+    expect(response.body).to include('Edit headline')
+    delete logout_path
+    get shelf_path(user.username)
+    expect(response.body).to include('My favorite distractions.')
+    expect(response.body).not_to include('Edit headline')
+    login
+    patch shelf_path(user.username), params: { shelf_headline: '   ' }
+    expect(user.reload.shelf_headline).to be_nil
+    get shelf_path(user.username)
+    expect(Nokogiri::HTML(response.body).at_css('h1').text).to eq('The thingsI keep.')
+  end
+
+  it 'rejects oversized headlines and changes from other users' do
+    login
+    patch shelf_path(user.username), params: { shelf_headline: 'x' * 81 }
+    expect(user.reload.shelf_headline).to be_nil
+    other = User.create!(name: 'Other', username: 'other', password: 'password')
+    patch shelf_path(other.username), params: { shelf_headline: 'Changed' }
+    expect(response).to have_http_status(:forbidden)
+    expect(other.reload.shelf_headline).to be_nil
   end
 
   it 'rejects another user modifying the shelf' do
