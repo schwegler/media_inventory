@@ -1,6 +1,12 @@
 # frozen_string_literal: true
 
 SampleApp::Application.routes.draw do
+  get 'shelf', to: 'shelves#mine', as: :my_shelf
+  get 'shelves/search', to: 'shelves#search', as: :search_shelves
+  get '/@:username/shelf', to: 'shelves#show', as: :shelf
+  patch '/@:username/shelf', to: 'shelves#update'
+  get '/@:id', to: 'users#show', as: :handle_profile
+
   resources :game_library_views, only: %i[create destroy]
   get 'media/artwork/renditions/:token', to: 'media_artwork_renditions#show', as: :artwork_rendition
   get 'users/:user_id/games', to: 'game_shelves#show', as: :game_shelf

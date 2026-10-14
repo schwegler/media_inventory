@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_11_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_14_010000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -216,6 +216,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_11_120000) do
     t.index ["status", "created_at"], name: "index_edit_suggestions_on_status_and_created_at"
     t.index ["suggestable_type", "suggestable_id"], name: "index_edit_suggestions_on_suggestable"
     t.index ["user_id"], name: "index_edit_suggestions_on_user_id"
+  end
+
+  create_table "favorite_shelves", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "category", null: false
+    t.json "picks", default: [], null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "category"], name: "index_favorite_shelves_on_user_id_and_category", unique: true
+    t.index ["user_id"], name: "index_favorite_shelves_on_user_id"
   end
 
   create_table "game_artwork_batches", force: :cascade do |t|
@@ -615,6 +625,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_11_120000) do
   add_foreign_key "consumption_pass_entries", "consumption_passes"
   add_foreign_key "consumption_passes", "library_items"
   add_foreign_key "edit_suggestions", "users"
+  add_foreign_key "favorite_shelves", "users"
   add_foreign_key "game_artwork_batches", "video_games"
   add_foreign_key "game_artworks", "library_items"
   add_foreign_key "game_artworks", "video_games"

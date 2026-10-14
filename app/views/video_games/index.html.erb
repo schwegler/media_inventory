@@ -31,7 +31,7 @@
 <% if @personal_library %>
   <details class="collection-tools"><summary>Library tools &amp; saved views</summary>
     <nav class="library-saved-views" aria-label="Saved collection views">
-      <%= link_to 'My public game shelf', game_shelf_path(current_user) %>
+      <%= link_to 'My Shelf', my_shelf_path %>
       <% @saved_views.each do |view| %><%= link_to view.name, video_games_path(library: 'mine', view: view.id), aria: { current: @saved_view == view ? 'page' : nil } %><% end %>
     </nav>
 

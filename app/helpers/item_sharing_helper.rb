@@ -16,7 +16,8 @@ module ItemSharingHelper
   end
 
   def canonical_item_url(item)
-    "#{public_trove_origin}#{polymorphic_path(item)}"
+    path = item.is_a?(User) && item.username.present? ? handle_profile_path(item.username) : polymorphic_path(item)
+    "#{public_trove_origin}#{path}"
   end
 
   def canonical_collection_url(user)

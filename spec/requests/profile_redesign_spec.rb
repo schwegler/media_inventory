@@ -33,35 +33,35 @@ RSpec.describe 'Profile redesign', type: :request do
   end
 
   it 'serves readable and legacy numeric URLs, case-insensitively, with a stable canonical link' do
-    [user_path(owner), "/users/#{owner.id}", '/users/LIBRARY_OWNER'].each do |url|
+    [handle_profile_path(owner.username), user_path(owner), "/users/#{owner.id}", '/users/LIBRARY_OWNER', '/@LIBRARY_OWNER'].each do |url|
       get url
-      unless url == user_path(owner)
+      unless url == handle_profile_path(owner.username)
         expect(response).to have_http_status(:moved_permanently)
-        expect(response).to redirect_to(user_path(owner))
+        expect(response).to redirect_to(handle_profile_path(owner.username))
         follow_redirect!
       end
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include('https://trove.schweg.xyz/users/library_owner')
+      expect(response.body).to include('https://trove.schweg.xyz/@library_owner')
     end
     get '/users/not_a_user'
     expect(response).to have_http_status(:not_found)
   end
 
   it 'shows all entries and counts to guests but hides private review content' do
-    get user_path(owner)
+    get handle_profile_path(owner.username)
     expect(response.body).to include('Visible movie', 'Visible review', 'Secret movie', 'Log in to follow')
     expect(response.body).not_to include('Secret review', 'Private review', '1990', 'Edit profile')
     doc = Nokogiri::HTML(response.body)
     expect(doc.at_css('.library-profile-stats a strong').text).to eq('2')
-    get user_path(owner), params: { tab: 'backlog' }
+    get handle_profile_path(owner.username), params: { tab: 'backlog' }
     expect(response.body).to include('Secret movie')
   end
 
   it 'lets owners see private reviews but removes them from public preview' do
     sign_in(owner)
-    get user_path(owner)
+    get handle_profile_path(owner.username)
     expect(response.body).to include('Secret movie', 'Secret review', 'Public preview', 'Edit profile', '1990')
-    get user_path(owner), params: { preview: 'public' }
+    get handle_profile_path(owner.username), params: { preview: 'public' }
     expect(response.body).to include('Secret movie')
     expect(response.body).not_to include('Secret review', '1990', 'Edit profile')
     expect(response.body).to include('Back to your profile')
@@ -72,18 +72,18 @@ RSpec.describe 'Profile redesign', type: :request do
     LibraryItem.create!(user: friend, item: public_movie, is_collected: true)
     LibraryItem.create!(user: friend, item: private_movie, is_collected: true)
     sign_in(friend)
-    get user_path(owner)
+    get handle_profile_path(owner.username)
     expect(response.body).to include('2 collected items', 'Follow')
     expect(response.body).not_to include('Secret review')
   end
 
   it 'filters both shelves and preserves unfiltered headline counts' do
     sign_in(owner)
-    get user_path(owner), params: { tab: 'collection', type: 'Book' }
+    get handle_profile_path(owner.username), params: { tab: 'collection', type: 'Book' }
     expect(response.body).to include('Try another media type')
     doc = Nokogiri::HTML(response.body)
     expect(doc.at_css('.library-profile-stats a strong').text).to eq('2')
-    get user_path(owner), params: { tab: 'backlog', type: 'Book' }
+    get handle_profile_path(owner.username), params: { tab: 'backlog', type: 'Book' }
     expect(response.body).not_to include('Secret movie')
   end
 
@@ -97,7 +97,7 @@ RSpec.describe 'Profile redesign', type: :request do
   it 'keeps private liked library entries out of public likes' do
     Like.create!(user: owner, likeable: public_entry)
     Like.create!(user: owner, likeable: private_entry)
-    get user_path(owner), params: { tab: 'likes' }
+    get handle_profile_path(owner.username), params: { tab: 'likes' }
     expect(response.body).to include('Visible movie')
     expect(response.body).not_to include('Secret movie', 'Secret review')
   end
