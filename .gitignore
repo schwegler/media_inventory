@@ -43,3 +43,6 @@ doc/
 /storage/*
 !/storage/.keep
 /work/
+
+# Native app build artifacts
+native/ios/MediaInventory/.build/

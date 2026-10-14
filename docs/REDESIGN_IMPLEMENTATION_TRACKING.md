@@ -1,0 +1,50 @@
+# taco ’bout it × Trove — Redesign Implementation Tracking
+
+**Reference Authority:** `revision_2/REDESIGN_PROPOSAL.md` (Design Authority) & `revision_2/FEATURE_PRESERVATION.csv` (Capability Preservation Register).  
+**Repository Scope:** `schwegler/media_inventory` (Trove Rails 8 Application).  
+**Sister Site Scope:** `schwegler/tacobout.online` (WordPress Theme & Integration).  
+**Baseline Verified:** RSpec request/model suite passing (537 examples, 0 failures).
+
+---
+
+## 1. Modular Implementation Plan
+
+This plan organizes the redesign into self-contained, reviewable slices. Each modular slice includes code changes, tests, and a dedicated git commit.
+
+| Phase / Module | Description | Key Deliverables & Evidence | Status |
+| :--- | :--- | :--- | :--- |
+| **0. Tracking & Git Hygiene** | Set up tracking register and workspace build ignore rules | `docs/REDESIGN_IMPLEMENTATION_TRACKING.md`, `.gitignore` | `IN PROGRESS` |
+| **1. Foundation & Assets** | Palette tokens, typography, `.mascot-sticker` system, Facet mascot PNGs, Trove app icon & favicon | `app/assets/stylesheets/_tokens.scss`, `app/assets/images/brand/*`, `public/favicon.svg`, asset specs | `TODO` |
+| **2. Global Shell & Brand** | Trove faceted prism logo in navbar, companion link to `tacobout.online`, header navigation offsets | `app/views/shared/_site_navigation.html.erb`, `app/assets/stylesheets/_site_header.scss`, navigation specs | `TODO` |
+| **3. Public Home & Companion Bridge** | "A home for every story, album, and game you're into", 6-format hero, "The Vault. The Broadcast." companion card, logged-out vs member dashboard separation | `app/views/landing/index.html.erb`, `app/assets/stylesheets/_dashboard.scss`, landing specs | `TODO` |
+| **4. Authentication Polish** | `/login` ("Unlock Your Media Vault" + `facet_pose_04_five_star.png`), `/signup` ("Claim Your Shelf in Trove" + `facet_pose_01_bookworm.png`), Fediverse sign-in visibility | `app/views/sessions/new.html.erb`, `app/views/users/new.html.erb`, session/signup request specs | `TODO` |
+| **5. Empty States & Zero-Match** | Empty filter / 0-matches card with `facet_pose_02_gamer_mode.png`, consolidated `Log a Title` and `Reset Filters`, empty library card | `app/views/shared/_empty_state.html.erb`, `app/views/video_games/index.html.erb`, catalog specs | `TODO` |
+| **6. User Profile & Library Mix** | Profile header with `facet_pose_03_crate_digger.png`, visual horizontal bar breakdown for 6 media formats, active-series progress bars | `app/views/users/show.html.erb`, `app/views/users/_library_mix.html.erb`, `_profile.scss`, profile specs | `TODO` |
+| **7. Media Detail & Disclosure Shell** | Unified disclosure component for episodes & issues, genre pills vs navigation chips, credit alignment | `app/views/shared/_series_entry.html.erb`, `_media_detail.scss`, detail specs | `TODO` |
+| **8. Games Dedicated Workspace** | Preserve 6-section workspace (Overview, My copies, Playthroughs, Sessions & journal, Artwork, Import/export) | `docs/video-game-tlc.md`, game workspace controllers/views, regression specs | `TODO` |
+| **9. Public Reviews API Contract** | Revalidation and ETag caching semantics for `/api/reviews` | `docs/public-reviews-api.md`, `app/controllers/api/reviews_controller.rb`, API specs | `TODO` |
+| **10. Verification & Quality Gates** | Full RSpec suite, accessibility audit (WCAG 2.2 AA touch targets/contrast), responsive checks (320px–2000px) | Full test suite passes, zero broken routes | `TODO` |
+
+---
+
+## 2. Commit Log & Progression
+
+- **Commit 0:** `Add redesign implementation tracking document and ignore native build artifacts`
+  - Added `docs/REDESIGN_IMPLEMENTATION_TRACKING.md`.
+  - Updated `.gitignore` to ignore `native/ios/MediaInventory/.build/`.
+- *(Subsequent commits will be recorded here as each module completes)*
+
+---
+
+## 3. How to Pick Up From Where We Left Off
+
+For any agent continuing this work:
+1. Check Section 1 table above for the next module marked `TODO` or `IN PROGRESS`.
+2. Review the corresponding section in `revision_2/REDESIGN_PROPOSAL.md` and rows in `revision_2/FEATURE_PRESERVATION.csv`.
+3. Implement the feature and its accompanying RSpec tests.
+4. Run the relevant specs:
+   ```bash
+   eval "$(/opt/homebrew/bin/brew shellenv)" && eval "$(rbenv init -)" && bundle exec rspec <spec_file>
+   ```
+5. Commit the change with a clear commit message.
+6. Update the status in this document (`docs/REDESIGN_IMPLEMENTATION_TRACKING.md`).
