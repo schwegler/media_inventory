@@ -20,6 +20,20 @@ RSpec.describe 'Stored catalog cover recovery', type: :request do
     item
   end
 
+  it 'serves generated sizes while retaining a full-size detail link' do
+    item = legacy_item(Book)
+    get item.stored_cover_url
+    source_blob = item.reload.cover_image.blob
+    MediaArtworkRendition.request(source_blob)
+    source_blob.artwork_renditions.each { |row| GenerateMediaArtworkRenditionJob.perform_now(row) }
+    get item.stored_cover_url, params: { width: 180 }
+    expect(response.location).to include(source_blob.artwork_renditions.find_by!(requested_width: 180).blob.signed_id)
+    get item.stored_cover_url, params: { size: 'original' }
+    expect(response.location).to include(source_blob.signed_id)
+    get book_path(item)
+    expect(response.body).to include('click-&gt;artwork-lightbox#open', '?size=original', 'srcset=')
+  end
+
   it 'recovers all six legacy categories on image access and serves the stored file thereafter' do
     [Movie, TvShow, Album, VideoGame, Comic, Book].each do |klass|
       item = legacy_item(klass)

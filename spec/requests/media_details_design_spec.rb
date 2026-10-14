@@ -32,7 +32,7 @@ RSpec.describe 'Media title details', type: :request do
     get polymorphic_path(item)
     follow_redirect! if response.redirect?
     document = Nokogiri::HTML(response.body)
-    expect(document.at_css('.media-description-prose').text).to include('A readable synopsis.')
+    expect(document.at_css('.game-description .child-description-prose').text).to include('A readable synopsis.')
     expect(document.css('.media-description-tags li').map(&:text)).to eq(['Action', 'Adventure', 'Single-player',
                                                                           'Steam Cloud'])
     expect(document.at_css('.media-description-disclosure p').text).to eq('English*, French*')

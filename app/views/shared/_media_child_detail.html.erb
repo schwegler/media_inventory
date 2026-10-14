@@ -8,7 +8,7 @@
   <%= link_to "← Back to #{parent.title}", parent, class: 'media-back-link' %>
   <header class="media-overview">
     <div class="media-cover">
-      <% if cover.present? %><%= image_tag cover, alt: "#{title} cover" %><% else %><div class="artwork-fallback">No cover yet</div><% end %>
+      <% if cover.present? %><%= artwork_lightbox("#{cover}?size=original", "#{title} cover") do %><%= media_cover_image(item.stored_cover_url.present? ? item : parent, alt: "#{title} cover", sizes: "180px") %><% end %><% else %><div class="artwork-fallback">No cover yet</div><% end %>
     </div>
     <div class="media-identity">
       <h1><%= title %></h1>

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class MediaArtworkRendition < ApplicationRecord
-  SIZES = [[180, 270], [360, 540]].freeze
+  SIZES = [[180, 270], [360, 540], [720, 1080]].freeze
   belongs_to :source_blob, class_name: 'ActiveStorage::Blob'
   belongs_to :blob, class_name: 'ActiveStorage::Blob', optional: true
   validates :requested_width, :requested_height, numericality: { only_integer: true, greater_than: 0 }

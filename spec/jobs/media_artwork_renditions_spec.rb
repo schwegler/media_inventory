@@ -16,8 +16,8 @@ RSpec.describe GenerateMediaArtworkRenditionJob do
     MediaArtworkRendition.request(source)
     perform_enqueued_jobs(only: described_class)
     rows = source.artwork_renditions.order(:requested_width)
-    expect(rows.pluck(:state)).to eq(%w[ready ready])
-    expect(rows.pluck(:width)).to eq([180, 360])
+    expect(rows.pluck(:state)).to eq(%w[ready ready ready])
+    expect(rows.pluck(:width)).to eq([180, 360, 720])
     rows.each do |row|
       expect(row.width.to_f / row.height).to be_within(0.02).of(800.0 / 450)
       expect(row.blob.content_type).to eq('image/webp')
@@ -31,7 +31,7 @@ RSpec.describe GenerateMediaArtworkRenditionJob do
     right = source_blob
     2.times { MediaArtworkRendition.request(left) }
     MediaArtworkRendition.request(right)
-    expect(enqueued_jobs.count { |job| job[:job] == described_class }).to eq(4)
+    expect(enqueued_jobs.count { |job| job[:job] == described_class }).to eq(6)
     perform_enqueued_jobs(only: described_class)
     MediaArtworkRendition.all.group_by(&:requested_width).each_value do |rows|
       expect(rows.map(&:blob_id).uniq.length).to eq(1)

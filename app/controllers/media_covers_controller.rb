@@ -15,7 +15,8 @@ class MediaCoversController < ApplicationController
     recover_cover(item) unless available?(item)
     if available?(item)
       expires_in 5.minutes, public: true
-      redirect_to rails_storage_proxy_path(item.cover_image, only_path: true)
+      blob = cover_blob(item)
+      redirect_to rails_storage_proxy_path(blob, only_path: true)
     else
       response.headers['Cache-Control'] = 'no-store'
       send_file Rails.root.join(item.is_a?(VideoGame) ? 'public/missing-game-cover.svg' : 'public/favicon.svg'),
@@ -38,6 +39,20 @@ class MediaCoversController < ApplicationController
   end
 
   private
+
+  def cover_blob(item)
+    source = item.cover_image.blob
+    return source if params[:size] == 'original'
+
+    width = params[:width].to_i
+    width = 360 unless MediaArtworkRendition::SIZES.any? { |size| size.first == width }
+    row = source.artwork_renditions.find_by(requested_width: width)
+    MediaArtworkRendition.request(source) unless row
+    return row.blob if row&.state == 'ready' && row.blob && MediaCoverImporter.stored_file?(row.blob)
+
+    response.headers['Cache-Control'] = 'no-store'
+    source
+  end
 
   def available?(item)
     item.cover_image.attached? && item.cover_image.blob.service.exist?(item.cover_image.blob.key)
