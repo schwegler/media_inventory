@@ -1,58 +1,173 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>The page you were looking for doesn't exist (404)</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dead air on this channel · Trove</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
   <style>
-  body {
-    background-color: #EFEFEF;
-    color: #2E2F30;
-    text-align: center;
-    font-family: arial, sans-serif;
-  }
-
-  div.dialog {
-    width: 25em;
-    margin: 4em auto 0 auto;
-    border: 1px solid #CCC;
-    border-right-color: #999;
-    border-left-color: #999;
-    border-bottom-color: #BBB;
-    border-top: #B00100 solid 4px;
-    border-top-left-radius: 9px;
-    border-top-right-radius: 9px;
-    background-color: white;
-    padding: 7px 4em 0 4em;
-  }
-
-  h1 {
-    font-size: 100%;
-    color: #730E15;
-    line-height: 1.5em;
-  }
-
-  body > p {
-    width: 33em;
-    margin: 0 auto 1em;
-    padding: 1em 0;
-    background-color: #F7F7F7;
-    border: 1px solid #CCC;
-    border-right-color: #999;
-    border-bottom-color: #999;
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
-    border-top-color: #DADADA;
-    color: #666;
-    box-shadow:0 3px 8px rgba(50, 50, 50, 0.17);
-  }
+    :root {
+      --bg: #0c0d0e;
+      --card-bg: #151618;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(255, 255, 255, 0.16);
+      --text: #f4f4f5;
+      --text-muted: #a1a1aa;
+      --accent: #8b5cf6;
+      --accent-hover: #7c3aed;
+      --accent-subtle: rgba(139, 92, 246, 0.14);
+      --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-body: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      line-height: 1.5;
+    }
+    .error-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: clamp(28px, 5vw, 48px);
+      max-width: 540px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    }
+    .mascot-container {
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: center;
+    }
+    .mascot-image {
+      max-height: 140px;
+      width: auto;
+      aspect-ratio: 281 / 498;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.45));
+    }
+    h1 {
+      font-family: var(--font-display);
+      font-size: clamp(24px, 4vw, 32px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+    p {
+      color: var(--text-muted);
+      font-size: clamp(15px, 2vw, 17px);
+      margin-bottom: 28px;
+    }
+    .search-form {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .search-input {
+      flex: 1;
+      min-height: 44px;
+      background: #1c1d20;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 0 14px;
+      font-family: var(--font-body);
+      font-size: 15px;
+      transition: border-color 0.15s ease;
+    }
+    .search-input:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-color: var(--accent);
+    }
+    .search-input::placeholder { color: var(--text-muted); }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 18px;
+      border-radius: 8px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #ffffff;
+      border: 1px solid transparent;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--border-hover);
+    }
+    .btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    @media (max-width: 480px) {
+      .search-form {
+        flex-direction: column;
+      }
+      .actions {
+        flex-direction: column;
+      }
+      .btn {
+        width: 100%;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition: none !important;
+      }
+    }
   </style>
 </head>
-
 <body>
-  <!-- This file lives in public/404.html -->
-  <div class="dialog">
-    <h1>The page you were looking for doesn't exist.</h1>
-    <p>You may have mistyped the address or the page may have moved.</p>
-  </div>
-  <p>If you are the application owner check the logs for more information.</p>
+  <main class="error-card" role="main">
+    <div class="mascot-container" aria-hidden="true">
+      <img src="/brand/facet_pose_01_bookworm.png" class="mascot-image" width="140" height="248" alt="">
+    </div>
+    <h1>Dead air on this channel.</h1>
+    <p>This page may have moved or doesn’t exist. Search the media vault or return to the catalog home.</p>
+    <form class="search-form" action="/search" method="get" role="search">
+      <input type="search" name="q" class="search-input" placeholder="Search movies, games, books…" aria-label="Search the vault" required>
+      <button type="submit" class="btn btn-secondary">Search</button>
+    </form>
+    <div class="actions">
+      <a href="/" class="btn btn-primary">Return to Trove</a>
+      <a href="https://tacobout.online" class="btn btn-secondary" target="_blank" rel="noopener">Visit taco ’bout it ↗</a>
+    </div>
+  </main>
 </body>
 </html>
