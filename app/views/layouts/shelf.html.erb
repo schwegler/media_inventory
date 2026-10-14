@@ -12,6 +12,12 @@
   <meta property="og:title" content="<%= yield(:title) %>">
   <meta property="og:description" content="<%= yield(:meta_description) %>">
   <meta property="og:url" content="<%= request.original_url %>">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="<%= public_preview_image_url(@preview_image ? rails_blob_path(@preview_image, only_path: true) : nil) %>">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="<%= yield(:title) %>">
+  <meta name="twitter:description" content="<%= yield(:meta_description) %>">
+  <meta name="twitter:image" content="<%= public_preview_image_url(@preview_image ? rails_blob_path(@preview_image, only_path: true) : nil) %>">
   <meta property="og:site_name" content="Trove">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <%= stylesheet_link_tag 'application', 'data-turbo-track': 'reload' %>

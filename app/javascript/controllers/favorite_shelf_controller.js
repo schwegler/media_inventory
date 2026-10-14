@@ -3,7 +3,7 @@ import { renderShelfImage, shelfImageAltText, SHELF_THEMES } from "controllers/s
 
 export default class extends Controller {
   static targets = ["slots", "dialog", "query", "results", "status", "canvas", "altText", "altTextDetails"]
-  static values = { picks: Array, url: String, search: String, handle: String, category: String, shelves: Array, overview: Boolean, headline: String }
+  static values = { picks: Array, url: String, search: String, handle: String, category: String, shelves: Array, overview: Boolean, headline: String, owner: Boolean, previewCategory: String, previewSignature: String }
 
   connect() {
     this.picks = this.picksValue; this.dirty = false; this.imageFormat = this.element.querySelector('[name="shelf-format"]:checked')?.value || "landscape"
@@ -40,12 +40,16 @@ export default class extends Controller {
     for (let index = 0; index < 5; index++) {
       const pick = this.picks[index], slot = document.createElement("article")
       slot.className = "shelf-slot"; slot.dataset.mediaType = pick?.type || ""
-      const cover = owner ? this.button(pick ? "Replace" : "+ Add favorite", () => this.open(index), `Choose favorite ${index + 1}`) : document.createElement("div")
+      const cover = owner ? this.button(pick ? "Replace" : "+ Add favorite", () => this.open(index), `Choose favorite ${index + 1}`) : document.createElement(pick?.url ? "a" : "div")
+      if (!owner && pick?.url) cover.href = pick.url
       cover.className = "shelf-pick"
       if (pick?.cover) { const img = new Image(); img.src = pick.cover; img.alt = pick.title; cover.replaceChildren(img) }
       else if (pick) cover.textContent = pick.title
       else if (!owner) cover.textContent = "Not picked yet"
       const title = document.createElement("h3"); title.textContent = `${index + 1}. ${pick?.title || "Your next favorite"}`
+      if (pick?.url) {
+        const link = document.createElement("a"); link.href = pick.url; link.textContent = title.textContent; title.replaceChildren(link)
+      }
       slot.append(cover, title)
       if (owner && pick) {
         const controls = document.createElement("div"); controls.className = "shelf-controls"
@@ -90,7 +94,7 @@ export default class extends Controller {
       const response = await fetch(this.urlValue, { method: "PATCH", headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" }, body: JSON.stringify({ picks: this.picks.map(({ id, type }) => ({ id, type })) }) })
       const result = await response.json()
       if (!response.ok) throw new Error(result.error || "Save failed")
-      this.dirty = false; this.statusTarget.textContent = "Shelf saved. Your public shelf is ready to share."
+      this.dirty = false; this.previewSignatureValue = result.preview_signature; this.render(); this.statusTarget.textContent = "Shelf saved. Your public shelf is ready to share."
     } catch (error) { this.statusTarget.textContent = error.message }
   }
   theme(event) {
@@ -139,7 +143,29 @@ export default class extends Controller {
     if (version !== this.version || !this.element.isConnected) return
     this.canvasTarget.width = canvas.width; this.canvasTarget.height = canvas.height
     this.canvasTarget.getContext("2d").drawImage(canvas, 0, 0)
+    if (this.ownerValue && !this.dirty) this.storePreview()
     return canvas
+  }
+  async storePreview() {
+    const key = `${this.previewSignatureValue}:${this.imageTheme}`
+    if (this.storedPreview === key) return
+    this.storedPreview = key
+    const theme = this.imageTheme, canvas = document.createElement("canvas")
+    await renderShelfImage(canvas, { picks: [...this.picks], shelves: this.shelvesValue,
+      overview: this.overviewValue, headline: this.headlineValue, theme, format: "landscape",
+      handle: this.handleValue, category: this.categoryValue })
+    if (this.dirty || !this.element.isConnected) { this.storedPreview = null; return }
+    canvas.toBlob(async blob => {
+      if (!blob) { this.storedPreview = null; return }
+      const body = new FormData()
+      body.append("preview_image", blob, "shelf.png"); body.append("theme", theme)
+      body.append("preview_category", this.previewCategoryValue); body.append("preview_signature", this.previewSignatureValue)
+      try {
+        const response = await fetch(this.urlValue, { method: "PATCH", body,
+          headers: { "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" } })
+        if (!response.ok) this.storedPreview = null
+      } catch { this.storedPreview = null }
+    }, "image/png")
   }
   async download() {
     if (this.dirty) { this.statusTarget.textContent = "Save your changes before downloading so the image matches your public shelf."; return }
