@@ -8,7 +8,7 @@ RSpec.describe 'Video Game Genre Pills', type: :request do
       title: 'Hades',
       developer: 'Supergiant Games',
       platform: 'PC',
-      metadata_details: { 'genres' => ['Roguelike', 'Action'] }
+      metadata_details: { 'genres' => %w[Roguelike Action] }
     )
   end
 

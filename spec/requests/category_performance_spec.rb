@@ -6,13 +6,14 @@ RSpec.describe 'Category & Entity Performance', type: :request do
   before do
     5.times do |i|
       comic = Comic.create!(title: "Comic #{i}", writer: 'Writer A', artist: 'Artist B')
-      ComicIssue.create!(comic: comic, issue_number: 1, title: "Issue #{i}", credits: [{ 'name' => 'Writer A', 'role' => 'writer' }])
+      ComicIssue.create!(comic: comic, issue_number: 1, title: "Issue #{i}",
+                         credits: [{ 'name' => 'Writer A', 'role' => 'writer' }])
     end
   end
 
   it 'has a bounded query count when rendering category index' do
     queries = 0
-    callback = ->(_name, _started, _finished, _unique_id, payload) {
+    callback = lambda { |_name, _started, _finished, _unique_id, payload|
       queries += 1 unless payload[:name] == 'SCHEMA'
     }
 
@@ -26,7 +27,7 @@ RSpec.describe 'Category & Entity Performance', type: :request do
 
   it 'has a bounded query count when rendering category show page' do
     queries = 0
-    callback = ->(_name, _started, _finished, _unique_id, payload) {
+    callback = lambda { |_name, _started, _finished, _unique_id, payload|
       queries += 1 unless payload[:name] == 'SCHEMA'
     }
 

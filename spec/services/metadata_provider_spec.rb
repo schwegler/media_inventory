@@ -50,8 +50,8 @@ RSpec.describe MetadataProvider do
     [Book, Album].each do |klass|
       item = catalog_item(klass, '42')
       query = klass == Album ? hash_including({ id: '42', entity: 'song' }) : { id: '42' }
-      stub_request(:get, 'https://itunes.apple.com/lookup').with(query: query)
-        .to_return(body: { results: [{ artistName: 'Creator', artworkUrl100: 'https://images.example/100x100bb.jpg' }] }.to_json)
+      payload = { results: [{ artistName: 'Creator', artworkUrl100: 'https://images.example/100x100bb.jpg' }] }.to_json
+      stub_request(:get, 'https://itunes.apple.com/lookup').with(query: query).to_return(body: payload)
       fields, = described_class.new(item).call
       expect(fields[:thumbnail_url]).to start_with('https://images.example/')
       expect(fields[klass == Book ? :author : :artist]).to eq('Creator')
@@ -62,8 +62,8 @@ RSpec.describe MetadataProvider do
     [Book, Album, Movie].each do |klass|
       item = catalog_item(klass, 'itunes_42')
       query = klass == Album ? hash_including({ id: '42', entity: 'song' }) : { id: '42' }
-      stub_request(:get, 'https://itunes.apple.com/lookup').with(query: query)
-        .to_return(body: { results: [{ artistName: 'Creator' }] }.to_json)
+      payload = { results: [{ artistName: 'Creator' }] }.to_json
+      stub_request(:get, 'https://itunes.apple.com/lookup').with(query: query).to_return(body: payload)
       fields, = described_class.new(item).call
       expect(fields.values).to include('Creator')
     end

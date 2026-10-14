@@ -36,7 +36,7 @@ RSpec.describe AlbumMetadata do
       t.merge('title' => "Refreshed #{t['title']}")
     end
 
-    changed = AlbumMetadata.reconcile(album, refreshed_tracks)
+    AlbumMetadata.reconcile(album, refreshed_tracks)
     expect(album.album_tracks.count).to eq(11)
     expect(album.album_tracks.first.title).to start_with('Refreshed')
   end

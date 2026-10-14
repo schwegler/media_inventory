@@ -21,10 +21,14 @@ RSpec.describe 'Media People Migration', type: :request do
   end
 
   describe 'Movies' do
-    let!(:movie) { Movie.create!(title: 'Inception', director: 'Christopher Nolan', writer: 'Christopher Nolan', actors: 'Leonardo DiCaprio, Joseph Gordon-Levitt') }
+    let!(:movie) do
+      Movie.create!(title: 'Inception', director: 'Christopher Nolan', writer: 'Christopher Nolan',
+                    actors: 'Leonardo DiCaprio, Joseph Gordon-Levitt')
+    end
 
     it 'syncs movie director and cast to MetadataEntity and links on show page' do
-      expect(movie.metadata_entities.pluck(:name)).to include('Christopher Nolan', 'Leonardo DiCaprio', 'Joseph Gordon-Levitt')
+      expect(movie.metadata_entities.pluck(:name)).to include('Christopher Nolan', 'Leonardo DiCaprio',
+                                                              'Joseph Gordon-Levitt')
       get movie_path(movie)
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('Christopher Nolan')

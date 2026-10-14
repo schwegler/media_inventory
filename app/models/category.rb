@@ -165,22 +165,28 @@ class Category
     config = config_for(type)
     return [] unless config && name.present?
 
+    matched = matched_entity_items(type, name, media_type) + matched_model_items(config, type, name, media_type)
+    sort_items(matched.uniq, sort)
+  end
+
+  def self.matched_entity_items(type, name, media_type)
     credits = entity_credits(type).joins(:metadata_entity)
                                   .where(metadata_entities: { normalized_name: MetadataEntity.normalize(name) })
-    matched = credits.pluck(:item_type, :item_id).uniq.group_by(&:first).flat_map do |kind, entries|
+    credits.pluck(:item_type, :item_id).uniq.group_by(&:first).flat_map do |kind, entries|
       model = kind.constantize
       next [] if media_type.present? && !media_type_matches?(model, media_type)
 
       entity_items(model, entries.map(&:last))
     end
+  end
 
+  def self.matched_model_items(config, type, name, media_type)
     attributes = type == 'comic-creators' ? %i[writer artist] : [config[:attribute]]
-    matched += config[:models].call.flat_map do |model|
+    config[:models].call.flat_map do |model|
       next [] if media_type.present? && !media_type_matches?(model, media_type)
 
       attributes.flat_map { |attr| fetch_model_items(model, attr, name) }
     end
-    sort_items(matched.uniq, sort)
   end
 
   def self.entity_items(model, ids)

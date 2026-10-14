@@ -4,7 +4,9 @@ require 'rails_helper'
 
 RSpec.describe 'Child Card Detail Expanders', type: :request do
   let!(:show) { TvShow.create!(title: 'Severance', network: 'Apple TV+') }
-  let!(:episode) { TvEpisode.create!(tv_show: show, season: 1, episode: 1, name: 'Good News About Hell', summary: 'Mark leads a team.') }
+  let!(:episode) do
+    TvEpisode.create!(tv_show: show, season: 1, episode: 1, name: 'Good News About Hell', summary: 'Mark leads a team.')
+  end
 
   it 'renders a single disclosure control per episode card' do
     get tv_show_path(show)

@@ -2,7 +2,10 @@
 
 class AlbumMetadata
   def self.itunes(rows)
-    Array(rows).select { |row| row['wrapperType'] == 'track' && (row['kind'].blank? || %w[song music-video feature-movie].include?(row['kind'])) }.filter_map do |row|
+    tracks = Array(rows).select do |row|
+      row['wrapperType'] == 'track' && (row['kind'].blank? || %w[song music-video feature-movie].include?(row['kind']))
+    end
+    tracks.filter_map do |row|
       next if row['trackId'].blank? || row['trackName'].blank?
 
       { 'provider_id' => "itunes:#{row['trackId']}", 'title' => row['trackName'],
