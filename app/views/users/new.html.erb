@@ -1,5 +1,11 @@
 <div class="auth-page">
-<h1>Sign up</h1>
+  <div class="auth-header">
+    <div class="auth-mascot" aria-hidden="true">
+      <%= image_tag 'brand/facet_pose_01_bookworm.png', class: 'mascot-sticker mascot-slot-auth', width: 90, height: 158, alt: '' %>
+    </div>
+    <h1>Claim Your Shelf in Trove</h1>
+    <p class="auth-subtitle">Create a free library with Bluesky, Mastodon, or Email.</p>
+  </div>
 
 <div class="row">
   <div class="col-md-6 col-md-offset-3">
@@ -73,7 +79,7 @@
 
     <hr class="auth-divider">
     <p class="auth-signup-prompt" style="text-align: center;">
-      Already have an account? <%= link_to "Log in!", login_path %>
+      Already archiving? <%= link_to "Log in →", login_path %>
     </p>
   </div>
 </div>

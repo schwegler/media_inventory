@@ -76,8 +76,11 @@
   .details-card, .auth-tabs-container { box-shadow: none; border: 1px solid var(--border-subtle); }
   .auth-tab-content form.standard-form { box-shadow: none; border: 0; background: none; padding: 0; margin: 0; }
   .auth-tab-content form.standard-form .auth-submit { box-shadow: none; background: var(--primary-color); border-radius: 8px; }
-  .auth-page > h1 { max-width: 580px; margin: auto; }
-  .auth-page .auth-divider, .auth-page .auth-signup-prompt { max-width: 580px; margin-inline: auto; }
+  .auth-header { text-align: center; max-width: 580px; margin: 0 auto 16px; }
+  .auth-mascot { margin-bottom: 12px; }
+  .auth-subtitle { font-size: 17px; color: var(--text-muted); margin: 8px 0 0; line-height: 1.45; }
+  .auth-page h1 { max-width: 580px; margin: 0 auto 8px; font-size: clamp(28px, 4vw, 42px); font-weight: 700; letter-spacing: -0.04em; text-align: center; }
+  .auth-page .auth-divider, .auth-page .auth-signup-prompt { max-width: 580px; margin-inline: auto; text-align: center; }
   .global-search-form:focus-within { background: var(--surface); box-shadow: none; outline: 2px solid var(--primary-color); outline-offset: 2px; }
   .global-search-btn:hover { color: var(--primary-color); transform: none; }
   .auth-tabs-container { max-width: 580px; margin: 24px auto; }

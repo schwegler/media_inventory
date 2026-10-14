@@ -1,6 +1,11 @@
 <div class="auth-page">
-<%= image_tag 'tacobout-logo.png', class: 'auth-brand-logo', width: 104, height: 80, alt: "taco ’bout it" %>
-<h1>Log in</h1>
+  <div class="auth-header">
+    <div class="auth-mascot" aria-hidden="true">
+      <%= image_tag 'brand/facet_pose_04_five_star.png', class: 'mascot-sticker mascot-slot-auth', width: 90, height: 134, alt: '' %>
+    </div>
+    <h1>Unlock Your Media Vault</h1>
+    <p class="auth-subtitle">Sign in with your Fediverse handle (Bluesky / Mastodon) or email to log titles and sync your shelf.</p>
+  </div>
 
 <div class="row">
   <div class="col-md-6 col-md-offset-3">
@@ -60,7 +65,7 @@
     
     <hr class="auth-divider">
     <p class="auth-signup-prompt">
-      New user? <%= link_to "Sign up now!", signup_path %>
+      Need a shelf? <%= link_to "Start your vault →", signup_path %>
     </p>
   </div>
 </div>
