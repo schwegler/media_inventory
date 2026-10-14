@@ -15,7 +15,7 @@ This plan organizes the redesign into self-contained, reviewable slices. Each mo
 | :--- | :--- | :--- | :--- |
 | **0. Tracking & Git Hygiene** | Set up tracking register and workspace build ignore rules | `docs/REDESIGN_IMPLEMENTATION_TRACKING.md`, `.gitignore` | `DONE` |
 | **1. Foundation & Assets** | Palette tokens, typography, `.mascot-sticker` system, Facet mascot PNGs, Trove app icon & favicon | `app/assets/stylesheets/_tokens.scss`, `app/assets/images/brand/*`, `public/favicon.svg`, asset specs | `DONE` |
-| **2. Global Shell & Brand** | Trove faceted prism logo in navbar, companion link to `tacobout.online`, header navigation offsets | `app/views/shared/_site_navigation.html.erb`, `app/assets/stylesheets/_site_header.scss`, navigation specs | `TODO` |
+| **2. Global Shell & Brand** | Trove faceted prism logo in navbar, companion link to `tacobout.online`, header navigation offsets | `app/views/shared/_site_navigation.html.erb`, `app/assets/stylesheets/_site_header.scss`, navigation specs | `DONE` |
 | **3. Public Home & Companion Bridge** | "A home for every story, album, and game you're into", 6-format hero, "The Vault. The Broadcast." companion card, logged-out vs member dashboard separation | `app/views/landing/index.html.erb`, `app/assets/stylesheets/_dashboard.scss`, landing specs | `TODO` |
 | **4. Authentication Polish** | `/login` ("Unlock Your Media Vault" + `facet_pose_04_five_star.png`), `/signup` ("Claim Your Shelf in Trove" + `facet_pose_01_bookworm.png`), Fediverse sign-in visibility | `app/views/sessions/new.html.erb`, `app/views/users/new.html.erb`, session/signup request specs | `TODO` |
 | **5. Empty States & Zero-Match** | Empty filter / 0-matches card with `facet_pose_02_gamer_mode.png`, consolidated `Log a Title` and `Reset Filters`, empty library card | `app/views/shared/_empty_state.html.erb`, `app/views/video_games/index.html.erb`, catalog specs | `TODO` |
@@ -36,18 +36,26 @@ This plan organizes the redesign into self-contained, reviewable slices. Each mo
   - Added official Facet mascots and Trove logos to `app/assets/images/brand/`.
   - Updated `app/assets/stylesheets/_tokens.scss` with refined color palette, spacing, and `.mascot-sticker` system.
   - Added request spec `spec/requests/brand_system_spec.rb`.
+- **Commit 2:** `Integrate Trove faceted app icon into header navigation and footer branding`
+  - Updated `app/views/shared/_site_navigation.html.erb` with `brand/trove_rounded_app_icon.png`.
+  - Updated `_site_header.scss` with desktop and mobile logo sizing and border radius.
+  - Updated `app/views/layouts/application.html.erb` footer with Trove branding and companion link.
+  - Added request spec `spec/requests/global_shell_navigation_spec.rb`.
 
 ---
 
 ## 3. How to Pick Up From Where We Left Off
 
 For any agent continuing this work:
+
 1. Check Section 1 table above for the next module marked `TODO` or `IN PROGRESS`.
 2. Review the corresponding section in `revision_2/REDESIGN_PROPOSAL.md` and rows in `revision_2/FEATURE_PRESERVATION.csv`.
 3. Implement the feature and its accompanying RSpec tests.
 4. Run the relevant specs:
+
    ```bash
    eval "$(/opt/homebrew/bin/brew shellenv)" && eval "$(rbenv init -)" && bundle exec rspec <spec_file>
    ```
+
 5. Commit the change with a clear commit message.
 6. Update the status in this document (`docs/REDESIGN_IMPLEMENTATION_TRACKING.md`).
