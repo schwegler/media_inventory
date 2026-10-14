@@ -1,5 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="<%= logged_in? ? current_user.theme : 'os' %>"
+      data-accent="<%= logged_in? ? current_user.accent_theme : 'violet' %>"
+      data-density="<%= logged_in? ? current_user.content_density : 'comfortable' %>"
+      data-media-layout="<%= logged_in? ? current_user.media_layout : 'covers' %>"
+      data-effects="<%= logged_in? && current_user.reduce_effects? ? 'reduced' : 'full' %>">
 <head>
   <meta charset="utf-8">
   <title><%= full_title(yield(:title)) %></title>
@@ -15,8 +19,10 @@
   <%= csrf_meta_tags %>
   <%= csp_meta_tag %>
 </head>
-<body class="shelf-page">
+<body class="shelf-page" data-ui-preferences="<%= ui_preferences.to_json %>" <% if hotwire_native_app? %>data-native="true"<% end %>>
   <a class="skip-link" href="#main-content">Skip to shelves</a>
-  <main id="main-content"><%= yield %></main>
+  <%= render 'shared/site_navigation' %>
+  <main id="main-content" tabindex="-1"><%= yield %></main>
+  <%= turbo_frame_tag "modal" %>
 </body>
 </html>

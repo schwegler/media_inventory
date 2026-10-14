@@ -41,6 +41,27 @@ RSpec.describe 'Favorite shelves', type: :request do
     expect(page.css('.favorite-shelf-slots')).to be_empty
   end
 
+  it 'renders site navigation on public and signed-in shelves' do
+    [false, true].each do |signed_in|
+      login if signed_in
+      [nil, 'Movie'].each do |category|
+        get shelf_path(user.username, category: category, theme: 'electric')
+        expect(response).to have_http_status(:ok)
+        page = Nokogiri::HTML(response.body)
+        expect(page.css('.app-header').size).to eq(1)
+        expect(page.at_css('.brand-link')['href']).to eq(root_path)
+        expect(page.at_css('#mobile-navigation a[href="' + movies_path + '"]')).to be_present
+        expect(page.at_css('.favorite-shelf')['data-shelf-theme']).to eq('electric')
+        expect(page.at_css('turbo-frame#modal')).to be_present
+        if signed_in
+          expect(page.at_css('[aria-label="Account menu"]')).to be_present
+        else
+          expect(page.at_css('.app-header a[href="' + login_path + '"]')).to be_present
+        end
+      end
+    end
+  end
+
   it 'carries supported themes through shelf links and safely defaults unknown themes' do
     get shelf_path(user.username, theme: 'gallery')
     page = Nokogiri::HTML(response.body)
