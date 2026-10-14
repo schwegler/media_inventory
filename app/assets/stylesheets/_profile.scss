@@ -3,7 +3,7 @@
   .library-profile-banner { height: 200px; overflow: hidden; margin-bottom: 28px; border-radius: 8px; }
   .library-profile-banner img { height: 100%; width: 100%; object-fit: cover; }
   .library-profile-heading { position: relative; top: auto; z-index: auto; display: flex; align-items: center; gap: 28px; margin-bottom: 38px; padding: 0; background: var(--bg-dark); box-shadow: none; border: 0; backdrop-filter: none; }
-  .library-profile-heading > img, .library-profile-heading > .avatar-placeholder { flex-shrink: 0; border-radius: 50%; }
+  .library-profile-heading > img, .library-profile-heading > .avatar-placeholder, .library-profile-heading > .user-avatar, .library-profile-heading > .user-avatar-fallback { flex-shrink: 0; border-radius: 50%; }
   .library-profile-identity { flex: 1; min-width: 0; }
   .library-profile-identity h1 { font: 700 clamp(30px, 3.3vw, 48px)/1.1 'Space Grotesk', sans-serif; letter-spacing: -.045em; margin: 0 0 6px; overflow-wrap: anywhere; }
   .library-profile-handle { color: var(--text-muted); margin: 0 0 10px; }
@@ -35,8 +35,9 @@
   .library-profile-sidebar { align-self: start; padding: 25px; border: 1px solid var(--border-subtle); border-radius: 6px; }
   .library-profile-sidebar > p { line-height: 1.6; margin: 18px 0; overflow-wrap: anywhere; }
   .library-profile-sidebar .profile-visibility { font-size: 13px; color: var(--text-muted); }
-  .profile-heading-avatar-group { position: relative; display: inline-flex; flex-shrink: 0; }
-  .profile-facet-badge { position: absolute; bottom: -6px; right: -8px; z-index: 2; }
+  .profile-companion-mascot { display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding-inline: 8px; }
+  .profile-crate-digger { max-height: 84px; width: auto; aspect-ratio: 380 / 497; }
+  @media (max-width: 900px) { .profile-companion-mascot { display: none; } }
   .profile-mix, .profile-shared { border-top: 1px solid var(--border-subtle); padding-top: 22px; margin-top: 24px; }
   .library-profile-sidebar h3 { font: 600 20px/1.3 'Space Grotesk', sans-serif; margin: 0 0 14px; }
   .library-mix-bars { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }

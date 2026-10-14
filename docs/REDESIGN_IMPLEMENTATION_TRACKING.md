@@ -64,8 +64,8 @@ This plan organizes the redesign into self-contained, reviewable slices. Each mo
   - Replaced cramped hero flex header with balanced 2-column `.home-intro-main` grid aligning Facet harmoniously beside headline, description, and CTA buttons.
   - Moved `.series-entry-details` outside `.series-entry-row` to cleanly position the "Details" disclosure button and full-width expandable metadata body (unblocking Jules).
   - Added request spec `spec/requests/child_card_expanders_spec.rb` and updated `spec/requests/landing_hero_redesign_spec.rb`.
-- **Commit 7:** `Redesign profile header with Crate Digger Facet and horizontal library mix bars`
-  - Added `facet_pose_03_crate_digger.png` as a profile avatar badge with `.profile-facet-badge`.
+- **Commit 7:** `Redesign profile header with unobstructed avatar, Crate Digger companion, and horizontal library mix bars`
+  - Positioned `facet_pose_03_crate_digger.png` in a dedicated `.profile-companion-mascot` element within `.library-profile-heading`, keeping the user avatar 100% clean and unobstructed.
   - Converted the plain-text Library mix list into a visual horizontal bar breakdown across all 6 formats with proportional progress fill tracks and dynamic percentages.
   - Added on-brand zero-match note for Video Games (`0 logged yet · (backlog incoming)`).
   - Computed dynamic `Cataloging since [Month Year]` from `@user.created_at` instead of hardcoding dates.

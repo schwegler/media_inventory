@@ -22,15 +22,24 @@ RSpec.describe 'Profile library mix and avatar mascot badge', type: :request do
     LibraryItem.create!(user: user, item: book, is_collected: true, is_public: true)
   end
 
-  it 'renders Crate Digger Facet mascot badge in the profile header' do
+  it 'renders Crate Digger Facet companion mascot without obstructing the user avatar' do
     get handle_profile_path(user.username)
     expect(response).to have_http_status(:ok)
     page = Nokogiri::HTML(response.body)
 
-    badge = page.at_css('.profile-heading-avatar-group .profile-facet-badge img')
-    expect(badge).to be_present
-    expect(badge['src']).to include('brand/facet_pose_03_crate_digger')
-    expect(badge['class']).to include('mascot-sticker')
+    # User avatar is direct child of heading, completely unobstructed
+    avatar = page.at_css(
+      '.library-profile-heading > .user-avatar, ' \
+      '.library-profile-heading > .user-avatar-fallback, ' \
+      '.library-profile-heading > img:not(.mascot-sticker)'
+    )
+    expect(avatar).to be_present
+
+    # Companion mascot is separate from avatar
+    companion = page.at_css('.library-profile-heading .profile-companion-mascot img')
+    expect(companion).to be_present
+    expect(companion['src']).to include('brand/facet_pose_03_crate_digger')
+    expect(companion['class']).to include('mascot-sticker')
   end
 
   it 'renders visual horizontal progress bars for library mix with calculated widths' do
