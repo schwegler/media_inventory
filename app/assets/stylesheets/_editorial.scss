@@ -32,11 +32,11 @@
   .nav-dropdown .btn-log { border-radius: 8px; padding: 10px 14px; font-size: 14px; color: var(--on-accent); min-height: 44px; }
   .nav-dropdown .btn-log:hover { box-shadow: none; color: var(--on-accent); transform: none; }
 
-  .home-intro { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 32px; padding: 0 0 38px; margin-bottom: 30px; border-bottom: 1px solid var(--border-medium); }
-  .home-hero-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 12px; }
-  .home-hero-header h1 { font-size: clamp(36px, 4.8vw, 68px); letter-spacing: -0.05em; line-height: 1.08; font-weight: 700; margin: 0; }
-  .home-hero-mascot { flex-shrink: 0; align-self: flex-start; }
-  .home-intro-main > p { max-width: 780px; font-size: 20px; line-height: 1.45; margin-bottom: 26px; }
+  .home-intro { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 36px; padding: 0 0 38px; margin-bottom: 30px; border-bottom: 1px solid var(--border-medium); }
+  .home-intro-main { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 32px; align-items: center; }
+  .home-hero-copy h1 { font-size: clamp(34px, 4.4vw, 60px); letter-spacing: -0.05em; line-height: 1.08; font-weight: 700; margin: 0 0 16px; }
+  .home-hero-copy > p { max-width: 680px; font-size: 19px; line-height: 1.45; margin-bottom: 26px; }
+  .home-hero-mascot { flex-shrink: 0; display: flex; justify-content: center; align-items: center; }
   .home-actions { display: flex; align-items: center; gap: 38px; flex-wrap: wrap; }
   .home-actions .sleek-btn { padding: 15px 28px; }
   .blog-link { display: inline-flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 500; }
@@ -117,10 +117,10 @@
     .brand-companion { font-size: 12px; padding-left: 12px; margin-left: 14px; }
     .app-header { margin-bottom: 28px; }
     .home-intro, .dashboard-layout { grid-template-columns: minmax(0, 1fr); gap: 28px; }
-    .home-hero-header { flex-direction: column; gap: 16px; }
-    .home-hero-mascot { align-self: flex-start; }
-    .home-hero-header h1 { font-size: clamp(32px, 8vw, 48px); }
-    .home-intro-main > p { font-size: 18px; }
+    .home-intro-main { grid-template-columns: 1fr; gap: 20px; }
+    .home-hero-mascot { justify-content: flex-start; }
+    .home-hero-copy h1 { font-size: clamp(32px, 8vw, 48px); }
+    .home-hero-copy > p { font-size: 18px; }
     .home-actions { gap: 20px; }
     .home-actions .sleek-btn { padding: 12px 18px; }
     .home-blog { border-left: 0; border-top: 1px solid var(--border-medium); padding: 16px 0 0; }

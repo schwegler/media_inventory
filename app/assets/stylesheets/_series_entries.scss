@@ -49,21 +49,9 @@
 .series-entry-title { flex: 1; min-width: 0; }
 .series-entry-title > a { font-size: 1rem; font-weight: 600; color: var(--text); text-decoration: none; }
 .series-entry-title p { font-size: .85rem; color: var(--text-secondary); margin: .35rem 0 0; }
-.series-entry-actions {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  margin-left: auto;
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-.series-entry-track { margin: 0; flex-shrink: 0; }
+.series-entry-track { margin: 0 0 0 auto; flex-shrink: 0; }
 .series-entry-track button { min-height: 44px; font-size: .85rem; padding: .4rem .75rem; }
-.series-entry-details { display: inline-block; }
-.series-entry-details[open] {
-  flex-basis: 100%;
-  width: 100%;
-}
+.series-entry-details { display: contents; }
 .series-entry-details > summary.series-entry-toggle {
   display: inline-flex;
   align-items: center;
@@ -79,6 +67,7 @@
   cursor: pointer;
   list-style: none;
   user-select: none;
+  flex-shrink: 0;
   transition: color .15s ease, background-color .15s ease;
 }
 .series-entry-details > summary.series-entry-toggle::-webkit-details-marker { display: none; }
@@ -87,9 +76,10 @@
   background: var(--inset);
 }
 .series-entry-details > summary.series-entry-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-.series-entry-toggle-open { display: none; }
-.series-entry-details[open] > summary .series-entry-toggle-closed { display: none; }
-.series-entry-details[open] > summary .series-entry-toggle-open { display: inline; }
+.series-entry-details[open] > summary.series-entry-toggle {
+  background: var(--inset);
+  color: var(--text);
+}
 .series-entry-toggle-icon {
   display: inline-flex;
   flex-shrink: 0;
@@ -106,6 +96,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem; /* 20px gaps between sections */
+  flex-basis: 100%;
   width: 100%;
   padding: 1.25rem 0 0;
   font-size: .95rem;
@@ -181,11 +172,11 @@
   .media-entries .child-collection-toolbar { grid-template-columns: minmax(0, 1fr); }
   .media-entries .season-panel-header { flex-wrap: wrap; gap: .75rem; }
   .series-entry { padding: 1rem .75rem; }
-  .series-entry-row { flex-wrap: wrap; gap: .75rem; padding-right: 5.5rem; }
+  .series-entry-row { flex-wrap: wrap; gap: .75rem; }
   .series-entry-artwork { width: 80px; height: 45px; }
   .series-entry-track { width: 100%; }
   .series-entry-track button { width: 100%; }
-  .series-entry-details > summary.series-entry-toggle { top: 1rem; right: .75rem; padding: .35rem .6rem; font-size: .8rem; }
+  .series-entry-details > summary.series-entry-toggle { padding: .35rem .6rem; font-size: .8rem; }
   .series-entry-body { padding: 1rem 0 0; }
   .modal-container.review-drawer { width: 100%; max-width: none; }
 }

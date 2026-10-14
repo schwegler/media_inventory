@@ -37,6 +37,8 @@ RSpec.describe 'Landing page hero and companion bridge redesign', type: :request
       hero_mascot = page.at_css('.home-hero-mascot img')
       expect(hero_mascot['src']).to include('brand/facet_pose_01_bookworm')
       expect(hero_mascot['class']).to include('mascot-sticker')
+      expect(hero_mascot['width'].to_i).to eq(140)
+      expect(hero_mascot['height'].to_i).to eq(248)
     end
 
     it 'renders companion bridge card with Duo mascot and link to tacobout' do
@@ -55,6 +57,8 @@ RSpec.describe 'Landing page hero and companion bridge redesign', type: :request
       duo_mascot = companion.at_css('img')
       expect(duo_mascot['src']).to include('brand/mascot_duo_telly_and_facet_transparent')
       expect(duo_mascot['class']).to include('mascot-sticker')
+      expect(duo_mascot['width'].to_i).to eq(197)
+      expect(duo_mascot['height'].to_i).to eq(110)
     end
 
     it 'renders updated Make It Yours onboarding capabilities' do

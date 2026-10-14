@@ -58,6 +58,12 @@ This plan organizes the redesign into self-contained, reviewable slices. Each mo
   - Added `.mascot-empty-card` with `facet_pose_01_bookworm.png` for empty personal collection shelves.
   - Added styles for `.mascot-empty-card`, `.empty-state-mascot`, and `.empty-state-actions` in `_editorial.scss`.
   - Added request spec `spec/requests/empty_states_redesign_spec.rb`.
+- **Commit 6:** `Fix Facet mascot aspect ratio on landing page and move child card Details button`
+  - Corrected `.mascot-slot-hero` sizing and added `width: auto` + `object-fit: contain` to `.mascot-sticker` to eliminate aspect-ratio squash/stretching.
+  - Sized Bookworm Facet to natural 140×248 and Duo mascot to natural 197×110.
+  - Replaced cramped hero flex header with balanced 2-column `.home-intro-main` grid aligning Facet harmoniously beside headline, description, and CTA buttons.
+  - Moved `.series-entry-details` outside `.series-entry-row` to cleanly position the "Details" disclosure button and full-width expandable metadata body (unblocking Jules).
+  - Added request spec `spec/requests/child_card_expanders_spec.rb` and updated `spec/requests/landing_hero_redesign_spec.rb`.
 
 ---
 

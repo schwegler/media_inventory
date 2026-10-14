@@ -143,24 +143,24 @@
 <% else %>
   <section class="home-intro" aria-labelledby="home-title">
     <div class="home-intro-main">
-      <div class="home-hero-header">
+      <div class="home-hero-copy">
         <h1 id="home-title">A home for every story, album, and game you’re into.</h1>
-        <div class="home-hero-mascot" aria-hidden="true">
-          <%= image_tag 'brand/facet_pose_01_bookworm.png', class: 'mascot-sticker mascot-slot-hero', width: 140, height: 246, alt: '' %>
+        <p>Log what you watch, read, play, and spin—without algorithmic clutter. Build your shelf across 6 media formats, track active series, and share honest takes.</p>
+        <div class="home-actions">
+          <%= link_to "Create your library", signup_path, class: "sleek-btn sleek-btn-primary" %>
+          <%= link_to movies_path, class: "blog-link" do %>
+            <span>Browse the stacks</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg>
+          <% end %>
         </div>
       </div>
-      <p>Log what you watch, read, play, and spin—without algorithmic clutter. Build your shelf across 6 media formats, track active series, and share honest takes.</p>
-      <div class="home-actions">
-        <%= link_to "Create your library", signup_path, class: "sleek-btn sleek-btn-primary" %>
-        <%= link_to movies_path, class: "blog-link" do %>
-          <span>Browse the stacks</span>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg>
-        <% end %>
+      <div class="home-hero-mascot" aria-hidden="true">
+        <%= image_tag 'brand/facet_pose_01_bookworm.png', class: 'mascot-sticker mascot-slot-hero', width: 140, height: 248, alt: '' %>
       </div>
     </div>
     <aside class="home-blog" aria-label="Our blog">
       <div class="home-blog-mascot" aria-hidden="true">
-        <%= image_tag 'brand/mascot_duo_telly_and_facet_transparent.png', class: 'mascot-sticker', style: 'max-height: 110px;', width: 220, height: 110, alt: '' %>
+        <%= image_tag 'brand/mascot_duo_telly_and_facet_transparent.png', class: 'mascot-sticker', style: 'max-height: 110px;', width: 197, height: 110, alt: '' %>
       </div>
       <h2>The Vault. The Broadcast.</h2>
       <p>Trove stacks the collection; taco ‘bout it brings the hot takes, essays, and deep dives.</p>
