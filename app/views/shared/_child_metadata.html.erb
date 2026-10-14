@@ -1,16 +1,14 @@
-<% if item.credits.present? || item.metadata_details.present? %>
+<% if item.metadata_details.present? %>
   <section class="child-metadata media-description" aria-label="<%= item.is_a?(ComicIssue) ? 'Issue' : 'Episode' %> details">
     <h3><%= item.is_a?(ComicIssue) ? 'Issue' : 'Episode' %> details</h3>
     <dl class="media-description-facts">
       <% item.metadata_details.each do |label, value| %>
-        <div class="media-description-row"><dt><%= label.to_s.humanize %></dt><dd><%= value.is_a?(Array) ? value.join(', ') : value %></dd></div>
-      <% end %>
-      <% item.credits.group_by { |credit| credit['role'] }.each do |role, credits| %>
-        <div class="media-description-row"><dt><%= role.to_s.humanize %></dt>
-        <dd><%= credits.map { |credit| [credit['name'], credit['character'].presence].compact.join(' as ') }.uniq.join(', ') %></dd></div>
+        <% text = value.is_a?(Array) ? value.join(', ') : value %>
+        <div class="media-description-row"><dt><%= label.to_s.humanize %></dt><dd>
+          <% if text.to_s.length > 240 %><details><summary>Show <%= label.to_s.humanize.downcase %></summary><%= text %></details><% else %><%= text %><% end %>
+        </dd></div>
       <% end %>
     </dl>
   </section>
 <% end %>
-
-<%= render 'shared/entity_credits', item: item %>
+<%= render 'shared/child_credits', item: item if local_assigns.fetch(:show_credits, true) %>

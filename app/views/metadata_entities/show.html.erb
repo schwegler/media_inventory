@@ -1,32 +1,48 @@
 <% content_for(:media_workspace, 'true') %>
 <% content_for(:title, "#{@entity.name} — Trove") %>
 <section class="catalog-page entity-page" aria-labelledby="entity-heading">
-  <%= link_to '← People & Metadata', metadata_entities_path, class: 'media-back-link' %>
+  <%= link_to '← People & Metadata', metadata_entities_path(library: @library), class: 'media-back-link' %>
   <header class="entity-hero">
-    <% if @entity.stored_cover_url %>
-      <%= image_tag @entity.stored_cover_url, alt: @entity.name, class: 'entity-portrait' %>
-    <% else %>
-      <div class="entity-portrait entity-monogram" aria-label="No image available"><%= @entity.name.first %></div>
-    <% end %>
-    <div><p class="entity-eyebrow"><%= @entity.kind.titleize %></p><h1 id="entity-heading"><%= @entity.name %></h1>
-      <% if @entity.description.present? %><p><%= truncate(strip_tags(@entity.description), length: 800) %></p><% end %>
+    <div class="entity-photo">
+      <% if @entity.stored_cover_url %>
+        <%= image_tag @entity.stored_cover_url, alt: @entity.name, class: 'entity-portrait' %>
+      <% else %>
+        <div class="entity-portrait entity-monogram" aria-label="No image available"><%= @entity.name.first %></div>
+      <% end %>
+      <% if @entity.portrait_metadata['source_url'].present? %>
+        <%= link_to 'Photo source ↗', @entity.portrait_metadata['source_url'], class: 'entity-photo-source', rel: 'noopener', target: '_blank' %>
+        <details class="entity-photo-credit"><summary>Photo credit</summary><small><%= @entity.portrait_metadata.values_at('credit', 'license').compact_blank.join(' · ') %></small></details>
+      <% end %>
+    </div>
+    <div class="entity-profile"><p class="entity-eyebrow"><%= @entity.kind.titleize %></p><h1 id="entity-heading"><%= @entity.name %></h1>
+      <p class="entity-credit-summary"><%= @roles.keys.join(' · ') %><% if @roles.any? %> · <% end %><%= pluralize(@work_count, 'credited work') %><span> in <%= @library == 'mine' ? 'your library' : 'Trove' %></span></p>
+      <% if @entity.description.present? %><p class="entity-bio"><%= truncate(strip_tags(@entity.description), length: 800) %></p><% end %>
       <% if @entity.aliases.present? %><p class="entity-aliases">Also known as <%= @entity.aliases.join(', ') %></p><% end %>
-      <div class="entity-role-links"><% @roles.each do |role, count| %><%= link_to "#{role} · #{count}", metadata_entity_path(@entity, role: role, library: @library), class: 'media-category-link' %><% end %></div>
     </div>
   </header>
-  <%= form_with url: metadata_entity_path(@entity), method: :get, class: 'catalog-toolbar' do |f| %>
+  <%= form_with url: metadata_entity_path(@entity), method: :get, class: 'catalog-toolbar entity-filters' do |f| %>
     <div><%= f.label :role, 'Role' %><%= f.select :role, [['All roles', '']] + @roles.keys.map { |role| [role, role] }, selected: params[:role] %></div>
     <div><%= f.label :media_type, 'Media type' %><%= f.select :media_type, [['All media', '']] + (MetadataEntitySync::FIELDS.keys + %w[ComicIssue TvEpisode AlbumTrack]).map { |type| [type.underscore.humanize, type] }, selected: params[:media_type] %></div>
-    <% if logged_in? %><div><%= f.label :library, 'Library' %><%= f.select :library, [['All Trove', 'all'], ['My library', 'mine']], selected: @library %></div><% end %>
-    <%= f.submit 'Apply', class: 'sleek-btn sleek-btn-secondary' %>
+    <% if logged_in? %><div><%= f.label :library, 'Library' %><%= f.select :library, [['All Trove', 'all'], ['My library', 'mine']], selected: @library %></div><% else %><%= f.hidden_field :library, value: 'all' %><% end %>
+    <%= f.submit 'Apply filters', class: 'sleek-btn sleek-btn-secondary' %>
+    <%= link_to 'Reset', metadata_entity_path(@entity, library: @library), class: 'entity-filter-reset' %>
   <% end %>
-  <% @groups.each do |(type, role), credits| %>
-    <section class="media-section"><h2><%= type.underscore.humanize.pluralize %> · <%= role %></h2>
-      <ul class="entity-works"><% credits.each do |credit| %><% next unless credit.item %>
-        <li><%= metadata_work_link(credit.item) %><% if credit.details['character'].present? %><span> as <%= credit.details['character'] %></span><% end %></li>
+  <% @groups.each do |type, credits| %>
+    <section class="entity-work-group"><div class="entity-work-heading"><h2><%= type.underscore.humanize.pluralize %></h2><span><%= credits.map(&:role).uniq.join(' · ') %> · <%= pluralize(credits.map(&:item_id).uniq.size, 'work') %></span></div>
+      <ul class="entity-works"><% credits.group_by(&:item_id).each_value do |work_credits| %><% credit = work_credits.first %><% role = work_credits.map(&:role).uniq.join(' · ') %><% next unless credit.item %>
+        <% item = credit.item %><% artwork = item.is_a?(AlbumTrack) ? item.album : item %>
+        <li class="entity-work-row">
+          <% if artwork.stored_cover_url.present? %><%= image_tag artwork.stored_cover_url, alt: '', class: "entity-work-artwork #{'entity-work-landscape' if item.is_a?(TvEpisode)}", loading: 'lazy', decoding: 'async' %><% else %><span class="entity-work-placeholder" aria-hidden="true">—</span><% end %>
+          <div class="entity-work-title">
+            <% if item.is_a?(ComicIssue) %><span><%= item.comic.title %></span><% elsif item.is_a?(TvEpisode) %><span><%= item.tv_show.title %></span><% end %>
+            <%= entity_work_link(item) %>
+            <% if credit.details['character'].present? %><small>as <%= credit.details['character'] %></small><% end %>
+          </div>
+          <span class="entity-work-role"><%= role %></span><span aria-hidden="true">›</span>
+        </li>
       <% end %></ul>
     </section>
   <% end %>
   <% if @groups.empty? %><div class="home-empty-state"><h2>No matching works</h2><p>Try another role, media type or library.</p></div><% end %>
-  <div class="pagination-wrapper"><%= paginate @credits %></div>
+  <div class="pagination-wrapper"><%= paginate @work_pages %></div>
 </section>

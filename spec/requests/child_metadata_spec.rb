@@ -11,7 +11,7 @@ RSpec.describe 'Issue and episode metadata', type: :request do
     [comic_issue_path(issue), comic_path(comic)].each do |path|
       get path
       expect(response).to have_http_status(:success)
-      expect(response.body).to include('Issue artist', 'An arc', 'Penciler, inker')
+      expect(Nokogiri::HTML(response.body).text.squish).to include('Issue artist', 'An arc', 'Penciler', 'Inker')
     end
   end
 
@@ -24,7 +24,7 @@ RSpec.describe 'Issue and episode metadata', type: :request do
     [tv_episode_path(episode), tv_show_path(show)].each do |path|
       get path
       expect(response).to have_http_status(:success)
-      expect(response.body).to include('Guest actor as The mayor', 'Pilot writer', '44 minutes')
+      expect(Nokogiri::HTML(response.body).text.squish).to include('Guest actor as The mayor', 'Pilot writer', '44 minutes')
     end
   end
 end
