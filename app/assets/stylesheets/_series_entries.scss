@@ -243,6 +243,7 @@
     user-select: none;
     flex-shrink: 0;
     transition: color .15s ease, background-color .15s ease;
+    margin-top: .75rem;
   }
 
   .series-entry-details>summary.series-entry-toggle::-webkit-details-marker {
