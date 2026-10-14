@@ -539,12 +539,35 @@
   list-style: none;
 
   li {
-    padding: .3rem .7rem;
-    border-radius: 5px;
+    padding: 0;
+    margin: 0;
+  }
+
+  .category-pill, .category-pill-static {
+    display: inline-flex;
+    align-items: center;
+    padding: .3rem .75rem;
+    border-radius: 20px;
     background: var(--canvas);
     border: 1px solid var(--border);
     font-size: .8125rem;
     line-height: 1.5;
+    color: var(--text);
+    text-decoration: none;
+    transition: border-color .15s ease, background .15s ease, transform .15s ease, box-shadow .15s ease;
+  }
+
+  a.category-pill:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(var(--rgb-inverse), .08);
+    text-decoration: none;
+  }
+
+  a.category-pill:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 }
 

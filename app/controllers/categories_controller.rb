@@ -8,11 +8,12 @@ class CategoriesController < ApplicationController
 
   def index
     @types = Category::TYPES.keys
-    @top_categories = @types.index_with do |type|
-      Category.list_for(type, limit: 12)
-    end
-    @counts = @types.index_with do |type|
-      Category.list_for(type).size
+    @top_categories = {}
+    @counts = {}
+    @types.each do |type|
+      list = Category.list_for(type)
+      @counts[type] = list.size
+      @top_categories[type] = list.first(12)
     end
   end
 

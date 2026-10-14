@@ -27,7 +27,7 @@
       <div class="series-entry-body">
         <%= render 'shared/child_description', item: item %>
         <% if item.credits.present? || item.metadata_details.present? || item.metadata_credits.any? %>
-          <details class="series-entry-metadata"><summary><%= is_episode ? 'Episode' : 'Issue' %> details</summary><%= render 'shared/child_metadata', item: item %></details>
+          <div class="series-entry-metadata"><%= render 'shared/child_metadata', item: item %></div>
         <% end %>
         <% if child_lib&.rating.present? || child_lib&.review.present? %>
           <div class="series-entry-review">

@@ -49,9 +49,9 @@ RSpec.describe MetadataProvider do
   it 'uses iTunes lookup for books and albums with numeric IDs' do
     [Book, Album].each do |klass|
       item = catalog_item(klass, '42')
-      json_response('https://itunes.apple.com/lookup',
-                    { results: [{ artistName: 'Creator', artworkUrl100: 'https://images.example/100x100bb.jpg' }] },
-                    **(klass == Album ? { id: '42', entity: 'song' } : { id: '42' }))
+      query = klass == Album ? hash_including({ id: '42', entity: 'song' }) : { id: '42' }
+      stub_request(:get, 'https://itunes.apple.com/lookup').with(query: query)
+        .to_return(body: { results: [{ artistName: 'Creator', artworkUrl100: 'https://images.example/100x100bb.jpg' }] }.to_json)
       fields, = described_class.new(item).call
       expect(fields[:thumbnail_url]).to start_with('https://images.example/')
       expect(fields[klass == Book ? :author : :artist]).to eq('Creator')
@@ -61,8 +61,9 @@ RSpec.describe MetadataProvider do
   it 'refreshes namespaced iTunes identifiers returned by catalog search' do
     [Book, Album, Movie].each do |klass|
       item = catalog_item(klass, 'itunes_42')
-      json_response('https://itunes.apple.com/lookup', { results: [{ artistName: 'Creator' }] },
-                    **(klass == Album ? { id: '42', entity: 'song' } : { id: '42' }))
+      query = klass == Album ? hash_including({ id: '42', entity: 'song' }) : { id: '42' }
+      stub_request(:get, 'https://itunes.apple.com/lookup').with(query: query)
+        .to_return(body: { results: [{ artistName: 'Creator' }] }.to_json)
       fields, = described_class.new(item).call
       expect(fields.values).to include('Creator')
     end

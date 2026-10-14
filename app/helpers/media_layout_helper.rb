@@ -52,7 +52,7 @@ module MediaLayoutHelper
       credits = item.metadata_credits.select { |credit| credit.role == role }
       return entity_credit_links(credits) if credits.any?
     end
-    category_type = CATEGORY_ATTRIBUTE_MAP[attribute&.to_sym]
+    category_type = category_type_for(item, attribute)
     return ERB::Util.html_escape(value) unless category_type
 
     names = Category.split_names(value)
@@ -62,6 +62,13 @@ module MediaLayoutHelper
       link_to(name, category_item_path(category_type: category_type, name: name), class: 'media-category-link')
     end
     safe_join(links, ', ')
+  end
+
+  def category_type_for(item, attribute)
+    attr_sym = attribute&.to_sym
+    return 'comic-creators' if item.is_a?(Comic) && %i[writer artist].include?(attr_sym)
+
+    CATEGORY_ATTRIBUTE_MAP[attr_sym]
   end
 
   def media_audience(item)

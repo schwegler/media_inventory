@@ -29,7 +29,7 @@
           <dd>
             <% if value.is_a?(Array) %>
               <ul class="media-description-tags" role="list">
-                <% value.reject(&:blank?).each do |entry| %><li><%= entry %></li><% end %>
+                <% value.reject(&:blank?).each do |entry| %><li><% if key == 'genres' %><%= link_to entry, category_item_path(category_type: 'genres', name: entry), class: 'category-pill' %><% else %><span class="category-pill-static"><%= entry %></span><% end %></li><% end %>
               </ul>
             <% else %>
               <%= key == 'controller_support' ? value.to_s.humanize : value %>
