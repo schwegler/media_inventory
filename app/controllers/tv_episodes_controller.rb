@@ -11,7 +11,7 @@ class TvEpisodesController < ApplicationController
     @library_item = LibraryItem.find_by(user: current_user, item: @tv_episode)
   end
 
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
   def toggle_watched
     @tv_episode = TvEpisode.find(params[:id])
 
@@ -49,7 +49,6 @@ class TvEpisodesController < ApplicationController
       end
     end
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   private
 

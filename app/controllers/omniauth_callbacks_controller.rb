@@ -38,7 +38,7 @@ class OmniAuthCallbacksController < ApplicationController
     redirect_to root_path, notice: 'Successfully connected to Mastodon!'
   end
 
-  # rubocop:disable Metrics/AbcSize
+  # rubocop:disable-next Metrics/AbcSize
   def atproto
     auth = request.env['omniauth.auth']
 
@@ -62,7 +62,6 @@ class OmniAuthCallbacksController < ApplicationController
     session[:user_id] = user.id unless current_user
     redirect_to root_path, notice: 'Successfully connected to Bluesky!'
   end
-  # rubocop:enable Metrics/AbcSize
 
   def failure
     redirect_to root_path, alert: "Authentication failed: #{params[:message]}"
@@ -70,7 +69,7 @@ class OmniAuthCallbacksController < ApplicationController
 
   private
 
-  # rubocop:disable Metrics/AbcSize
+  # rubocop:disable-next Metrics/AbcSize
   def setup_mastodon(req)
     server = req.params['mastodon_server'] || request.params['mastodon_server'] || session[:mastodon_server]
     if server.blank?
@@ -96,7 +95,6 @@ class OmniAuthCallbacksController < ApplicationController
     request.env['omniauth.strategy'].options.scope = 'read write'
     render plain: 'Setup complete', status: 404
   end
-  # rubocop:enable Metrics/AbcSize
 
   def setup_atproto(req)
     handle = req.params['bsky_handle'] || req.params['handle']

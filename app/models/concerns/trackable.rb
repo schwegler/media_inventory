@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# rubocop:disable Metrics/ModuleLength
+# rubocop:disable-next Metrics/ModuleLength
 module Trackable
   extend ActiveSupport::Concern
 
@@ -12,7 +12,7 @@ module Trackable
 
   private
 
-  # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+  # rubocop:disable-next Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
   def log_activities # rubocop:disable Metrics/MethodLength
     return unless respond_to?(:user) && user.present?
 
@@ -65,7 +65,6 @@ module Trackable
       create_activity('reviewed') if review_became_present || rating_became_present || review_became_public
     end
   end
-  # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 
   def create_activity(activity_type)
     activities.create!(
@@ -133,4 +132,3 @@ module Trackable
     change.nil? || change[0].blank?
   end
 end
-# rubocop:enable Metrics/ModuleLength

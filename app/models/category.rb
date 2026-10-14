@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class Category
   TYPES = {
     'genres' => {
@@ -263,4 +263,3 @@ class Category
     end
   end
 end
-# rubocop:enable Metrics/ClassLength

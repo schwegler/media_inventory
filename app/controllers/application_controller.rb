@@ -43,7 +43,7 @@ class ApplicationController < ActionController::Base
     redirect_to login_url
   end
 
-  # rubocop:disable Metrics/PerceivedComplexity
+  # rubocop:disable-next Metrics/PerceivedComplexity
   def can_access?(resource)
     return false if resource.nil?
 
@@ -69,5 +69,4 @@ class ApplicationController < ActionController::Base
 
     false
   end
-  # rubocop:enable Metrics/PerceivedComplexity
 end

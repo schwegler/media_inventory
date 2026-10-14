@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# rubocop:disable Metrics/ModuleLength
+# rubocop:disable-next Metrics/ModuleLength
 module ActivitiesHelper
   def activity_link_description(activity)
     user_link = link_to(activity.user.name, activity.user, class: 'activity-user-link')
@@ -118,4 +118,3 @@ module ActivitiesHelper
     end
   end
 end
-# rubocop:enable Metrics/ModuleLength

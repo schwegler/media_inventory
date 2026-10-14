@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class User < ApplicationRecord
   has_many :favorite_shelves, dependent: :destroy
   has_many :game_library_views, dependent: :destroy
@@ -136,4 +136,3 @@ class User < ApplicationRecord
     self.public_key = key.public_key.to_pem
   end
 end
-# rubocop:enable Metrics/ClassLength

@@ -19,7 +19,7 @@ class GameLibraryQuery
     return {} unless values.is_a?(Hash)
 
     values.stringify_keys.slice(*FILTERS).transform_values { |value| value.is_a?(String) ? value.first(200) : '' }
-                                         .compact_blank
+          .compact_blank
   end
 
   def initialize(filters, user: nil)

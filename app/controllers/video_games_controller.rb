@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class VideoGamesController < InventoryController
   before_action :logged_in_user, only: %i[new create edit update destroy sync_steam]
 
@@ -131,4 +131,3 @@ class VideoGamesController < InventoryController
     )
   end
 end
-# rubocop:enable Metrics/ClassLength

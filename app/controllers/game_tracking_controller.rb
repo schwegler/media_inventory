@@ -2,7 +2,7 @@
 
 # All personal tracking is scoped through the signed-in user's library. It is
 # never rendered on public catalog pages or included in the activity feed.
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class GameTrackingController < ApplicationController
   before_action :logged_in_user
   before_action :load_library
@@ -140,4 +140,3 @@ class GameTrackingController < ApplicationController
     end
   end
 end
-# rubocop:enable Metrics/ClassLength

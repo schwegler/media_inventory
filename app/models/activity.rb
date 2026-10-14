@@ -17,7 +17,7 @@ class Activity < ApplicationRecord
     end
   end
 
-  # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/MethodLength, Metrics/PerceivedComplexity
+  # rubocop:disable-next Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/MethodLength, Metrics/PerceivedComplexity
   def description
     user_name = user&.name || 'Someone'
     media_item = trackable.is_a?(LibraryItem) ? trackable.item : trackable
@@ -104,5 +104,4 @@ class Activity < ApplicationRecord
       end
     end
   end
-  # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/MethodLength, Metrics/PerceivedComplexity
 end

@@ -31,7 +31,7 @@ RSpec.describe 'Global shell brand and navigation', type: :request do
     get root_path
     page = Nokogiri::HTML(response.body)
     nav_links = page.css('.workspace-primary-nav a').map { |a| [a.text.strip, a['href']] }
-    
+
     expect(nav_links).to include(['Movies', movies_path])
     expect(nav_links).to include(['Albums', albums_path])
     expect(nav_links).to include(['Comics', comics_path])

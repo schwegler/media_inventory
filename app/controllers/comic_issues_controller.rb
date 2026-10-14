@@ -11,7 +11,7 @@ class ComicIssuesController < ApplicationController
     @library_item = LibraryItem.find_by(user: current_user, item: @comic_issue)
   end
 
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
   def toggle_read
     @comic_issue = ComicIssue.find(params[:id])
 
@@ -46,7 +46,6 @@ class ComicIssuesController < ApplicationController
       end
     end
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   private
 

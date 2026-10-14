@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class GameCopy < ApplicationRecord
   PLATFORMS = [
     'Windows PC',
@@ -138,4 +138,3 @@ class GameCopy < ApplicationRecord
     errors.add(:library_item, 'must be a video game') unless library_item&.item_type == 'VideoGame'
   end
 end
-# rubocop:enable Metrics/ClassLength

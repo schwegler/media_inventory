@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class InventoryController < ApplicationController
   CATALOG_PAGE_SIZE = 24
   # Centralize authentication filter for all mutating inventory actions
@@ -269,4 +269,3 @@ class InventoryController < ApplicationController
     raise NotImplementedError
   end
 end
-# rubocop:enable Metrics/ClassLength

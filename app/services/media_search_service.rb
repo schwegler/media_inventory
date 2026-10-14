@@ -3,7 +3,7 @@
 require 'net/http'
 require 'json'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class MediaSearchService
   REQUEST_LOCK = Mutex.new
   def self.call(query, type, &)
@@ -512,4 +512,3 @@ class MediaSearchService
     []
   end
 end
-# rubocop:enable Metrics/ClassLength
