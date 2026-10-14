@@ -29,4 +29,35 @@ RSpec.describe 'Find This Title Links Alignment', type: :request do
       expect(link['rel']).to include('noopener')
     end
   end
+
+  [
+    [Album, 'https://music.apple.com/us/album/123', 'View on Apple Music', 'disc'],
+    [Book, 'https://itunes.apple.com/us/book/123', 'View on Apple Books', 'book'],
+    [Movie, 'https://tv.apple.com/us/movie/123', 'View on Apple TV', 'film'],
+    [Book, 'https://openlibrary.org/books/OL123M', 'Borrow on Open Library', 'book'],
+    [TvShow, 'https://www.tvmaze.com/shows/123', 'View on TVmaze', 'tv'],
+    [VideoGame, 'https://store.steampowered.com/app/123', 'View on Steam', 'gamepad']
+  ].each do |model, url, label, icon|
+    it "renders the #{label} destination with its matching icon" do
+      item = model.create!(title: 'Source destination', external_url: url)
+
+      get polymorphic_path(item)
+
+      expect(response).to have_http_status(:ok)
+      link = Nokogiri::HTML(response.body).at_css('.btn-stream-source')
+      expect(link['href']).to eq(url)
+      expect(link.text.strip).to eq(label)
+      expect(link.at_css(".ui-icon--#{icon}")).to be_present
+    end
+  end
+
+  it 'identifies a source by its host instead of unrelated text in its query string' do
+    item = Book.create!(title: 'Unrecognized source', external_url: 'https://example.com/?ref=music.apple.com')
+
+    get book_path(item)
+
+    link = Nokogiri::HTML(response.body).at_css('.btn-stream-source')
+    expect(link.text.strip).to eq('View Official Source')
+    expect(link.at_css('.ui-icon--globe')).to be_present
+  end
 end

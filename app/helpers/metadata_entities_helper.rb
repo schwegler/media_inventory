@@ -49,4 +49,35 @@ module MetadataEntitiesHelper
   def metadata_search_context(item)
     @match_context&.dig(item.class.name, item.id)
   end
+
+  def child_credit_groups(item)
+    linked = item.metadata_credits.to_a
+    return linked_child_credit_groups(linked) if linked.any?
+
+    raw = item.respond_to?(:credits) ? Array(item.credits) : []
+    raw = raw.select { |credit| credit.is_a?(Hash) && credit['name'].present? }
+    entities = MetadataCreditEntityLookup.call(raw)
+    raw.group_by { |credit| credit['role'].to_s.humanize.presence || 'Contributor' }.transform_values do |credits|
+      safe_join(credits.map do |credit|
+        child_credit_label(credit['name'], entities[credit], credit['character'])
+      end.uniq, ', ')
+    end
+  end
+
+  def linked_child_credit_groups(linked)
+    linked.group_by(&:role).transform_values do |credits|
+      safe_join(credits.map do |credit|
+        child_credit_label(credit.metadata_entity.name, credit.metadata_entity, credit.details['character'])
+      end.uniq, ', ')
+    end
+  end
+
+  def child_credit_label(name, entity, character)
+    label = if entity
+              link_to(name, metadata_entity_path(entity), data: { turbo_frame: '_top' })
+            else
+              ERB::Util.html_escape(name)
+            end
+    character.present? ? safe_join([label, " as #{character}"]) : label
+  end
 end

@@ -34,22 +34,24 @@ RSpec.describe 'TV Episodes Management', type: :system do
     visit tv_episode_path(episode)
     expect(page).to have_text('Season 1, episode 1 of Breaking Bad')
 
-    find('.library-disclosure summary').click
-    within '.quick-review-form' do
-      fill_in 'tv_episode[review]', with: 'Great start.'
-      select '★★★★★', from: 'tv_episode[rating]'
-      click_button 'Save Episode Status'
+    click_link 'Write review'
+    within '.review-drawer-form' do
+      fill_in 'Your review (optional)', with: 'Great start.'
+      select '5.0 ★', from: 'Rating'
+      click_button 'Save review'
     end
 
-    expect(page).to have_text('✓ Watched')
+    expect(page).to have_text('Review updated.')
     expect(page).to have_text('Great start.')
+    click_button 'Mark watched'
+    expect(page).to have_text('✓ Watched')
 
-    click_button 'Mark Unwatched'
+    click_button 'Mark unwatched'
     expect(page).to have_text('Not Watched')
   end
 
   it 'prompts guest users to log in' do
     visit tv_episode_path(episode)
-    expect(page).to have_text('Log in to log your progress')
+    expect(page).to have_text('Log in to track your progress.')
   end
 end

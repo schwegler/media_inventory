@@ -46,6 +46,25 @@ jobs:
       # Add or replace test runners here
       - name: Run tests
         run: bin/rake
+      - name: Install browser and matching driver
+        id: chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+          install-chromedriver: true
+          install-dependencies: true
+      - name: Run metadata and series browser regressions
+        env:
+          RUN_BROWSER_SPECS: '1'
+          SE_CHROME_PATH: ${{ steps.chrome.outputs['chrome-path'] }}
+          SE_CHROMEDRIVER: ${{ steps.chrome.outputs['chromedriver-path'] }}
+          SE_AVOID_STATS: 'true'
+        run: >-
+          bundle exec rspec
+          spec/system/metadata_entities_system_spec.rb
+          spec/system/metadata_detail_layout_system_spec.rb
+          spec/system/tv_episodes_system_spec.rb
+          spec/system/tv_shows_system_spec.rb
 
   lint:
     runs-on: ubuntu-latest

@@ -557,6 +557,13 @@
     transition: border-color .15s ease, background .15s ease, transform .15s ease, box-shadow .15s ease;
   }
 
+  a.category-pill {
+    min-height: 44px;
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-subtle);
+  }
+
   a.category-pill:hover {
     border-color: var(--accent);
     color: var(--accent);
@@ -569,6 +576,11 @@
     outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .media-description-tags a.category-pill { transition: none; }
+  .media-description-tags a.category-pill:hover { transform: none; }
 }
 
 .media-description-disclosure {

@@ -67,6 +67,20 @@ RSpec.describe Category, type: :model do
     end
   end
 
+  describe 'legacy comic creator counts' do
+    it 'counts each comic once across writer and artist roles, ignoring repeated casing' do
+      first = Comic.create!(title: 'One creator', writer: 'Alex Ross', artist: 'alex ross, Alex Ross, Other Artist')
+      second = Comic.create!(title: 'Another work', artist: 'Alex Ross')
+      [first, second].each { |comic| comic.metadata_credits.delete_all }
+
+      creators = Category.list_for('comic-creators')
+      count = creators.find { |creator| creator.name == 'Alex Ross' }.count
+      expect(count).to eq(2)
+      expect(count).to eq(Category.items_for('comic-creators', 'Alex Ross').size)
+      expect(creators.find { |creator| creator.name == 'Other Artist' }.count).to eq(1)
+    end
+  end
+
   describe '.items_for' do
     let!(:matrix) do
       Movie.create!(title: 'The Matrix', release_year: 1999, director: 'Lana Wachowski',

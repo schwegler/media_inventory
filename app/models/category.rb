@@ -148,31 +148,18 @@ class Category
     nil
   end
 
-  def self.count_model_attributes(model, attributes, counts, casing)
-    valid_attrs = Array(attributes).map { |attr| target_attribute(model, attr) }.compact.uniq
-    return if valid_attrs.empty?
+  def self.count_model_attributes(model, attribute, counts, casing)
+    attributes = Array(attribute).filter_map { |attr| target_attribute(model, attr) }.uniq
+    return if attributes.empty?
 
-    credited_ids = MetadataCredit.where(item_type: model.name).select(:item_id)
-    scope = model.where.not(id: credited_ids)
-
-    if valid_attrs.size == 1
-      attr_name = valid_attrs.first
-      scope.where.not(attr_name => [nil, '']).pluck(attr_name).each do |raw|
-        split_names(raw).each do |name|
-          key = name.downcase
-          casing[key] ||= name
-          counts[key] += 1
-        end
-      end
-    else
-      scope.pluck(*valid_attrs).each do |row|
-        row.compact.each do |raw|
-          split_names(raw).each do |name|
-            key = name.downcase
-            casing[key] ||= name
-            counts[key] += 1
-          end
-        end
+    model.where.not(id: MetadataCredit.where(item_type: model.name).select(:item_id))
+         .where.not(attributes.index_with { [nil, ''] })
+         .pluck(*attributes).each do |values|
+      names = Array(values).flat_map { |raw| split_names(raw) }.uniq(&:downcase)
+      names.each do |name|
+        key = name.downcase
+        casing[key] ||= name
+        counts[key] += 1
       end
     end
   end

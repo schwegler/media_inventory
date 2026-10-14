@@ -8,7 +8,7 @@
 <% has_track = logged_in? && series_lib.present? %>
 <%= turbo_frame_tag "#{model_key}_#{item.id}", data: { child_collection_target: "entry", search: search_text, completed: completed.to_s } do %>
   <article class="series-entry <%= 'series-entry-issue' unless is_episode %>">
-    <div class="series-entry-row <%= 'has-track-action' if has_track %>">
+    <div class="series-entry-row">
       <% if item.stored_cover_url.present? %>
         <img src="<%= item.stored_cover_url %>" alt="" class="series-entry-artwork" loading="lazy" decoding="async">
       <% end %>
@@ -25,7 +25,7 @@
     </div>
     <details class="series-entry-details">
       <summary class="series-entry-toggle" aria-label="Details for <%= title %>">
-        Details <span class="series-entry-toggle-icon" aria-hidden="true">⌄</span>
+        Details <span class="series-entry-toggle-icon" aria-hidden="true"><%= ui_icon('chevron-down') %></span>
       </summary>
       <div class="series-entry-body">
         <%= render 'shared/child_description', item: item %>
