@@ -1,0 +1,11 @@
+<% credits = item.metadata_credits.sort_by { |credit| [credit.position, credit.id] } %>
+<% if credits.any? %>
+  <section class="media-description entity-credits" aria-label="Linked credits">
+    <h2>People &amp; Metadata</h2>
+    <dl class="media-description-facts">
+      <% credits.group_by(&:role).each do |role, entries| %>
+        <div class="media-description-row"><dt><%= role %></dt><dd><%= entity_credit_links(entries) %></dd></div>
+      <% end %>
+    </dl>
+  </section>
+<% end %>

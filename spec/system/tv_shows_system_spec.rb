@@ -36,7 +36,7 @@ RSpec.describe 'TV Shows and Episodes Management', type: :system do
     click_button 'Create TV Show'
 
     expect(page).to have_text('Breaking Bad')
-    expect(page).to have_text('on AMC')
+    expect(page).to have_link('AMC')
     expect(page).to have_text('Simply amazing.')
 
     # Pre-create an episode so it displays on the show page
@@ -50,7 +50,8 @@ RSpec.describe 'TV Shows and Episodes Management', type: :system do
 
     # Reload show page to see the episode
     visit tv_show_path(tv_show)
-    expect(page).to have_text('Ep 1: Pilot')
+    expect(page).to have_link('1. Pilot')
+    find('.child-entry-summary').click
     expect(page).to have_text('Walter White begins his chemistry journey.')
 
     # Mark episode as watched
@@ -60,18 +61,23 @@ RSpec.describe 'TV Shows and Episodes Management', type: :system do
       click_button 'Watch'
     end
 
+    find('.child-entry-summary').click
     expect(page).to have_text('Great introduction episode!')
 
     # Toggle watch back (Unwatch)
-    click_button 'X'
+    click_button 'Undo'
 
-    # Edit TV Show via inline form
-    select '★★★★', from: 'tv_show[rating]'
+    # Edit the catalog and personal entry through the current edit surface.
+    visit edit_tv_show_path(TvShow.find_by!(title: 'Breaking Bad'))
+    select '4.0 ★', from: 'tv_show[rating]'
     fill_in 'tv_show[review]', with: 'Overrated but still good.'
-    click_button 'Save Review & Watching Status'
+    click_button 'Save changes'
 
     expect(page).to have_text('Tv show was successfully updated.')
+    visit tv_show_path(TvShow.last)
     expect(page).to have_text('Overrated but still good.')
+
+    find('.library-management summary').click
 
     # Delete TV Show
     if Capybara.current_driver == :rack_test

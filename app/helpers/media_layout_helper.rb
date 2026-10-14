@@ -26,7 +26,12 @@ module MediaLayoutHelper
     writer: 'writers',
     actors: 'actors',
     platform: 'platforms',
-    genre: 'genres'
+    genre: 'genres',
+    artist: 'artists',
+    author: 'authors',
+    publisher: 'publishers',
+    developer: 'developers',
+    network: 'networks'
   }.freeze
 
   def media_catalog(item_or_class)
@@ -41,7 +46,12 @@ module MediaLayoutHelper
     end
   end
 
-  def render_media_metadata_value(_item, attribute, value)
+  def render_media_metadata_value(item, attribute, value)
+    if %i[artist author publisher developer network].include?(attribute&.to_sym)
+      role = MetadataEntitySync::FIELDS.fetch(item.class.name, {})[attribute.to_sym]
+      credits = item.metadata_credits.select { |credit| credit.role == role }
+      return entity_credit_links(credits) if credits.any?
+    end
     category_type = CATEGORY_ATTRIBUTE_MAP[attribute&.to_sym]
     return ERB::Util.html_escape(value) unless category_type
 

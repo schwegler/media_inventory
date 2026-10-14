@@ -28,7 +28,12 @@
 
 <% if @query.present? %>
   <div class="search-results-container">
-    <% has_results = false %>
+    <% has_results = @entities.present? %>
+    <% if @entities.present? %>
+      <section class="collection-section"><h2>People &amp; Metadata</h2><div class="entity-grid">
+        <% @entities.each do |entity| %><%= link_to entity, class: 'entity-tile' do %><span><strong><%= entity.name %></strong><small><%= entity.kind.titleize %></small></span><% end %><% end %>
+      </div></section>
+    <% end %>
 
     <% @results.each do |category, items| %>
       <% next if items.empty? %>

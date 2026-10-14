@@ -33,7 +33,19 @@ class Category
       attribute: :writer,
       models: -> { [Movie, TvShow, Comic] }
     }
-  }.freeze
+  }.merge({
+            'artists' => { title: 'Music Artists', singular: 'Artist', attribute: :artist, models: -> { [Album] } },
+            'comic-creators' => { title: 'Comic Creators', singular: 'Creator', attribute: :writer, models: lambda {
+              [Comic]
+            } },
+            'authors' => { title: 'Authors', singular: 'Author', attribute: :author, models: -> { [Book] } },
+            'publishers' => { title: 'Publishers', singular: 'Publisher', attribute: :publisher,
+                              models: -> { [Book, Comic, VideoGame] } },
+            'developers' => { title: 'Developers', singular: 'Developer', attribute: :developer, models: lambda {
+              [VideoGame]
+            } },
+            'networks' => { title: 'Networks', singular: 'Network', attribute: :network, models: -> { [TvShow] } }
+          }).freeze
 
   attr_reader :name, :type, :count
 
@@ -69,10 +81,44 @@ class Category
     config = config_for(type)
     return [] unless config
 
-    categories = aggregate_categories(config[:models].call, config[:attribute], type)
+    categories = entity_categories(type)
+    legacy = aggregate_categories(config[:models].call, config[:attribute], type)
+    categories = combine_counts(categories, legacy)
     categories = filter_by_query(categories, query) if query.present?
     sorted = sort_categories(categories, sort)
     limit ? sorted.first(limit.to_i) : sorted
+  end
+
+  ENTITY_ROLES = {
+    'actors' => ['Actor', 'Guest star'], 'directors' => ['Director'], 'writers' => %w[Writer Screenwriter],
+    'artists' => ['Album artist', 'Track artist', 'Featured artist', 'Performer', 'Composer', 'Producer'],
+    'authors' => %w[Author Illustrator Translator Narrator], 'publishers' => ['Publisher'],
+    'developers' => ['Developer'], 'networks' => ['Network'], 'platforms' => ['Platform'], 'genres' => ['Genre']
+  }.freeze
+
+  def self.entity_credits(type)
+    credits = MetadataCredit.all
+    if type == 'comic-creators'
+      return credits.where(item_type: %w[Comic ComicIssue]).joins(:metadata_entity)
+                    .where(metadata_entities: { kind: %w[person artist] })
+    end
+
+    credits = credits.where(role: ENTITY_ROLES.fetch(type, []))
+    credits = credits.where(item_type: %w[Album AlbumTrack]) if type == 'artists'
+    credits
+  end
+
+  def self.entity_categories(type)
+    works = entity_credits(type).select(:metadata_entity_id, :item_type, :item_id).distinct
+    counts = MetadataCredit.from("(#{works.to_sql}) counted_works").group(:metadata_entity_id).count
+    MetadataEntity.where(id: counts.keys).map { |entity| new(name: entity.name, type: type, count: counts[entity.id]) }
+  end
+
+  def self.combine_counts(categories, legacy)
+    (categories + legacy).group_by { |category| category.name.downcase }.map do |_key, entries|
+      first = entries.first
+      new(name: first.name, type: first.type, count: entries.sum(&:count))
+    end
   end
 
   def self.aggregate_categories(models, attribute, type)
@@ -85,7 +131,8 @@ class Category
   def self.count_model_attributes(model, attribute, counts, casing)
     return unless model.column_names.include?(attribute.to_s)
 
-    model.where.not(attribute => [nil, '']).pluck(attribute).each do |raw|
+    model.where.not(id: MetadataCredit.where(item_type: model.name).select(:item_id))
+         .where.not(attribute => [nil, '']).pluck(attribute).each do |raw|
       split_names(raw).each do |name|
         key = name.downcase
         casing[key] ||= name
@@ -111,21 +158,36 @@ class Category
     config = config_for(type)
     return [] unless config && name.present?
 
-    attribute = config[:attribute]
-    matched = config[:models].call.flat_map do |model|
+    credits = entity_credits(type).joins(:metadata_entity)
+                                  .where(metadata_entities: { normalized_name: MetadataEntity.normalize(name) })
+    matched = credits.pluck(:item_type, :item_id).uniq.group_by(&:first).flat_map do |kind, entries|
+      model = kind.constantize
       next [] if media_type.present? && !media_type_matches?(model, media_type)
-      next [] unless model.column_names.include?(attribute.to_s)
 
-      fetch_model_items(model, attribute, name)
+      entity_items(model, entries.map(&:last))
     end
 
-    sort_items(matched, sort)
+    matched += config[:models].call.flat_map do |model|
+      next [] if media_type.present? && !media_type_matches?(model, media_type)
+
+      fetch_model_items(model, config[:attribute], name)
+    end
+    sort_items(matched.uniq, sort)
+  end
+
+  def self.entity_items(model, ids)
+    scope = model.where(id: ids)
+    scope = scope.with_attached_cover_image if scope.respond_to?(:with_attached_cover_image)
+    scope = scope.includes(:library_items) if model.reflect_on_association(:library_items)
+    scope = scope.includes(:comic) if model == ComicIssue
+    scope = scope.includes(:tv_show) if model == TvEpisode
+    scope.to_a
   end
 
   def self.fetch_model_items(model, attribute, name)
     search_name = name.to_s.strip.downcase
     sanitized = model.sanitize_sql_like(search_name, '!')
-    scope = model.all
+    scope = model.where.not(id: MetadataCredit.where(item_type: model.name).select(:item_id))
     scope = scope.with_attached_cover_image if scope.respond_to?(:with_attached_cover_image)
 
     scope.where(like_clause(attribute), exact: search_name, starts: "#{sanitized},%",
@@ -145,10 +207,11 @@ class Category
   def self.media_type_matches?(model, media_type)
     case media_type.to_s
     when 'movies', 'movie' then model == Movie
-    when 'tv_shows', 'tv_show', 'tv' then model == TvShow
-    when 'albums', 'album' then model == Album
-    when 'comics', 'comic' then model == Comic
+    when 'tv_shows', 'tv_show', 'tv' then [TvShow, TvEpisode].include?(model)
+    when 'albums', 'album' then [Album, AlbumTrack].include?(model)
+    when 'comics', 'comic' then [Comic, ComicIssue].include?(model)
     when 'video_games', 'video_game' then model == VideoGame
+    when 'books', 'book' then model == Book
     else true
     end
   end

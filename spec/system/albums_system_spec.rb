@@ -41,13 +41,17 @@ RSpec.describe 'Albums Management', type: :system do
     expect(page).to have_text('The Beatles')
     expect(page).to have_text('A classic masterpiece.')
 
-    # Edit Album via inline form on the show page
-    select '★★★★', from: 'album[rating]'
+    # Edit the catalog and personal entry through the current edit surface.
+    visit edit_album_path(Album.find_by!(title: 'Abbey Road'))
+    select '4.0 ★', from: 'album[rating]'
     fill_in 'album[review]', with: 'Classic Rock masterpiece!'
-    click_button 'Save Review & Listening Status'
+    click_button 'Save changes'
 
     expect(page).to have_text('Album was successfully updated.')
+    visit album_path(Album.last)
     expect(page).to have_text('Classic Rock masterpiece!')
+
+    find('.library-management summary').click
 
     # Delete Album
     if Capybara.current_driver == :rack_test

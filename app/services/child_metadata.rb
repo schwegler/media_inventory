@@ -3,10 +3,9 @@
 # Normalize only provider-owned fields; personal tracking lives outside this data.
 class ChildMetadata
   def self.comic(row)
-    credits = Array(row['person_credits']).filter_map do |person|
-      next if person['name'].blank?
-
-      { 'name' => person['name'], 'role' => person['role'].presence || 'Contributor' }
+    credits = ProviderEntityMetadata.comic(row['person_credits'])
+    credits += Array(row['story_arc_credits']).filter_map do |arc|
+      ProviderEntityMetadata.credit(arc, 'Story arc', 'ComicVine', kind: 'collection')
     end
     details = { 'Store date' => row['store_date'], 'Characters' => names(row['character_credits']),
                 'Story arcs' => names(row['story_arc_credits']), 'Teams' => names(row['team_credits']),
@@ -28,7 +27,9 @@ class ChildMetadata
       name = tmdb ? person['name'] : person.dig('person', 'name')
       next if name.blank?
 
-      guest_credit(name, tmdb ? person['character'] : person.dig('character', 'name'))
+      row = tmdb ? person : person.fetch('person', {})
+      ProviderEntityMetadata.credit(row.merge('character' => tmdb ? person['character'] : person.dig('character', 'name')),
+                                    'Guest star', tmdb ? 'TMDB' : 'TVMaze')
     end
   end
 
@@ -37,7 +38,9 @@ class ChildMetadata
       name = tmdb ? person['name'] : person.dig('person', 'name')
       next if name.blank?
 
-      { 'name' => name, 'role' => (tmdb ? person['job'] : person['type']).presence || 'Crew' }
+      ProviderEntityMetadata.credit(tmdb ? person : person.fetch('person', {}),
+                                    (tmdb ? person['job'] : person['type']).presence || 'Crew',
+                                    tmdb ? 'TMDB' : 'TVMaze')
     end
   end
 

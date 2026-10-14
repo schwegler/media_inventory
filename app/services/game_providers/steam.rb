@@ -23,10 +23,11 @@ module GameProviders
       raise Unavailable unless result.is_a?(Hash) && result['success'] && result['data'].is_a?(Hash)
 
       data = result['data']
-      { developer: Array(data['developers']).join(', ').presence, publisher: Array(data['publishers']).join(', ').presence,
+      { metadata_credits_data: EntityMetadata.call(data, name),
+        developer: Array(data['developers']).join(', ').presence, publisher: Array(data['publishers']).join(', ').presence,
         platform: platforms(data['platforms']), release_year: data.dig('release_date', 'date').to_s[/\b(?:19|20)\d{2}\b/],
         thumbnail_url: data['header_image'].presence || data['capsule_image'].presence,
-        game_type: data['type'] == 'music' ? 'soundtrack' : data['type'],
+        game_type: game_type(data),
         synopsis: ActionController::Base.helpers.strip_tags(data['short_description'].to_s).presence,
         metadata_details: metadata_details(data) }
     end
@@ -54,6 +55,10 @@ module GameProviders
     end
 
     private
+
+    def game_type(data)
+      data['type'] == 'music' ? 'soundtrack' : data['type']
+    end
 
     def metadata_details(data)
       {

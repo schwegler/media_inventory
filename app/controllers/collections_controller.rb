@@ -39,9 +39,8 @@ class CollectionsController < ApplicationController
                  .order(created_at: :desc).page(params["#{table_name}_page"]).per(24)
     return scope if @query.blank?
 
-    # Join corresponding media table for database-level title search filtering
-    join_clause = sanitize_join_sql(table_name)
-    scope.joins(join_clause).where(Arel::Table.new(table_name)[:title].matches("%#{@query}%"))
+    matches = MetadataSearch.call(item_type.constantize.all, @query, rank: false)
+    scope.where(item_id: matches.select(:id))
   end
 
   def sanitize_join_sql(table_name)

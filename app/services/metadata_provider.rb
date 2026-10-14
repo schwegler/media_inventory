@@ -26,9 +26,9 @@ class MetadataProvider
 
     case @item
     when TvShow then @id.start_with?('itunes_') ? itunes(:network) : television
-    when Comic then comic
+    when Comic then @id.start_with?('openlibrary_') ? openlibrary : comic
     when Movie then movie
-    when Book then book
+    when Book then @id.start_with?('openlibrary_') ? openlibrary : book
     when Album then album
     when VideoGame then game
     else raise Unsupported
@@ -83,9 +83,15 @@ class MetadataProvider
     data = json("https://api.tvmaze.com/shows/#{id}")
     data = {} unless data.is_a?(Hash)
     directors, writers, cast = tvmaze_credits(data['_embedded'])
-    directors, writers, cast = fetch_tvmaze_embedded_credits(id) if directors.blank? && writers.blank? && cast.blank?
+    if directors.blank? && writers.blank? && cast.blank?
+      embedded = optional_details { [json("https://api.tvmaze.com/shows/#{id}?embed[]=cast&embed[]=crew")] }.first
+      data = data.merge('_embedded' => embedded['_embedded']) if embedded.is_a?(Hash)
+      directors, writers, cast = tvmaze_credits(data['_embedded'])
+    end
 
-    fields = { network: data.dig('network', 'name') || data.dig('webChannel', 'name'),
+    fields = { metadata_credits_data: ProviderEntityMetadata.tvmaze(data),
+               metadata_details: data.slice('language', 'status', 'type'),
+               network: data.dig('network', 'name') || data.dig('webChannel', 'name'),
                thumbnail_url: data.dig('image', 'original') || data.dig('image', 'medium'),
                director: directors,
                writer: writers,
@@ -125,7 +131,9 @@ class MetadataProvider
     rows = children { tmdb_tv_episodes(id, token, data['seasons']) }
     directors, writers, actors = tmdb_tv_credits(data)
 
-    fields = { network: data.dig('networks', 0, 'name'),
+    fields = { metadata_credits_data: ProviderEntityMetadata.tmdb(data),
+               metadata_details: tmdb_details(data),
+               network: data.dig('networks', 0, 'name'),
                thumbnail_url: data['poster_path'].present? ? "https://image.tmdb.org/t/p/w500#{data['poster_path']}" : nil,
                director: directors,
                writer: writers,
@@ -188,17 +196,10 @@ class MetadataProvider
     volume = data['results']
     rows = children { comic_pages(id, token) }
     credits = volume['person_credits'] || []
-    first_issue = volume.dig('first_issue', 'id')
-    if first_issue.to_s.match?(/\A\d+\z/)
-      detail = optional_details do
-        issue = json("https://comicvine.gamespot.com/api/issue/4000-#{first_issue}/", api_key: token, format: 'json')
-        raise Unavailable unless issue['status_code'] == 1 && issue['results'].is_a?(Hash)
-
-        [issue['results']]
-      end
-      credits += Array(detail.first&.fetch('person_credits', nil))
-    end
-    [{ publisher: volume.dig('publisher', 'name'), writer: comic_creators(credits, %w[writer]),
+    organizations = [ProviderEntityMetadata.credit(volume['publisher'] || {}, 'Publisher', 'ComicVine',
+                                                   kind: 'organization')].compact
+    [{ metadata_credits_data: ProviderEntityMetadata.comic(credits) + organizations,
+       publisher: volume.dig('publisher', 'name'), writer: comic_creators(credits, %w[writer]),
        artist: comic_creators(credits, %w[artist penciler inker colorist]),
        thumbnail_url: volume.dig('image', 'original_url'), external_url: volume['site_detail_url'] }, rows]
   end
@@ -252,7 +253,9 @@ class MetadataProvider
     actors = names(cast.slice(0, 10))
     genres = names(Array(data['genres']))
 
-    [{ director: directors,
+    [{ metadata_credits_data: ProviderEntityMetadata.tmdb(data),
+       metadata_details: tmdb_details(data),
+       director: directors,
        writer: writers,
        actors: actors,
        genre: genres,
@@ -266,12 +269,14 @@ class MetadataProvider
     data = json('https://itunes.apple.com/lookup', id: numeric_id('itunes_')).fetch('results').first
     raise Unavailable unless data.is_a?(Hash)
 
-    [{ author: data['artistName'], publisher: data['sellerName'], release_year: year(data['releaseDate']),
+    [{ metadata_credits_data: itunes_credits(data, :author),
+       metadata_details: data.slice('language', 'description'),
+       author: data['artistName'], publisher: data['sellerName'], release_year: year(data['releaseDate']),
        thumbnail_url: data['artworkUrl100']&.sub('100x100bb', '400x400bb') }, []]
   end
 
   def album
-    return itunes(:artist) if @id.match?(/\A\d+\z/) || @id.start_with?('itunes_')
+    return itunes_album if @id.match?(/\A\d+\z/) || @id.start_with?('itunes_')
 
     @provider = 'MusicBrainz'
     active!('MusicBrainz')
@@ -279,10 +284,104 @@ class MetadataProvider
     raise Unsupported unless @id.match?(/\A[0-9a-f-]{36}\z/i)
 
     type = @item.external_url.to_s.include?('/release-group/') ? 'release-group' : 'release'
-    data = json("https://musicbrainz.org/ws/2/#{type}/#{@id}", fmt: 'json', inc: 'artist-credits+genres')
-    [{ artist: names(data['artist-credit']), genre: names(data['genres']),
-       release_year: year(data['date'] || data['first-release-date']),
-       thumbnail_url: "https://coverartarchive.org/#{type}/#{@id}/front-500" }, []]
+    inc = type == 'release-group' ? 'artist-credits+genres+releases' : musicbrainz_includes
+    data = json("https://musicbrainz.org/ws/2/#{type}/#{@id}", fmt: 'json', inc: inc)
+    track_data = musicbrainz_track_data(data, type)
+    labels = Array(track_data['label-info']).filter_map do |entry|
+      ProviderEntityMetadata.credit(entry['label'] || {}, 'Label', 'MusicBrainz', kind: 'organization')
+    end
+    fields = { artist: names(data['artist-credit']), genre: names(data['genres']),
+               metadata_credits_data: ProviderEntityMetadata.musicbrainz(data, 'Album artist') + labels,
+               metadata_details: data.slice('primary-type', 'secondary-types', 'disambiguation'),
+               release_year: year(data['date'] || data['first-release-date']),
+               thumbnail_url: "https://coverartarchive.org/#{type}/#{@id}/front-500" }
+    [fields, @include_children ? AlbumMetadata.musicbrainz(track_data) : []]
+  end
+
+  def musicbrainz_track_data(data, type)
+    return data unless @include_children && type == 'release-group'
+
+    release = Array(data['releases']).first
+    return data unless release
+
+    # MusicBrainz allows one request per second; the extra release call is refresh-only.
+    sleep 1.05
+    optional_details do
+      [json("https://musicbrainz.org/ws/2/release/#{release.fetch('id')}", fmt: 'json', inc: musicbrainz_includes)]
+    end.first || {}
+  end
+
+  def musicbrainz_includes
+    'artist-credits+genres+recordings+artist-rels+recording-rels+work-rels+work-level-rels+isrcs+labels'
+  end
+
+  def itunes_album
+    @provider = 'iTunes'
+    active!('itunes')
+    query = { id: numeric_id('itunes_') }
+    query[:entity] = 'song' if @include_children
+    data = json('https://itunes.apple.com/lookup', query).fetch('results')
+    album = data.find { |row| row['wrapperType'] == 'collection' } || data.first
+    raise Unavailable unless album.is_a?(Hash)
+
+    credits = [ProviderEntityMetadata.credit({ 'name' => album['artistName'], 'id' => album['artistId'] },
+                                             'Album artist', 'iTunes', kind: 'artist')].compact
+    fields = { artist: album['artistName'], genre: album['primaryGenreName'],
+               release_year: year(album['releaseDate']), metadata_credits_data: credits,
+               metadata_details: album.slice('collectionExplicitness', 'copyright', 'trackCount', 'releaseDate'),
+               thumbnail_url: album['artworkUrl100']&.sub('100x100bb', '600x600bb') }
+    [fields, @include_children ? AlbumMetadata.itunes(data) : []]
+  end
+
+  def tmdb_details(data)
+    { 'Original title' => data['original_title'] || data['original_name'],
+      'Languages' => names(data['spoken_languages']), 'Countries' => names(data['production_countries']),
+      'Runtime' => data['runtime'], 'Overview' => data['overview'], 'IMDb ID' => data['imdb_id'] }.compact_blank
+  end
+
+  def openlibrary
+    @provider = 'OpenLibrary'
+    active!('OpenLibrary')
+    path = @id.delete_prefix('openlibrary_')
+    raise Unsupported unless path.match?(%r{\A/(?:works|books)/OL\d+[WM]\z})
+
+    data = json("https://openlibrary.org#{path}.json")
+    authors = openlibrary_authors(data)
+    edition = data
+    if path.include?('/works/')
+      edition = optional_details { json("https://openlibrary.org#{path}/editions.json", limit: 1)['entries'] }.first || {}
+    end
+    contributors = Array(edition['contributors']).filter_map do |entry|
+      ProviderEntityMetadata.credit(entry, entry['role'].presence || 'Contributor', 'OpenLibrary')
+    end
+    publishers = Array(edition['publishers']).filter_map do |name|
+      ProviderEntityMetadata.credit({ 'name' => name }, 'Publisher', 'OpenLibrary', kind: 'organization')
+    end
+    fields = { metadata_credits_data: authors + contributors + publishers,
+               metadata_details: openlibrary_details(data, edition),
+               author: names(authors), publisher: Array(edition['publishers']).join(', ').presence }
+    [fields, []]
+  end
+
+  def openlibrary_details(data, edition)
+    fields = edition.slice('isbn_10', 'isbn_13', 'number_of_pages', 'edition_name', 'publish_date')
+    fields['subjects'] = Array(data['subjects']).first(20)
+    fields['languages'] = Array(edition['languages']).filter_map do |language|
+      language['key']&.delete_prefix('/languages/')
+    end
+    fields.compact_blank
+  end
+
+  def openlibrary_authors(data)
+    Array(data['authors']).first(10).filter_map do |entry|
+      author = entry['author'] || entry
+      author_path = author['key']
+      next unless author_path.to_s.match?(%r{\A/authors/OL\d+A\z})
+
+      info = optional_details { [json("https://openlibrary.org#{author_path}.json")] }.first || {}
+      ProviderEntityMetadata.credit(info, entry['type'] == 'translator' ? 'Translator' : 'Author', 'OpenLibrary',
+                                    id: author_path)
+    end
   end
 
   def itunes(creator)
@@ -291,9 +390,17 @@ class MetadataProvider
     data = json('https://itunes.apple.com/lookup', id: numeric_id('itunes_')).fetch('results').first
     raise Unavailable unless data.is_a?(Hash)
 
-    [{ creator => data['artistName'], genre: data['primaryGenreName'],
+    [{ metadata_credits_data: itunes_credits(data, creator),
+       creator => data['artistName'], genre: data['primaryGenreName'],
        release_year: year(data['releaseDate']),
        thumbnail_url: data['artworkUrl100']&.sub('100x100bb', '600x600bb') }, []]
+  end
+
+  def itunes_credits(data, creator)
+    role = { author: 'Author', director: 'Director', network: 'Network', artist: 'Album artist' }.fetch(creator)
+    kind = creator == :network ? 'organization' : 'person'
+    [ProviderEntityMetadata.credit({ 'name' => data['artistName'], 'id' => data['artistId'] },
+                                   role, 'iTunes', kind: kind)].compact
   end
 
   def game

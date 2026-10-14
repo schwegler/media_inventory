@@ -37,7 +37,8 @@ module GameProviders
     end
 
     def fields(data)
-      { developer: names(data['developers']), publisher: names(data['publishers']),
+      { metadata_credits_data: EntityMetadata.call(data, name),
+        developer: names(data['developers']), publisher: names(data['publishers']),
         platform: names(Array(data['platforms']).filter_map { |entry| entry['platform'] if entry.is_a?(Hash) }),
         release_year: data['released'].to_s[/\A(?:19|20)\d{2}/], thumbnail_url: data['background_image'],
         synopsis: data['description_raw'].presence,

@@ -42,13 +42,17 @@ RSpec.describe 'Video Games Management', type: :system do
     expect(page).to have_text('Nintendo', wait: 5)
     expect(page).to have_text('An absolute masterpiece.', wait: 5)
 
-    # Edit Video Game via inline form
-    select '★★★★', from: 'video_game[rating]'
+    # Edit the catalog and personal entry through the current edit surface.
+    visit edit_video_game_path(VideoGame.find_by!(title: 'The Legend of Zelda'))
+    select '4.0 ★', from: 'video_game[rating]'
     fill_in 'video_game[review]', with: 'Great exploration game!'
-    click_button 'Save Review & Playing Status'
+    click_button 'Save changes'
 
-    expect(page).to have_text('Video game was successfully updated.', wait: 5)
+    expect(page).to have_text('Video game was successfully updated.')
+    visit video_game_path(VideoGame.last)
     expect(page).to have_text('Great exploration game!')
+
+    find('.library-management summary').click
 
     # Delete Video Game
     if Capybara.current_driver == :rack_test

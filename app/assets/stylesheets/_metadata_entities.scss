@@ -1,0 +1,21 @@
+.entity-page { overflow-wrap: anywhere; }
+.entity-eyebrow { color: var(--text-secondary); font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; }
+.entity-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 1rem; }
+.entity-tile { display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 1px solid var(--border); border-radius: 12px; color: var(--text); text-decoration: none; min-height: 72px; }
+.entity-tile small { display: block; margin-top: .4rem; color: var(--text-secondary); }
+.entity-monogram { display: grid; place-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 50%; font-size: 1.5rem; width: 48px; height: 48px; flex-shrink: 0; }
+.entity-hero { display: flex; align-items: center; gap: 2rem; padding: 2rem 0; }
+.entity-portrait { width: 128px; height: 128px; object-fit: cover; border-radius: 18px; flex-shrink: 0; font-size: 3rem; }
+.entity-hero h1 { margin: .3rem 0 1rem; }
+.entity-role-links { display: flex; gap: .5rem; flex-wrap: wrap; }
+.entity-role-links a { padding: .6rem .8rem; border: 1px solid var(--border); border-radius: 24px; }
+.entity-works { padding: 0; list-style: none; }
+.entity-works li { padding: .75rem 0; border-bottom: 1px solid var(--border); }
+.entity-works a { display: inline-block; padding: .3rem 0; color: var(--accent); }
+.entity-tile:focus-visible, .entity-works a:focus-visible, .entity-role-links a:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.album-track-list { padding: 0; list-style: none; }
+.album-track-list li { display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; gap: .75rem; padding: 1rem 0; border-bottom: 1px solid var(--border); }
+.album-track-list p { margin: .4rem 0; font-size: .875rem; }
+.track-number, .track-duration, .metadata-match-context { color: var(--text-secondary); font-size: .8125rem; }
+.track-duration { white-space: nowrap; }
+@media (max-width: 600px) { .entity-hero { align-items: flex-start; gap: 1rem; } .entity-portrait { width: 72px; height: 72px; font-size: 2rem; } .entity-hero h1 { font-size: 1.65rem; } }

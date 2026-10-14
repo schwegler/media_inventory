@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class Comic < ApplicationRecord
+  include HasMetadataEntities
   include ReadableCatalogUrl
   include LibraryItemFormAttributes
 
@@ -8,7 +9,7 @@ class Comic < ApplicationRecord
 
   has_one :metadata_refresh, as: :item, dependent: :destroy
   has_one_attached :cover_image
-  has_many :comic_issues, dependent: :destroy
+  has_many :comic_issues, -> { includes(metadata_credits: :metadata_entity) }, dependent: :destroy
   has_many :likes, as: :likeable, dependent: :destroy
   has_many :comments, as: :commentable, dependent: :destroy
   has_many :edit_suggestions, as: :suggestable, dependent: :destroy

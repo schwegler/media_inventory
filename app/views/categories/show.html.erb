@@ -18,6 +18,7 @@
     </p>
   </header>
 
+  <% if @canonical_entities.any? %><p class="entity-role-links"><% @canonical_entities.each do |entity| %><%= link_to "All credits for #{entity.name}", entity, class: 'media-category-link' %><% end %></p><% end %>
   <nav class="catalog-navigation" aria-label="Media types for <%= @name %>">
     <%= link_to "All (#{@media_counts['all']})", category_item_path(category_type: @category_type, name: @name, sort: params[:sort]), aria: { current: params[:type].blank? ? 'page' : nil } %>
     <% if @media_counts['movies'] > 0 %>

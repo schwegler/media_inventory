@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class TvEpisode < ApplicationRecord
+  include HasMetadataEntities
   include ReadableCatalogUrl
   include StoredMediaCover
 

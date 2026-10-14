@@ -1,0 +1,32 @@
+<% content_for(:media_workspace, 'true') %>
+<% content_for(:title, "#{@entity.name} — Trove") %>
+<section class="catalog-page entity-page" aria-labelledby="entity-heading">
+  <%= link_to '← People & Metadata', metadata_entities_path, class: 'media-back-link' %>
+  <header class="entity-hero">
+    <% if @entity.stored_cover_url %>
+      <%= image_tag @entity.stored_cover_url, alt: @entity.name, class: 'entity-portrait' %>
+    <% else %>
+      <div class="entity-portrait entity-monogram" aria-label="No image available"><%= @entity.name.first %></div>
+    <% end %>
+    <div><p class="entity-eyebrow"><%= @entity.kind.titleize %></p><h1 id="entity-heading"><%= @entity.name %></h1>
+      <% if @entity.description.present? %><p><%= truncate(strip_tags(@entity.description), length: 800) %></p><% end %>
+      <% if @entity.aliases.present? %><p class="entity-aliases">Also known as <%= @entity.aliases.join(', ') %></p><% end %>
+      <div class="entity-role-links"><% @roles.each do |role, count| %><%= link_to "#{role} · #{count}", metadata_entity_path(@entity, role: role, library: @library), class: 'media-category-link' %><% end %></div>
+    </div>
+  </header>
+  <%= form_with url: metadata_entity_path(@entity), method: :get, class: 'catalog-toolbar' do |f| %>
+    <div><%= f.label :role, 'Role' %><%= f.select :role, [['All roles', '']] + @roles.keys.map { |role| [role, role] }, selected: params[:role] %></div>
+    <div><%= f.label :media_type, 'Media type' %><%= f.select :media_type, [['All media', '']] + (MetadataEntitySync::FIELDS.keys + %w[ComicIssue TvEpisode AlbumTrack]).map { |type| [type.underscore.humanize, type] }, selected: params[:media_type] %></div>
+    <% if logged_in? %><div><%= f.label :library, 'Library' %><%= f.select :library, [['All Trove', 'all'], ['My library', 'mine']], selected: @library %></div><% end %>
+    <%= f.submit 'Apply', class: 'sleek-btn sleek-btn-secondary' %>
+  <% end %>
+  <% @groups.each do |(type, role), credits| %>
+    <section class="media-section"><h2><%= type.underscore.humanize.pluralize %> · <%= role %></h2>
+      <ul class="entity-works"><% credits.each do |credit| %><% next unless credit.item %>
+        <li><%= metadata_work_link(credit.item) %><% if credit.details['character'].present? %><span> as <%= credit.details['character'] %></span><% end %></li>
+      <% end %></ul>
+    </section>
+  <% end %>
+  <% if @groups.empty? %><div class="home-empty-state"><h2>No matching works</h2><p>Try another role, media type or library.</p></div><% end %>
+  <div class="pagination-wrapper"><%= paginate @credits %></div>
+</section>

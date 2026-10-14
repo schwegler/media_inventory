@@ -14,7 +14,7 @@
   )
 %>
 <%# Local variables: issue, comic %>
-<%= turbo_frame_tag "comic_issue_#{issue.id}", data: { child_collection_target: "entry", search: issue.display_title, completed: is_read ? "true" : "false" } do %>
+<%= turbo_frame_tag "comic_issue_#{issue.id}", data: { child_collection_target: "entry", search: [(issue.display_title), issue.credits.map { |credit| [credit['name'], credit['aliases']] }].flatten.compact.join(' '), completed: is_read ? "true" : "false" } do %>
   <details class="episode-item child-entry">
     <summary class="child-entry-summary">
     <div class="episode-content-row">

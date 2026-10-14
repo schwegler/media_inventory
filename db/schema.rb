@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_14_140000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -62,6 +62,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
     t.string "thumbnail_url"
     t.string "api_id"
     t.string "external_url"
+    t.json "metadata_credits_data", default: [], null: false
+    t.json "metadata_details", default: {}, null: false
     t.index ["api_id"], name: "index_albums_on_api_id"
     t.index ["created_at"], name: "index_albums_on_created_at"
   end
@@ -87,6 +89,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
     t.string "thumbnail_url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.json "metadata_credits_data", default: [], null: false
+    t.json "metadata_details", default: {}, null: false
     t.index ["api_id"], name: "index_books_on_api_id"
     t.index ["created_at"], name: "index_books_on_created_at"
   end
@@ -146,6 +150,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
     t.string "thumbnail_url"
     t.string "api_id"
     t.string "external_url"
+    t.json "metadata_credits_data", default: [], null: false
+    t.json "metadata_details", default: {}, null: false
     t.index ["api_id"], name: "index_comics_on_api_id"
     t.index ["created_at"], name: "index_comics_on_created_at"
   end
@@ -450,6 +456,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
     t.string "writer"
     t.text "actors"
     t.string "genre"
+    t.json "metadata_credits_data", default: [], null: false
+    t.json "metadata_details", default: {}, null: false
     t.index ["api_id"], name: "index_movies_on_api_id"
     t.index ["created_at"], name: "index_movies_on_created_at"
     t.index ["director"], name: "index_movies_on_director"
@@ -538,6 +546,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
     t.text "actors"
     t.string "genre"
     t.integer "release_year"
+    t.json "metadata_credits_data", default: [], null: false
+    t.json "metadata_details", default: {}, null: false
     t.index ["api_id"], name: "index_tv_shows_on_api_id"
     t.index ["created_at"], name: "index_tv_shows_on_created_at"
     t.index ["genre"], name: "index_tv_shows_on_genre"
@@ -613,8 +623,69 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
     t.string "game_type", default: "unknown", null: false
     t.text "synopsis"
     t.json "metadata_details", default: {}, null: false
+    t.json "metadata_credits_data", default: [], null: false
     t.index ["api_id"], name: "index_video_games_on_api_id"
     t.index ["created_at"], name: "index_video_games_on_created_at"
+  end
+
+  create_table "album_tracks", force: :cascade do |t|
+    t.integer "album_id", null: false
+    t.string "provider_id", null: false
+    t.string "title", null: false
+    t.integer "disc_number"
+    t.integer "track_number"
+    t.integer "duration_ms"
+    t.string "isrc"
+    t.string "content_rating"
+    t.string "release_date"
+    t.json "credits", default: [], null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["album_id", "disc_number", "track_number"], name: "idx_on_album_id_disc_number_track_number_43074271be"
+    t.index ["album_id", "provider_id"], name: "index_album_tracks_on_album_id_and_provider_id", unique: true
+    t.index ["album_id"], name: "index_album_tracks_on_album_id"
+  end
+
+  create_table "metadata_entities", force: :cascade do |t|
+    t.string "kind", null: false
+    t.string "name", null: false
+    t.string "normalized_name", null: false
+    t.string "identity_key", null: false
+    t.string "slug", null: false
+    t.json "aliases", default: [], null: false
+    t.text "description"
+    t.string "thumbnail_url"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["identity_key"], name: "index_metadata_entities_on_identity_key", unique: true
+    t.index ["kind", "normalized_name"], name: "index_metadata_entities_on_kind_and_normalized_name"
+    t.index ["normalized_name"], name: "index_metadata_entities_on_normalized_name"
+  end
+
+  create_table "metadata_identities", force: :cascade do |t|
+    t.integer "metadata_entity_id", null: false
+    t.string "provider", null: false
+    t.string "external_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["metadata_entity_id"], name: "index_metadata_identities_on_metadata_entity_id"
+    t.index ["provider", "external_id"], name: "index_metadata_identities_on_provider_and_external_id", unique: true
+  end
+
+  create_table "metadata_credits", force: :cascade do |t|
+    t.integer "metadata_entity_id", null: false
+    t.string "item_type", null: false
+    t.integer "item_id", null: false
+    t.string "role", null: false
+    t.string "source", null: false
+    t.integer "position", default: 0, null: false
+    t.json "details", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["item_type", "item_id", "metadata_entity_id", "role", "source"], name: "idx_metadata_credit_identity", unique: true
+    t.index ["item_type", "item_id"], name: "index_metadata_credits_on_item"
+    t.index ["metadata_entity_id"], name: "index_metadata_credits_on_metadata_entity_id"
+    t.index ["role", "metadata_entity_id"], name: "index_metadata_credits_on_role_and_metadata_entity_id"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
@@ -648,4 +719,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_030000) do
   add_foreign_key "posts", "users"
   add_foreign_key "steam_library_syncs", "users"
   add_foreign_key "tv_episodes", "tv_shows", on_delete: :cascade
+  add_foreign_key "album_tracks", "albums"
+  add_foreign_key "metadata_credits", "metadata_entities"
+  add_foreign_key "metadata_identities", "metadata_entities"
 end

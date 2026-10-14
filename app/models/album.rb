@@ -1,10 +1,13 @@
 # frozen_string_literal: true
 
 class Album < ApplicationRecord
+  include HasMetadataEntities
   include ReadableCatalogUrl
   include LibraryItemFormAttributes
 
   include StoredMediaCover
+
+  has_many :album_tracks, dependent: :destroy
 
   has_one :metadata_refresh, as: :item, dependent: :destroy
   has_one_attached :cover_image
@@ -37,6 +40,7 @@ class Album < ApplicationRecord
     year = release_date&.split('-')&.first || release_year
 
     update!(
+      metadata_credits_data: ProviderEntityMetadata.musicbrainz(data, 'Album artist'),
       title: data['title'] || title,
       artist: artist_name,
       release_year: year

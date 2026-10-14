@@ -25,11 +25,12 @@
   </div>
   <div class="card-2026-content">
     <div class="card-2026-heading">
-      <h3 class="card-2026-title"><%= link_to card.title, media_item, data: { turbo_frame: "_top" }, title: media_title %></h3>
+      <h3 class="card-2026-title"><%= link_to card.title, (media_item.is_a?(AlbumTrack) ? album_path(media_item.album, anchor: "track-#{media_item.id}") : media_item), data: { turbo_frame: "_top" }, title: media_title %></h3>
       <% if year.present? %>
         <span class="card-2026-year"><%= year %></span>
       <% end %>
     </div>
+    <% if (context = metadata_search_context(media_item)) %><p class="metadata-match-context"><%= context %></p><% end %>
     <% creator = card.byline %>
     <% if creator.present? %>
       <p class="card-2026-meta card-2026-creator" title="<%= creator.label %> <%= creator.full %>"><%= creator.value %></p>

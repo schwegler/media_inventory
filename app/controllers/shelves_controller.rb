@@ -55,8 +55,8 @@ class ShelvesController < ApplicationController
     return render json: [] if query.length < 2
 
     matches = types.flat_map do |type|
-      type.constantize.where('LOWER(title) LIKE ?', "%#{ActiveRecord::Base.sanitize_sql_like(query.downcase)}%")
-          .order(:title).limit(8).map do |item|
+      MetadataSearch.call(type.constantize.with_attached_cover_image, query)
+                    .order(:title).limit(8).map do |item|
         { id: item.id, type: type, title: item.title,
           year: item.respond_to?(:release_year) ? item.release_year : nil,
           url: polymorphic_path(item), cover: item.respond_to?(:stored_cover_url) ? item.stored_cover_url : nil }
