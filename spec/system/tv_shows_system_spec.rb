@@ -51,21 +51,30 @@ RSpec.describe 'TV Shows and Episodes Management', type: :system do
     # Reload show page to see the episode
     visit tv_show_path(tv_show)
     expect(page).to have_link('1. Pilot')
-    find('.child-entry-summary').click
+    find("#tv_episode_#{episode.id} .series-entry-toggle").click
     expect(page).to have_text('Walter White begins his chemistry journey.')
 
-    # Mark episode as watched
     within "#tv_episode_#{episode.id}" do
-      fill_in 'tv_episode[review]', with: 'Great introduction episode!'
-      select '★★★★★', from: 'tv_episode[rating]'
-      click_button 'Watch'
+      click_link 'Write review'
+    end
+    within '.review-drawer-form' do
+      fill_in 'Your review (optional)', with: 'Great introduction episode!'
+      select '5.0 ★', from: 'Rating'
+      click_button 'Save review'
     end
 
-    find('.child-entry-summary').click
+    expect(page).to have_text('Review updated.')
+    within "#tv_episode_#{episode.id}" do
+      click_button 'Mark watched'
+      expect(page).to have_button('✓ Watched · Undo')
+    end
+    find("#tv_episode_#{episode.id} .series-entry-toggle").click
     expect(page).to have_text('Great introduction episode!')
 
-    # Toggle watch back (Unwatch)
-    click_button 'Undo'
+    within "#tv_episode_#{episode.id}" do
+      click_button 'Undo'
+      expect(page).to have_button('Mark watched')
+    end
 
     # Edit the catalog and personal entry through the current edit surface.
     visit edit_tv_show_path(TvShow.find_by!(title: 'Breaking Bad'))

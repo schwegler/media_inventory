@@ -21,8 +21,16 @@ Push each tested checkpoint to the branch's upstream so work can resume elsewher
 - Completed: build Sass, pass 18 focused request examples and six browser system examples;
   verify all 45 desktop/mobile/dark page combinations render with no horizontal overflow
   or clipped source labels. Existing analytics CSP errors remain unrelated.
-- Next: make browser regressions run in CI, modernize stale series system tests, and run
-  the complete suite. Recheck narrow layouts, authenticated interactions and reduced motion.
+- Completed: modernize stale series system tests to exercise the current review drawer,
+  separate review saving from progress tracking, and match the current guest copy.
+- Completed: run 12 metadata/series browser regressions in CI with a matched Chrome/driver;
+  the same command passes locally with CI system-test filtering enabled.
+- Completed: remove double-reserved disclosure space so tablet episode titles retain
+  readable width beside progress controls. Validate authenticated layouts at 320/390/768/1440px,
+  keyboard navigation, filters/reset, source alignment and reduced motion.
+- Completed: all 529 Ruby files pass lint; Brakeman reports no new security warnings.
+- In progress: the full randomized suite is running; one failure appeared that did not
+  reproduce in focused runs. Triage it before considering the branch ready to merge.
 
 ## Verification and known baseline issues
 
@@ -33,10 +41,11 @@ PR #592 contains committed merge-conflict markers in SCSS and ERB; do not merge 
 The valid predecessor's disclosure-button layout already merged in #591 is preserved.
 
 The initial review ran 843 examples on #586: 4 failures and 9 pending.
-Three failures also occur on the base branch: stale selectors and copy in
-`tv_episodes_system_spec.rb` and `tv_shows_system_spec.rb`. The fourth is the
-removed nested disclosure in `metadata_entities_system_spec.rb`; fix that here.
-GitHub Actions excludes system examples, so its green result is insufficient for UI changes.
+Three failures also occurred on the base branch: stale selectors and copy in
+`tv_episodes_system_spec.rb` and `tv_shows_system_spec.rb`. Those are repaired here,
+along with the removed nested disclosure in `metadata_entities_system_spec.rb`.
+GitHub Actions used to exclude all system examples. A dedicated CI step now runs the
+metadata and series regressions via `RUN_BROWSER_SPECS=1`.
 
 The live book page `/books/193-morning-glories-vol-2-all-will-be-free-2011`
 returned 500 during review. A book using an unrecognized source domain reproduces

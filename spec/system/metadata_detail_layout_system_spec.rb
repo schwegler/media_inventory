@@ -81,4 +81,25 @@ RSpec.describe 'Metadata detail layout', type: :system do
     toggle.send_keys(:enter)
     expect(page).to have_no_css("#comic_issue_#{issue.id} .series-entry-details[open]")
   end
+
+  it 'keeps tablet episode titles readable beside progress and disclosure buttons' do
+    user = create_and_login_user
+    show = TvShow.create!(title: 'Severance')
+    show.tv_episodes.create!(name: 'Good News About Hell', season: 1, episode: 1)
+    LibraryItem.create!(user: user, item: show, is_collected: true)
+    page.current_window.resize_to(768, 900)
+    visit tv_show_path(show)
+
+    expect(page).to have_link('1. Good News About Hell')
+    expect(page.evaluate_script(<<~JS)).to be true
+      (() => {
+        const entry = document.querySelector('.series-entry');
+        const row = entry.querySelector('.series-entry-row').getBoundingClientRect();
+        const title = entry.querySelector('.series-entry-title').getBoundingClientRect();
+        const progress = entry.querySelector('.series-entry-track').getBoundingClientRect();
+        const toggle = entry.querySelector('.series-entry-toggle').getBoundingClientRect();
+        return title.width > row.width * .4 && progress.right <= toggle.left;
+      })()
+    JS
+  end
 end

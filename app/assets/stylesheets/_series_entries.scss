@@ -41,9 +41,6 @@
   gap: 1rem;
   padding-right: 6.5rem;
 }
-.series-entry-row.has-track-action {
-  padding-right: 13.5rem;
-}
 .series-entry-artwork { width: 120px; height: 68px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
 .series-entry-issue .series-entry-artwork { width: 54px; height: 80px; }
 .series-entry-title { flex: 1; min-width: 0; }
@@ -113,7 +110,6 @@
   .media-entries .season-panel-header { flex-wrap: wrap; gap: .75rem; }
   .series-entry { padding: 1rem .75rem; }
   .series-entry-row { flex-wrap: wrap; gap: .75rem; padding-right: 5.5rem; }
-  .series-entry-row.has-track-action { padding-right: 5.5rem; }
   .series-entry-artwork { width: 80px; height: 45px; }
   .series-entry-track { width: 100%; }
   .series-entry-track button { width: 100%; }

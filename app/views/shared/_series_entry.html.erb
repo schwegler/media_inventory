@@ -8,7 +8,7 @@
 <% has_track = logged_in? && series_lib.present? %>
 <%= turbo_frame_tag "#{model_key}_#{item.id}", data: { child_collection_target: "entry", search: search_text, completed: completed.to_s } do %>
   <article class="series-entry <%= 'series-entry-issue' unless is_episode %>">
-    <div class="series-entry-row <%= 'has-track-action' if has_track %>">
+    <div class="series-entry-row">
       <% if item.stored_cover_url.present? %>
         <img src="<%= item.stored_cover_url %>" alt="" class="series-entry-artwork" loading="lazy" decoding="async">
       <% end %>
