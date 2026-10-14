@@ -28,8 +28,9 @@ RSpec.describe MetadataProvider do
     expect(rows.first).to include('season' => 1, 'number' => 1, 'name' => 'Pilot')
     MetadataChildren.episodes(item, rows)
     episode = item.tv_episodes.first
-    expect(episode.credits).to include('name' => 'Guest actor', 'role' => 'Guest star', 'character' => 'The mayor')
-    expect(episode.credits).to include('name' => 'Pilot director', 'role' => 'Director')
+    expect(episode.credits).to include(a_hash_including('name' => 'Guest actor', 'role' => 'Guest star',
+                                                        'character' => 'The mayor'))
+    expect(episode.credits).to include(a_hash_including('name' => 'Pilot director', 'role' => 'Director'))
     expect(episode.metadata_details).to include('Runtime' => '44 minutes', 'Production code' => 'P101')
     expect(episode.provider_id).to eq('123')
     item.send(:sync_episodes_from_api)
@@ -50,7 +51,7 @@ RSpec.describe MetadataProvider do
       item = catalog_item(klass, '42')
       json_response('https://itunes.apple.com/lookup',
                     { results: [{ artistName: 'Creator', artworkUrl100: 'https://images.example/100x100bb.jpg' }] },
-                    id: '42')
+                    **(klass == Album ? { id: '42', entity: 'song' } : { id: '42' }))
       fields, = described_class.new(item).call
       expect(fields[:thumbnail_url]).to start_with('https://images.example/')
       expect(fields[klass == Book ? :author : :artist]).to eq('Creator')
@@ -60,7 +61,8 @@ RSpec.describe MetadataProvider do
   it 'refreshes namespaced iTunes identifiers returned by catalog search' do
     [Book, Album, Movie].each do |klass|
       item = catalog_item(klass, 'itunes_42')
-      json_response('https://itunes.apple.com/lookup', { results: [{ artistName: 'Creator' }] }, id: '42')
+      json_response('https://itunes.apple.com/lookup', { results: [{ artistName: 'Creator' }] },
+                    **(klass == Album ? { id: '42', entity: 'song' } : { id: '42' }))
       fields, = described_class.new(item).call
       expect(fields.values).to include('Creator')
     end
@@ -71,7 +73,7 @@ RSpec.describe MetadataProvider do
     item = catalog_item(Album, id, external_url: "https://musicbrainz.org/release-group/#{id}")
     json_response("https://musicbrainz.org/ws/2/release-group/#{id}",
                   { 'artist-credit' => [{ name: 'Creator' }], 'first-release-date' => '2026-01-01' },
-                  fmt: 'json', inc: 'artist-credits+genres')
+                  fmt: 'json', inc: 'artist-credits+genres+releases')
     fields, = described_class.new(item).call
     expect(fields[:thumbnail_url]).to eq("https://coverartarchive.org/release-group/#{id}/front-500")
     expect(fields[:artist]).to eq('Creator')
@@ -92,7 +94,7 @@ RSpec.describe MetadataProvider do
     expect(fields[:thumbnail_url]).to eq('https://images.example/game.jpg')
   end
 
-  it 'fills comic credits from the first issue without downloading the issue list during search' do
+  it 'keeps first-issue creators off the volume without downloading issues during search' do
     item = catalog_item(Comic, '42')
     ApiConfiguration.create!(source_name: 'ComicVine', media_type: 'Comic', is_active: true, access_token: 'test')
     json_response('https://comicvine.gamespot.com/api/volume/4050-42/',
@@ -104,12 +106,13 @@ RSpec.describe MetadataProvider do
                     { name: 'Editor', role: 'editor' }
                   ] } }, api_key: 'test', format: 'json')
     fields, rows = described_class.new(item, include_children: false).call
-    expect(fields).to include(writer: 'Writer', artist: 'Artist', publisher: 'Marvel')
+    expect(fields).to include(writer: nil, artist: nil, publisher: 'Marvel')
+    expect(WebMock).not_to have_requested(:get, %r{issue/4000-123})
     expect(rows).to be_empty
     expect(WebMock).not_to have_requested(:get, 'https://comicvine.gamespot.com/api/issues/')
   end
 
-  it 'retains comic metadata when the optional creator request is unavailable' do
+  it 'does not make optional first-issue requests when reading volume metadata' do
     item = catalog_item(Comic, '42')
     ApiConfiguration.create!(source_name: 'ComicVine', is_active: true, access_token: 'test')
     json_response('https://comicvine.gamespot.com/api/volume/4050-42/',
@@ -119,7 +122,7 @@ RSpec.describe MetadataProvider do
     adapter = described_class.new(item, include_children: false)
     fields, = adapter.call
     expect(fields[:publisher]).to eq('Marvel')
-    expect(adapter.partial).to be true
+    expect(adapter.partial).to be false
   end
 
   it 'maps movie directors without including other crew roles' do

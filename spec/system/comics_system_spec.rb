@@ -50,16 +50,20 @@ RSpec.describe 'Comics Management', type: :system do
       raise e
     end
     expect(page).to have_text('Watchmen')
-    expect(page).to have_text('by Alan Moore')
+    expect(page).to have_link('Alan Moore')
     expect(page).to have_text('Who watches the watchmen?')
 
-    # Edit Comic via inline form
-    select '★★★★', from: 'comic[rating]'
+    # Edit the catalog and personal entry through the current edit surface.
+    visit edit_comic_path(Comic.find_by!(title: 'Watchmen'))
+    select '4.0 ★', from: 'comic[rating]'
     fill_in 'comic[review]', with: 'Masterpiece of graphic novels!'
-    click_button 'Save Review & Reading Status'
+    click_button 'Save changes'
 
     expect(page).to have_text('Comic was successfully updated.')
+    visit comic_path(Comic.last)
     expect(page).to have_text('Masterpiece of graphic novels!')
+
+    find('.library-management summary').click
 
     # Delete Comic
     if Capybara.current_driver == :rack_test

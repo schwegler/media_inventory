@@ -11,7 +11,7 @@ module MediaCardHelper
   CardPresentation = Struct.new(:title, :byline, :credits, :facts, keyword_init: true)
 
   def media_card_presentation(item)
-    raw_title = (item.try(:title) || item.try(:name) || 'Media').to_s
+    raw_title = (item.try(:display_title) || item.try(:title) || item.try(:name) || 'Media').to_s
     title_year = raw_title[TRAILING_YEAR, 1]
     title = title_year ? raw_title.sub(TRAILING_YEAR, '') : raw_title
     year = item.try(:release_year).presence || title_year

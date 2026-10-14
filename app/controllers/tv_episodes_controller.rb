@@ -4,7 +4,7 @@ class TvEpisodesController < ApplicationController
   before_action :logged_in_user, only: %i[toggle_watched]
 
   def show
-    @tv_episode = TvEpisode.find(params[:id])
+    @tv_episode = TvEpisode.includes(metadata_credits: :metadata_entity).find(params[:id])
     return if redirect_to_canonical_url(@tv_episode)
     return unless logged_in?
 

@@ -86,7 +86,7 @@ class MediaController < ApplicationController
   end
 
   def fetch_local_movies(query)
-    Movie.with_attached_cover_image.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |m|
+    MetadataSearch.call(Movie.with_attached_cover_image, query).limit(5).map do |m|
       {
         title: m.title,
         director: m.director,
@@ -111,7 +111,7 @@ class MediaController < ApplicationController
   end
 
   def fetch_local_albums(query)
-    Album.with_attached_cover_image.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |a|
+    MetadataSearch.call(Album.with_attached_cover_image, query).limit(5).map do |a|
       {
         title: a.title,
         artist: a.artist,
@@ -135,8 +135,7 @@ class MediaController < ApplicationController
 
   def fetch_local_comics(query)
     search = ComicSearchQuery.new(query)
-    title_pattern = "%#{Comic.sanitize_sql_like(search.title.downcase)}%"
-    comics = Comic.with_attached_cover_image.where('LOWER(title) LIKE ?', title_pattern)
+    comics = MetadataSearch.call(Comic.with_attached_cover_image, search.title)
     comics = comics.where('title LIKE ?', "% (#{search.year})") if search.year
     comics.order(title: :asc).limit(100).map do |c|
       {
@@ -163,7 +162,7 @@ class MediaController < ApplicationController
   end
 
   def fetch_local_tv_shows(query)
-    TvShow.with_attached_cover_image.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |t|
+    MetadataSearch.call(TvShow.with_attached_cover_image, query).limit(5).map do |t|
       {
         title: t.title,
         network: t.network,
@@ -190,8 +189,7 @@ class MediaController < ApplicationController
   end
 
   def fetch_local_video_games(query)
-    VideoGame.with_attached_cover_image.where('LOWER(title) LIKE ?',
-                                              "%#{VideoGame.sanitize_sql_like(query.downcase)}%").limit(20).map do |vg|
+    MetadataSearch.call(VideoGame.with_attached_cover_image, query).limit(20).map do |vg|
       {
         title: vg.title,
         game_type: vg.game_type,
@@ -218,7 +216,7 @@ class MediaController < ApplicationController
   end
 
   def fetch_local_books(query)
-    Book.with_attached_cover_image.where('LOWER(title) LIKE ?', "%#{query.downcase}%").limit(5).map do |b|
+    MetadataSearch.call(Book.with_attached_cover_image, query).limit(5).map do |b|
       {
         title: b.title,
         author: b.author,

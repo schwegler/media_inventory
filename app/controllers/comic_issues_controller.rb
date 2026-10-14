@@ -4,7 +4,7 @@ class ComicIssuesController < ApplicationController
   before_action :logged_in_user, only: %i[toggle_read]
 
   def show
-    @comic_issue = ComicIssue.find(params[:id])
+    @comic_issue = ComicIssue.includes(metadata_credits: :metadata_entity).find(params[:id])
     return if redirect_to_canonical_url(@comic_issue)
     return unless logged_in?
 

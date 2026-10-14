@@ -41,6 +41,12 @@ module Admin
       end
     end
 
+    def filter_resources(resources, search_term:)
+      return super unless Catalog::TYPES.include?(resource_class)
+
+      MetadataSearch.call(resources, search_term)
+    end
+
     def resource_params
       permitted = super.reject { |key, value| credential_fields.include?(key.to_s) && value.blank? }
       clear = params.require(resource_class.model_name.param_key).permit(clear_credentials: [])[:clear_credentials] || []

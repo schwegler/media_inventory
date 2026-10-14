@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class VideoGame < ApplicationRecord
+  include HasMetadataEntities
   include ReadableCatalogUrl
   include LibraryItemFormAttributes
 

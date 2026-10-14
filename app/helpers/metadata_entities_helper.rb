@@ -1,0 +1,42 @@
+# frozen_string_literal: true
+
+module MetadataEntitiesHelper
+  PROVIDER_FIELDS = {
+    'Original title' => 'Original title', 'Languages' => 'Languages', 'Countries' => 'Production countries',
+    'Runtime' => 'Runtime (minutes)', 'Overview' => 'Synopsis', 'IMDb ID' => 'IMDb ID',
+    'language' => 'Language', 'status' => 'Status', 'primary-type' => 'Release type',
+    'secondary-types' => 'Release categories', 'disambiguation' => 'Edition',
+    'collectionExplicitness' => 'Content rating', 'copyright' => 'Copyright',
+    'trackCount' => 'Tracks', 'releaseDate' => 'Release date', 'isbn_10' => 'ISBN-10', 'isbn_13' => 'ISBN-13',
+    'number_of_pages' => 'Pages', 'edition_name' => 'Edition', 'publish_date' => 'Publication date',
+    'subjects' => 'Subjects', 'languages' => 'Languages', 'description' => 'Description'
+  }.freeze
+
+  def provider_display_details(item)
+    return {} unless item.respond_to?(:metadata_details) && !item.is_a?(VideoGame)
+
+    PROVIDER_FIELDS.each_with_object({}) do |(field, label), result|
+      value = item.metadata_details[field]
+      result[label] = value if value.present? && (value.is_a?(String) || value.is_a?(Numeric) || value.is_a?(Array))
+    end
+  end
+
+  def metadata_work_link(item)
+    return link_to("#{item.album.title} — #{item.title}", album_path(item.album, anchor: "track-#{item.id}")) if
+      item.is_a?(AlbumTrack)
+
+    title = item.respond_to?(:display_title) ? item.display_title : item.title
+    link_to(title, item)
+  end
+
+  def entity_credit_links(credits)
+    safe_join(credits.map do |credit|
+      link_to(credit.metadata_entity.name, metadata_entity_path(credit.metadata_entity), class: 'media-category-link',
+                                                                                         data: { turbo_frame: '_top' })
+    end.uniq, ', ')
+  end
+
+  def metadata_search_context(item)
+    @match_context&.dig(item.class.name, item.id)
+  end
+end

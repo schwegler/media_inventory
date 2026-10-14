@@ -9,25 +9,25 @@ RSpec.describe 'Presentation and keyboard access', type: :system do
     create_and_login_user
     movie = Movie.create!(title: 'Compact header')
     visit movie_path(movie)
-    expect(page).to have_css('[data-controller="mobile-menu"][data-connected="true"]')
+    expect(page).to have_css('[data-controller~="mobile-menu"][data-connected="true"]')
     expect(page).to have_css('[data-controller="floating-header"][data-connected="true"]')
     expect(page).not_to have_css('.combined-header')
-    expect(page).to have_css('.library-nav', visible: true)
+    expect(page).to have_css('.workspace-primary-nav', visible: true)
     page.execute_script('window.scrollTo(0, 400)')
     expect(page).to have_css('.combined-header')
     pinned_bottom = page.evaluate_script('document.querySelector(".app-header").getBoundingClientRect().bottom')
-    expect(pinned_bottom).to be <= 80
-    click_button 'Toggle navigation'
+    expect(pinned_bottom).to be <= 90
+    click_button 'Account menu'
     expect(page).to have_link('Settings', visible: true)
     page.driver.browser.action.send_keys(:escape).perform
     focused_label = page.evaluate_script('document.activeElement.getAttribute("aria-label")')
-    expect(focused_label).to eq('Toggle navigation')
-    expect(page).to have_css('.mobile-menu-btn[aria-expanded="false"]')
+    expect(focused_label).to eq('Account menu')
+    expect(page).to have_css('[aria-label="Account menu"][aria-expanded="false"]')
     page.execute_script('window.scrollTo(0, 0)')
     expect(page).not_to have_css('.combined-header')
-    expect(page).to have_css('.library-nav', visible: true)
+    expect(page).to have_css('.workspace-primary-nav', visible: true)
     page.execute_script('window.scrollTo(0, 400)')
-    page.current_window.resize_to(390, 844)
+    page.current_window.resize_to(320, 844)
     click_button 'Search the library'
     expect(page.evaluate_script('document.activeElement.classList.contains("global-search-input")')).to be true
     page.driver.browser.action.send_keys(:escape).perform
@@ -38,7 +38,7 @@ RSpec.describe 'Presentation and keyboard access', type: :system do
     user = create_and_login_user
     page.current_window.resize_to(390, 844)
     visit movies_path
-    expect(page).to have_css('[data-controller="mobile-menu"][data-connected="true"]')
+    expect(page).to have_css('[data-controller~="mobile-menu"][data-connected="true"]')
     click_button 'Toggle navigation'
     expect(page).to have_link('Settings', visible: true)
     page.find('.mobile-menu-btn').send_keys(:escape)
@@ -83,7 +83,11 @@ RSpec.describe 'Presentation and keyboard access', type: :system do
     LibraryItem.create!(user: user, item: movie, is_collected: true)
     visit movie_path(movie)
     # Stored covers return a valid placeholder; simulate a browser image failure explicitly.
-    page.execute_script('document.querySelector(".show-poster img").src = "/missing-artwork.svg"')
+    page.execute_script(<<~JS)
+      const image = document.querySelector(".media-cover img")
+      image.removeAttribute("srcset")
+      image.src = "/missing-artwork.svg"
+    JS
     expect(page).to have_css('img[data-failed="true"]', visible: :hidden)
     expect(page).to have_content('Artwork unavailable')
     visit user_path(user)

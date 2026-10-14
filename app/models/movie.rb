@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class Movie < ApplicationRecord
+  include HasMetadataEntities
   include ReadableCatalogUrl
   include LibraryItemFormAttributes
 
@@ -51,6 +52,7 @@ class Movie < ApplicationRecord
     year = data['release_date'] ? data['release_date'].split('-').first : release_year
 
     update!(
+      metadata_credits_data: ProviderEntityMetadata.tmdb(data),
       title: data['title'] || title,
       release_year: year,
       director: directors || director,

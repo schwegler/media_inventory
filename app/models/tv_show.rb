@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class TvShow < ApplicationRecord
+  include HasMetadataEntities
   include ReadableCatalogUrl
   include LibraryItemFormAttributes
 
@@ -8,7 +9,7 @@ class TvShow < ApplicationRecord
 
   has_one :metadata_refresh, as: :item, dependent: :destroy
   has_one_attached :cover_image
-  has_many :tv_episodes, dependent: :destroy
+  has_many :tv_episodes, -> { includes(metadata_credits: :metadata_entity) }, dependent: :destroy
   has_many :likes, as: :likeable, dependent: :destroy
   has_many :comments, as: :commentable, dependent: :destroy
   has_many :edit_suggestions, as: :suggestable, dependent: :destroy
@@ -23,7 +24,7 @@ class TvShow < ApplicationRecord
   private
 
   def enqueue_series_sync
-    return if refreshing_metadata || api_id.blank? || !api_id.to_s.match?(/\A(?:tmdb_)?\d+\z/)
+    return if @syncing_series || refreshing_metadata || api_id.blank? || !api_id.to_s.match?(/\A(?:tmdb_)?\d+\z/)
     return unless saved_change_to_api_id? || tv_episodes.empty?
 
     SyncSeriesMetadataJob.perform_later(self)
@@ -54,25 +55,32 @@ class TvShow < ApplicationRecord
   end
 
   def sync_tmdb_episodes
+    @syncing_series = true
     fields, rows = MetadataProvider.new(self).call
     missing_fields = fields.compact_blank.select { |field, _| public_send(field).blank? }
-    update_columns(missing_fields) if missing_fields.present?
+    update!(missing_fields) if missing_fields.present?
     create_tv_episodes(rows)
   rescue MetadataProvider::Unavailable, MetadataProvider::RateLimited => e
     Rails.logger.warn "Failed to sync TMDB episodes: #{e.class}"
+  ensure
+    @syncing_series = false
   end
 
   def apply_tvmaze_show_attributes(data)
+    @syncing_series = true
     directors, writers, cast = extract_tvmaze_credits(data['_embedded'])
     year = data['premiered'] ? data['premiered'].split('-').first.to_i : nil
 
-    update_columns(
+    update!(
+      metadata_credits_data: ProviderEntityMetadata.tvmaze(data),
       director: director.presence || directors,
       writer: writer.presence || writers,
       actors: actors.presence || cast,
       genre: genre.presence || Array(data['genres']).join(', ').presence,
       release_year: release_year.presence || (year if year&.positive?)
     )
+  ensure
+    @syncing_series = false
   end
 
   def extract_tvmaze_credits(embedded)

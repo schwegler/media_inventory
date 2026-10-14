@@ -32,8 +32,9 @@ RSpec.describe 'TV Episodes Management', type: :system do
     expect(page).to have_text('Logged in successfully')
 
     visit tv_episode_path(episode)
-    expect(page).to have_text('Season 1 Episode 1 of Breaking Bad')
+    expect(page).to have_text('Season 1, episode 1 of Breaking Bad')
 
+    find('.library-disclosure summary').click
     within '.quick-review-form' do
       fill_in 'tv_episode[review]', with: 'Great start.'
       select '★★★★★', from: 'tv_episode[rating]'
@@ -43,7 +44,7 @@ RSpec.describe 'TV Episodes Management', type: :system do
     expect(page).to have_text('✓ Watched')
     expect(page).to have_text('Great start.')
 
-    click_button '📁 Mark Unwatched'
+    click_button 'Mark Unwatched'
     expect(page).to have_text('Not Watched')
   end
 

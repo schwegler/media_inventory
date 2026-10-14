@@ -13,6 +13,8 @@ RSpec.describe 'Media source picker', type: :system do
     stub_request(:get, /appdetails/).to_return(body: { '620' => { success: true, data: {
       name: 'Portal 2', developers: ['Valve'], header_image: image_url, release_date: { date: 'Apr 18 2011' }
     } } }.to_json)
+    stub_request(:get, %r{https://shared\.fastly\.steamstatic\.com/store_item_assets/steam/apps/620/library_600x900_2x\.jpg})
+      .to_return(status: 404)
     stub_request(:get, image_url).to_return(body: png, headers: { 'Content-Type' => 'image/png' })
     create_and_login_user(email: 'picker@example.com')
     expect(page).to have_text('Logged in successfully')
@@ -46,10 +48,10 @@ RSpec.describe 'Media source picker', type: :system do
     expect(movie.cover_image).not_to be_attached
     visit movie_path(movie)
     expect(page.title).to include('Legacy movie cover')
-    expect(page).to have_css('.show-poster img[src*="/media/covers/"]')
+    expect(page).to have_css('.media-cover img[src*="/media/covers/"]')
     loaded = page.evaluate_async_script(<<~JS)
       const done = arguments[0]
-      const img = document.querySelector('.show-poster img')
+      const img = document.querySelector('.media-cover img')
       if (img.complete) done(img.naturalWidth > 0)
       else {
         img.addEventListener('load', () => done(img.naturalWidth > 0), { once: true })

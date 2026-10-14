@@ -15,12 +15,16 @@ class InventoryController < ApplicationController
     # Eager load ActiveStorage attachments/blobs for cover images to prevent N+1 queries when rendering media card grids
     scope = scope.with_attached_cover_image if scope.respond_to?(:with_attached_cover_image)
     if scope.respond_to?(:reflect_on_association) && scope.reflect_on_association(:library_items)
-      scope = scope.includes(:library_items)
+      scope = scope.preload(:library_items)
     end
 
     @resources = catalog_scope(scope).page(params[:page]).per(CATALOG_PAGE_SIZE)
     instance_variable_set("@#{resource_name.pluralize}", @resources)
     prepare_media_library if @personal_library
+    return unless params[:q].present?
+
+    @match_context = { resource_class.name => MetadataMatchContext.call(@resources.to_a,
+                                                                        params[:q]) }
   end
 
   def new
@@ -72,6 +76,7 @@ class InventoryController < ApplicationController
 
   def show
     @resource = resource_class.find(params[:id])
+    preload_entity_credits
     return if redirect_to_canonical_url(@resource)
 
     if logged_in?
@@ -169,6 +174,13 @@ class InventoryController < ApplicationController
 
   private
 
+  def preload_entity_credits
+    return unless @resource.respond_to?(:metadata_credits)
+
+    ActiveRecord::Associations::Preloader.new(records: [@resource],
+                                              associations: { metadata_credits: :metadata_entity }).call
+  end
+
   def resolve_catalog_resource(attributes)
     key = attributes[:api_id].present? ? :api_id : :title
     resource_class.find_or_initialize_by(key => attributes[key])
@@ -197,16 +209,15 @@ class InventoryController < ApplicationController
   end
 
   def catalog_scope(scope)
-    if params[:q].present?
-      query = "%#{resource_class.sanitize_sql_like(params[:q].to_s.strip.downcase, '!')}%"
-      scope = scope.where("LOWER(title) LIKE ? ESCAPE '!'", query)
-    end
+    scope = MetadataSearch.call(scope, params[:q])
     if @personal_library
       query = MediaLibraryQuery.new(resource_class, user: current_user, filters: params)
       @library_statistics = query.statistics
       return query.call(scope)
     end
     scope = filter_catalog_library(scope) if logged_in?
+    return scope if params[:q].present? && params[:sort].blank?
+
     case params[:sort]
     when 'title' then scope.order(title: :asc, id: :asc)
     when 'oldest' then scope.order(created_at: :asc, id: :asc)

@@ -131,6 +131,7 @@ SampleApp::Application.routes.draw do
   post '/metadata/:media_type/:media_id/refresh', to: 'metadata_refreshes#create', as: 'refresh_metadata'
   root 'landing#index'
   get 'test_bsky', to: 'landing#test_bsky'
+  resources :metadata_entities, only: %i[index show], path: 'entities'
   get '/categories', to: 'categories#index', as: 'categories'
   get '/categories/:category_type', to: 'categories#type_index', as: 'category_type'
   get '/categories/:category_type/*name', to: 'categories#show', as: 'category_item', format: false

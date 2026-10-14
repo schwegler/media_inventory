@@ -11,7 +11,8 @@ class MetadataRefresher
     new(item, user).call
   end
 
-  def initialize(item, user)
+  def initialize(item, user, revalidate: true)
+    @revalidate = revalidate
     @item = item
     @user = user
     @refresh = MetadataRefresh.find_by(item: item) || MetadataRefresh.create_or_find_by!(item: item)
@@ -29,7 +30,7 @@ class MetadataRefresher
   def call(claimed: false)
     return 'cooldown' unless claimed || claim?
 
-    @adapter = MetadataProvider.new(@item, revalidate: true, fresh: true)
+    @adapter = MetadataProvider.new(@item, revalidate: @revalidate, fresh: @revalidate)
     fields, rows = Timeout.timeout(45) { @adapter.call }
     changed = reconcile(fields, rows)
     state = changed.positive? ? 'success' : 'unchanged'
@@ -77,8 +78,10 @@ class MetadataRefresher
         @item.save!
         changed += 1
       end
+      changed += AlbumMetadata.reconcile(@item, rows) if @item.is_a?(Album)
       changed += MetadataChildren.episodes(@item, rows) if @item.is_a?(TvShow)
       changed += MetadataChildren.issues(@item, rows) if @item.is_a?(Comic)
+      values['entity_metadata_version'] = 1 unless @adapter.partial
       @refresh.update!(provider_values: values)
     end
     changed
@@ -89,6 +92,13 @@ class MetadataRefresher
 
     value = MetadataProvider.image(value) if field == :thumbnail_url
     return if value.blank? || (field == :thumbnail_url && @item.cover_image.attached?)
+
+    if %i[metadata_credits_data metadata_details].include?(field)
+      value = @item.public_send(field).merge(value) if field == :metadata_details
+      @item.public_send("#{field}=", value)
+      values[field.to_s] = value
+      return
+    end
 
     old = @item.public_send(field)
     @item.public_send("#{field}=", value) if field == :thumbnail_url || old.blank? || values[field.to_s] == old

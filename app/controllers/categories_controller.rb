@@ -33,6 +33,7 @@ class CategoriesController < ApplicationController
       return
     end
 
+    @canonical_entities = MetadataEntity.where(normalized_name: MetadataEntity.normalize(@name))
     @singular = Category.singular_for(@category_type)
     @category_title = Category.title_for(@category_type)
 

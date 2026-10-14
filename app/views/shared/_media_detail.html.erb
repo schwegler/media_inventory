@@ -70,6 +70,9 @@
     <div class="media-detail-main">
       <div id="my-library"><%= render 'shared/media_actions_and_stream', item: item, show_sources: false %></div>
       <%= render 'shared/media_description', item: item %>
+      <%= render 'shared/entity_credits', item: item %>
+      <%= render 'shared/provider_details', item: item %>
+      <%= render 'albums/tracks', item: item if item.is_a?(Album) %>
       <% if item.is_a?(VideoGame) %>
         <% if @library_item %>
           <%= render 'tracking', library: @library_item %>

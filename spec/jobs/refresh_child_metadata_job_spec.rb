@@ -19,7 +19,8 @@ RSpec.describe RefreshChildMetadataJob do
       .to_return(body: { status_code: 1, results: row }.to_json)
 
     described_class.perform_now(issue)
-    expect(issue.reload.credits).to include('name' => 'Issue artist', 'role' => 'penciler, inker')
+    expect(issue.reload.credits).to include(a_hash_including('name' => 'Issue artist', 'role' => 'Penciler'),
+                                            a_hash_including('name' => 'Issue artist', 'role' => 'Inker'))
     expect(issue.metadata_details).to include('Characters' => 'Hero', 'Story arcs' => 'An arc',
                                               'Store date' => '2026-10-01')
     expect(issue.summary).to eq('<p>Issue summary</p>')
@@ -37,8 +38,9 @@ RSpec.describe RefreshChildMetadataJob do
       .to_return(body: [{ person: { name: 'Episode director' }, type: 'Director' },
                         { person: { name: 'Episode writer' }, type: 'Writer' }].to_json)
     described_class.perform_now(episode)
-    expect(episode.reload.credits).to include('name' => 'Guest actor', 'role' => 'Guest star', 'character' => 'The doctor')
-    expect(episode.credits).to include('name' => 'Episode director', 'role' => 'Director')
+    expect(episode.reload.credits).to include(a_hash_including('name' => 'Guest actor', 'role' => 'Guest star',
+                                                               'character' => 'The doctor'))
+    expect(episode.credits).to include(a_hash_including('name' => 'Episode director', 'role' => 'Director'))
     expect(episode.metadata_details).to eq('Runtime' => '42 minutes')
     expect(episode.attributes).to include('watched' => true, 'review' => 'Keep')
   end

@@ -14,7 +14,7 @@
   )
 %>
 <%# Local variables: ep, tv_show %>
-<%= turbo_frame_tag "tv_episode_#{ep.id}", data: { child_collection_target: "entry", search: "#{ep.episode} #{ep.name}", completed: is_watched ? "true" : "false" } do %>
+<%= turbo_frame_tag "tv_episode_#{ep.id}", data: { child_collection_target: "entry", search: [("#{ep.episode} #{ep.name}"), ep.credits.map { |credit| [credit['name'], credit['aliases']] }].flatten.compact.join(' '), completed: is_watched ? "true" : "false" } do %>
   <details class="episode-item child-entry">
     <summary class="child-entry-summary">
     <div class="episode-content-row">

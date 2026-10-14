@@ -20,6 +20,7 @@ module Admin
       @source.class.transaction do
         @source.class.where(id: [@source.id, @target.id]).order(:id).lock.load
         transfer_children!
+        transfer_entity_credits
         transfer_polymorphic(LibraryItem, :item)
         transfer_polymorphic(Activity, :trackable)
         transfer_polymorphic(Comment, :commentable)
@@ -30,6 +31,15 @@ module Admin
     end
 
     private
+
+    def transfer_entity_credits
+      @source.metadata_credits.each do |credit|
+        retained = @target.metadata_credits.find_or_initialize_by(metadata_entity_id: credit.metadata_entity_id,
+                                                                  role: credit.role, source: 'merged')
+        retained.details = credit.details.merge(retained.details)
+        retained.save!
+      end
+    end
 
     def transfer_polymorphic(model, association)
       model.where(association => @source).update_all("#{association}_id" => @target.id)
@@ -46,6 +56,7 @@ module Admin
       when TvShow then move_children(TvEpisode, :tv_show_id, %w[season episode])
       when Comic then move_children(ComicIssue, :comic_id, %w[issue_number])
       when VideoGame then transfer_game_identity!
+      when Album then move_children(AlbumTrack, :album_id, %w[provider_id])
       end
     end
 

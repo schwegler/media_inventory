@@ -5,7 +5,8 @@ class MediaCoversController < ApplicationController
   before_action :logged_in_user, only: :destroy
 
   TYPES = { 'movie' => Movie, 'tv_show' => TvShow, 'album' => Album, 'video_game' => VideoGame,
-            'comic' => Comic, 'book' => Book, 'tv_episode' => TvEpisode, 'comic_issue' => ComicIssue }.freeze
+            'comic' => Comic, 'book' => Book, 'tv_episode' => TvEpisode, 'comic_issue' => ComicIssue,
+            'metadata_entity' => MetadataEntity }.freeze
 
   def show
     type = TYPES[params[:type]]

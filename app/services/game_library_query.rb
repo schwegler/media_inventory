@@ -46,7 +46,8 @@ class GameLibraryQuery
 
       scope = scope.where(field => @filters[field]) if @filters[field].present?
     end
-    { 'q' => 'title', 'developer' => 'developer', 'publisher' => 'publisher' }.each do |filter, field|
+    scope = MetadataSearch.call(scope, @filters['q'])
+    { 'developer' => 'developer', 'publisher' => 'publisher' }.each do |filter, field|
       next if @filters[filter].blank?
 
       pattern = "%#{VideoGame.sanitize_sql_like(@filters[filter].downcase)}%"
