@@ -46,8 +46,8 @@
     </div>
     </summary>
     <div class="child-entry-body">
+        <%= render 'shared/child_description', item: issue %>
         <%= render 'shared/child_metadata', item: issue %>
-        <%= render 'comics/issue_description', issue: issue %>
 
         <% has_reviewed = is_read && (issue_lib&.review.present? || issue_lib&.rating.present?) %>
         <% if has_reviewed %>

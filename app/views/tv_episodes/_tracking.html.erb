@@ -82,12 +82,7 @@
     </div>
 
     <!-- Episode Summary -->
-    <% if @tv_episode.summary.present? %>
-      <div class="show-review" style="margin-top: 2rem;">
-        <h3>Episode Summary</h3>
-        <blockquote style="font-style: normal; border-left-color: rgba(255, 255, 255, 0.1);"><%= strip_tags(@tv_episode.summary) %></blockquote>
-      </div>
-    <% end %>
+    <%= render 'shared/child_description', item: @tv_episode %>
 
     <!-- Comments & Likes -->
     <div class="show-community" style="margin-top: 2rem;">
