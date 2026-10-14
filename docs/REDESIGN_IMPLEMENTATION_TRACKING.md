@@ -16,7 +16,7 @@ This plan organizes the redesign into self-contained, reviewable slices. Each mo
 | **0. Tracking & Git Hygiene** | Set up tracking register and workspace build ignore rules | `docs/REDESIGN_IMPLEMENTATION_TRACKING.md`, `.gitignore` | `DONE` |
 | **1. Foundation & Assets** | Palette tokens, typography, `.mascot-sticker` system, Facet mascot PNGs, Trove app icon & favicon | `app/assets/stylesheets/_tokens.scss`, `app/assets/images/brand/*`, `public/favicon.svg`, asset specs | `DONE` |
 | **2. Global Shell & Brand** | Trove faceted prism logo in navbar, companion link to `tacobout.online`, header navigation offsets | `app/views/shared/_site_navigation.html.erb`, `app/assets/stylesheets/_site_header.scss`, navigation specs | `DONE` |
-| **3. Public Home & Companion Bridge** | "A home for every story, album, and game you're into", 6-format hero, "The Vault. The Broadcast." companion card, logged-out vs member dashboard separation | `app/views/landing/index.html.erb`, `app/assets/stylesheets/_dashboard.scss`, landing specs | `TODO` |
+| **3. Public Home & Companion Bridge** | "A home for every story, album, and game you're into", 6-format hero, "The Vault. The Broadcast." companion card, logged-out vs member dashboard separation | `app/views/landing/index.html.erb`, `app/assets/stylesheets/_dashboard.scss`, landing specs | `DONE` |
 | **4. Authentication Polish** | `/login` ("Unlock Your Media Vault" + `facet_pose_04_five_star.png`), `/signup` ("Claim Your Shelf in Trove" + `facet_pose_01_bookworm.png`), Fediverse sign-in visibility | `app/views/sessions/new.html.erb`, `app/views/users/new.html.erb`, session/signup request specs | `TODO` |
 | **5. Empty States & Zero-Match** | Empty filter / 0-matches card with `facet_pose_02_gamer_mode.png`, consolidated `Log a Title` and `Reset Filters`, empty library card | `app/views/shared/_empty_state.html.erb`, `app/views/video_games/index.html.erb`, catalog specs | `TODO` |
 | **6. User Profile & Library Mix** | Profile header with `facet_pose_03_crate_digger.png`, visual horizontal bar breakdown for 6 media formats, active-series progress bars | `app/views/users/show.html.erb`, `app/views/users/_library_mix.html.erb`, `_profile.scss`, profile specs | `TODO` |
@@ -41,6 +41,12 @@ This plan organizes the redesign into self-contained, reviewable slices. Each mo
   - Updated `_site_header.scss` with desktop and mobile logo sizing and border radius.
   - Updated `app/views/layouts/application.html.erb` footer with Trove branding and companion link.
   - Added request spec `spec/requests/global_shell_navigation_spec.rb`.
+- **Commit 3:** `Redesign public landing hero, companion bridge, and 6-format onboarding`
+  - Updated `app/views/landing/index.html.erb` with "A home for every story, album, and game you’re into" hero and `facet_pose_01_bookworm.png`.
+  - Added companion bridge card "The Vault. The Broadcast." with duo mascot and direct link to `tacobout.online`.
+  - Updated "Make it yours" onboarding steps covering all 6 formats and active seasons.
+  - Updated `_editorial.scss` with responsive hero and companion card styles.
+  - Added request spec `spec/requests/landing_hero_redesign_spec.rb`.
 
 ---
 

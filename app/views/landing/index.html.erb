@@ -143,17 +143,28 @@
 <% else %>
   <section class="home-intro" aria-labelledby="home-title">
     <div class="home-intro-main">
-      <h1 id="home-title">A home for<br>everything you’re into.</h1>
-      <p>Keep track of what you watch, read, and listen to. Build your library, write a review, and find your next favorite.</p>
+      <div class="home-hero-header">
+        <h1 id="home-title">A home for every story, album, and game you’re into.</h1>
+        <div class="home-hero-mascot" aria-hidden="true">
+          <%= image_tag 'brand/facet_pose_01_bookworm.png', class: 'mascot-sticker mascot-slot-hero', width: 140, height: 246, alt: '' %>
+        </div>
+      </div>
+      <p>Log what you watch, read, play, and spin—without algorithmic clutter. Build your shelf across 6 media formats, track active series, and share honest takes.</p>
       <div class="home-actions">
         <%= link_to "Create your library", signup_path, class: "sleek-btn sleek-btn-primary" %>
-        <%= link_to "Explore movies", movies_path, class: "blog-link" %>
+        <%= link_to movies_path, class: "blog-link" do %>
+          <span>Browse the stacks</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg>
+        <% end %>
       </div>
     </div>
     <aside class="home-blog" aria-label="Our blog">
-      <h2>The library. The conversation.</h2>
-      <p>Trove keeps the collection.<br>taco ’bout it keeps the conversation going.</p>
-      <a class="blog-link" href="https://tacobout.online/">Read the blog <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></a>
+      <div class="home-blog-mascot" aria-hidden="true">
+        <%= image_tag 'brand/mascot_duo_telly_and_facet_transparent.png', class: 'mascot-sticker', style: 'max-height: 110px;', width: 220, height: 110, alt: '' %>
+      </div>
+      <h2>The Vault. The Broadcast.</h2>
+      <p>Trove stacks the collection; taco ‘bout it brings the hot takes, essays, and deep dives.</p>
+      <a class="blog-link" href="https://tacobout.online/">Tune into the blog <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></a>
     </aside>
   </section>
 
@@ -236,7 +247,11 @@
     <aside class="dashboard-sidebar">
       <div class="sidebar-widget">
         <h2>Make it yours</h2>
-        <ol class="home-steps"><li>Find something you love</li><li>Add it to your library</li><li>Share what you think</li></ol>
+        <ol class="home-steps">
+          <li>Log across 6 formats (Movies, TV, Books, Albums, Comics, Games)</li>
+          <li>Track your backlog &amp; active seasons</li>
+          <li>Drop star ratings that sync to the blog &amp; feed</li>
+        </ol>
       </div>
 
       <div class="sidebar-widget">
