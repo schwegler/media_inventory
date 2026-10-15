@@ -59,6 +59,20 @@ RSpec.describe 'Performance Optimization', type: :request do
     end
   end
 
+  describe 'RecordPreloader library_items eager loading' do
+    include RecordPreloader
+
+    it 'eager loads :library_items association on preloaded media items' do
+      movie1 = Movie.create!(title: 'Movie 1', release_year: 2024)
+      movie2 = Movie.create!(title: 'Movie 2', release_year: 2024)
+
+      preload_records_attachments([movie1, movie2])
+
+      expect(movie1.association(:library_items)).to be_loaded
+      expect(movie2.association(:library_items)).to be_loaded
+    end
+  end
+
   describe 'GET /posts/:id' do
     let(:user) { User.create!(name: 'Author', email: 'author@example.com', password: 'password', username: 'author') }
     let(:post_record) { user.posts.create!(content: 'Hello world!') }
