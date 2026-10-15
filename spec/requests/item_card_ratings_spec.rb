@@ -15,14 +15,27 @@ RSpec.describe 'Item card ratings', type: :request do
   end
 
   context 'when guest visits catalog' do
-    def library_queries_for_catalog
+    def library_queries_for_catalog(path = movies_path)
       queries = []
       subscriber = lambda do |*, payload|
         queries << payload[:sql] if payload[:sql].match?(/SELECT.*library_items/i)
       end
-      ActiveSupport::Notifications.subscribed(subscriber, 'sql.active_record') { get movies_path }
+      ActiveSupport::Notifications.subscribed(subscriber, 'sql.active_record') { get path }
       expect(response).to have_http_status(:ok)
       queries
+    end
+
+    it 'batches ratings in the specialized video game catalog as cards grow' do
+      library_queries_for_catalog(video_games_path)
+      small_queries = library_queries_for_catalog(video_games_path)
+      12.times do |number|
+        game = VideoGame.create!(title: "Extra rated game #{number}", game_type: 'game')
+        LibraryItem.insert_all!([{ user_id: other_user.id, item_type: 'VideoGame', item_id: game.id,
+                                   rating: '3.0', is_public: true }])
+      end
+      large_queries = library_queries_for_catalog(video_games_path)
+      expect(large_queries.size).to eq(small_queries.size)
+      expect(response.body).to include('Rated Game')
     end
 
     it 'keeps rating SQL bounded while rendering more cards and hides private ratings' do
