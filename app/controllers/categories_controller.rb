@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class CategoriesController < ApplicationController
+  include RecordPreloader
+
   PAGE_SIZE = 24
   LIST_PAGE_SIZE = 48
 
@@ -44,6 +46,7 @@ class CategoriesController < ApplicationController
     # Reuse in-memory matches to prevent duplicate database queries
     filtered_matches = filter_and_sort_matches(all_matches)
     @items = Kaminari.paginate_array(filtered_matches).page(params[:page]).per(PAGE_SIZE)
+    preload_card_ratings(@items.to_a)
   end
 
   private
