@@ -21,8 +21,13 @@ RSpec.describe 'Brand system and mascot assets', type: :request do
     brand_asset_names.each do |filename|
       path = Rails.root.join('app', 'assets', 'images', 'brand', filename)
       expect(File.exist?(path)).to be(true), "Expected #{filename} to exist in app/assets/images/brand/"
-      header = File.binread(path, 8)
-      expect(header).to eq("\x89PNG\r\n\x1a\n".b), "Expected #{filename} to be a valid PNG file"
+      header = File.binread(path, 26)
+      expect(header[0, 8]).to eq("\x89PNG\r\n\x1a\n".b), "Expected #{filename} to be a valid PNG file"
+
+      if filename == 'trove_rounded_app_icon.png'
+        # Ensure RGBA color type (type 6) so transparent corners render cleanly in dark mode
+        expect(header[25].ord).to eq(6), 'Expected trove_rounded_app_icon.png to have an alpha channel (color type 6)'
+      end
     end
   end
 

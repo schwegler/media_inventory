@@ -39,10 +39,10 @@ RSpec.describe 'Favorite shelves', type: :request do
     expect(preview).to include('/rails/active_storage/blobs/')
     expect(page.at_css('meta[name="twitter:image"]')['content']).to eq(preview)
     get shelf_path(user.username, category: 'Movie', theme: 'gallery')
-    expect(Nokogiri::HTML(response.body).at_css('meta[property="og:image"]')['content']).to end_with('/favicon.svg')
+    expect(Nokogiri::HTML(response.body).at_css('meta[property="og:image"]')['content']).to end_with('/brand/trove_logo_dark_card.png')
     user.update!(shelf_headline: 'Changed')
     get shelf_path(user.username, category: 'Movie')
-    expect(Nokogiri::HTML(response.body).at_css('meta[property="og:image"]')['content']).to end_with('/favicon.svg')
+    expect(Nokogiri::HTML(response.body).at_css('meta[property="og:image"]')['content']).to end_with('/brand/trove_logo_dark_card.png')
     login
     patch shelf_path(user.username, category: 'Movie'), params: {
       preview_image: fixture_file_upload('transparent-logo.png', 'image/png'), preview_category: 'Movie',
