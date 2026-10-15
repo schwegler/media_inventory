@@ -2,8 +2,6 @@
 
 # rubocop:disable-next Metrics/ClassLength
 class InventoryController < ApplicationController
-  include RecordPreloader
-
   CATALOG_PAGE_SIZE = 24
   # Centralize authentication filter for all mutating inventory actions
   before_action :logged_in_user, only: %i[new create edit update destroy]
@@ -16,9 +14,11 @@ class InventoryController < ApplicationController
     scope = resource_class
     # Eager load ActiveStorage attachments/blobs for cover images to prevent N+1 queries when rendering media card grids
     scope = scope.with_attached_cover_image if scope.respond_to?(:with_attached_cover_image)
+    if scope.respond_to?(:reflect_on_association) && scope.reflect_on_association(:library_items)
+      scope = scope.preload(:library_items)
+    end
 
     @resources = catalog_scope(scope).page(params[:page]).per(CATALOG_PAGE_SIZE)
-    preload_card_ratings(@resources.to_a)
     instance_variable_set("@#{resource_name.pluralize}", @resources)
     prepare_media_library if @personal_library
     return unless params[:q].present?

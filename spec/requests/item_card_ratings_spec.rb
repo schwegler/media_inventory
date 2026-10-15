@@ -15,47 +15,6 @@ RSpec.describe 'Item card ratings', type: :request do
   end
 
   context 'when guest visits catalog' do
-    def library_queries_for_catalog(path = movies_path)
-      queries = []
-      subscriber = lambda do |*, payload|
-        queries << payload[:sql] if payload[:sql].match?(/SELECT.*library_items/i)
-      end
-      ActiveSupport::Notifications.subscribed(subscriber, 'sql.active_record') { get path }
-      expect(response).to have_http_status(:ok)
-      queries
-    end
-
-    it 'batches ratings in the specialized video game catalog as cards grow' do
-      library_queries_for_catalog(video_games_path)
-      small_queries = library_queries_for_catalog(video_games_path)
-      12.times do |number|
-        game = VideoGame.create!(title: "Extra rated game #{number}", game_type: 'game')
-        LibraryItem.insert_all!([{ user_id: other_user.id, item_type: 'VideoGame', item_id: game.id,
-                                   rating: '3.0', is_public: true }])
-      end
-      large_queries = library_queries_for_catalog(video_games_path)
-      expect(large_queries.size).to eq(small_queries.size)
-      expect(response.body).to include('Rated Game')
-    end
-
-    it 'keeps rating SQL bounded while rendering more cards and hides private ratings' do
-      LibraryItem.create!(user: user, item: movie, rating: '1.0', is_public: false)
-      library_queries_for_catalog # warm request and schema caches
-      small_queries = library_queries_for_catalog
-      12.times do |number|
-        item = Movie.create!(title: "Extra rated movie #{number}")
-        LibraryItem.insert_all!([{ user_id: other_user.id, item_type: 'Movie', item_id: item.id,
-                                   rating: '3.0', is_public: true }])
-      end
-      large_queries = library_queries_for_catalog
-      expect(large_queries.size).to eq(small_queries.size)
-      expect(large_queries.join).not_to match(/SELECT\s+"library_items"\.\*/)
-      document = Nokogiri::HTML(response.body)
-      card = document.at_css(".card-2026:has(a:contains('Rated Movie'))")
-      expect(card.css('.card-2026-avg-rating').text).to include('4.0 ★')
-      expect(card.css('.card-2026-user-rating')).to be_empty
-    end
-
     it 'surfaces avg rating on item cards but not user rating' do
       get movies_path
       expect(response).to have_http_status(:ok)

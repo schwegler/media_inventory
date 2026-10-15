@@ -2,7 +2,7 @@
   <h3 class="streaming-links-title">Find this title</h3>
   <div class="streaming-buttons-row">
     <% media_source_links(item).each do |source| %>
-      <%= link_to source[:url], target: '_blank', rel: 'noopener', class: "btn btn-stream-#{source[:kind]}" do %>
+      <%= link_to source[:url], target: '_blank', rel: 'noopener noreferrer', class: "btn btn-stream-#{source[:kind]}" do %>
         <span class="media-source-icon" aria-hidden="true"><%= ui_icon(source[:icon]) %></span>
         <span class="media-source-label"><%= source[:label] %></span>
       <% end %>

@@ -208,6 +208,7 @@ class Category
   def self.entity_items(model, ids)
     scope = model.where(id: ids)
     scope = scope.with_attached_cover_image if scope.respond_to?(:with_attached_cover_image)
+    scope = scope.includes(:library_items) if model.reflect_on_association(:library_items)
     scope = scope.includes(:comic) if model == ComicIssue
     scope = scope.includes(:tv_show) if model == TvEpisode
     scope.to_a

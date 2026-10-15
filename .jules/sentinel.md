@@ -16,3 +16,7 @@
 **Vulnerability:** Raw string interpolation in ActiveRecord queries (`where` and `joins` clauses) for dynamically generated table and column names in `app/controllers/users_controller.rb` and `app/services/admin/merge_media.rb`.
 **Learning:** Even internal variables dynamically constructed (e.g. `#{table}.#{association}_type`) can flag SQL injection warnings or pose risks if caller arguments aren't strictly verified. Brakeman effectively catches these.
 **Prevention:** Always use `ActiveRecord::Base.connection.quote_table_name` and `ActiveRecord::Base.connection.quote_column_name` for interpolating table and column names into raw SQL fragments. If raw SQL is used in `.joins`, ensure it is wrapped in `Arel.sql()` after quoting elements. Use bind variables (e.g., `?`) via `.where(..., value)` rather than `.where(Arel.sql(..., value))` which would drop the parameter in Rails.
+## 2026-10-15 - [Reverse Tabnabbing in `link_to` helpers]
+**Vulnerability:** Weakly configured external links missing `noopener noreferrer` in `link_to` elements with `target: '_blank'`.
+**Learning:** Using `target: '_blank'` without `rel: 'noopener noreferrer'` allows newly opened tabs to have access to the `window.opener` object, creating a Reverse Tabnabbing vulnerability where the newly opened site could redirect the origin site to a phishing or malicious page.
+**Prevention:** Make sure `rel: 'noopener noreferrer'` is specified in `link_to` elements or raw HTML `<a>` tags whenever `target: '_blank'` is present.

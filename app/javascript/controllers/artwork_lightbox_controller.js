@@ -3,6 +3,10 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static values = { label: String }
 
+  connect() {
+    this.element.dataset.connected = "true"
+  }
+
   open(event) {
     if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
     event.preventDefault()
@@ -12,6 +16,7 @@ export default class extends Controller {
     const close = document.createElement("button")
     close.type = "button"
     close.textContent = "Close"
+    close.setAttribute("aria-label", "Close image lightbox")
     close.addEventListener("click", () => this.dialog.close())
     const image = document.createElement("img")
     image.src = this.element.href
@@ -20,7 +25,7 @@ export default class extends Controller {
     original.href = this.element.href
     original.textContent = "Open full-size image"
     original.target = "_blank"
-    original.rel = "noopener"
+    original.rel = "noopener noreferrer"
     this.dialog.append(close, original, image)
     this.dialog.addEventListener("click", event => {
       if (event.target === this.dialog) this.dialog.close()

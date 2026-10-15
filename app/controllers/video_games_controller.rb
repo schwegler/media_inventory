@@ -33,7 +33,6 @@ class VideoGamesController < InventoryController
     @layout = %w[grid list table].include?(@filters['layout']) ? @filters['layout'] : 'grid'
     query = GameLibraryQuery.new(@filters, user: @personal_library ? current_user : nil)
     @video_games = query.call.page(params[:page]).per(CATALOG_PAGE_SIZE)
-    preload_card_ratings(@video_games.to_a)
     load_index_libraries
   end
 

@@ -10,7 +10,7 @@
         <div class="entity-portrait entity-monogram" aria-label="No image available"><%= @entity.name.first %></div>
       <% end %>
       <% if @entity.portrait_metadata['source_url'].present? %>
-        <%= link_to 'Photo source ↗', @entity.portrait_metadata['source_url'], class: 'entity-photo-source', rel: 'noopener', target: '_blank' %>
+        <%= link_to 'Photo source ↗', @entity.portrait_metadata['source_url'], class: 'entity-photo-source', rel: 'noopener noreferrer', target: '_blank' %>
         <details class="entity-photo-credit"><summary>Photo credit</summary><small><%= @entity.portrait_metadata.values_at('credit', 'license').compact_blank.join(' · ') %></small></details>
       <% end %>
     </div>
