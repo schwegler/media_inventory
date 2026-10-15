@@ -5,13 +5,12 @@ require 'rails_helper'
 RSpec.describe MoviesController, type: :controller do
   describe 'GET #index' do
     it 'returns a success response' do
-      movies = double('movies')
-      allow(movies).to receive(:per).with(24).and_return(movies)
-      allow(Movie).to receive(:page).with('1').and_return(movies)
+      movie = Movie.create!(title: 'Catalog movie')
 
       get :index, params: { page: '1' }
 
       expect(response).to be_successful
+      expect(controller.instance_variable_get(:@movies)).to include(movie)
     end
   end
 
