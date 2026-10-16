@@ -75,5 +75,14 @@ RSpec.describe 'Item card ratings', type: :request do
       expect(movie_card.css('.card-2026-user-rating').text).to include('Yours')
       expect(movie_card.css('.card-2026-avg-rating').text).to include('4.5 ★')
     end
+
+    it 'preloads library items for preloaded records to prevent N+1 queries during card rendering' do
+      items = LibraryItem.where(user: user, item: [movie, video_game]).to_a
+      dummy_controller = Class.new { include RecordPreloader }.new
+      dummy_controller.send(:preload_library_items, items)
+
+      preloaded_media = items.map(&:item)
+      expect(preloaded_media.all? { |media| media.association(:library_items).loaded? }).to be true
+    end
   end
 end

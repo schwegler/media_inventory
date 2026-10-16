@@ -92,11 +92,19 @@ module RecordPreloader
     return records if records.blank?
 
     records.group_by(&:class).each do |klass, grouped_records|
-      next unless klass.respond_to?(:reflect_on_association) && klass.reflect_on_association(:cover_image_attachment)
+      next unless klass.respond_to?(:reflect_on_association)
 
+      associations = []
+      associations << { cover_image_attachment: :blob } if klass.reflect_on_association(:cover_image_attachment)
+      associations << :library_items if klass.reflect_on_association(:library_items)
+
+      next if associations.empty?
+
+      # Batch preload library items alongside cover image attachments to allow MediaRatingsHelper
+      # to compute item card ratings in memory and eliminate N+1 queries during card rendering.
       ActiveRecord::Associations::Preloader.new(
         records: grouped_records,
-        associations: { cover_image_attachment: :blob }
+        associations: associations
       ).call
     end
     records
