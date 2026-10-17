@@ -15,7 +15,7 @@ export default class extends Controller {
     this.applyTheme(); this.render()
     this.guard = event => { if (this.dirty) { event.preventDefault(); event.returnValue = "" } }
     this.visitGuard = event => { if (this.dirty && !window.confirm("Leave without saving your shelf?")) event.preventDefault() }
-    this.onDialogClose = () => { if (this.opener && typeof this.opener.focus === "function" && this.opener.isConnected) this.opener.focus() }
+    this.onDialogClose = () => { const opener = this.opener; this.opener = null; if (opener && typeof opener.focus === "function" && opener.isConnected) opener.focus() }
     if (this.hasDialogTarget) this.dialogTarget.addEventListener("close", this.onDialogClose)
     window.addEventListener("beforeunload", this.guard)
     document.addEventListener("turbo:before-visit", this.visitGuard)
@@ -61,7 +61,7 @@ export default class extends Controller {
         const controls = document.createElement("div"); controls.className = "shelf-controls"
         const up = this.button("←", () => this.move(index, -1), `Move ${pick.title} earlier`); up.disabled = index === 0
         const down = this.button("→", () => this.move(index, 1), `Move ${pick.title} later`); down.disabled = index === this.picks.length - 1
-        controls.append(up, down, this.button("Remove", () => { this.picks.splice(index, 1); this.changed() }, `Remove ${pick.title} from favorites`))
+        controls.append(up, down, this.button("Remove", () => { this.picks.splice(index, 1); this.changed() }, `Remove ${pick.title} from shelf`))
         slot.append(controls)
       }
       this.slotsTarget.append(slot)
