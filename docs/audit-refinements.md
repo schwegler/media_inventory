@@ -79,3 +79,20 @@ legacy rows contain private bodies. Private ratings on non-review events stay
 hidden. Signed-in dashboard responses explicitly remain private/no-store.
 Service/request regression coverage includes high repetition, exact follow
 scope, proxy grouping, orphan records and false/NULL/private/own review cases.
+
+## Bounded background admission and operational visibility
+
+The default in-process queue has one worker and at most 32 outstanding jobs;
+provider search retains its separate single worker with an eight-job bound.
+Delayed retries reserve capacity too. Both limits are configurable (1–128).
+Saturation uses Active Job's normal enqueue-error contract; metadata, search,
+artwork, portrait and import entry points restore a retryable state rather than
+showing accepted work that was never queued. Admin displays running, queued and
+scheduled counts, oldest age and the last failure class without arguments.
+
+This is a memory/admission guard, not durable delivery. Restart discards queued
+work and metrics; a database-backed worker remains a separate deployment decision
+if delivery guarantees become necessary. No delivery guarantee is claimed for
+social posting. Existing domain leases/cooldowns and explicit retry paths remain
+necessary. The admission tests exercise saturation, delayed cancellation, failure
+release and sanitized diagnostics with no provider requests.

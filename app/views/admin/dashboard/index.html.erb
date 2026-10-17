@@ -53,7 +53,21 @@
     <div class="section-header"><h2 id="community-title">Community</h2><%= link_to 'Find users →', admin_users_path %></div>
     <dl class="community-stats"><dt>Active collection contributors · 7 days</dt><dd><%= @snapshot[:contributors] %></dd><dt>Comments / likes / follows · 7 days</dt><dd><%= @snapshot.values_at(:comments, :likes, :follows).join(' / ') %></dd><dt>Mastodon / Bluesky credentials saved</dt><dd><%= @snapshot[:mastodon] %> / <%= @snapshot[:bluesky] %></dd><dt>Registered Mastodon OAuth apps</dt><dd><%= link_to @snapshot[:oauth_apps], admin_mastodon_oauth_applications_path %></dd></dl>
     <p class="panel-note">Saved credentials do not confirm a working connection. ActivityPub publishes actor and outbox endpoints; inbound processing is not implemented.</p>
-    <h3>Background operations</h3><p class="muted">Adapter: <%= ActiveJob::Base.queue_adapter.class.name.demodulize.delete_suffix('Adapter') %>. This installation does not store job outcomes or import progress.</p>
+    <% storage = @snapshot[:artwork_storage] %>
+    <h3>Provider artwork storage</h3>
+    <p><%= number_to_human_size(storage[:used]) %> / <%= number_to_human_size(storage[:quota]) %> configured quota.
+      This counts provider cover blobs, not total disk usage or free space.</p>
+    <p class="muted">Provider responses use a file cache. Cache size and disk free space require host monitoring; no recursive disk scan runs here.</p>
+    <h3>Background operations</h3><p class="muted">Adapter: <%= ActiveJob::Base.queue_adapter.class.name.demodulize.delete_suffix('Adapter') %>. Job history and import progress are not persisted.</p>
+    <% @overview.background_operations.each do |pool| %>
+      <% values = pool[:values] %>
+      <p><strong><%= pool[:label] %></strong>: <%= values[:outstanding] %> / <%= values[:capacity] %> admitted;
+        <%= values[:queued] %> waiting, <%= values[:running] %> running, <%= values[:scheduled] %> scheduled.
+        Oldest: <%= values[:oldest_seconds] %> seconds.</p>
+      <% if values[:last_failure] %><p role="status">Last queue issue: <%= values[:last_failure][:reason] %> · <%= values[:last_failure][:at] %></p><% end %>
+    <% end %>
+    <p class="muted">Worker counts describe this process only and reset on restart. Waiting jobs are not durable; interrupted metadata and artwork can be retried.</p>
+
   </section>
 </div>
 <p class="data-freshness">Counts calculated <%= time_ago_in_words(@snapshot[:calculated_at]) %> ago · cached for up to one minute. Record lists are live.</p>

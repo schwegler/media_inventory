@@ -4,6 +4,7 @@ class MetadataRefresh < ApplicationRecord
   belongs_to :item, polymorphic: true
 
   MESSAGES = {
+    'queue_busy' => 'Background work is busy. Please try the metadata check again shortly.',
     'success' => 'Metadata refreshed. Your library history and reviews are preserved.',
     'unchanged' => 'Metadata checked. No changes found.',
     'partial' => 'Some metadata was refreshed, but the provider could not supply everything. Try again later.',

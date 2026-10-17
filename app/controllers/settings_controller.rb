@@ -19,8 +19,12 @@ class SettingsController < ApplicationController
       file = params[:export_file]
       temp_path = Rails.root.join('tmp', "letterboxd_export_#{current_user.id}_#{Time.now.to_i}.zip").to_s
       File.binwrite(temp_path, file.read)
-      LetterboxdImportJob.perform_later(current_user.id, temp_path)
-      flash[:success] = 'Import started. Your data will appear in your library soon.'
+      if LetterboxdImportJob.perform_later(current_user.id, temp_path)
+        flash[:success] = 'Import started. Your data will appear in your library soon.'
+      else
+        FileUtils.rm_f(temp_path)
+        flash[:alert] = 'Background work is busy. Your import has not started; please try again shortly.'
+      end
     else
       flash[:alert] = 'Please provide a file.'
     end

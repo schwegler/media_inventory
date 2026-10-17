@@ -9,7 +9,9 @@ class RefreshEntityPortraitJob < ApplicationJob
     claimed = MetadataEntity.where(id: entity.id).where('portrait_checked_at IS NULL OR portrait_checked_at < ?',
                                                         30.days.ago)
                             .update_all(portrait_checked_at: Time.current)
-    perform_later(entity.id) if claimed.positive?
+    return unless claimed.positive? && !perform_later(entity.id)
+
+    MetadataEntity.where(id: entity.id).update_all(portrait_checked_at: nil)
   end
 
   def perform(entity_id)

@@ -28,6 +28,8 @@ module StoredMediaCover
       return
     end
     health.update!(source_url: thumbnail_url, state: 'pending', failure_reason: nil)
-    ImportMediaCoverJob.perform_later(self, thumbnail_url)
+    return if ImportMediaCoverJob.perform_later(self, thumbnail_url)
+
+    health.update!(state: 'failed', failure_reason: 'Background queue is busy. Retry later.')
   end
 end

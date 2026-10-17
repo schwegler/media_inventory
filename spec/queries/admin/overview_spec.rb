@@ -30,6 +30,14 @@ RSpec.describe Admin::Overview do
     expect(statements).to be_empty
   end
 
+  it 'reports provider-cover quota separately from other uploaded files' do
+    ActiveStorage::Blob.create_and_upload!(io: StringIO.new('cover'), key: 'media-covers/audit-cover',
+                                           filename: 'cover.webp', content_type: 'image/webp', identify: false)
+    ActiveStorage::Blob.create_and_upload!(io: StringIO.new('other upload'), filename: 'avatar.png',
+                                           content_type: 'image/png', identify: false)
+    expect(described_class.new.snapshot[:artwork_storage]).to eq(used: 5, quota: 512.megabytes)
+  end
+
   it 'reports configuration state honestly without exposing tokens' do
     ApiConfiguration.create!(source_name: 'TMDB', media_type: 'Movie', is_active: true, base_url: 'https://example.com')
     ApiConfiguration.create!(source_name: 'RAWG', media_type: 'VideoGame', is_active: false, access_token: 'private')

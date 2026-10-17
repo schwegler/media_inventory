@@ -16,7 +16,9 @@ class MediaArtworkRendition < ApplicationRecord
                       .update_all(state: 'pending', failure_reason: nil, updated_at: Time.current).positive?
       next unless row.previously_new_record? || retry_claimed
 
-      GenerateMediaArtworkRenditionJob.perform_later(row)
+      unless GenerateMediaArtworkRenditionJob.perform_later(row)
+        row.update!(state: 'failed', failure_reason: 'Background queue is busy. Retry later.')
+      end
     end
   end
 end
