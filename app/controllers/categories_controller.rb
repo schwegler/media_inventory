@@ -13,9 +13,11 @@ class CategoriesController < ApplicationController
     @top_categories = {}
     @counts = {}
     @types.each do |type|
-      list = Category.list_for(type)
-      @counts[type] = list.size
-      @top_categories[type] = list.first(12)
+      list = Rails.cache.fetch(['category-hub-v2', type], expires_in: 1.minute) do
+        CategoryQuery.new(type).categories(per: 12)
+      end
+      @counts[type] = list.total_count
+      @top_categories[type] = list.to_a
     end
   end
 
@@ -25,8 +27,8 @@ class CategoriesController < ApplicationController
     @query = params[:q].to_s.strip
     @sort = params[:sort] || 'count'
 
-    all_categories = Category.list_for(@category_type, query: @query, sort: @sort)
-    @categories = Kaminari.paginate_array(all_categories).page(params[:page]).per(LIST_PAGE_SIZE)
+    @categories = CategoryQuery.new(@category_type).categories(query: @query, sort: @sort,
+                                                               page: params[:page], per: LIST_PAGE_SIZE)
   end
 
   def show
@@ -40,37 +42,13 @@ class CategoriesController < ApplicationController
     @singular = Category.singular_for(@category_type)
     @category_title = Category.title_for(@category_type)
 
-    all_matches = Category.items_for(@category_type, @name)
-    @media_counts = calculate_media_counts(all_matches)
-
-    # Reuse in-memory matches to prevent duplicate database queries
-    filtered_matches = filter_and_sort_matches(all_matches)
-    @items = Kaminari.paginate_array(filtered_matches).page(params[:page]).per(PAGE_SIZE)
+    query = CategoryQuery.new(@category_type)
+    @items = query.items(@name, media_type: params[:type], sort: params[:sort], page: params[:page], per: PAGE_SIZE)
+    @media_counts = query.media_counts
     preload_card_ratings(@items.to_a)
   end
 
   private
-
-  def calculate_media_counts(matches)
-    {
-      'all' => matches.size,
-      'movies' => matches.count { |i| i.is_a?(Movie) },
-      'tv_shows' => matches.count { |i| i.is_a?(TvShow) },
-      'albums' => matches.count { |i| i.is_a?(Album) },
-      'comics' => matches.count { |i| i.is_a?(Comic) },
-      'books' => matches.count { |i| i.is_a?(Book) },
-      'video_games' => matches.count { |i| i.is_a?(VideoGame) }
-    }
-  end
-
-  def filter_and_sort_matches(matches)
-    filtered = if params[:type].present?
-                 matches.select { |item| Category.media_type_matches?(item.class, params[:type]) }
-               else
-                 matches
-               end
-    Category.sort_items(filtered, params[:sort])
-  end
 
   def validate_category_type
     @category_type = params[:category_type].to_s.strip.downcase
