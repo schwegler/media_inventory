@@ -27,6 +27,7 @@
     <div class="library-profile-actions">
       <% if @profile_owner %>
         <%= link_to 'Edit profile', settings_path, class: 'sleek-btn sleek-btn-primary' %>
+        <%= link_to 'Curate favorites', shelf_path(@user.username, category: 'overall'), class: 'sleek-btn sleek-btn-secondary' if @user.username.present? %>
         <%= link_to 'Public preview', user_path(@user, preview: 'public'), class: 'sleek-btn sleek-btn-secondary' %>
       <% elsif logged_in? && !current_user?(@user) %>
         <%= render 'follow_form', user: @user %>

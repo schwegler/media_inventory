@@ -40,6 +40,25 @@ legacy separators, duplicate roles and polymorphic identities stay distinct.
 counts, mixed/child types, legacy tokens, Unicode and wildcard escaping. PR603's
 rating preloader is used when available; this branch does not duplicate it.
 
+## Deliberate shelf previews and profile pathways
+
+Profile owners have a direct Curate favorites action. Shelf navigation links
+curation and profile customization. An empty visitor exhibition has one concise
+state and all category destinations instead of 35 miniature placeholders.
+
+Opening a shelf never renders a hidden canvas or uploads a preview. Expanding
+the preview or downloading renders locally; the explicit Publish share preview
+action persists the social-card image. Publishing requires saved picks, uses the
+existing owner/CSRF/signature protections, restores its control on failure and
+rejects detached/stale renders. The server deduplicates signature/theme previews
+under the owner's lock. Existing public OG fallbacks remain until publication.
+PR609's independent opener/name changes are not duplicated or overwritten.
+
+Four dependency-free JavaScript tests exercise the actual controller's no-work
+visit, explicit CSRF-protected publication, reuse, failure and stale-render paths.
+Request tests cover no-write GET and duplicate publication; all seven categories,
+themes, image formats and alt text remain available.
+
 Category security review: all category names/search terms and pagination values
 use named SQL binds. Model tables, attributes, category roles and sort expressions
 come only from fixed allowlists; unknown category types are rejected. Regression

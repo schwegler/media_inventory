@@ -80,13 +80,22 @@ class ShelvesController < ApplicationController
     signature = helpers.shelf_preview_signature(@user, category)
     return head :conflict unless params[:preview_signature] == signature
 
+    @user.with_lock do
+      return head :conflict unless params[:preview_signature] == helpers.shelf_preview_signature(@user, category)
+      return head :no_content if helpers.shelf_preview_image(@user, category, theme)
+
+      persist_preview(image, category, theme, signature)
+    end
+    head :no_content
+  end
+
+  def persist_preview(image, category, theme, signature)
     previous = @user.shelf_previews.select do |preview|
       preview.blob.metadata.values_at('category', 'theme') == [category, theme]
     end
     @user.shelf_previews.attach(io: image.tempfile, filename: 'shelf.png', content_type: 'image/png',
                                 metadata: { category: category, theme: theme, signature: signature })
     previous.each(&:purge_later)
-    head :no_content
   end
 
   def update_headline

@@ -46,6 +46,8 @@ jobs:
       # Add or replace test runners here
       - name: Run tests
         run: bin/rake
+      - name: Check selective browser behavior
+        run: node --test spec/javascript/*.test.cjs
       - name: Install browser and matching driver
         id: chrome
         uses: browser-actions/setup-chrome@v2
@@ -65,6 +67,7 @@ jobs:
           spec/system/metadata_detail_layout_system_spec.rb
           spec/system/tv_episodes_system_spec.rb
           spec/system/tv_shows_system_spec.rb
+          spec/system/shelf_preview_system_spec.rb
 
   lint:
     runs-on: ubuntu-latest
