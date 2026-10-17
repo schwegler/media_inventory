@@ -91,12 +91,11 @@ module RecordPreloader
   def preload_records_attachments(records)
     return records if records.blank?
 
+    preload_card_ratings(records)
     records.group_by(&:class).each do |klass, grouped_records|
       next unless klass.respond_to?(:reflect_on_association)
 
       associations = []
-      # Eager load :library_items for media items to eliminate N+1 queries when card ratings are rendered
-      associations << :library_items if klass.reflect_on_association(:library_items)
       associations << { cover_image_attachment: :blob } if klass.reflect_on_association(:cover_image_attachment)
 
       next if associations.empty?
@@ -107,5 +106,10 @@ module RecordPreloader
       ).call
     end
     records
+  end
+
+  def preload_card_ratings(records)
+    @preloaded_card_ratings ||= {}
+    @preloaded_card_ratings.merge!(MediaCardRatings.call(records, user_id: current_user&.id))
   end
 end

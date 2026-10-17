@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class SearchController < ApplicationController
+  include RecordPreloader
+
   MAPPINGS = {
     'movies' => [:movies, Movie],
     'albums' => [:albums, Album],
@@ -25,10 +27,8 @@ class SearchController < ApplicationController
 
       scope = MetadataSearch.call(klass.all, @query)
       scope = scope.with_attached_cover_image if klass.respond_to?(:with_attached_cover_image)
-      if klass.respond_to?(:reflect_on_association) && klass.reflect_on_association(:library_items)
-        scope = scope.includes(:library_items)
-      end
       @results[res_key] = scope.limit(20).to_a
+      preload_card_ratings(@results[res_key])
       @match_context[klass.name] = MetadataMatchContext.call(@results[res_key], @query)
     end
   end

@@ -40,5 +40,36 @@ RSpec.describe MediaRatingsHelper, type: :helper do
 
       expect(helper.item_card_ratings(movie, user_library: lib)).to eq({ user_rating: '3.5', avg_rating: 3.5 })
     end
+
+    it 'uses preloaded summaries without issuing a query while rendering cards' do
+      LibraryItem.create!(user: other_user, item: movie, rating: '4.0', is_public: true)
+      allow(helper).to receive(:logged_in?).and_return(false)
+      helper.instance_variable_set(:@preloaded_card_ratings, MediaCardRatings.call([movie]))
+      expect(MediaCardRatings).not_to receive(:call)
+      expect(helper.item_card_ratings(movie)).to eq(user_rating: nil, avg_rating: 4.0)
+    end
+
+    it 'does not reuse private viewer summaries for a different viewer' do
+      LibraryItem.create!(user: user, item: movie, rating: '5.0', is_public: false)
+      helper.instance_variable_set(:@preloaded_card_ratings, MediaCardRatings.call([movie], user_id: user.id))
+      allow(helper).to receive(:logged_in?).and_return(false)
+      expect(helper.item_card_ratings(movie)).to eq(user_rating: nil, avg_rating: nil)
+    end
+
+    it 'preserves an explicit unsaved own rating override without changing the stored average' do
+      lib = LibraryItem.create!(user: user, item: movie, rating: '3.5', is_public: false)
+      allow(helper).to receive(:logged_in?).and_return(true)
+      allow(helper).to receive(:current_user).and_return(user)
+      helper.instance_variable_set(:@preloaded_card_ratings, MediaCardRatings.call([movie], user_id: user.id))
+      lib.rating = '5.0'
+      expect(helper.item_card_ratings(movie, user_library: lib)).to eq(user_rating: '5.0', avg_rating: 3.5)
+    end
+
+    it 'does not use another person private rating as an explicit override' do
+      lib = LibraryItem.create!(user: other_user, item: movie, rating: '1.0', is_public: false)
+      allow(helper).to receive(:logged_in?).and_return(true)
+      allow(helper).to receive(:current_user).and_return(user)
+      expect(helper.item_card_ratings(movie, user_library: lib)).to eq(user_rating: nil, avg_rating: nil)
+    end
   end
 end
