@@ -14,3 +14,9 @@
 - Use bound values/Arel for visibility and owner predicates. Unrestricted legacy strings must retain existing Ruby conversion semantics; neither unsafe SQL interpolation nor rejecting previously accepted strings is a performance fix.
 
 **Tests:** Cover guest versus owner versus another viewer, false/NULL visibility, public-own no-double-counting, unrated entries, viewer-cache isolation and explicit own/non-own overrides alongside the legacy parity and resource tests in `bolt.md`. `d9907cb4` had these regressions and passing [PostgreSQL CI](https://github.com/schwegler/media_inventory/actions/runs/38795319163); the later #603 commit removes them, so do not infer their protection from its stale PR description. Preserve unrelated Sentinel history and later security edits when reconciling the implementation.
+
+
+## 2026-10-15 - [Reverse Tabnabbing in `link_to` helpers]
+**Vulnerability:** Weakly configured external links missing `noopener noreferrer` in `link_to` elements with `target: '_blank'`.
+**Learning:** Using `target: '_blank'` without `rel: 'noopener noreferrer'` allows newly opened tabs to have access to the `window.opener` object, creating a Reverse Tabnabbing vulnerability where the newly opened site could redirect the origin site to a phishing or malicious page.
+**Prevention:** Make sure `rel: 'noopener noreferrer'` is specified in `link_to` elements or raw HTML `<a>` tags whenever `target: '_blank'` is present.
