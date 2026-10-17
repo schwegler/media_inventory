@@ -86,4 +86,32 @@ RSpec.describe 'Metadata repair', type: :request do
     expect(response.body).to include("id=\"ownership-details-#{album.id}\"")
     expect(response.body).to include("id=\"review-details-#{album.id}\"")
   end
+
+  it 'reads a small private status without creating records or contacting providers' do
+    status_path = metadata_status_path(media_type: 'tv_shows', media_id: show.id)
+    get status_path, as: :json
+    expect(response).to redirect_to(login_url)
+    login
+    expect { get status_path, as: :json }.not_to change(MetadataRefresh, :count)
+    expect(response.parsed_body).to eq('state' => 'idle', 'message' => nil, 'request_id' => nil)
+    expect(response.headers['Cache-Control']).to include('private', 'no-store')
+    refresh = MetadataRefresh.create!(item: show, state: 'refreshing', requested_at: Time.current, provider: 'Secret URL')
+    get status_path, as: :json
+    expect(response.parsed_body.keys).to match_array(%w[state message request_id])
+    expect(response.parsed_body['request_id']).to eq(refresh.requested_at.iso8601(6))
+    expect(response.body).not_to include('Secret URL')
+    expect(WebMock).not_to have_requested(:get, 'https://api.tvmaze.com/shows/42')
+  end
+
+  it 'keeps status authorization aligned with game refresh ownership and fixed media types' do
+    login
+    game = VideoGame.create!(title: 'Unowned game')
+    get metadata_status_path(media_type: 'video_games', media_id: game.id), as: :json
+    expect(response).to have_http_status(:forbidden)
+    LibraryItem.create!(user: user, item: game)
+    get metadata_status_path(media_type: 'video_games', media_id: game.id), as: :json
+    expect(response).to have_http_status(:ok)
+    get metadata_status_path(media_type: 'users', media_id: user.id), as: :json
+    expect(response).to have_http_status(:not_found)
+  end
 end

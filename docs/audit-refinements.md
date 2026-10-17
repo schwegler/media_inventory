@@ -115,3 +115,15 @@ queries and return-to-season links. HTTP(S) source links reject credentials and
 unsupported schemes. Service/helper fixtures cover 1,000 entries, available/
 unknown/future eligibility and special ordering; browser checks cover 390/1440px
 layout, deliberate early logging, control size and duplicate IDs.
+
+## Bounded metadata status feedback
+
+An authenticated, owner-checked-for-games status GET reads three scalar fields
+without enqueuing, creating refresh records or exposing provider URLs. Responses
+are private/no-store. Explicit refreshes poll this endpoint with backoff, a
+session-persisted request/retry counter, a ten-check/two-minute bound and abort on
+disconnect. Ordinary visits do not poll. Only success/partial/unchanged performs
+one final page update; failed/denied checks stop with an actionable message.
+The existing CSRF-protected refresh POST and server cooldown/lease remain the
+only authority for provider work. Request and actual-controller JavaScript tests
+cover no-write status, game authorization, continuation, stopping and cancellation.

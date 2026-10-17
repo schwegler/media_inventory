@@ -128,6 +128,7 @@ SampleApp::Application.routes.draw do
     get 'attention', to: 'dashboard#attention'
     root to: 'dashboard#index'
   end
+  get '/metadata/:media_type/:media_id/status', to: 'metadata_refreshes#status', as: 'metadata_status'
   post '/metadata/:media_type/:media_id/refresh', to: 'metadata_refreshes#create', as: 'refresh_metadata'
   root 'landing#index'
   get 'test_bsky', to: 'landing#test_bsky'
