@@ -3,7 +3,7 @@ import { renderShelfImage, shelfImageAltText, SHELF_THEMES } from "controllers/s
 
 export default class extends Controller {
   static targets = ["slots", "dialog", "query", "results", "status", "canvas", "altText", "altTextDetails"]
-  static values = { picks: Array, url: String, search: String, handle: String, category: String, shelves: Array, overview: Boolean, headline: String, owner: Boolean, previewCategory: String, previewSignature: String }
+  static values = { picks: Array, url: String, search: String, handle: String, category: String, shelves: Array, overview: Boolean, headline: String, owner: Boolean, previewCategory: String, previewSignature: String, previewStored: Boolean, previewTheme: String }
 
   connect() {
     this.picks = this.picksValue; this.dirty = false; this.imageFormat = this.element.querySelector('[name="shelf-format"]:checked')?.value || "landscape"
@@ -12,6 +12,7 @@ export default class extends Controller {
       try { this.imageTheme = localStorage.getItem("trove-shelf-theme") || this.imageTheme } catch { /* Storage can be disabled. */ }
     }
     if (!SHELF_THEMES[this.imageTheme]) this.imageTheme = "midnight"
+    if (this.previewStoredValue) this.storedPreview = `${this.previewSignatureValue}:${this.previewThemeValue}`
     this.applyTheme(); this.render()
     this.guard = event => { if (this.dirty) { event.preventDefault(); event.returnValue = "" } }
     this.visitGuard = event => { if (this.dirty && !window.confirm("Leave without saving your shelf?")) event.preventDefault() }
@@ -40,7 +41,7 @@ export default class extends Controller {
     return button
   }
   render() {
-    if (!this.hasSlotsTarget) { this.preview(); return }
+    if (!this.hasSlotsTarget) { this.schedulePreview(); return }
     const owner = this.slotsTarget.dataset.owner === "true"
     this.slotsTarget.replaceChildren()
     for (let index = 0; index < 5; index++) {
@@ -66,7 +67,7 @@ export default class extends Controller {
       }
       this.slotsTarget.append(slot)
     }
-    this.preview()
+    this.schedulePreview()
   }
   changed() { this.dirty = true; this.statusTarget.textContent = "Unsaved changes"; this.render() }
   move(index, direction) { [this.picks[index], this.picks[index + direction]] = [this.picks[index + direction], this.picks[index]]; this.changed() }
@@ -106,7 +107,7 @@ export default class extends Controller {
   theme(event) {
     this.imageTheme = event.target.value
     try { localStorage.setItem("trove-shelf-theme", this.imageTheme) } catch { /* Presentation still works without storage. */ }
-    this.applyTheme(); this.preview()
+    this.applyTheme(); this.schedulePreview()
   }
   applyTheme() {
     this.element.dataset.shelfTheme = this.imageTheme
@@ -115,7 +116,7 @@ export default class extends Controller {
       const url = new URL(link.href); url.searchParams.set("theme", this.imageTheme); link.href = url.href
     })
   }
-  format(event) { this.imageFormat = event.target.value; this.preview() }
+  format(event) { this.imageFormat = event.target.value; this.schedulePreview() }
   async copyLink() {
     if (this.dirty) { this.statusTarget.textContent = "Save your changes before sharing your public shelf."; return }
     const url = new URL(window.location.href); url.searchParams.set("theme", this.imageTheme)
@@ -138,6 +139,15 @@ export default class extends Controller {
       this.statusTarget.textContent = "Clipboard unavailable. Select and copy the image alt text below."
     }
   }
+  schedulePreview() {
+    const description = shelfImageAltText(this.imageOptions())
+    this.altTextTarget.value = description
+    this.canvasTarget.setAttribute("aria-label", description)
+    if (this.canvasTarget.closest("details")?.open) this.preview().catch(() => {
+      this.statusTarget.textContent = "Preview unavailable. Your saved shelf is safe. Please try again."
+    })
+  }
+  previewVisible(event) { if (event.target.open) this.schedulePreview() }
   async preview() {
     const version = this.version = (this.version || 0) + 1
     const canvas = document.createElement("canvas")
@@ -149,29 +159,36 @@ export default class extends Controller {
     if (version !== this.version || !this.element.isConnected) return
     this.canvasTarget.width = canvas.width; this.canvasTarget.height = canvas.height
     this.canvasTarget.getContext("2d").drawImage(canvas, 0, 0)
-    if (this.ownerValue && !this.dirty) this.storePreview()
     return canvas
   }
+  async publishPreview(event) {
+    if (!this.ownerValue || this.publishing) return
+    if (this.dirty) { this.statusTarget.textContent = "Save your shelf before publishing a share preview."; return }
+    const button = event.currentTarget
+    this.publishing = true; button.disabled = true; button.setAttribute("aria-busy", "true")
+    this.statusTarget.textContent = "Publishing your share preview…"
+    try {
+      const saved = await this.storePreview()
+      this.statusTarget.textContent = saved ? "Share preview published. Your public shelf link is ready." : "Preview changed or could not be saved. Please try again."
+    } catch { this.statusTarget.textContent = "Could not publish the preview. Your saved favorites are safe. Please try again." }
+    finally { this.publishing = false; button.disabled = false; button.removeAttribute("aria-busy") }
+  }
   async storePreview() {
-    const key = `${this.previewSignatureValue}:${this.imageTheme}`
-    if (this.storedPreview === key) return
-    this.storedPreview = key
-    const theme = this.imageTheme, canvas = document.createElement("canvas")
-    await renderShelfImage(canvas, { picks: [...this.picks], shelves: this.shelvesValue,
-      overview: this.overviewValue, headline: this.headlineValue, theme, format: "landscape",
-      handle: this.handleValue, category: this.categoryValue })
-    if (this.dirty || !this.element.isConnected) { this.storedPreview = null; return }
-    canvas.toBlob(async blob => {
-      if (!blob) { this.storedPreview = null; return }
-      const body = new FormData()
-      body.append("preview_image", blob, "shelf.png"); body.append("theme", theme)
-      body.append("preview_category", this.previewCategoryValue); body.append("preview_signature", this.previewSignatureValue)
-      try {
-        const response = await fetch(this.urlValue, { method: "PATCH", body,
-          headers: { "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" } })
-        if (!response.ok) this.storedPreview = null
-      } catch { this.storedPreview = null }
-    }, "image/png")
+    const signature = this.previewSignatureValue, theme = this.imageTheme
+    const key = `${signature}:${theme}`
+    if (this.storedPreview === key) return true
+    const canvas = document.createElement("canvas")
+    await renderShelfImage(canvas, { ...this.imageOptions(), theme, format: "landscape" })
+    if (this.dirty || !this.element.isConnected || signature !== this.previewSignatureValue || theme !== this.imageTheme) return false
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"))
+    if (!blob) return false
+    const body = new FormData()
+    body.append("preview_image", blob, "shelf.png"); body.append("theme", theme)
+    body.append("preview_category", this.previewCategoryValue); body.append("preview_signature", signature)
+    const response = await fetch(this.urlValue, { method: "PATCH", body,
+      headers: { "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" } })
+    if (response.ok) this.storedPreview = key
+    return response.ok
   }
   async download() {
     if (this.dirty) { this.statusTarget.textContent = "Save your changes before downloading so the image matches your public shelf."; return }

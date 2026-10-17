@@ -59,6 +59,7 @@ RSpec.describe 'Series entries and review drawers', type: :system do
     click_button 'Close review'
     expect(page).to have_no_css('.review-drawer')
     select 'Season 3', from: 'Season'
+    expect(page).to have_css('#series-entries .series-entry-title', text: 'Next season')
     page.refresh
     expect(page).to have_select('Season', selected: 'Season 3')
   end

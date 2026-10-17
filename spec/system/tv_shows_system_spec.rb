@@ -117,11 +117,11 @@ RSpec.describe 'TV Shows and Episodes Management', type: :system do
     end
 
     visit tv_show_path(show)
-    expect(page).to have_css('[data-controller="season-tabs"][data-connected="true"]')
+    expect(page).to have_css('[data-controller="series-navigation"][data-connected="true"]')
     select 'Season 3', from: 'Season'
     expect(page).to have_select('Season', selected: 'Season 3')
-    expect(page).to have_css('#season-panel-3', visible: true)
-    expect(page).to have_no_css('#season-panel-1', visible: true)
+    expect(page).to have_css('#series-entries .series-entry-title', text: 'Season 3 premiere')
+    expect(page).to have_no_css('#series-entries .series-entry-title', text: 'Season 1 premiere')
 
     page.execute_script(<<~JS)
       document.addEventListener('turbo:morph', () => {
@@ -133,8 +133,8 @@ RSpec.describe 'TV Shows and Episodes Management', type: :system do
     expect(page).to have_select('Season', selected: 'Season 3')
     page.refresh
     expect(page).to have_select('Season', selected: 'Season 3')
-    expect(page).to have_css('#season-panel-3', visible: true)
-    expect(page).to have_no_css('#season-panel-1', visible: true)
+    expect(page).to have_css('#series-entries .series-entry-title', text: 'Season 3 premiere')
+    expect(page).to have_no_css('#series-entries .series-entry-title', text: 'Season 1 premiere')
 
     click_button 'Previous season'
     expect(page).to have_select('Season', selected: 'Season 1')

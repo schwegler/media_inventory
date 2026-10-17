@@ -21,7 +21,10 @@ class MetadataRefresher
   def enqueue
     return 'cooldown' unless claim?
 
-    RefreshMediaMetadataJob.perform_later(@item, @user)
+    unless RefreshMediaMetadataJob.perform_later(@item, @user)
+      @refresh.update!(state: 'queue_busy', requested_at: nil)
+      return 'queue_busy'
+    end
     'refreshing'
   rescue StandardError
     finish('failed')

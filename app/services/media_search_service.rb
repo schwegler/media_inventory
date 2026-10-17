@@ -22,7 +22,11 @@ class MediaSearchService
       return state if state
 
       cache.write(key, { state: 'pending', results: [] }, expires_in: 45.seconds)
-      MediaSearchJob.perform_later(query.to_s.strip.first(200), type, key, latest_key)
+      unless MediaSearchJob.perform_later(query.to_s.strip.first(200), type, key, latest_key)
+        state = { state: 'failed', results: [] }
+        cache.write(key, state, expires_in: 10.seconds)
+        return state
+      end
       { state: 'pending', results: [] }
     end
   end

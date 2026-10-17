@@ -1,7 +1,8 @@
 <% is_episode = item.is_a?(TvEpisode) %>
 <% past = is_episode ? 'watched' : 'read' %>
 <% model_key = item.model_name.param_key %>
-<% title = is_episode ? "#{item.episode}. #{item.name}" : "##{item.issue_number}: #{item.title.presence || 'Untitled issue'}" %>
+<% title = is_episode ? "#{item.episode}. #{item.name}" : comic_issue_label(item) %>
+<% collection_filters = @series_collection ? @series_collection.filters : params.permit(:series_page, :season, :child_q, :child_status, :entries_page).to_h.symbolize_keys.reverse_merge(series_page: '1', season: is_episode ? item.season : nil).compact %>
 <% date = is_episode ? item.air_date : item.release_date %>
 <% date = Date.iso8601(date) if date.is_a?(String) && date.match?(/\A\d{4}-\d{2}-\d{2}\z/) && Date.valid_date?(*date.split("-").map(&:to_i)) %>
 <% search_text = [title, (item.display_title if item.respond_to?(:display_title)), item.credits.map { |credit| [credit['name'], credit['aliases']] }].flatten.compact.join(' ') %>
@@ -10,16 +11,16 @@
   <article class="series-entry <%= 'series-entry-issue' unless is_episode %>">
     <div class="series-entry-row">
       <% if item.stored_cover_url.present? %>
-        <img src="<%= item.stored_cover_url %>" alt="" class="series-entry-artwork" loading="lazy" decoding="async">
+        <%= media_cover_image item, alt: "", class: "series-entry-artwork", sizes: "56px" %>
       <% end %>
       <div class="series-entry-title">
         <%= link_to title, polymorphic_path(item), data: { turbo_frame: "_top" } %>
-        <% if date.present? %><p><%= is_episode ? 'Aired' : 'Published' %> <%= date.respond_to?(:strftime) ? date.strftime('%b %-d, %Y') : date %></p><% end %>
+        <% if date.present? %><p><%= date.respond_to?(:future?) && date.future? ? 'Expected' : (is_episode ? 'Aired' : 'Published') %> <%= date.respond_to?(:strftime) ? date.strftime('%b %-d, %Y') : date %></p><% end %>
       </div>
       <% if has_track %>
         <div class="series-entry-actions">
           <%= button_to completed ? "✓ #{past.capitalize} · Undo" : "Mark #{past}", toggle_path, method: :patch,
-                        params: { model_key => { consumed: !completed, consumed_at: completed ? nil : Date.current } },
+                        params: { model_key => { consumed: !completed, consumed_at: completed ? nil : Date.current } }.merge(collection_filters),
                         class: "sleek-btn sleek-btn-secondary", form_class: "series-entry-track",
                         aria: { label: "#{completed ? 'Undo' : "Mark #{past}"}: #{title}" } %>
         </div>
@@ -44,7 +45,7 @@
         <% if logged_in? && series_lib.present? %>
           <div class="series-entry-footer">
             <%= link_to child_lib&.review.present? || child_lib&.rating.present? ? 'Edit review' : 'Write review',
-                        edit_review_path(item_type: item.class.name, item_id: item.id),
+                        edit_review_path({ item_type: item.class.name, item_id: item.id }.merge(collection_filters)),
                         class: "series-entry-review-link", data: { turbo_frame: "modal" } %>
           </div>
         <% end %>

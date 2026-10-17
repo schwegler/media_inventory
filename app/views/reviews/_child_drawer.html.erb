@@ -7,6 +7,9 @@
     <%= form_with url: review_path, method: :patch, class: "review-drawer-form standard-form" do |form| %>
       <%= hidden_field_tag :item_type, @item.class.name %>
       <%= hidden_field_tag :item_id, @item.id %>
+      <% params.permit(:series_page, :season, :child_q, :child_status, :entries_page).each do |key, value| %>
+        <%= hidden_field_tag key, value, id: nil %>
+      <% end %>
       <% if @library_item.errors.any? %><p role="alert"><%= @library_item.errors.full_messages.to_sentence %></p><% end %>
       <p class="modal-subtitle"><%= @item.respond_to?(:display_title) ? @item.display_title : @item.name %></p>
       <div class="form-group">

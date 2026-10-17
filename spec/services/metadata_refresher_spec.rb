@@ -18,6 +18,13 @@ RSpec.describe MetadataRefresher do
     stub_request(:get, 'https://api.tvmaze.com/shows/42/episodes').to_return(body: rows.to_json)
   end
 
+  it 'releases the item lease and reports queue saturation without requesting providers' do
+    allow(RefreshMediaMetadataJob).to receive(:perform_later).and_return(false)
+    expect(described_class.new(show, user).enqueue).to eq('queue_busy')
+    expect(MetadataRefresh.find_by!(item: show).requested_at).to be_nil
+    expect(WebMock).not_to have_requested(:get, 'https://api.tvmaze.com/shows/42')
+  end
+
   def expire_cooldown
     MetadataRefresh.update_all(requested_at: 10.minutes.ago)
     user.update!(metadata_requested_at: 1.minute.ago)

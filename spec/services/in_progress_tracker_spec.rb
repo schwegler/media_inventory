@@ -151,6 +151,47 @@ RSpec.describe InProgressTracker do
     end
   end
 
+  describe 'bounded candidates and release eligibility' do
+    it 'prefers available releases over unknown and future dates, preserving manual history' do
+      LibraryItem.create!(user: user, item: s1e1, consumed: true, consumed_at: Date.current)
+      s1e2.update!(air_date: 1.week.from_now.to_date)
+      s1e3.update!(air_date: nil)
+      s2e1.update!(air_date: Date.current)
+      expect(described_class.item_for(user, tv_show).next_item).to eq(s2e1)
+      LibraryItem.create!(user: user, item: s2e1, consumed: true, consumed_at: Date.current)
+      expect(described_class.item_for(user, tv_show).next_item).to eq(s1e3)
+      LibraryItem.create!(user: user, item: s1e3, consumed: true, consumed_at: Date.current)
+      expect(described_class.item_for(user, tv_show).next_item).to eq(s1e2)
+    end
+
+    it 'keeps unnumbered specials after numbered issues without changing identity' do
+      special = comic.comic_issues.create!(title: '#27AU', issue_number: nil)
+      LibraryItem.create!(user: user, item: issue1, consumed: true, consumed_at: Date.current)
+      expect(described_class.item_for(user, comic).next_item).to eq(issue2)
+      expect(SeriesNeighbors.call(issue1)[:next]).to eq(issue2)
+      expect(SeriesNeighbors.call(special)[:previous]).to eq(issue3)
+      expect(special.reload.title).to eq('#27AU')
+    end
+
+    it 'instantiates bounded episode candidates for a thousand-entry series' do
+      tv_show.tv_episodes.insert_all!(1000.times.map do |index|
+        { name: "Long episode #{index}", season: 3, episode: index + 1 }
+      end)
+      LibraryItem.create!(user: user, item: s1e1, consumed: true, consumed_at: Date.current)
+      instantiated = 0
+      subscriber = lambda do |*args|
+        payload = args.last
+        instantiated += payload[:record_count] if payload[:class_name] == 'TvEpisode'
+      end
+      item = ActiveSupport::Notifications.subscribed(subscriber, 'instantiation.active_record') do
+        described_class.item_for(user, tv_show)
+      end
+      expect(item.total_count).to eq(1004)
+      expect(item.next_item).to eq(s1e2)
+      expect(instantiated).to be <= 2
+    end
+  end
+
   describe '.item_for' do
     it 'returns the in-progress item for a specific series' do
       LibraryItem.create!(user: user, item: s1e1, consumed: true, consumed_at: Date.current)

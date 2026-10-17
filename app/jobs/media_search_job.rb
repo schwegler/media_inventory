@@ -5,7 +5,7 @@ class MediaSearchJob < ApplicationJob
 
   # Imports and cover downloads must not hold up an interactive search.
   unless Rails.env.test?
-    self.queue_adapter = ActiveJob::QueueAdapters::AsyncAdapter.new(min_threads: 1, max_threads: 1, idletime: 60)
+    self.queue_adapter = BoundedAsyncAdapter.new(capacity: ENV.fetch('MEDIA_SEARCH_QUEUE_LIMIT', '8').to_i)
   end
 
   def perform(query, type, key, latest_key = nil)

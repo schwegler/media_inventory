@@ -21,6 +21,26 @@ RSpec.describe 'Favorite shelves', type: :request do
     expect(response.parsed_body.first['url']).to eq(movie_path(movie))
   end
 
+  it 'does not publish on visits and deduplicates explicit same-signature previews' do
+    login
+    get shelf_path(user.username, category: 'Movie')
+    doc = Nokogiri::HTML(response.body)
+    expect(doc.text).to include('Publish share preview')
+    expect(user.shelf_previews.count).to eq(0)
+    signature = doc.at_css('.favorite-shelf')['data-favorite-shelf-preview-signature-value']
+    2.times do
+      patch shelf_path(user.username, category: 'Movie'), params: {
+        preview_image: fixture_file_upload('transparent-logo.png', 'image/png'), preview_category: 'Movie',
+        preview_signature: signature, theme: 'midnight'
+      }
+      expect(response).to have_http_status(:no_content)
+    end
+    expect(user.shelf_previews.count).to eq(1)
+    delete logout_path
+    get shelf_path(user.username)
+    expect(Nokogiri::HTML(response.body).text).to include('taking shape.', 'Explore Shelf User’s library')
+  end
+
   it 'stores generated previews for public social cards and rejects stale previews' do
     user.favorite_shelves.create!(category: 'Movie', picks: [{ type: 'Movie', id: movie.id }])
     login
@@ -99,8 +119,13 @@ RSpec.describe 'Favorite shelves', type: :request do
         expect(page.at_css('button[data-action="favorite-shelf#copyAltText"]').text).to eq('Copy image alt text')
         expect(page.at_css('textarea[data-favorite-shelf-target="altText"]')['readonly']).to be_present
         toolbar_links = page.css('.shelf-toolbar-links a')
-        expect(toolbar_links.map(&:text)).to eq(category ? ['All shelves', 'Share'] : ['Share'])
-        expect(toolbar_links.first['href']).to eq(shelf_path(user.username, theme: 'electric')) if category
+        expected_links = signed_in ? ['Curate favorites', 'Customize profile'] : []
+        expected_links << 'All shelves' if category
+        expect(toolbar_links.map(&:text)).to eq(expected_links + ['Share'])
+        if category
+          expect(toolbar_links.find { |link| link.text == 'All shelves' }['href'])
+            .to eq(shelf_path(user.username, theme: 'electric'))
+        end
         if signed_in
           expect(page.at_css('[aria-label="Account menu"]')).to be_present
         else

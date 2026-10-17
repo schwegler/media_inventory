@@ -6,7 +6,12 @@
 <% date = Date.iso8601(date) if date.is_a?(String) && date.match?(/\A\d{4}-\d{2}-\d{2}\z/) && Date.valid_date?(*date.split('-').map(&:to_i)) %>
 <% cover = item.stored_cover_url.presence || parent.stored_cover_url %>
 <article class="media-detail media-child-detail" data-media-kind="<%= item.class.name %>">
-  <%= link_to "← Back to #{parent.title}", parent, class: 'media-back-link' %>
+  <%= link_to "← Back to #{parent.title}", series_return_path(item, parent), class: 'media-back-link' %>
+  <% neighbors = SeriesNeighbors.call(item) %>
+  <nav class="child-sequence-navigation" aria-label="<%= item.is_a?(TvEpisode) ? 'Episode' : 'Issue' %> navigation">
+    <%= link_to '← Previous', neighbors[:previous], class: 'sleek-btn sleek-btn-secondary', aria: { label: "Previous #{item.is_a?(TvEpisode) ? 'episode' : 'issue'} of #{parent.title}" } if neighbors[:previous] %>
+    <%= link_to 'Next →', neighbors[:next], class: 'sleek-btn sleek-btn-secondary', aria: { label: "Next #{item.is_a?(TvEpisode) ? 'episode' : 'issue'} of #{parent.title}" } if neighbors[:next] %>
+  </nav>
   <header class="media-overview">
     <div class="media-cover">
       <% if cover.present? %><%= artwork_lightbox("#{cover}?size=original", "#{title} cover") do %><%= media_cover_image(item.stored_cover_url.present? ? item : parent, alt: "#{title} cover", sizes: "180px") %><% end %><% else %><div class="artwork-fallback">No cover yet</div><% end %>

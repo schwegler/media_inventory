@@ -6,15 +6,19 @@ RSpec.describe LandingController, type: :controller do
   let!(:viewer) { User.create!(name: 'Viewer', email: 'viewer@example.com', password: 'password123') }
   let!(:friend) { User.create!(name: 'Friend', email: 'friend@example.com', password: 'password123') }
   let!(:movie) { Movie.create!(title: 'Repeated title') }
-  let!(:entry) { LibraryItem.create!(user: friend, item: movie) }
+  let!(:entry) { LibraryItem.create!(user: friend, item: movie, is_public: true) }
 
   def activity(trackable, type: 'added', user: friend)
     Activity.create!(user: user, trackable: trackable, activity_type: type)
   end
 
-  before { allow(controller).to receive(:current_user).and_return(viewer) }
+  before do
+    allow(controller).to receive(:current_user).and_return(viewer)
+    viewer.follow(friend)
+  end
 
   it 'keeps the latest event per person and title, including direct media events' do
+    entry.update!(review: 'Visible review')
     activity(entry)
     activity(movie, type: 'consumed')
     latest = activity(entry, type: 'reviewed')

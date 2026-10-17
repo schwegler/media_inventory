@@ -5,7 +5,7 @@
       <% item.metadata_details.each do |label, value| %>
         <% text = value.is_a?(Array) ? value.join(', ') : value %>
         <div class="media-description-row"><dt><%= label.to_s.humanize %></dt><dd>
-          <% if text.to_s.length > 240 %><details><summary>Show <%= label.to_s.humanize.downcase %></summary><%= text %></details><% else %><%= text %><% end %>
+          <% if text.to_s.length > 240 %><details><summary>Show <%= label.to_s.humanize.downcase %></summary><%= source_link_or_text(text) %></details><% else %><%= source_link_or_text(text) %><% end %>
         </dd></div>
       <% end %>
     </dl>

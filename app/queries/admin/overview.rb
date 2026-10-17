@@ -2,7 +2,7 @@
 
 module Admin
   class Overview
-    CACHE_KEY = 'admin/overview/v1'
+    CACHE_KEY = 'admin/overview/v2'
 
     def snapshot
       @snapshot ||= Rails.cache.fetch(CACHE_KEY, expires_in: 1.minute) { build_snapshot }
@@ -49,11 +49,24 @@ module Admin
       end
     end
 
+    def background_operations
+      adapters = [['Application', ApplicationJob.queue_adapter], ['Search', MediaSearchJob.queue_adapter]]
+      adapters.filter_map do |label, adapter|
+        { label: label, values: adapter.snapshot } if adapter.respond_to?(:snapshot)
+      end
+    end
+
     private
+
+    def artwork_storage
+      { used: ActiveStorage::Blob.where("key LIKE 'media-covers/%'").sum(:byte_size),
+        quota: ENV.fetch('MEDIA_ARTWORK_QUOTA_MB', '512').to_i.clamp(1, 100_000).megabytes }
+    end
 
     def build_snapshot
       {
         catalog: catalog_metrics,
+        artwork_storage: artwork_storage,
         users: User.count,
         new_users: User.where(created_at: 7.days.ago..).count,
         contributors: Activity.where(created_at: 7.days.ago..).distinct.count(:user_id),
