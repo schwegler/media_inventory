@@ -127,3 +127,13 @@ one final page update; failed/denied checks stop with an actionable message.
 The existing CSRF-protected refresh POST and server cooldown/lease remain the
 only authority for provider work. Request and actual-controller JavaScript tests
 cover no-write status, game authorization, continuation, stopping and cancellation.
+
+## Complete, explicitly scoped search
+
+All-type search keeps its bounded 20-title preview per type and links to each
+full result set with an exact SQL count. A selected type has ordinary server
+pagination with retained relevance ranking, stable IDs and query/type URLs.
+Selected filter buttons expose aria-pressed; unsupported types normalize to All,
+and out-of-range/no-result views offer a first-page reset. Rating summaries remain
+viewer-scoped through the merged bounded preloader. The request fixture reaches
+result 21 without instantiating the entire result set.

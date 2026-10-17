@@ -14,13 +14,10 @@
       </div>
       
       <div class="filter-tabs">
-        <button type="submit" name="type" value="" class="filter-tab <%= @filter_type.blank? ? 'active' : '' %>">All</button>
-        <button type="submit" name="type" value="movies" class="filter-tab <%= @filter_type == 'movies' ? 'active' : '' %>">Movies</button>
-        <button type="submit" name="type" value="albums" class="filter-tab <%= @filter_type == 'albums' ? 'active' : '' %>">Albums</button>
-        <button type="submit" name="type" value="comics" class="filter-tab <%= @filter_type == 'comics' ? 'active' : '' %>">Comics</button>
-        <button type="submit" name="type" value="tv_shows" class="filter-tab <%= @filter_type == 'tv_shows' ? 'active' : '' %>">TV Shows</button>
-        <button type="submit" name="type" value="video_games" class="filter-tab <%= @filter_type == 'video_games' ? 'active' : '' %>">Games</button>
-        <button type="submit" name="type" value="books" class="filter-tab <%= @filter_type == 'books' ? 'active' : '' %>">Books</button>
+        <% { '' => 'All', 'movies' => 'Movies', 'albums' => 'Albums', 'comics' => 'Comics', 'tv_shows' => 'TV Shows', 'video_games' => 'Games', 'books' => 'Books' }.each do |key, label| %>
+          <% selected = @filter_type.to_s == key %>
+          <button type="submit" name="type" value="<%= key %>" class="filter-tab <%= 'active' if selected %>" aria-pressed="<%= selected %>"><%= label %></button>
+        <% end %>
       </div>
     </form>
   </div>
@@ -39,15 +36,21 @@
       <% next if items.empty? %>
       <% has_results = true %>
       <section class="collection-section">
-        <h2><%= category.to_s.titleize %></h2>
+        <h2><%= category.to_s.titleize %> <small>(<%= @result_counts[category] %>)</small></h2>
         <div class="media-grid-2026">
           <%= render partial: 'shared/media_card', collection: items, as: :media_item %>
         </div>
+        <% if @filter_type.present? %>
+          <%= paginate items, params: { q: @query, type: @filter_type } %>
+        <% elsif @result_counts[category] > items.size %>
+          <%= link_to "View all #{@result_counts[category]} #{category.to_s.humanize.downcase}", search_path(q: @query, type: category), class: 'sleek-btn sleek-btn-secondary' %>
+        <% end %>
       </section>
     <% end %>
 
     <% unless has_results %>
       <div class="empty-state">
+        <%= link_to "Search all types from the first page", search_path(q: @query) %>
         <p>No results found for "<%= @query %>" in <%= @filter_type.present? ? @filter_type.titleize : 'any category' %>.</p>
       </div>
     <% end %>

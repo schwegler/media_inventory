@@ -14,7 +14,7 @@ class SearchController < ApplicationController
 
   def index
     @query = params[:q]
-    @filter_type = params[:type]
+    @filter_type = params[:type].presence if MAPPINGS.key?(params[:type])
     @results = {}
 
     return if @query.blank?
@@ -22,18 +22,23 @@ class SearchController < ApplicationController
     load_entities
     @match_context = {}
 
-    MAPPINGS.each do |key, (res_key, klass)|
-      next unless @filter_type.blank? || @filter_type == key
-
-      scope = MetadataSearch.call(klass.all, @query)
-      scope = scope.with_attached_cover_image if klass.respond_to?(:with_attached_cover_image)
-      @results[res_key] = scope.limit(20).to_a
-      preload_card_ratings(@results[res_key])
-      @match_context[klass.name] = MetadataMatchContext.call(@results[res_key], @query)
-    end
+    @result_counts = {}
+    MAPPINGS.each { |key, (result_key, klass)| load_media_results(key, result_key, klass) }
   end
 
   private
+
+  def load_media_results(key, result_key, klass)
+    return unless @filter_type.blank? || @filter_type == key
+
+    scope = MetadataSearch.call(klass.all, @query)
+    scope = scope.with_attached_cover_image if klass.respond_to?(:with_attached_cover_image)
+    results = scope.order(:title, :id).page(@filter_type ? params[:page] : 1).per(20)
+    @result_counts[result_key] = results.total_count
+    @results[result_key] = results
+    preload_card_ratings(results.to_a)
+    @match_context[klass.name] = MetadataMatchContext.call(results.to_a, @query)
+  end
 
   def load_entities
     entity_credits = MetadataCredit.all
