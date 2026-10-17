@@ -19,7 +19,8 @@
     next_title = next_item.name.presence || "Episode #{next_item.episode}"
     next_path = tv_episode_path(next_item)
     next_thumb = next_item.stored_cover_url.presence || series_cover
-    next_meta = next_item.air_date.present? ? "Aired #{next_item.air_date}" : nil
+    release_date = media_release_date(next_item)
+    past_verb = "Aired"
     log_url = toggle_watched_tv_episode_path(next_item)
     param_key = :tv_episode
     action_verb = "Watch"
@@ -31,19 +32,28 @@
     next_title = next_item.title.presence || (next_item.issue_number.present? ? "Issue ##{next_item.issue_number}" : "Next issue")
     next_path = comic_issue_path(next_item)
     next_thumb = next_item.stored_cover_url.presence || series_cover
-    next_meta = next_item.release_date.present? ? "Released #{next_item.release_date}" : nil
+    release_date = media_release_date(next_item)
+    past_verb = "Released"
     log_url = toggle_read_comic_issue_path(next_item)
     param_key = :comic_issue
     action_verb = "Read"
     units_label = "issues"
   end
+  upcoming = release_date.present? && release_date > Date.current
+  next_meta = if release_date.blank?
+                "Release date unknown"
+              elsif upcoming
+                "Expected #{release_date}"
+              else
+                "#{past_verb} #{release_date}"
+              end
 %>
 
-<article id="<%= in_progress.dom_id %>" class="in-progress-card" data-media-type="<%= in_progress.media_type %>">
+<article id="<%= in_progress.dom_id %>" class="in-progress-card" data-controller="tracking-focus" data-action="turbo:submit-start->tracking-focus#remember turbo:before-stream-render@document->tracking-focus#retain" data-media-type="<%= in_progress.media_type %>">
   <div class="in-progress-header">
     <div class="in-progress-cover">
       <% if series_cover.present? %>
-        <img src="<%= series_cover %>" alt="" loading="lazy">
+        <%= media_cover_image series, alt: "", sizes: "52px", width: 52, height: 76 %>
       <% else %>
         <span class="fallback-emoji"><%= fallback_icon %></span>
       <% end %>
@@ -80,7 +90,7 @@
 
   <div class="in-progress-next">
     <div class="in-progress-next-header">
-      <span class="in-progress-next-badge">Up Next</span>
+      <span class="in-progress-next-badge"><%= upcoming ? "Upcoming" : "Up Next" %></span>
       <% if next_meta.present? %>
         <span class="in-progress-next-meta"><%= next_meta %></span>
       <% end %>
@@ -89,7 +99,7 @@
     <div class="in-progress-next-row">
       <% if next_thumb.present? %>
         <div class="in-progress-next-thumb">
-          <img src="<%= next_thumb %>" alt="" loading="lazy">
+          <%= media_cover_image(next_item.stored_cover_url.present? ? next_item : series, alt: "", sizes: "48px", width: 48, height: 48) %>
         </div>
       <% end %>
 
@@ -100,10 +110,11 @@
         </div>
 
         <% if profile_owner %>
+          <% if upcoming %><details class="in-progress-early"><summary>Log an early <%= is_tv ? "watch" : "read" %></summary><p>This release is expected in the future. Log it only if you’ve already finished it.</p><% end %>
           <%= form_with url: log_url, method: :patch, class: 'in-progress-log-form' do |f| %>
-            <%= f.hidden_field "#{param_key}[consumed]", value: true %>
-            <%= f.hidden_field "#{param_key}[consumed_at]", value: Date.current %>
-            <%= hidden_field_tag :in_progress, true %>
+            <%= f.hidden_field "#{param_key}[consumed]", value: true, id: nil %>
+            <%= f.hidden_field "#{param_key}[consumed_at]", value: Date.current, id: nil %>
+            <%= hidden_field_tag :in_progress, true, id: nil %>
 
             <div class="in-progress-form-actions">
               <%= f.select "#{param_key}[rating]", [
@@ -118,13 +129,14 @@
                 ["★★★★", "4.0"],
                 ["★★★★½", "4.5"],
                 ["★★★★★", "5.0"]
-              ], {}, { class: 'in-progress-rating-select', aria: { label: "Rating" } } %>
+              ], {}, { id: "#{in_progress.dom_id}_rating", class: 'in-progress-rating-select', aria: { label: "Rating for #{series_title} · #{next_label} · #{next_title}" } } %>
 
-              <%= f.button type: :submit, class: 'sleek-btn sleek-btn-primary in-progress-log-btn' do %>
+              <%= f.button type: :submit, class: 'sleek-btn sleek-btn-primary in-progress-log-btn', data: { tracking_primary: true }, aria: { label: "#{action_verb} #{series_title} · #{next_label} · #{next_title}" } do %>
                 ✓ <%= action_verb %>
               <% end %>
             </div>
           <% end %>
+          <% if upcoming %></details><% end %>
         <% end %>
       </div>
     </div>

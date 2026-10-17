@@ -7,7 +7,7 @@ class LandingController < ApplicationController
   def index
     if logged_in?
       response.headers['Cache-Control'] = 'private, no-store'
-      @in_progress_items = InProgressTracker.items_for(current_user)
+      @in_progress_items = InProgressTracker.items_for(current_user, limit: 6)
       @new_from_friends = preload_social_feed(fetch_friend_activities.to_a)
       @popular_items = fetch_popular_items
       @popular_reviews = preload_social_feed(fetch_popular_reviews.to_a)

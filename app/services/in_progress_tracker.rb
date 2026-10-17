@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# rubocop:disable Metrics/ClassLength
 # Computes in-progress TV shows and Comics for a given user,
 # calculating overall progress and identifying the "Next" episode or issue to consume.
 #
@@ -49,11 +48,9 @@ class InProgressTracker
   def items(limit: nil)
     return [] unless @user
 
-    list = active_passes.filter_map { |pass| build_item(pass) }
-    list.sort_by! { |item| item.last_consumed_at || Time.at(0) }
-    list.reverse!
-    list = list.first(limit) if limit
-    list
+    passes = active_passes
+    passes = passes.limit(limit) if limit
+    passes.filter_map { |pass| build_item(pass) }
   end
 
   def single_item(series)
@@ -69,21 +66,11 @@ class InProgressTracker
   def active_passes
     scope = @user.library_items.where(item_type: ConsumptionPass::SERIES_TYPES)
     scope = scope.where(is_public: true) if @public_only
-    # Eager load pass entries and polymorphic series items with cover images to eliminate N+1 queries.
-    passes = ConsumptionPass.active.where(library_item_id: scope.select(:id))
-                            .includes(:entries, library_item: { item: [{ cover_image_attachment: :blob }] })
-                            .to_a
-
-    preload_child_episodes_and_issues(passes)
-    passes
-  end
-
-  def preload_child_episodes_and_issues(passes)
-    shows = passes.map { |p| p.library_item&.item }.compact.grep(TvShow)
-    comics = passes.map { |p| p.library_item&.item }.compact.grep(Comic)
-
-    ActiveRecord::Associations::Preloader.new(records: shows, associations: :tv_episodes).call if shows.any?
-    ActiveRecord::Associations::Preloader.new(records: comics, associations: :comic_issues).call if comics.any?
+    ConsumptionPass.active.where(library_item_id: scope.select(:id))
+                   .order(Arel.sql('COALESCE((SELECT MAX(consumed_at) FROM consumption_pass_entries ' \
+                                   'WHERE consumption_pass_id = consumption_passes.id), ' \
+                                   'consumption_passes.updated_at) DESC'))
+                   .order(id: :desc).includes(library_item: { item: [{ cover_image_attachment: :blob }] })
   end
 
   def build_item(pass)
@@ -91,80 +78,21 @@ class InProgressTracker
     series = lib_item&.item
     return nil unless series
 
-    # PERFORMANCE IMPACT: Uses preloaded in-memory entries collection instead of triggering database queries.
-    entries_list = pass.entries.to_a.sort_by { |e| [e.consumed_at || Time.at(0), e.id] }
-    entries = entries_list.map { |e| [e.item_id, e.consumed_at] }
-    consumed_ids = entries.to_set(&:first)
-    last_at = entries.map(&:last).compact.max || pass.updated_at
+    selection = NextSeriesEntry.new(series, pass)
+    total = selection.children.count
+    completed = selection.completed.count
+    return nil if total.zero? || completed >= total
 
-    if series.is_a?(TvShow)
-      build_tv_show_item(series, lib_item, pass, entries, last_at)
-    else
-      build_comic_item(series, lib_item, pass, consumed_ids, last_at)
-    end
-  end
+    candidate = selection.next_item
+    return nil unless candidate
 
-  def build_tv_show_item(show, lib_item, pass, entries, last_consumed_at)
-    # PERFORMANCE IMPACT: Uses preloaded tv_episodes sorted in-memory to prevent N+1 SQL queries.
-    episodes = show.tv_episodes.to_a.sort_by { |e| [e.season || 0, e.episode || 0] }
-    return nil if episodes.empty?
-
-    done_ids = episodes.to_set(&:id) & entries.to_set(&:first)
-    return nil if done_ids.size >= episodes.size
-
-    last_ep_id = entries.reverse_each.find { |id, _| done_ids.include?(id) }&.first
-    last_ep = episodes.find { |episode| episode.id == last_ep_id }
-    next_ep = find_next_episode(episodes, last_ep, done_ids)
-    return nil unless next_ep
-
-    new_item(series: show, library_item: lib_item, pass: pass, media_type: 'TvShow', total: episodes.size,
-             completed: done_ids.size, next_item: next_ep, last_consumed_at: last_consumed_at)
-  end
-
-  def build_comic_item(comic, lib_item, pass, consumed_ids, last_consumed_at)
-    # PERFORMANCE IMPACT: Uses preloaded comic_issues sorted in-memory to prevent N+1 SQL queries.
-    issues = comic.comic_issues.to_a.sort_by { |i| i.issue_number || 0 }
-    return nil if issues.empty?
-
-    done_ids = issues.to_set(&:id) & consumed_ids
-    return nil if done_ids.size >= issues.size
-
-    last_iss = issues.select { |i| done_ids.include?(i.id) }.max_by { |i| i.issue_number || 0 }
-    next_iss = find_next_issue(issues, last_iss, done_ids)
-    return nil unless next_iss
-
-    new_item(series: comic, library_item: lib_item, pass: pass, media_type: 'Comic', total: issues.size,
-             completed: done_ids.size, next_item: next_iss, last_consumed_at: last_consumed_at)
+    new_item(series: series, library_item: lib_item, pass: pass, media_type: series.class.name, total: total,
+             completed: completed, next_item: candidate,
+             last_consumed_at: pass.entries.maximum(:consumed_at) || pass.updated_at)
   end
 
   def new_item(total:, completed:, **attrs)
     Item.new(total_count: total, completed_count: completed,
              percent: ((completed.to_f / total) * 100).round, **attrs)
   end
-
-  def find_next_episode(episodes, last_ep, consumed_ids)
-    return episodes.find { |e| !consumed_ids.include?(e.id) } unless last_ep
-
-    episodes.find { |e| episode_comes_after?(e, last_ep) && !consumed_ids.include?(e.id) } ||
-      episodes.find { |e| !consumed_ids.include?(e.id) }
-  end
-
-  def episode_comes_after?(candidate, reference)
-    cand_s = candidate.season || 0
-    ref_s = reference.season || 0
-    return cand_s > ref_s if cand_s != ref_s
-
-    (candidate.episode || 0) > (reference.episode || 0)
-  end
-
-  def find_next_issue(issues, last_iss, consumed_ids)
-    next_iss = if last_iss
-                 issues.find do |i|
-                   (i.issue_number || 0) > (last_iss.issue_number || 0) &&
-                     !consumed_ids.include?(i.id)
-                 end
-               end
-    next_iss || issues.find { |i| !consumed_ids.include?(i.id) }
-  end
 end
-# rubocop:enable Metrics/ClassLength

@@ -96,3 +96,22 @@ if delivery guarantees become necessary. No delivery guarantee is claimed for
 social posting. Existing domain leases/cooldowns and explicit retry paths remain
 necessary. The admission tests exercise saturation, delayed cancellation, failure
 release and sanitized diagnostics with no provider requests.
+
+## Ready-to-consume, accessible quick tracking
+
+The dashboard renders at most six active cards, with a direct all-active-series
+profile link. Counts and next candidates use SQL per selected pass instead of
+instantiating all episodes, issues and entries. Available dated releases come
+first, then unknown dates, then upcoming. Future cards use Expected/Upcoming and
+retain early logging inside an explicit disclosure. Completion still counts the
+whole pass; no release dates, provider identities or prior history are rewritten.
+Numbered comic issues precede unnumbered specials, whose provider title remains
+visible. Existing out-of-order continuation and wrap behavior remain covered.
+
+Tracking controls have 44px minimum heights, contextual names and unique IDs.
+Turbo card replacement restores keyboard focus to its next primary action, or
+the section heading on completion. Child details provide bounded previous/next
+queries and return-to-season links. HTTP(S) source links reject credentials and
+unsupported schemes. Service/helper fixtures cover 1,000 entries, available/
+unknown/future eligibility and special ordering; browser checks cover 390/1440px
+layout, deliberate early logging, control size and duplicate IDs.

@@ -33,6 +33,13 @@ end
 
 # Shared helper methods for system specs
 module SystemTestHelpers
+  def capture_ui_screenshot(name)
+    return unless ENV['UI_QA_DIR']
+
+    FileUtils.mkdir_p(ENV.fetch('UI_QA_DIR'))
+    page.driver.browser.save_screenshot(File.join(ENV.fetch('UI_QA_DIR'), "#{name}.png"))
+  end
+
   # Creates a confirmed user and logs them in through the UI.
   # Returns the user record.
   def create_and_login_user(name: 'Test User', email: 'test@example.com', password: 'password123')

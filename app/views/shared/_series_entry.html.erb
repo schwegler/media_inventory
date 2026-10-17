@@ -1,7 +1,7 @@
 <% is_episode = item.is_a?(TvEpisode) %>
 <% past = is_episode ? 'watched' : 'read' %>
 <% model_key = item.model_name.param_key %>
-<% title = is_episode ? "#{item.episode}. #{item.name}" : "##{item.issue_number}: #{item.title.presence || 'Untitled issue'}" %>
+<% title = is_episode ? "#{item.episode}. #{item.name}" : comic_issue_label(item) %>
 <% collection_filters = @series_collection ? @series_collection.filters : params.permit(:series_page, :season, :child_q, :child_status, :entries_page).to_h.symbolize_keys.reverse_merge(series_page: '1', season: is_episode ? item.season : nil).compact %>
 <% date = is_episode ? item.air_date : item.release_date %>
 <% date = Date.iso8601(date) if date.is_a?(String) && date.match?(/\A\d{4}-\d{2}-\d{2}\z/) && Date.valid_date?(*date.split("-").map(&:to_i)) %>
@@ -15,7 +15,7 @@
       <% end %>
       <div class="series-entry-title">
         <%= link_to title, polymorphic_path(item), data: { turbo_frame: "_top" } %>
-        <% if date.present? %><p><%= is_episode ? 'Aired' : 'Published' %> <%= date.respond_to?(:strftime) ? date.strftime('%b %-d, %Y') : date %></p><% end %>
+        <% if date.present? %><p><%= date.respond_to?(:future?) && date.future? ? 'Expected' : (is_episode ? 'Aired' : 'Published') %> <%= date.respond_to?(:strftime) ? date.strftime('%b %-d, %Y') : date %></p><% end %>
       </div>
       <% if has_track %>
         <div class="series-entry-actions">

@@ -9,7 +9,7 @@
     <section class="dashboard-section" id="in_progress_dashboard_section">
       <div class="section-header">
         <h2>Continue watching &amp; reading</h2>
-        <%= link_to "View library", current_user, class: "section-more-link" %>
+        <%= link_to "All active series", user_path(current_user, anchor: "in_progress_section"), class: "section-more-link" %>
       </div>
       <div class="in-progress-grid">
         <% @in_progress_items.each do |item| %>

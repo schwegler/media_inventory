@@ -66,7 +66,11 @@ class SeriesCollection
     end
     scope = scope.where(id: @done.select(:id)) if status == 'true'
     scope = scope.where.not(id: @done.select(:id)) if status == 'false'
-    order = tv? ? %i[season episode id] : %i[issue_number id]
+    order = if tv?
+              %i[season episode id]
+            else
+              [Arel.sql('CASE WHEN issue_number IS NULL THEN 1 ELSE 0 END'), :issue_number, :id]
+            end
     @records = scope.reorder(*order).with_attached_cover_image
                     .includes(tv? ? :tv_show : :comic, metadata_credits: :metadata_entity)
                     .page(page).per(PAGE_SIZE)
