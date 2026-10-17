@@ -63,3 +63,19 @@ Category security review: all category names/search terms and pagination values
 use named SQL binds. Model tables, attributes, category roles and sort expressions
 come only from fixed allowlists; unknown category types are rejected. Regression
 inputs include SQL punctuation and wildcards. No scanner warning was suppressed.
+
+## Scoped, bounded social discovery
+
+Friends sections use followed accounts only. If no visible friend activity is
+available, the same discovery surface is explicitly labeled “around Trove.”
+SQL window ranking collapses person/title lifecycle events before LIMIT, and
+popularity groups normalized proxy/direct title identities before its nine-title
+limit. Public fallback loads at most six distinct titles. Missing trackables
+are filtered in SQL, not through an unbounded application scan.
+
+A review requires a matching owner's public or viewer-owned LibraryItem. Direct
+legacy events resolve only an eligible review entry, including when duplicate
+legacy rows contain private bodies. Private ratings on non-review events stay
+hidden. Signed-in dashboard responses explicitly remain private/no-store.
+Service/request regression coverage includes high repetition, exact follow
+scope, proxy grouping, orphan records and false/NULL/private/own review cases.

@@ -6,12 +6,15 @@ class LandingController < ApplicationController
 
   def index
     if logged_in?
+      response.headers['Cache-Control'] = 'private, no-store'
       @in_progress_items = InProgressTracker.items_for(current_user)
       @new_from_friends = preload_social_feed(fetch_friend_activities.to_a)
       @popular_items = fetch_popular_items
       @popular_reviews = preload_social_feed(fetch_popular_reviews.to_a)
     else
       @activities = public_activity_feed
+      preload_social_feed(@activities.to_a)
+      DashboardActivityQuery.attach_review_entries(@activities.to_a)
       preload_social_feed(@activities.to_a)
       @active_trackers = User.where.not(confirmed_at: nil).limit(5)
     end
@@ -20,25 +23,27 @@ class LandingController < ApplicationController
   private
 
   def fetch_friend_activities
-    activities = unique_dashboard_activities(dashboard_activity_scope.where.not(user_id: current_user.id), limit: 9)
-    return activities if activities.size >= 3
+    unique_dashboard_activities(discovery_scope, limit: 9)
+  end
 
-    unique_dashboard_activities(dashboard_activity_scope, limit: 9)
+  def discovery_scope
+    return @discovery_scope if @discovery_scope
+
+    friends = dashboard_activity_scope.where(user_id: current_user.following.select(:id))
+    @community_discovery = !DashboardActivityQuery.new(friends, viewer_id: current_user.id).latest(limit: 1).exists?
+    @discovery_scope = @community_discovery ? dashboard_activity_scope.where.not(user_id: current_user.id) : friends
   end
 
   def dashboard_activity_scope
-    Activity.where(activity_type: %w[added consumed reviewed])
-            .order(created_at: :desc, id: :desc)
+    Activity.where(activity_type: %w[added consumed reviewed]).order(created_at: :desc, id: :desc)
   end
 
   def public_activity_feed
-    Activity.order(created_at: :desc)
-            .page(params[:page])
-            .per(15)
+    DashboardActivityQuery.new(Activity.all).visible.order(created_at: :desc).page(params[:page]).per(15)
   end
 
   def fetch_popular_items
-    counts = Activity.group(:trackable_type, :trackable_id).count
+    counts = DashboardActivityQuery.new(discovery_scope, viewer_id: current_user.id).popular(limit: 9)
     items = map_counts_to_items(counts)
     items.presence || fallback_popular_items
   end
@@ -78,14 +83,14 @@ class LandingController < ApplicationController
   end
 
   def fallback_popular_items
-    items = LibraryItem.includes(:item).where(item_type: %w[Movie Album VideoGame],
-                                              is_public: true)
-                       .map(&:item).compact.uniq { |item| [item.class.name, item.id] }
-    preload_records_attachments(items).sample(6)
+    identities = LibraryItem.where(item_type: %w[Movie Album VideoGame], is_public: true)
+                            .distinct.order(:item_type, :item_id).limit(6).pluck(:item_type, :item_id)
+    counts = identities.to_h { |identity| [identity, 1] }
+    map_counts_to_items(counts)
   end
 
   def fetch_popular_reviews
-    scope = dashboard_activity_scope.where(activity_type: 'reviewed')
+    scope = discovery_scope.where(activity_type: 'reviewed')
     unique_dashboard_activities(scope, limit: 3, reviews_only: true)
   end
 

@@ -2,6 +2,10 @@
 
 # rubocop:disable-next Metrics/ModuleLength
 module ActivitiesHelper
+  def activity_personal_details_visible?(_activity, trackable)
+    trackable.is_a?(LibraryItem) && (trackable.is_public? || current_user&.id == trackable.user_id)
+  end
+
   def activity_link_description(activity)
     user_link = link_to(activity.user.name, activity.user, class: 'activity-user-link')
     trackable = activity.trackable

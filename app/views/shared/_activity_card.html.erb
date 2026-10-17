@@ -1,3 +1,4 @@
+<% personal_visible = activity_personal_details_visible?(activity, lib_item) %>
 <% media_title = media_item.try(:title) || media_item.try(:name) || 'Media' %>
 <div class="card-2026" data-media-kind="<%= media_item.class.name %>">
   <div class="card-2026-cover">
@@ -27,10 +28,10 @@
         <span class="friend-name"><%= link_to activity.user.name, activity.user %></span>
       </div>
       <div class="activity-stats">
-        <% if lib_item.respond_to?(:rating) && lib_item.rating.present? %>
+        <% if personal_visible && lib_item.respond_to?(:rating) && lib_item.rating.present? %>
           <span class="friend-stars"><%= render_stars(lib_item.rating) %></span>
         <% end %>
-        <% if lib_item.respond_to?(:rating) && lib_item.rating.to_f >= 4.0 %>
+        <% if personal_visible && lib_item.respond_to?(:rating) && lib_item.rating.to_f >= 4.0 %>
           <span class="heart-icon" style="color: var(--destructive); margin-left: 4px;"><%= ui_icon('heart') %></span>
         <% end %>
       </div>

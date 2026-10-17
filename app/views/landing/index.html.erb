@@ -21,7 +21,7 @@
 
   <section class="dashboard-section">
     <div class="section-header">
-      <h2>New from friends</h2>
+      <h2><%= @community_discovery ? 'New around Trove' : 'New from friends' %></h2>
       <%= link_to "Find people to follow", users_path, class: "section-more-link" %>
     </div>
     
@@ -41,7 +41,7 @@
 
   <section class="dashboard-section">
     <div class="section-header">
-      <h2>Popular with friends</h2>
+      <h2><%= @community_discovery ? 'Popular around Trove' : 'Popular with friends' %></h2>
 
     </div>
 
@@ -58,7 +58,7 @@
 
   <section class="dashboard-section">
     <div class="section-header">
-      <h2>Popular reviews with friends</h2>
+      <h2><%= @community_discovery ? 'Recent reviews around Trove' : 'Recent reviews from friends' %></h2>
 
     </div>
 

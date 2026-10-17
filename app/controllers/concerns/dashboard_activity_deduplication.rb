@@ -7,28 +7,11 @@ module DashboardActivityDeduplication
 
   # Collapse lifecycle events before limiting so repeats don't crowd out discoveries.
   def unique_dashboard_activities(scope, limit:, reviews_only: false)
-    seen = {}
-    results = []
-    offset = 0
-    loop do
-      batch = preload_social_feed(scope.limit(100).offset(offset).to_a)
-      break if batch.empty?
-
-      batch.each do |activity|
-        media = dashboard_media(activity.trackable)
-        next unless media
-        next if reviews_only && (!activity.trackable.respond_to?(:review) || activity.trackable.review.blank?)
-
-        key = [activity.user_id, media.class.name, media.id]
-        next if seen[key]
-
-        seen[key] = true
-        results << activity
-        return results if results.size == limit
-      end
-      offset += batch.size
-    end
-    results
+    activities = DashboardActivityQuery.new(scope, viewer_id: current_user&.id)
+                                       .latest(limit: limit, reviews_only: reviews_only).to_a
+    preload_social_feed(activities)
+    DashboardActivityQuery.attach_review_entries(activities, viewer_id: current_user&.id)
+    preload_social_feed(activities)
   end
 
   def dashboard_media(trackable)
