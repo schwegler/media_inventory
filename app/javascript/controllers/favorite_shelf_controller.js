@@ -15,10 +15,13 @@ export default class extends Controller {
     this.applyTheme(); this.render()
     this.guard = event => { if (this.dirty) { event.preventDefault(); event.returnValue = "" } }
     this.visitGuard = event => { if (this.dirty && !window.confirm("Leave without saving your shelf?")) event.preventDefault() }
+    this.onDialogClose = () => { if (this.opener) { this.opener.focus(); this.opener = null } }
+    if (this.hasDialogTarget) this.dialogTarget.addEventListener("close", this.onDialogClose)
     window.addEventListener("beforeunload", this.guard)
     document.addEventListener("turbo:before-visit", this.visitGuard)
+    this.element.dataset.connected = "true"
   }
-  disconnect() { clearTimeout(this.timer); this.abort?.abort(); window.removeEventListener("beforeunload", this.guard); document.removeEventListener("turbo:before-visit", this.visitGuard) }
+  disconnect() { clearTimeout(this.timer); this.abort?.abort(); if (this.hasDialogTarget) this.dialogTarget.removeEventListener("close", this.onDialogClose); window.removeEventListener("beforeunload", this.guard); document.removeEventListener("turbo:before-visit", this.visitGuard) }
   button(text, action, label) {
     const button = document.createElement("button")
     button.type = "button"; button.textContent = text
@@ -40,7 +43,7 @@ export default class extends Controller {
     for (let index = 0; index < 5; index++) {
       const pick = this.picks[index], slot = document.createElement("article")
       slot.className = "shelf-slot"; slot.dataset.mediaType = pick?.type || ""
-      const cover = owner ? this.button(pick ? "Replace" : "+ Add favorite", () => this.open(index), `Choose favorite ${index + 1}`) : document.createElement(pick?.url ? "a" : "div")
+      const cover = owner ? this.button(pick ? "Replace" : "+ Add favorite", (e) => this.open(index, e), `Choose favorite ${index + 1}`) : document.createElement(pick?.url ? "a" : "div")
       if (!owner && pick?.url) cover.href = pick.url
       cover.className = "shelf-pick"
       if (pick?.cover) { const img = new Image(); img.src = pick.cover; img.alt = pick.title; cover.replaceChildren(img) }
@@ -55,7 +58,7 @@ export default class extends Controller {
         const controls = document.createElement("div"); controls.className = "shelf-controls"
         const up = this.button("←", () => this.move(index, -1), `Move ${pick.title} earlier`); up.disabled = index === 0
         const down = this.button("→", () => this.move(index, 1), `Move ${pick.title} later`); down.disabled = index === this.picks.length - 1
-        controls.append(up, down, this.button("Remove", () => { this.picks.splice(index, 1); this.changed() }))
+        controls.append(up, down, this.button("Remove", () => { this.picks.splice(index, 1); this.changed() }, `Remove ${pick.title} from shelf`))
         slot.append(controls)
       }
       this.slotsTarget.append(slot)
@@ -64,7 +67,7 @@ export default class extends Controller {
   }
   changed() { this.dirty = true; this.statusTarget.textContent = "Unsaved changes"; this.render() }
   move(index, direction) { [this.picks[index], this.picks[index + direction]] = [this.picks[index + direction], this.picks[index]]; this.changed() }
-  open(index) { this.slot = Math.min(index, this.picks.length); this.dialogTarget.showModal(); this.queryTarget.value = ""; this.resultsTarget.textContent = "Type at least two characters to search."; this.queryTarget.focus() }
+  open(index, event) { this.opener = event?.currentTarget || document.activeElement; this.slot = Math.min(index, this.picks.length); this.dialogTarget.showModal(); this.queryTarget.value = ""; this.resultsTarget.textContent = "Type at least two characters to search."; this.queryTarget.focus() }
   close() { this.dialogTarget.close() }
   search() {
     clearTimeout(this.timer); this.abort?.abort()
