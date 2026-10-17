@@ -147,3 +147,14 @@ sort/status controls use a full row so the selected label is readable; a visible
 scroll hint makes later catalog destinations discoverable. Child sequence links
 wrap consistently with existing button tokens. Browser fixtures check 390/1440px,
 long-title clipping, selected sort width and document overflow.
+
+## Selective controllers and viewer snapshot boundaries
+
+Stimulus imports controllers when their data-controller appears, rather than
+preloading every shelf/editor/controller on every route. Native server links and
+forms remain the baseline; existing browser tests wait for controller connection
+before testing enhanced behavior. Import-map core dependencies remain pinned.
+Normal and shelf layouts mark the viewer identity, and Turbo clears its snapshot
+cache on viewer changes as well as preference changes, preventing same-preference
+account switches from retaining prior snapshots. Personalized dashboard/status
+HTTP responses remain private/no-store; this is not a public JSON/CDN cache.

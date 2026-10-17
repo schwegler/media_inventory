@@ -23,6 +23,8 @@ document.addEventListener("click", event => {
 // Turbo replaces the body, not <html>. Apply server-persisted preferences before each render.
 // The initial response already includes these tokens on <html>, so no localStorage race or theme flash.
 document.addEventListener("turbo:before-render", event => {
+  const nextViewer = event.detail.newBody.dataset.viewerId
+  if (nextViewer !== document.body.dataset.viewerId) window.Turbo?.cache.clear()
   const preferences = event.detail.newBody.dataset.uiPreferences
   if (preferences) {
     const values = JSON.parse(preferences)

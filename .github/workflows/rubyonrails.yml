@@ -58,6 +58,7 @@ jobs:
       - name: Run metadata and series browser regressions
         env:
           RUN_BROWSER_SPECS: '1'
+          UI_QA_DIR: /tmp/trove-ui-qa
           SE_CHROME_PATH: ${{ steps.chrome.outputs['chrome-path'] }}
           SE_CHROMEDRIVER: ${{ steps.chrome.outputs['chromedriver-path'] }}
           SE_AVOID_STATS: 'true'
@@ -72,6 +73,16 @@ jobs:
           spec/system/series_entries_system_spec.rb
           spec/system/quick_tracking_system_spec.rb
           spec/system/catalog_consistency_system_spec.rb
+          spec/system/metadata_status_system_spec.rb
+
+      - name: Retain responsive UI evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trove-responsive-ui
+          path: /tmp/trove-ui-qa
+          if-no-files-found: ignore
+          retention-days: 7
 
   lint:
     runs-on: ubuntu-latest
