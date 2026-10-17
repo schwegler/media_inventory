@@ -1,0 +1,23 @@
+# Audit refinement delivery
+
+This branch implements the October 17 Trove audit in complete feature commits.
+Rails, Turbo, the editorial tokens and server ownership/privacy checks remain
+the foundation. No production fixture writes or deployment are part of validation.
+
+## Bounded series collections
+
+TV and comic detail pages load at most 30 children, including artwork, credits
+and the current viewer's reviews. Season, search, status and page live in the
+URL. A matching Turbo Frame response renders only the child collection. SQL
+counts and completion subqueries describe the whole series/current pass; a
+partial browser page never becomes the authoritative progress total. Searches
+can explicitly include all seasons. Season/series bulk actions continue to
+cover the whole requested scope, with a confirmation.
+
+The legacy child partials and non-paginated stream contracts remain available
+for integrations; paginated controls request a fresh bounded collection after
+a write. Review saves retain the independent modal/child update path.
+
+Regression evidence belongs in `spec/requests/series_pagination_spec.rb`:
+1,000-child instantiation bound, URL/frame state, issue pagination, numbered
+search, pass history, private reviews and post-write global counts.

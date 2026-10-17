@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class TvEpisodesController < ApplicationController
+  include SeriesCollectionRendering
+
   before_action :logged_in_user, only: %i[toggle_watched]
 
   def show
@@ -39,7 +41,13 @@ class TvEpisodesController < ApplicationController
           @show_library_item = LibraryItem.find_by(user: current_user, item: @tv_episode.tv_show)
           @active_pass = ConsumptionPasses.current_pass(@show_library_item)
           @active_pass_entry_ids = ConsumptionPasses.pass_entry_ids(@active_pass)
-          format.turbo_stream
+          format.turbo_stream do
+            if params[:series_page] == '1'
+              render_series_collection(@tv_episode.tv_show, @show_library_item)
+            else
+              render :toggle_watched
+            end
+          end
           format.html { redirect_back fallback_location: @tv_episode.tv_show, notice: 'Episode updated.' }
         end
       end

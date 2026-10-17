@@ -1,0 +1,48 @@
+<% collection = @series_collection %>
+<% label = collection.tv? ? 'Episodes' : 'Issues' %>
+<%= turbo_frame_tag 'series-entries', data: { turbo_action: 'advance' } do %>
+  <section id="media-entries" class="media-section media-entries" aria-label="<%= label %>">
+    <h2><%= label %> in this series</h2>
+    <% if logged_in? %>
+      <p class="media-progress"><strong data-child-collection-target="completed"><%= number_with_delimiter(collection.completed) %> of <%= number_with_delimiter(collection.total) %></strong> <%= label.downcase %> <%= collection.tv? ? 'watched' : 'read' %></p>
+      <progress value="<%= collection.completed %>" max="<%= [collection.total, 1].max %>" aria-label="<%= label %> completed"></progress>
+      <%= render 'shared/consumption_pass_panel', item: item, library_item: @series_library_item if @series_library_item %>
+    <% end %>
+    <%= form_with url: polymorphic_path(item, anchor: 'media-entries'), method: :get, class: 'child-collection-toolbar', data: { controller: 'series-navigation', action: 'submit->series-navigation#start' } do |form| %>
+      <div><%= form.label :child_q, "Search #{label.downcase}" %><%= form.search_field :child_q, value: collection.query, placeholder: 'Search this series', data: { action: 'input->series-navigation#search' } %></div>
+      <% if @series_library_item %>
+        <div><%= form.label :child_status, collection.tv? ? 'Watch status' : 'Read status', for: 'child-status' %><%= form.select :child_status, [["All #{label.downcase}", 'all'], [collection.tv? ? 'Unwatched' : 'Unread', 'false'], [collection.tv? ? 'Watched' : 'Read', 'true']], { selected: collection.status }, { id: 'child-status', data: { action: 'change->series-navigation#submit' } } %></div>
+      <% end %>
+      <% if collection.tv? %>
+        <div><%= form.label :season, 'Season' %><%= form.select :season, [['All seasons', 'all']] + collection.seasons.map { |s| ["Season #{s}", s] }, { selected: collection.season }, { data: { action: 'change->series-navigation#submit' } } %></div>
+      <% end %>
+      <%= form.button 'Apply', class: 'sleek-btn sleek-btn-secondary', data: { turbo_submits_with: 'Loading…' } %>
+      <%= link_to 'Reset', polymorphic_path(item, anchor: 'media-entries') %>
+      <p role="status" aria-live="polite"><%= collection.records.total_count %> matching <%= label.downcase %> · <%= collection.records.size %> shown</p>
+      <% if collection.tv? && collection.season != 'all' && collection.seasons.any? %>
+        <% index = collection.seasons.index(collection.season) %>
+        <%= form.button '‹', name: 'season', value: collection.seasons[index - 1], disabled: index.zero?, aria: { label: 'Previous season' }, class: 'sleek-btn sleek-btn-secondary' %>
+        <%= form.button '›', name: 'season', value: collection.seasons[index + 1], disabled: index == collection.seasons.size - 1, aria: { label: 'Next season' }, class: 'sleek-btn sleek-btn-secondary' %>
+      <% end %>
+    <% end %>
+    <% if logged_in? && (collection.tv? || @series_library_item) && collection.total.positive? %>
+      <% count = collection.tv? && collection.season != 'all' ? collection.season_completed : collection.completed %>
+      <% total = collection.tv? && collection.season != 'all' ? collection.season_total : collection.total %>
+      <% if !collection.tv? || collection.season != 'all' %>
+        <% done = count == total %>
+        <% action = collection.tv? ? "#{done ? 'Undo season' : 'Mark season watched'}" : (done ? 'Undo all read' : 'Mark all read') %>
+        <div class="season-panel-header">
+          <span class="season-watched-tally"><strong><%= count %></strong> of <strong><%= total %></strong> <%= collection.tv? ? 'watched in this season' : 'read' %></span>
+          <%= button_to action, collection.tv? ? mark_season_watched_tv_show_path(item, season: collection.season) : mark_all_read_comic_path(item), method: :patch, params: { consumed: !done }, class: 'sleek-btn sleek-btn-secondary', data: { turbo_confirm: "#{action} for the entire #{collection.tv? ? 'season' : 'series'}?" } %>
+        </div>
+      <% end %>
+    <% end %>
+    <div class="season-episodes-list">
+      <% collection.records.each do |child| %>
+        <%= render(collection.tv? ? 'tv_shows/tv_episode' : 'comics/comic_issue', **(collection.tv? ? { ep: child, tv_show: item } : { issue: child, comic: item })) %>
+      <% end %>
+    </div>
+    <% if collection.records.empty? %><p class="child-collection-empty">No matching <%= label.downcase %>. Try another title, season, or progress filter.</p><% end %>
+    <%= paginate collection.records, param_name: :entries_page, params: collection.filters %>
+  </section>
+<% end %>

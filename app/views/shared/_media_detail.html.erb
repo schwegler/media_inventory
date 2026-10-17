@@ -6,10 +6,6 @@
     %w[Movie TvShow].include?(item.class.name) && %i[actors writer].include?(attribute)
   end
   entries = item.is_a?(TvShow) ? item.tv_episodes : (item.is_a?(Comic) ? item.comic_issues : nil)
-  @child_library_items = @episode_library_items || @issue_library_items || (LibraryItem.where(user: current_user, item_type: entries.klass.name, item_id: entries.select(:id)).index_by(&:item_id) if entries && logged_in?)
-  @series_library_item = @library_item
-  @active_pass ||= ConsumptionPasses.current_pass(@series_library_item) if @series_library_item
-  @active_pass_entry_ids ||= ConsumptionPasses.pass_entry_ids(@active_pass)
   entries_label = item.is_a?(TvShow) ? 'Episodes' : 'Issues'
 %>
 <% content_for(:title, item.title) %>
@@ -58,7 +54,7 @@
     <% if media_metadata(item).any? || (item.is_a?(VideoGame) && (item.synopsis.present? || item.metadata_details.present?)) %>
       <a href="#title-details">Details</a>
     <% end %>
-    <% if entries %><a href="#media-entries"><%= entries_label %> <span><%= entries.size %></span></a><% end %>
+    <% if entries %><a href="#media-entries"><%= entries_label %> <span><%= @series_collection.total %></span></a><% end %>
     <% if item.is_a?(VideoGame) %>
       <% if @library_item %>
         <a href="#my-game-tracking">Gaming record</a>
@@ -100,35 +96,7 @@
           </section>
         <% end %>
       </div>
-      <% if entries %>
-        <section id="media-entries" data-controller="child-collection" data-action="season-tabs:change->child-collection#filter" class="media-section media-entries" aria-label="<%= entries_label %>">
-          <h2><%= entries_label %> in this series</h2>
-          <% if logged_in? %>
-            <%
-              # Use preloaded @child_library_items in-memory hash to avoid redundant SQL query
-              completed = if @active_pass&.rewatch?
-                            @active_pass_entry_ids.size
-                          elsif @child_library_items
-                            @child_library_items.values.count(&:consumed?)
-                          else
-                            0
-                          end
-            %>
-            <p class="media-progress"><strong data-child-collection-target="completed"><%= number_with_delimiter(completed) %> of <%= number_with_delimiter(entries.size) %></strong> <%= entries_label.downcase %> <%= MediaLanguage.for(item)[:past] %></p>
-            <progress data-child-collection-target="progress" value="<%= completed %>" max="<%= [entries.size, 1].max %>" aria-label="<%= entries_label %> completed"></progress>
-            <%= render 'shared/consumption_pass_panel', item: item, library_item: @library_item if @library_item.present? %>
-          <% end %>
-          <div class="child-collection-toolbar">
-            <div><label for="child-search">Search <%= entries_label.downcase %></label><input id="child-search" type="search" placeholder="Search by title or number" data-child-collection-target="search" data-action="input->child-collection#filter"></div>
-            <% if @library_item.present? %>
-              <div><label for="child-status"><%= item.is_a?(TvShow) ? "Watch" : "Read" %> status</label><select id="child-status" data-child-collection-target="status" data-action="change->child-collection#filter"><option value="all">All <%= entries_label.downcase %></option><option value="false"><%= item.is_a?(TvShow) ? 'Unwatched' : 'Unread' %></option><option value="true"><%= item.is_a?(TvShow) ? 'Watched' : 'Read' %></option></select></div>
-            <% end %>
-            <p role="status" aria-live="polite" data-child-collection-target="result"></p>
-          </div>
-          <%= render(item.is_a?(TvShow) ? 'tv_shows/catalog_episodes' : 'comics/catalog_issues') %>
-          <p hidden class="child-collection-empty" data-child-collection-target="empty">No matching <%= entries_label.downcase %>. Try another title, number, or progress filter.</p>
-        </section>
-      <% end %>
+      <%= render 'shared/series_collection', item: item if entries %>
       <%= render 'shared/media_community', item: item, stats: stats %>
     </div>
     <aside class="media-detail-aside" aria-label="Sources and title tools">

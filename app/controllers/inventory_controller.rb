@@ -3,6 +3,7 @@
 # rubocop:disable-next Metrics/ClassLength
 class InventoryController < ApplicationController
   include RecordPreloader
+  include SeriesCollectionRendering
 
   CATALOG_PAGE_SIZE = 24
   # Centralize authentication filter for all mutating inventory actions
@@ -96,8 +97,8 @@ class InventoryController < ApplicationController
         @resource.owned_digitally_format = @library_item.owned_digitally_format
       end
     end
-    preload_child_library_items
     instance_variable_set("@#{resource_name}", @resource)
+    prepare_child_display
   end
 
   def edit
@@ -192,20 +193,15 @@ class InventoryController < ApplicationController
     MetadataRefresher.new(@resource, current_user).enqueue if @resource.api_id.present?
   end
 
+  def prepare_child_display
+    preload_child_library_items
+    render_series_frame if @series_collection && turbo_frame_request_id == 'series-entries'
+  end
+
   def preload_child_library_items
-    return unless logged_in?
+    return unless @resource.is_a?(TvShow) || @resource.is_a?(Comic)
 
-    type, children, variable = case @resource
-                               when TvShow then ['TvEpisode', @resource.tv_episodes, :@episode_library_items]
-                               when Comic then ['ComicIssue', @resource.comic_issues, :@issue_library_items]
-                               else return
-                               end
-    entries = current_user.library_items.where(item_type: type, item_id: children.select(:id)).index_by(&:item_id)
-    instance_variable_set(variable, entries)
-    return unless @library_item
-
-    @active_pass = ConsumptionPasses.current_pass(@library_item)
-    @active_pass_entry_ids = ConsumptionPasses.pass_entry_ids(@active_pass)
+    prepare_series_collection(@resource, @library_item)
   end
 
   def catalog_scope(scope)

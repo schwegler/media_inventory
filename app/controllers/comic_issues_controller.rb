@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class ComicIssuesController < ApplicationController
+  include SeriesCollectionRendering
+
   before_action :logged_in_user, only: %i[toggle_read]
 
   def show
@@ -36,7 +38,13 @@ class ComicIssuesController < ApplicationController
           @comic_library_item = LibraryItem.find_by(user: current_user, item: @comic_issue.comic)
           @active_pass = ConsumptionPasses.current_pass(@comic_library_item)
           @active_pass_entry_ids = ConsumptionPasses.pass_entry_ids(@active_pass)
-          format.turbo_stream
+          format.turbo_stream do
+            if params[:series_page] == '1'
+              render_series_collection(@comic_issue.comic, @comic_library_item)
+            else
+              render :toggle_read
+            end
+          end
           format.html { redirect_back fallback_location: @comic_issue.comic, notice: 'Issue updated.' }
         end
       end
