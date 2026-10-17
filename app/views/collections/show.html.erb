@@ -1,3 +1,5 @@
+<% content_for(:media_workspace, 'true') %>
+<section class="catalog-page shared-collection">
 <% content_for(:canonical_url, canonical_collection_url(@user)) %>
 <div class="page-header">
   <h1><%= @user.name %>'s Collection</h1>
@@ -26,7 +28,7 @@
       <% next if entries.empty? %>
       <section class="collection-section">
         <h2><%= title %></h2>
-        <div class="media-grid-2026">
+        <div class="media-grid-2026 catalog-grid">
           <% entries.each do |entry| %>
             <% if entry.item %><%= render 'shared/media_card', media_item: entry.item %><% end %>
           <% end %>
@@ -36,3 +38,5 @@
     <% end %>
   <% end %>
 <% end %>
+
+</section>

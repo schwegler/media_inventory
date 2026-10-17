@@ -71,6 +71,7 @@ jobs:
           spec/system/child_collection_performance_spec.rb
           spec/system/series_entries_system_spec.rb
           spec/system/quick_tracking_system_spec.rb
+          spec/system/catalog_consistency_system_spec.rb
 
   lint:
     runs-on: ubuntu-latest

@@ -17,6 +17,7 @@
     <% end %>
     <%= link_to "Categories", categories_path, aria: { current: nil } %>
   </nav>
+  <p class="catalog-scroll-hint">Scroll for more catalogs →</p>
   <% end %>
   <% if @personal_library %>
     <%= render "shared/library_workspace", klass: klass %>

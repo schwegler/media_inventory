@@ -79,3 +79,16 @@
 @include series_entries.styles;
 
 @include entity_refinement.styles;
+
+// Shared public collections use the same editorial cards without hiding long titles.
+.shared-collection .card-2026-heading .card-2026-title a {
+  display: block; overflow: visible; -webkit-line-clamp: unset; overflow-wrap: anywhere;
+}
+.child-sequence-navigation { display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 1rem; }
+.catalog-scroll-hint { display: none; color: var(--text-secondary); font-size: .8125rem; margin: .5rem 0; }
+@media (max-width: 580px) {
+  .catalog-toolbar > div:not(.catalog-search) { flex: 1 1 100%; min-width: 0; }
+  .catalog-scroll-hint { display: block; }
+  .shared-collection .card-2026-heading { flex-wrap: wrap; }
+  .shared-collection .card-2026-ratings { flex-wrap: wrap; }
+}

@@ -137,3 +137,13 @@ Selected filter buttons expose aria-pressed; unsupported types normalize to All,
 and out-of-range/no-result views offer a first-page reset. Rating summaries remain
 viewer-scoped through the merged bounded preloader. The request fixture reaches
 result 21 without instantiating the entire result set.
+
+## Consistent collection and mobile catalog controls
+
+Shared collections adopt the catalog's editorial card/grid styles and keep long
+titles fully readable without hover. Existing six-type shelves, independent
+24-item pagination and review privacy semantics remain intact. Mobile catalog
+sort/status controls use a full row so the selected label is readable; a visible
+scroll hint makes later catalog destinations discoverable. Child sequence links
+wrap consistently with existing button tokens. Browser fixtures check 390/1440px,
+long-title clipping, selected sort width and document overflow.
