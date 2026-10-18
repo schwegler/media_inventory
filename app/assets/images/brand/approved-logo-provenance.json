@@ -1,0 +1,29 @@
+{
+  "source_library_id": "libfile_39dbf50c18b4819185ab6a7ab725f3d4",
+  "source_sha256": "c0dd0becf4ca129506ce0a503a17c0c27a24d806e8e1967aad92e3abc94cbd58",
+  "source_dimensions": [
+    2051,
+    767
+  ],
+  "crop_box": [
+    52,
+    102,
+    1997,
+    678
+  ],
+  "dimensions": [
+    1945,
+    576
+  ],
+  "treatment": "Only transparent margins trimmed; ink RGBA crop unchanged, light RGB recolored with identical alpha; no resampling, redraw, threshold or font substitution.",
+  "assets": {
+    "schweg-signature-light.png": {
+      "sha256": "b8067fe6eb33835c823f497c021f35060cd0d9771a43411381b96e2821b977e0",
+      "bytes": 108894
+    },
+    "schweg-signature-ink.png": {
+      "sha256": "8ce10f3edc4aefe6386b20fa154c6da6ac0a31ea43b0406c3c52cb3788f5e203",
+      "bytes": 153624
+    }
+  }
+}
