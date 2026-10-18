@@ -60,6 +60,7 @@
                 <!-- Right Column: Details Inputs -->
                 <div class="details-modal-right">
                   <h3 class="details-title-display" data-thumbnail-fetcher-target="selectedTitleDisplay">Selected Media</h3>
+                  <%= render "shared/import_confirmation", f: f %>
 
                   <div class="details-field-group">
                     <%= f.label :cover_image, "Upload Custom Cover Art (Optional)" %>

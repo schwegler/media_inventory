@@ -1,0 +1,51 @@
+const { test } = require('node:test')
+const assert = require('node:assert/strict')
+const fs = require('node:fs')
+const source = fs.readFileSync('app/javascript/controllers/thumbnail_fetcher_controller.js', 'utf8')
+  .replace(/^import .*\n/gm, '').replace('export default class', 'return class')
+const Class = new Function('Controller', 'fetch', source)
+function setup(fetch = async () => {}) {
+  const controller = new (Class(class {}, fetch))()
+  const fields = Object.fromEntries(['apiId', 'externalUrl', 'catalogSelection', 'importSelection', 'author', 'review'].map(key => [key, { value: key, closest: () => ({ style: { removeProperty() {} } }) }]))
+  controller.targets = { find: name => fields[name], findAll: name => fields[name] ? [fields[name]] : [] }
+  controller.hasImportSelectionTarget = true
+  controller.importSelectionTarget = fields.importSelection
+  controller.hasImportPreviewTarget = true
+  controller.importPreviewTarget = { classList: { add() {} } }
+  controller.submitButtonTargets = [{ disabled: false }]
+  controller.mediaTypeValue = 'book'
+  controller.renderImport = () => {}
+  controller.applyOption = () => { throw new Error('stale preview applied') }
+  return { controller, fields }
+}
+
+test('manual conversion clears every provider identity and retains metadata and personal edits', () => {
+  const { controller, fields } = setup()
+  controller.clearImport()
+  for (const name of ['apiId', 'externalUrl', 'catalogSelection', 'importSelection']) assert.equal(fields[name].value, '')
+  assert.equal(fields.author.value, 'author')
+  assert.equal(fields.review.value, 'review')
+})
+
+test('a detail response arriving after manual conversion cannot restore the imported selection or overwrite edits', async () => {
+  let resolve
+  const pending = new Promise(done => { resolve = done })
+  const { controller, fields } = setup(() => pending)
+  const loading = controller.loadImport({ import_selection: 'signed' })
+  assert.equal(controller.submitButtonTargets[0].disabled, true)
+  controller.clearImport()
+  fields.author.value = 'My edit'
+  resolve({ ok: true, json: async () => ({ author: 'Provider', import_selection: 'new' }) })
+  await loading
+  assert.equal(fields.author.value, 'My edit')
+  assert.equal(fields.importSelection.value, '')
+})
+
+test('failed preview never silently enables an unconfirmed import', async () => {
+  const { controller } = setup(async () => ({ ok: false }))
+  let message
+  controller.renderImport = (_option, text) => { message = text }
+  await controller.loadImport({ import_selection: 'signed' })
+  assert.match(message, /Unable to load the preview/)
+  assert.equal(controller.submitButtonTargets[0].disabled, true)
+})

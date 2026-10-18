@@ -18,7 +18,7 @@ function debounce(func, wait) {
 // Connects to data-controller="thumbnail-fetcher"
 export default class extends Controller {
   static targets = [
-    "titleInput", "previewImg", "placeholder", "statusText", "optionsGrid", "thumbnailUrl",
+    "importPreview", "importStatus", "importFacts", "importSelection", "titleInput", "previewImg", "placeholder", "statusText", "optionsGrid", "thumbnailUrl",
     "director", "artist", "writer", "actors", "publisher", "releaseYear", "genre", "network", "venue", "promotion", "date",
     "season", "episode", "issueNumber", "apiId", "catalogSelection", "externalUrl", "manualFormSection", "developer", "platform",
     "searchStage", "detailsStage", "backBtn", "modalTitle", "selectedTitleDisplay", "gameType", "author", "searchYear", "submitButton"
@@ -29,6 +29,7 @@ export default class extends Controller {
     this.debouncedFetch = debounce(() => this.fetchThumbnails(), 300)
     this.currentQuery = ""
     this.searchClient = crypto.randomUUID()
+    this.titleHome = this.titleInputTarget.closest("div").parentElement
 
     // Pre-populate preview if thumbnail URL already has a value
     if (this.thumbnailUrlTarget.value) {
@@ -42,6 +43,11 @@ export default class extends Controller {
       const currentTitle = this.titleInputTarget.value || "Details"
       const releaseYearVal = this.releaseYearTargets.length > 0 ? this.releaseYearTarget.value : null
       this.showDetailsStage(currentTitle, releaseYearVal)
+      if (this.hasImportSelectionTarget && this.importSelectionTarget.value) {
+        const option = { title: currentTitle, api_id: this.apiIdTarget.value }
+        this.metadataControls().forEach(input => { option[input.name.match(/\[([^\]]+)\]$/)?.[1]] = input.value })
+        this.renderImport(option, "Your import selection is retained. Check the validation messages before saving.")
+      }
     } else {
       this.goToSearch()
     }
@@ -57,6 +63,7 @@ export default class extends Controller {
   disconnect() {
     this.debouncedFetch.cancel()
     this.searchAbortController?.abort()
+    this.detailAbortController?.abort()
     this.formElement?.removeEventListener("keydown", this.searchKeydownHandler)
     this.formElement?.removeEventListener("submit", this.searchSubmitHandler, true)
   }
@@ -129,13 +136,22 @@ export default class extends Controller {
   }
 
   showManualForm() {
+    this.clearImport()
+    this.thumbnailUrlTarget.value = ""
+    this.previewImgTarget.style.display = "none"
+    this.placeholderTarget.style.display = "block"
     this.clearGameSelection()
     const title = this.titleInputTarget.value.trim() || "New Item"
     const releaseYearVal = this.releaseYearTargets.length > 0 ? this.releaseYearTarget.value : null
     this.showDetailsStage(title, releaseYearVal)
+    this.editManualTitle()
   }
 
   goToSearch() {
+    if (this.titleHome && this.hasTitleInputTarget) this.titleHome.prepend(this.titleInputTarget.closest("div"))
+    if (this.hasTitleInputTarget) this.titleInputTarget.setAttribute("data-action", "input->thumbnail-fetcher#search")
+    this.detailAbortController?.abort()
+    this.detailGeneration = (this.detailGeneration || 0) + 1
     this.searchStageActive = this.hasSearchStageTarget || (this.hasManualFormSectionTarget && this.manualFormSectionTarget.style.display === "none")
     if (this.hasSearchStageTarget) this.submitButtonTargets.forEach(button => { button.disabled = true })
     if (this.hasSearchStageTarget) this.searchStageTarget.classList.remove("hidden")
@@ -351,6 +367,96 @@ export default class extends Controller {
     if (this.hasPlaceholderTarget) this.placeholderTarget.style.display = "block"
   }
 
+  clearImport() {
+    this.detailAbortController?.abort()
+    this.detailGeneration = (this.detailGeneration || 0) + 1
+    if (this.hasImportSelectionTarget) this.importSelectionTarget.value = ""
+    if (this.hasImportPreviewTarget) this.importPreviewTarget.classList.add("hidden")
+    for (const name of ["apiId", "externalUrl", "catalogSelection"]) {
+      const target = this.targets.find(name)
+      if (target) target.value = ""
+    }
+    this.metadataControls().forEach(input => { input.closest(".details-field-group")?.style.removeProperty("display") })
+  }
+
+  metadataControls() {
+    return ["director", "artist", "writer", "actors", "author", "publisher", "releaseYear", "genre", "network", "developer", "platform", "issueNumber"]
+      .flatMap(name => this.targets.findAll(name))
+  }
+
+  useAsManual() {
+    this.clearImport()
+    this.submitButtonTargets.forEach(button => { button.disabled = false; button.value = "Save manual entry" })
+    this.editManualTitle()
+  }
+
+  editManualTitle() {
+    const title = this.titleInputTarget
+    this.detailsStageTarget.querySelector(".details-modal-right").prepend(title.closest("div"))
+    title.removeAttribute("data-action")
+    title.focus()
+  }
+
+  renderImport(option, message) {
+    if (!this.hasImportPreviewTarget) return
+    this.importPreviewTarget.classList.remove("hidden")
+    this.importStatusTarget.textContent = message
+    this.importFactsTarget.replaceChildren()
+    const fields = { source: "Source", api_id: "Source ID", title: "Title", author: "Author", director: "Director", writer: "Writer", actors: "Cast", artist: "Artist", publisher: "Publisher", developer: "Developer", platform: "Platforms", network: "Network", genre: "Genres", release_year: "Release year", game_type: "Type" }
+    const targetNames = { release_year: "releaseYear", game_type: "gameType" }
+    for (const [key, label] of Object.entries(fields)) {
+      if (!["source", "api_id", "title"].includes(key) && !this.targets.find(targetNames[key] || key)) continue
+      this.appendImportFact(label, option[key])
+    }
+    this.appendImportFact("Cover", option.thumbnail_url ? "Source artwork available" : null)
+    if (option.synopsis) this.appendImportFact("Synopsis", option.synopsis)
+    for (const [key, value] of Object.entries(option.metadata_details || {})) this.appendImportFact(key.replaceAll("_", " "), value)
+    for (const credit of option.metadata_credits_data || []) this.appendImportFact(credit.role || "Contributor", credit.name)
+    this.metadataControls().forEach(input => { input.closest(".details-field-group")?.style.setProperty("display", "none") })
+  }
+
+  appendImportFact(label, value) {
+    const row = document.createElement("div"), term = document.createElement("dt"), description = document.createElement("dd")
+    term.textContent = label
+    description.textContent = Array.isArray(value) ? value.join(", ") : (value === null || value === undefined || value === "" ? "Not provided by this source" : String(value))
+    row.append(term, description)
+    this.importFactsTarget.append(row)
+  }
+
+  async loadImport(option) {
+    this.detailAbortController?.abort()
+    const generation = this.detailGeneration = (this.detailGeneration || 0) + 1
+    this.detailAbortController = new AbortController()
+    this.renderImport(option, "Loading selected source details…")
+    this.submitButtonTargets.forEach(button => { button.disabled = true })
+    try {
+      const response = await fetch(`/media/import_preview?type=${encodeURIComponent(this.mediaTypeValue)}&selection=${encodeURIComponent(option.import_selection)}`, { signal: this.detailAbortController.signal })
+      if (!response.ok) throw new Error("Preview unavailable")
+      const result = await response.json()
+      if (generation !== this.detailGeneration) return
+      this.applyOption(result)
+      this.importSelectionTarget.value = result.import_selection
+      const messages = { ready: "Source details loaded. Confirm the information below.", catalog: "Existing shared catalog information. Logging this title preserves its catalog metadata.", partial: "Some source details could not be loaded. Available information is shown below.", summary: "Search summary only. Detailed lookup is not supported for this source.", unavailable: "Source details are unavailable. You can save the search summary or choose another source." }
+      this.renderImport(result, messages[result.import_state] || messages.summary)
+      this.submitButtonTargets.forEach(button => { button.disabled = false; button.value = "Confirm and save" })
+    } catch (error) {
+      if (error.name === "AbortError" || generation !== this.detailGeneration) return
+      this.renderImport(option, "Unable to load the preview. Search and select again, or use this information as a manual entry.")
+    }
+  }
+
+  applyOption(option) {
+    for (const [key, value] of Object.entries(option)) {
+      const name = { release_year: "releaseYear", game_type: "gameType", api_id: "apiId", external_url: "externalUrl" }[key] || key
+      const target = this.targets.find(name)
+      if (target && typeof value !== "object") target.value = value ?? ""
+    }
+    this.thumbnailUrlTarget.value = option.cover_source_url || option.thumbnail_url || ""
+    this.previewImgTarget.src = option.thumbnail_url || ""
+    this.previewImgTarget.style.display = option.thumbnail_url ? "block" : "none"
+    this.placeholderTarget.style.display = option.thumbnail_url ? "none" : "block"
+  }
+
   selectOption(option, isManualClick = false) {
     if (!isManualClick && !this.searchStageActive) return
 
@@ -392,6 +498,7 @@ export default class extends Controller {
 
       // 4. Transition to details view!
       this.showDetailsStage(option.title, option.release_year)
+      if (option.import_selection && this.hasImportSelectionTarget) this.loadImport(option)
     }
   }
 }
