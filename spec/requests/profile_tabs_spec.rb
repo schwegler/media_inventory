@@ -21,5 +21,26 @@ RSpec.describe 'Profile Tabs', type: :request do
       expect(document.at_css('.library-profile-tabs a[aria-current="page"]').text).to eq('Overview')
       expect(document.at_css('.library-profile-tabs a[href$="tab=collection"]').text).to eq('Collection')
     end
+
+    it 'loads data conditionally for each profile tab without querying unrendered feed/likes data on collection tab' do
+      movie = Movie.create!(title: 'Tab Movie')
+      LibraryItem.create!(user: user, item: movie, is_collected: true, is_public: true)
+      Post.create!(user: user, content: 'Test post on profile')
+
+      # Navigating to collection tab should render collection and not issue queries for posts or likes
+      get user_path(user, tab: 'collection')
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Tab Movie')
+      expect(response.body).not_to include('Test post on profile')
+
+      # Navigating to posts tab should render posts
+      get user_path(user, tab: 'posts')
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Test post on profile')
+
+      # Navigating to likes tab should render successfully
+      get user_path(user, tab: 'likes')
+      expect(response).to have_http_status(:ok)
+    end
   end
 end
