@@ -41,7 +41,8 @@ RSpec.describe 'Import confirmation', type: :system do
     fill_in 'Review', with: 'My review'
     click_button 'Save manual entry'
     expect(page).to have_text('Book was successfully logged.')
-    expect(Book.last).to have_attributes(author: 'My correction', api_id: nil)
+    expect(Book.last.author).to eq('My correction')
+    expect(Book.last.api_id).to be_blank
     expect(LibraryItem.last.review).to eq('My review')
   end
 

@@ -60,6 +60,7 @@ module Admin
       media.with_lock do
         changes = changes.reject { |field, value| media.public_send(field).to_s == value.to_s }
         protect_credit_corrections(media, changes)
+        media.importing_metadata = true if media.respond_to?(:importing_metadata=)
         media.update!(changes)
         refresh = MetadataRefresh.find_or_create_by!(item: media)
         corrected = Array(refresh.provider_values['corrected_fields']) | changes.keys

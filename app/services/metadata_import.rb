@@ -14,6 +14,8 @@ class MetadataImport
   end
 
   def self.read(token, type)
+    raise Invalid, 'Import selection is invalid. Search and select the title again.' unless token.is_a?(String)
+
     value = Rails.application.message_verifier('metadata-import').verified(token)
     raise Invalid, 'Import selection expired or is invalid. Search and select the title again.' unless
       TYPES.include?(type) && value.is_a?(Hash) && value['type'] == type
