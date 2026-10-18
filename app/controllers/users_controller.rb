@@ -20,33 +20,33 @@ class UsersController < ApplicationController
     return if load_canonical_profile
 
     prepare_profile_library
-    @activities = @user.activities.order(created_at: :desc)
-    @likes = @user.likes.order(created_at: :desc)
 
-    # Hide review content (reviewed activities / liked reviews) the user hasn't made public,
-    # unless the current user is the owner. Library entries themselves are always visible.
-    unless @profile_owner
-      @activities = public_review_activities(@activities)
-      @likes = public_library_events(@likes, 'likes', 'likeable')
+    # PERFORMANCE OPTIMIZATION: Conditionally fetch and preload data strictly required for the active profile tab.
+    # This avoids dozens of redundant SQL queries (activities, posts, likes, in-progress items, and cover preloading)
+    # when viewing non-overview tabs like 'collection', 'backlog', 'posts', or 'likes'.
+    @collection_items = []
+    @backlog_items = []
+    @recent_collection = []
+    @in_progress_items = []
+    @combined_feed = []
+    @likes = []
+
+    case @profile_tab
+    when 'overview'
+      @in_progress_items = InProgressTracker.items_for(@user)
+      recent = @visible_library.where(is_collected: true).order(created_at: :desc).limit(6)
+      @recent_collection = preload_library_items(recent)
+      @combined_feed = fetch_combined_feed
+    when 'collection'
+      @collection_items = preload_library_items(fetch_library_items(is_collected: true))
+    when 'backlog'
+      @backlog_items = preload_library_items(fetch_library_items(in_backlog: true))
+    when 'posts'
+      @combined_feed = fetch_combined_feed
+    when 'likes'
+      @likes = fetch_likes
     end
 
-    @activities = @activities.limit(20)
-    @likes = @likes.limit(24).to_a
-
-    # Preload social feed (activities and posts)
-    @combined_feed = preload_social_feed(@activities.to_a + @user.posts.order(created_at: :desc).limit(20).to_a)
-    @combined_feed.sort_by!(&:created_at).reverse!
-    @combined_feed = @combined_feed.first(20)
-
-    # Preload likes
-    preload_social_feed(@likes)
-
-    # PERFORMANCE OPTIMIZATION: Conditionally fetch and preload full page collections only when their tab is active
-    # to avoid redundant SQL queries and cover image attachment preloading on other profile tabs.
-    @collection_items = @profile_tab == 'collection' ? preload_library_items(fetch_library_items(is_collected: true)) : []
-    @backlog_items = @profile_tab == 'backlog' ? preload_library_items(fetch_library_items(in_backlog: true)) : []
-    @recent_collection = preload_library_items(@visible_library.where(is_collected: true).order(created_at: :desc).limit(6))
-    @in_progress_items = InProgressTracker.items_for(@user)
     load_shared_items
   end
 
@@ -182,6 +182,23 @@ class UsersController < ApplicationController
       :notify_push_posts, :notify_push_comments,
       :notify_push_likes, :notify_push_follows
     )
+  end
+
+  def fetch_combined_feed
+    activities = @user.activities.order(created_at: :desc)
+    activities = public_review_activities(activities) unless @profile_owner
+    activities = activities.limit(20)
+
+    combined = preload_social_feed(activities.to_a + @user.posts.order(created_at: :desc).limit(20).to_a)
+    combined.sort_by!(&:created_at).reverse!
+    combined.first(20)
+  end
+
+  def fetch_likes
+    likes = @user.likes.order(created_at: :desc)
+    likes = public_library_events(likes, 'likes', 'likeable') unless @profile_owner
+    likes = likes.limit(24).to_a
+    preload_social_feed(likes)
   end
 
   def fetch_library_items(filter)
