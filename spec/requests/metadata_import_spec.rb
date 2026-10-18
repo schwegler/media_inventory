@@ -108,4 +108,18 @@ RSpec.describe 'Imported metadata confirmation', type: :request do
     expect(response).to have_http_status(:unprocessable_content)
     expect(Book.where(title: 'Forged')).not_to exist
   end
+
+  it 'keeps conflicting game selections on the existing identity validation path' do
+    login
+    selected = VideoGame.create!(title: 'Selected game')
+    other = VideoGame.create!(title: 'Another game')
+    other.update_columns(api_id: 'steam_2')
+    selection = token('video_game', title: selected.title, api_id: 'steam_2',
+                                    catalog_selection: selected.signed_id(purpose: 'game-catalog-selection'))
+    post video_games_path, params: { video_game: { import_selection: selection, title: 'Conflicting import' } }
+    expect(response).to have_http_status(:unprocessable_content)
+    expect(response.body).to include('Conflicting game identifiers')
+    expect(VideoGame.count).to eq(2)
+    expect(user.library_items).to be_empty
+  end
 end
