@@ -42,6 +42,7 @@ RSpec.describe 'Series entries and review drawers', type: :system do
     expect(child_lib.is_public?).to be false
     within("#tv_episode_#{episode.id}") { click_button 'Mark watched: 2. Episode 2' }
     expect(page).to have_css('[data-child-collection-target="completed"]', text: '1 of 2')
+    expect(page).to have_css('.child-collection-toolbar[data-connected="true"]')
     select 'Unwatched', from: 'Watch status'
     expect(page).to have_text('No matching episodes')
     select 'All episodes', from: 'Watch status'
