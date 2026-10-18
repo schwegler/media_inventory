@@ -90,7 +90,9 @@ class MetadataProvider
     end
 
     fields = { metadata_credits_data: ProviderEntityMetadata.tvmaze(data),
-               metadata_details: data.slice('language', 'status', 'type'),
+               metadata_details: data.slice('language', 'status', 'type').merge(
+                 'description' => plain_description(data['summary']), 'Runtime' => data['averageRuntime'] || data['runtime']
+               ).compact_blank,
                network: data.dig('network', 'name') || data.dig('webChannel', 'name'),
                thumbnail_url: data.dig('image', 'original') || data.dig('image', 'medium'),
                director: directors,
@@ -199,6 +201,8 @@ class MetadataProvider
     organizations = [ProviderEntityMetadata.credit(volume['publisher'] || {}, 'Publisher', 'ComicVine',
                                                    kind: 'organization')].compact
     [{ metadata_credits_data: ProviderEntityMetadata.comic(credits) + organizations,
+       metadata_details: { 'description' => plain_description(volume['description'] || volume['deck']),
+                           'start_year' => volume['start_year'], 'count_of_issues' => volume['count_of_issues'] }.compact_blank,
        publisher: volume.dig('publisher', 'name'), writer: comic_creators(credits, %w[writer]),
        artist: comic_creators(credits, %w[artist penciler inker colorist]),
        thumbnail_url: volume.dig('image', 'original_url'), external_url: volume['site_detail_url'] }, rows]
@@ -270,7 +274,8 @@ class MetadataProvider
     raise Unavailable unless data.is_a?(Hash)
 
     [{ metadata_credits_data: itunes_credits(data, :author),
-       metadata_details: data.slice('language', 'description'),
+       metadata_details: data.slice('language').merge('description' => plain_description(data['description']),
+                                                                  'subjects' => data['genres']).compact_blank,
        author: data['artistName'], publisher: data['sellerName'], release_year: year(data['releaseDate']),
        thumbnail_url: data['artworkUrl100']&.sub('100x100bb', '400x400bb') }, []]
   end
@@ -365,12 +370,21 @@ class MetadataProvider
     end
     fields = { metadata_credits_data: authors + contributors + publishers,
                metadata_details: openlibrary_details(data, edition),
-               author: names(authors), publisher: Array(edition['publishers']).join(', ').presence }
+               (@item.is_a?(Comic) ? :writer : :author) => names(authors),
+               release_year: openlibrary_year(data['first_publish_date']) || openlibrary_year(edition['publish_date']),
+               thumbnail_url: openlibrary_cover(data, edition),
+               publisher: Array(edition['publishers']).join(', ').presence }
     [fields, []]
+  end
+
+  def openlibrary_cover(data, edition)
+    cover = (Array(edition['covers']) + Array(data['covers'])).find { |id| id.is_a?(Integer) && id.positive? }
+    "https://covers.openlibrary.org/b/id/#{cover}-L.jpg" if cover
   end
 
   def openlibrary_details(data, edition)
     fields = edition.slice('isbn_10', 'isbn_13', 'number_of_pages', 'edition_name', 'publish_date')
+    fields['description'] = plain_description(data['description'] || edition['description'])
     fields['subjects'] = Array(data['subjects']).first(20)
     fields['languages'] = Array(edition['languages']).filter_map do |language|
       language['key']&.delete_prefix('/languages/')
@@ -397,9 +411,25 @@ class MetadataProvider
     raise Unavailable unless data.is_a?(Hash)
 
     [{ metadata_credits_data: itunes_credits(data, creator),
+       metadata_details: itunes_details(data),
        creator => data['artistName'], genre: data['primaryGenreName'],
        release_year: year(data['releaseDate']),
        thumbnail_url: data['artworkUrl100']&.sub('100x100bb', '600x600bb') }, []]
+  end
+
+  def itunes_details(data)
+    { 'description' => plain_description(data['longDescription'] || data['shortDescription']),
+      'Runtime' => data['trackTimeMillis'].to_i.positive? ? data['trackTimeMillis'].to_i / 60_000 : nil,
+      'collectionExplicitness' => data['contentAdvisoryRating'] }.compact_blank
+  end
+
+  def plain_description(value)
+    value = value['value'] if value.is_a?(Hash)
+    ActionController::Base.helpers.strip_tags(value.to_s).presence
+  end
+
+  def openlibrary_year(value)
+    value.to_s[/\b[12]\d{3}\b/]&.to_i
   end
 
   def itunes_credits(data, creator)
@@ -428,7 +458,7 @@ class MetadataProvider
   end
 
   def year(value)
-    match = value.to_s.match(/\A(19\d{2}|20\d{2})/)
+    match = value.to_s.match(/\A([12]\d{3})/)
     match[1].to_i if match
   end
 end

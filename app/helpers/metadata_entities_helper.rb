@@ -9,6 +9,7 @@ module MetadataEntitiesHelper
     'collectionExplicitness' => 'Content rating', 'copyright' => 'Copyright',
     'trackCount' => 'Tracks', 'releaseDate' => 'Release date', 'isbn_10' => 'ISBN-10', 'isbn_13' => 'ISBN-13',
     'number_of_pages' => 'Pages', 'edition_name' => 'Edition', 'publish_date' => 'Publication date',
+    'type' => 'Type', 'start_year' => 'Series start year', 'count_of_issues' => 'Issues',
     'subjects' => 'Subjects', 'languages' => 'Languages', 'description' => 'Description'
   }.freeze
 

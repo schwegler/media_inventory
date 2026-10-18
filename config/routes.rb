@@ -196,6 +196,7 @@ SampleApp::Application.routes.draw do
   delete '/settings/delete_account', to: 'settings#delete_account'
 
   get '/db_status', to: 'landing#db_status'
+  get '/media/import_preview', to: 'media#import_preview'
   get '/media/autocomplete', to: 'media#autocomplete'
   post '/media/copy', to: 'media#copy'
   post '/likes/toggle', to: 'likes#toggle', as: 'toggle_like'

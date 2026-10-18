@@ -124,6 +124,7 @@ class VideoGamesController < InventoryController
 
   def resource_params
     params.require(:video_game).permit(
+      :import_selection,
       :catalog_selection, :copy_platform, :storefront, :edition, :access_method, :ownership_status, :play_status,
       :title, :game_type, :developer, :publisher, :platform, :release_year, :rating, :is_public, :thumbnail_url,
       :in_watchlist,
