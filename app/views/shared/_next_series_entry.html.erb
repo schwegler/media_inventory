@@ -12,5 +12,5 @@
     <%= form.button tv ? 'Mark watched' : 'Mark read', class: 'sleek-btn sleek-btn-primary', aria: { label: "#{tv ? 'Mark watched' : 'Mark read'}: #{label}" } %>
   <% end %>
   <% if upcoming %></details><% end %>
-  <span><%= release.present? ? "Release: #{release}" : 'Release date unknown' %></span>
+  <span class="media-next-release"><%= release.present? ? "Release: #{release}" : 'Release date unknown' %></span>
 </div>

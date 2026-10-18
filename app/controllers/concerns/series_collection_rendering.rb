@@ -15,9 +15,9 @@ module SeriesCollectionRendering
     @child_library_items = @series_collection.libraries
     @active_pass = @series_collection.pass
     @active_pass_entry_ids = @series_collection.entry_ids
-    if @active_pass&.active? && action_name == 'show' && !turbo_frame_request?
-      @next_series_entry = NextSeriesEntry.new(series, @active_pass).next_item
-    end
+    return unless @active_pass&.active? && action_name == 'show' && !turbo_frame_request?
+
+    @next_series_entry = NextSeriesEntry.new(series, @active_pass).next_item
   end
 
   def render_series_collection(series, library)

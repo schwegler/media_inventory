@@ -10,7 +10,7 @@
     <% end %>
     <%= form_with url: polymorphic_path(item, anchor: 'media-entries'), method: :get, class: 'child-collection-toolbar', data: { controller: 'series-navigation', action: 'submit->series-navigation#start' } do |form| %>
       <% if collection.tv? %>
-        <div><%= form.label :season, 'Season' %><%= form.select :season, [['All seasons', 'all']] + collection.seasons.map { |s| ["Season #{s}", s] }, { selected: collection.season }, { data: { action: 'change->series-navigation#submit' } } %></div>
+        <div class="series-season-filter"><%= form.label :season, 'Season' %><%= form.select :season, [['All seasons', 'all']] + collection.seasons.map { |s| ["Season #{s}", s] }, { selected: collection.season }, { data: { action: 'change->series-navigation#submit' } } %></div>
       <% end %>
       <details class="series-filters" open data-active-filters="<%= collection.query.present? || collection.status != 'all' %>">
         <summary>Search &amp; filter <%= label.downcase %></summary>
@@ -26,8 +26,10 @@
       <p role="status" aria-live="polite"><%= collection.records.total_count %> matching <%= label.downcase %> · <%= collection.records.size %> shown</p>
       <% if collection.tv? && collection.season != 'all' && collection.seasons.any? %>
         <% index = collection.seasons.index(collection.season) %>
+        <div class="series-season-navigation">
         <%= form.button '‹', name: 'season', value: collection.seasons[index - 1], disabled: index.zero?, aria: { label: 'Previous season' }, class: 'sleek-btn sleek-btn-secondary' %>
         <%= form.button '›', name: 'season', value: collection.seasons[index + 1], disabled: index == collection.seasons.size - 1, aria: { label: 'Next season' }, class: 'sleek-btn sleek-btn-secondary' %>
+        </div>
       <% end %>
     <% end %>
     <% if logged_in? && (collection.tv? || @series_library_item) && collection.total.positive? %>

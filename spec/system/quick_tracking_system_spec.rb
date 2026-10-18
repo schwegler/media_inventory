@@ -21,6 +21,8 @@ RSpec.describe 'Quick tracking accessibility', type: :system do
       expect(page).to have_no_css('.in-progress-log-btn', visible: true)
       first('.in-progress-early summary').click
       expect(first('.in-progress-log-btn')[:'aria-label']).to include('Future series 0').or include('Future series 1')
+      first('.tracking-options > summary').send_keys(:enter)
+      expect(page).to have_button(/Dismiss Future series/, visible: true)
       heights = page.evaluate_script(<<~JS)
         Array.from(document.querySelectorAll('.in-progress-dismiss,.in-progress-log-btn,.in-progress-rating-select'))
           .filter(el => el.getClientRects().length).map(el => el.getBoundingClientRect().height)

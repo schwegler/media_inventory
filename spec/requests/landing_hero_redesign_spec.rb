@@ -82,7 +82,7 @@ RSpec.describe 'Landing page hero and companion bridge redesign', type: :request
       page = Nokogiri::HTML(response.body)
       expect(page.at_css('.home-intro')).to be_nil
       expect(page.at_css('.dashboard-welcome')).to be_present
-      expect(page.at_css('.welcome-name').text).to eq('Collector Jane')
+      expect(page.at_css('.dashboard-welcome h1').text).to eq('Continue your story')
     end
   end
 end

@@ -41,6 +41,7 @@
         </div>
         <p class="form-help">Upload a banner and edit your bio in <%= link_to 'Basic Information', settings_basic_info_path %>.</p>
       </fieldset>
+      <details class="companion-note"><summary>A note from your library companion</summary><div><%= render 'shared/quiet_companion' %><p>A shelf can be a work in progress. Save what you love, change your mind, and leave room for the next discovery.</p></div></details>
       <div class="form-actions"><%= f.submit 'Save preferences', class: 'btn btn-primary', data: { turbo_submits_with: 'Saving…' } %><%= link_to 'View profile', @user, class: 'btn btn-secondary' %></div>
     <% end %>
   </section>

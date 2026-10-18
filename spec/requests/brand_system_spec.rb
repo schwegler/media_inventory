@@ -35,7 +35,7 @@ RSpec.describe 'Brand system and mascot assets', type: :request do
     tokens_path = Rails.root.join('app', 'assets', 'stylesheets', '_tokens.scss')
     content = File.read(tokens_path)
     expect(content).to include('--canvas: #f7f7fa;')
-    expect(content).to include('--canvas: #111119;')
+    expect(content).to include('--canvas: #111216;')
     expect(content).to include('--violet: #6d3acb;')
     expect(content).to include('--violet: #cab5ff;')
     expect(content).to include('.mascot-sticker')

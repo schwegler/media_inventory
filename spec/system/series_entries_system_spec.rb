@@ -84,6 +84,7 @@ RSpec.describe 'Series entries and review drawers', type: :system do
     end
     expect(page).to have_no_css('.review-drawer')
     expect(LibraryItem.find_by!(user: user, item: issue).is_public?).to be true
+    find('.series-bulk > summary').click
     accept_confirm { click_button 'Mark all read' }
     expect(page).to have_css('[data-child-collection-target="completed"]', text: '2 of 2')
     click_button 'Start reread'
