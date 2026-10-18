@@ -19,9 +19,9 @@
       <% if original %>
         <%= artwork_lightbox(original, "#{item.title} cover") do %>
           <% if item.is_a?(VideoGame) %>
-            <%= game_library_image(item, @library_item, alt: "#{item.title} cover", class: "game-cover-art", sizes: "(max-width: 600px) 120px, 180px") %>
+            <%= game_library_image(item, @library_item, alt: "#{item.title} cover", class: "game-cover-art", sizes: "(max-width: 580px) 90px, (max-width: 800px) 144px, 240px") %>
           <% else %>
-            <%= media_cover_image item, alt: "#{item.title} cover", sizes: "(max-width: 600px) 120px, 180px", loading: "eager" %>
+            <%= media_cover_image item, alt: "#{item.title} cover", sizes: "(max-width: 580px) 90px, (max-width: 800px) 144px, 240px", loading: "eager" %>
           <% end %>
         <% end %>
       <% else %>
@@ -40,6 +40,7 @@
           <p class="media-personal-rating"><span>Your rating</span> <%= render_stars(@library_item.rating) %></p>
         <% end %>
       </div>
+      <%= render "shared/next_series_entry", item: item, entry: @next_series_entry if entries && @next_series_entry %>
       <details class="media-share" id="share-title-<%= item.id %>"><summary>Share this title</summary><%= render 'shared/item_sharing', item: item %></details>
     </div>
     <aside class="media-overview-stats" aria-label="Community summary">

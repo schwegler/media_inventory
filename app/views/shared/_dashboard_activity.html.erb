@@ -1,0 +1,9 @@
+<% personal_visible = activity_personal_details_visible?(activity, lib_item) %>
+<article class="dashboard-circle-entry">
+  <%= user_avatar_tag(activity.user, size: 32) %>
+  <div>
+    <p><%= link_to activity.user.name, activity.user %> <%= activity.activity_type == 'reviewed' && personal_visible ? 'reviewed' : 'added' %> <%= link_to media_item.title, media_item %><% if personal_visible && lib_item.respond_to?(:rating) && lib_item.rating.present? %> · <%= lib_item.rating %> ★<% end %></p>
+    <% if personal_visible && lib_item.respond_to?(:review) && lib_item.review.present? %><p class="dashboard-circle-review"><%= truncate(strip_tags(lib_item.review), length: 220) %></p><% end %>
+    <time datetime="<%= activity.created_at.iso8601 %>"><%= time_ago_in_words(activity.created_at) %> ago</time>
+  </div>
+</article>

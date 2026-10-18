@@ -44,8 +44,8 @@ RSpec.describe 'In Progress Tracking and Logging', type: :request do
         expect(response.body).to include('Half Loop')
         expect(response.body).to include('East of West')
         expect(response.body).to include('The Message')
-        expect(response.body).to include('✓ Watch')
-        expect(response.body).to include('✓ Read')
+        expect(response.body).to include('Mark watched')
+        expect(response.body).to include('Mark read')
       end
     end
 
@@ -60,7 +60,7 @@ RSpec.describe 'In Progress Tracking and Logging', type: :request do
         expect(response.body).to include('In progress')
         expect(response.body).to include('Severance')
         expect(response.body).to include('Half Loop')
-        expect(response.body).not_to include('✓ Watch')
+        expect(response.body).not_to include('Mark watched')
       end
 
       it 'still shows in-progress items whose review is private' do

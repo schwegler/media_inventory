@@ -14,8 +14,10 @@
       <strong><%= active.rewatch? ? "#{again.capitalize} ##{active.number - 1}" : "First #{noun}" %></strong>
       is on your In progress list.
     </p>
+    <details class="pass-options"><summary>Manage tracking</summary>
     <%= button_to "Dismiss from In progress", dismiss_consumption_pass_path(active), method: :patch,
                   class: "sleek-btn sleek-btn-secondary", form_class: "consumption-pass-form" %>
+    </details>
   <% else %>
     <% if latest&.dismissed? %>
       <p class="consumption-pass-status"><strong>Tracking paused</strong><span>Your <%= is_tv ? "watch" : "reading" %> history is saved.</span></p>

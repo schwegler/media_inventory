@@ -1,31 +1,38 @@
 <% if logged_in? %>
   <div class="dashboard-welcome">
-    <h1>Welcome back, <span class="welcome-name"><%= current_user.name %></span>.</h1>
-    <p>Your library, your next discovery, and what your friends are into.</p>
-    <div class="home-actions"><%= link_to "View your library", current_user, class: "sleek-btn sleek-btn-primary" %><%= link_to "Find something new", search_path, class: "blog-link" %></div>
+    <h1>Continue your story</h1>
+    <p>Good stories are worth coming back to.</p>
+    <% if @in_progress_items.any? %>
+      <%= link_to "All active series", user_path(current_user, anchor: "in_progress_section"), class: "dashboard-active-link" %>
+    <% else %>
+      <div class="home-actions"><%= link_to "View your library", current_user, class: "blog-link" %><%= link_to "Find something new", search_path, class: "blog-link" %></div>
+    <% end %>
   </div>
 
   <% if @in_progress_items.any? %>
     <section class="dashboard-section" id="in_progress_dashboard_section">
-      <div class="section-header">
-        <h2>Continue watching &amp; reading</h2>
-        <%= link_to "All active series", user_path(current_user, anchor: "in_progress_section"), class: "section-more-link" %>
-      </div>
+      <div class="tracking-section-heading"><h2 class="visually-hidden">Continue watching &amp; reading</h2></div>
       <div class="in-progress-grid">
         <% @in_progress_items.each do |item| %>
           <%= render 'shared/in_progress_card', in_progress: item, profile_owner: true %>
         <% end %>
       </div>
     </section>
+  <% else %>
+    <section class="dashboard-section tracking-rest" aria-label="In progress">
+      <%= render "shared/quiet_companion" %>
+      <div><h2>A little room for what’s next.</h2><p>Your active series appear here, ready for a quick watch or read.</p><%= link_to "Explore TV shows", tv_shows_path %> · <%= link_to "Explore comics", comics_path %></div>
+    </section>
   <% end %>
 
+  <div class="dashboard-social-layout">
   <section class="dashboard-section">
     <div class="section-header">
       <h2><%= @community_discovery ? 'New around Trove' : 'New from friends' %></h2>
       <%= link_to "Find people to follow", users_path, class: "section-more-link" %>
     </div>
     
-    <div class="media-grid-2026">
+    <div class="dashboard-circle-feed">
       <% if @new_from_friends.empty? %>
         <div class="home-empty-state"><h3>Your next discovery starts here</h3><p>Follow people to see what they’re adding and reviewing.</p><%= link_to "Find people", users_path %></div>
       <% end %>
@@ -33,7 +40,7 @@
         <% lib_item = activity.trackable %>
         <% next if lib_item.nil? %>
         <% media = lib_item.is_a?(LibraryItem) ? lib_item.item : lib_item %>
-        <%= render partial: 'shared/activity_card', locals: { media_item: media, activity: activity, lib_item: lib_item } %>
+        <%= render partial: 'shared/dashboard_activity', locals: { media_item: media, activity: activity, lib_item: lib_item } %>
       <% end %>
     </div>
   </section>
@@ -56,6 +63,7 @@
     </div>
   </section>
 
+  </div>
   <section class="dashboard-section">
     <div class="section-header">
       <h2><%= @community_discovery ? 'Recent reviews around Trove' : 'Recent reviews from friends' %></h2>

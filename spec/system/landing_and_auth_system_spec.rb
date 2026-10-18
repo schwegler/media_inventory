@@ -59,7 +59,7 @@ RSpec.describe 'Landing and Authentication', type: :system do
 
     # Visit dashboard (root)
     visit root_path
-    expect(page).to have_text('Welcome back, Active Tracker')
+    expect(page).to have_text('Continue your story')
 
     # Log out
     if Capybara.current_driver == :rack_test
@@ -118,7 +118,7 @@ RSpec.describe 'Landing and Authentication', type: :system do
     visit root_path
 
     # Verify dashboard loads successfully and displays the friend's activity
-    expect(page).to have_text('Welcome back, Active Tracker')
+    expect(page).to have_text('Continue your story')
     expect(page).to have_text('New from friends')
     expect(page).to have_text('Popular with friends')
     expect(page).to have_text('Popular reviews with friends')
