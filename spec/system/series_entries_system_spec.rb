@@ -20,10 +20,14 @@ RSpec.describe 'Series entries and review drawers', type: :system do
     show.tv_episodes.create!(name: 'Next season', season: 3, episode: 1)
     resize_browser_viewport(1440, 1000)
     visit tv_show_path(show)
+    expect(page).to have_css('.child-collection-toolbar[data-controller="series-navigation"][data-connected="true"]')
     expect(page).to have_select('Season', selected: 'Season 1')
+    scroll_to(find_button('Next season'), align: :center)
     click_button 'Next season'
     expect(page).to have_select('Season', selected: 'Season 3')
+    expect(page).to have_css('.child-collection-toolbar[data-connected="true"]')
     click_button 'Previous season'
+    expect(page).to have_select('Season', selected: 'Season 1')
     within "#tv_episode_#{episode.id}" do
       find('.series-entry-details > summary').send_keys(:enter)
       expect(page).to have_css('.series-entry-details[open]')
