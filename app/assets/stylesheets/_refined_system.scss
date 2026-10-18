@@ -88,9 +88,6 @@
   .tracking-options-menu { position: absolute; right: 0; width: min(250px, 75vw); padding: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; }
   .tracking-options-menu p { margin: 0 0 .75rem; font-size: .875rem; }
   .tracking-options-menu button { min-height: 44px; width: 100%; color: var(--text); background: var(--inset); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; }
-  #in_progress_dashboard_section .in-progress-grid { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
-  #in_progress_dashboard_section .in-progress-card:first-child { grid-template-columns: 144px minmax(0, 1fr); }
-  #in_progress_dashboard_section .in-progress-card:first-child .in-progress-cover { width: 144px; height: 216px; }
   .media-entries .consumption-pass-panel { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; padding: .75rem 0; border: 0; background: transparent; border-bottom: 1px solid var(--border); gap: .75rem; }
   .media-entries .consumption-pass-status { margin: 0; font-size: .875rem; }
   .pass-options summary, .series-filters summary, .series-bulk summary { min-height: 44px; display: flex; align-items: center; gap: .5rem; cursor: pointer; font-size: .875rem; color: var(--accent); }
@@ -113,15 +110,10 @@
   .series-season-navigation { display: flex; gap: .5rem; align-items: center; }
   .media-entries .series-season-navigation .sleek-btn { width: 44px; padding: .5rem; }
   .media-entries > progress { max-width: 100%; height: 4px; }
-  @media (max-width: 1050px) {
-    #in_progress_dashboard_section .in-progress-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    #in_progress_dashboard_section .in-progress-card:first-child { grid-template-columns: 106px minmax(0, 1fr); }
-    #in_progress_dashboard_section .in-progress-card:first-child .in-progress-cover { width: 106px; height: 159px; }
-  }
-  @media (max-width: 800px) { .dashboard-social-layout { grid-template-columns: 1fr; gap: 0; } .in-progress-grid, #in_progress_dashboard_section .in-progress-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 800px) { .dashboard-social-layout { grid-template-columns: 1fr; gap: 0; } .in-progress-grid { grid-template-columns: 1fr; } }
   @media (max-width: 580px) {
-    .in-progress-card, #in_progress_dashboard_section .in-progress-card:first-child { grid-template-columns: 90px minmax(0, 1fr); gap: 1rem; }
-    .in-progress-cover, #in_progress_dashboard_section .in-progress-card:first-child .in-progress-cover { width: 90px; height: 135px; }
+    .in-progress-card { grid-template-columns: 90px minmax(0, 1fr); gap: 1rem; }
+    .in-progress-cover { width: 90px; height: 135px; }
     .in-progress-series-info .in-progress-series-title { font-size: 1.1875rem; }
     .in-progress-series-info { padding-right: 36px; }
     .tracking-options > summary { width: 44px; }
