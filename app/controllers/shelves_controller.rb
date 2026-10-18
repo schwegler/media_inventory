@@ -15,7 +15,7 @@ class ShelvesController < ApplicationController
 
   def show
     @overview = !FavoriteShelf::CATEGORIES.key?(params[:category])
-    @theme = %w[midnight gallery electric].include?(params[:theme]) ? params[:theme] : 'midnight'
+    @theme = %w[midnight gallery electric halloween].include?(params[:theme]) ? params[:theme] : 'midnight'
     @category = @overview ? 'overall' : params[:category]
     @shelves = load_shelves_with_batch_items(@user)
     @items = @shelves.find { |shelf| shelf[:key] == @category }[:items]
@@ -70,7 +70,7 @@ class ShelvesController < ApplicationController
     theme = params[:theme].to_s
     image = params[:preview_image]
     unless (FavoriteShelf::CATEGORIES.key?(category) || category == 'overview') &&
-           %w[midnight gallery electric].include?(theme) &&
+           %w[midnight gallery electric halloween].include?(theme) &&
            image.is_a?(ActionDispatch::Http::UploadedFile) && image.content_type == 'image/png' &&
            image.size <= 5.megabytes && image.read(8) == "\x89PNG\r\n\x1a\n".b
       return head :unprocessable_content

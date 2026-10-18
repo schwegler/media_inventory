@@ -1,0 +1,25 @@
+@mixin styles {
+// Candlelight: warm copper, plum shadows, and pale readable type.
+:root[data-accent='halloween'], [data-profile-accent='halloween'] {
+  --accent: #9b4210; --accent-hover: #773008; --accent-subtle: #fff0df;
+  --action: #93400f; --on-action: #fff; --focus-ring: var(--accent);
+}
+:root[data-theme='dark'][data-accent='halloween'] {
+  --canvas: #19131f; --surface: #241c2b; --inset: #302338;
+  --text: #fff2df; --text-secondary: #c7b8c9; --text-tertiary: #c7b8c9;
+  --border: #564157; --accent: #ffbd78; --accent-hover: #ffdbb5; --accent-subtle: #3d2933;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-theme='os'][data-accent='halloween'] { --accent: #ffbd78; --accent-hover: #ffdbb5; --accent-subtle: #3d2933; }
+}
+[data-profile-header='halloween'] .banner-placeholder {
+  background: radial-gradient(circle at 78% 38%, #f3cf92 0 28px, transparent 29px), linear-gradient(140deg, #211528, #573044);
+}
+.shelf-page:has([data-shelf-theme='halloween']) { background: #19131f; }
+.favorite-shelf[data-shelf-theme='halloween'], [data-shelf-theme='halloween'] {
+  --shelf-bg: #19131f; --shelf-text: #fff2df; --shelf-muted: #c7b8c9;
+  --shelf-accent: #ffbd78; --shelf-line: #ffbd7840; --shelf-surface: #302338;
+}
+[data-profile-header="halloween"] .banner-meadow, [data-profile-header="halloween"] .member-card-banner { background: radial-gradient(circle at 78% 38%, #f3cf92 0 28px, transparent 29px), linear-gradient(140deg, #211528, #573044); }
+
+}

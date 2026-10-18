@@ -1,3 +1,5 @@
+@use "halloween";
+@use "halloween_invitation";
 @use "refined_system";
 @use "metadata_entities";
 @use "favorite_shelf";
@@ -95,3 +97,6 @@
 }
 
 @include refined_system.styles;
+
+@include halloween.styles;
+@include halloween_invitation.styles;

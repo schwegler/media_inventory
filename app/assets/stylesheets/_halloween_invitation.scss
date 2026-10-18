@@ -1,0 +1,21 @@
+@mixin styles {
+.halloween-invitation {
+  // In normal flow: never obscures controls, including mobile navigation.
+  margin: 1rem auto; width: fit-content; max-width: calc(100% - 2rem);
+  padding: .75rem; border: 1px solid var(--border); border-radius: 16px;
+  background: var(--surface); color: var(--text);
+  button { min-width: 44px; min-height: 44px; padding: .5rem .75rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); cursor: pointer; }
+  button:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
+  p { max-width: 34rem; }
+}
+.halloween-invitation-actions { display: flex; gap: .5rem; align-items: center; }
+.halloween-bat { display: flex; align-items: center; gap: .75rem; }
+.halloween-bat > [aria-hidden] { font-size: 32px; animation: halloween-hover 4s ease-in-out 3; }
+@keyframes halloween-hover { 50% { transform: translateY(-5px) rotate(-4deg); } }
+@media (prefers-reduced-motion: reduce) { .halloween-bat > [aria-hidden] { animation: none; } }
+:root[data-effects='reduced'] .halloween-bat > [aria-hidden] { animation: none; }
+@media(max-width: 640px) { .shelf-themes { flex-wrap: wrap; } }
+
+.halloween-invitation[hidden], .halloween-invitation [hidden] { display: none !important; }
+
+}

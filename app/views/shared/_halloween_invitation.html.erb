@@ -1,0 +1,15 @@
+<%# One campaign only, with an explicit UTC boundary; never inferred from month alone. %>
+<% if Time.current >= Time.utc(2026, 10, 18) && Time.current < Time.utc(2026, 11, 1) %>
+  <aside class="halloween-invitation" data-controller="halloween" data-action="turbo:before-cache@document->halloween#reset" hidden aria-label="Halloween appearance invitation">
+    <div data-halloween-target="invitation" class="halloween-invitation-actions">
+      <button type="button" data-action="halloween#apply" aria-label="Try the Halloween theme" class="halloween-bat"><span aria-hidden="true">🦇</span><span>Try Halloween</span></button>
+      <button type="button" data-action="halloween#dismiss" aria-label="Dismiss Halloween invitation">×</button>
+    </div>
+    <div data-halloween-target="notice" hidden>
+      <p role="alert" data-halloween-target="message"></p>
+      <button type="button" data-action="halloween#undo">Undo</button>
+      <button type="button" data-action="halloween#dismiss">Close notice</button>
+      <%= link_to "Save Halloween in Appearance", settings_appearance_path if logged_in? %>
+    </div>
+  </aside>
+<% end %>

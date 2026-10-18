@@ -1,4 +1,5 @@
 export const SHELF_THEMES = {
+  halloween: { bg: '#19131f', text: '#fff2df', muted: '#c7b8c9', accent: '#ffbd78', surface: '#302338', line: '#ffbd7840' },
   midnight: { bg: '#101117', text: '#f6f3eb', muted: '#aaaab1', accent: '#dfff8e', surface: '#202127', line: '#ffffff26' },
   gallery: { bg: '#f5f2eb', text: '#22221f', muted: '#66665e', accent: '#415338', surface: '#e5e1d7', line: '#22221f30' },
   electric: { bg: '#181235', text: '#fff4f6', muted: '#bcb0d7', accent: '#ff9ccf', surface: '#30234f', line: '#fff4f630' }
