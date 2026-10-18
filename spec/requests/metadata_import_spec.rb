@@ -16,16 +16,16 @@ RSpec.describe 'Imported metadata confirmation', type: :request do
   end
 
   it 'requires authentication and rejects tampered, expired and cross-type selections' do
-    get '/media/import_preview', params: { type: 'movie', selection: 'tampered' }
+    post '/media/import_preview', params: { type: 'movie', selection: 'tampered' }
     expect(response).to redirect_to(login_url)
     login
     ['tampered', token('book', title: 'Other')].each do |selection|
-      get '/media/import_preview', params: { type: 'movie', selection: selection }
+      post '/media/import_preview', params: { type: 'movie', selection: selection }
       expect(response).to have_http_status(:unprocessable_content)
     end
     selection = token('movie', title: 'Expired')
     travel_to(31.minutes.from_now) do
-      get '/media/import_preview', params: { type: 'movie', selection: selection }
+      post '/media/import_preview', params: { type: 'movie', selection: selection }
       expect(response).to have_http_status(:unprocessable_content)
     end
     expect(Movie.count).to eq(0)
@@ -38,8 +38,8 @@ RSpec.describe 'Imported metadata confirmation', type: :request do
       network: { name: 'A network' }, genres: ['Drama'], premiered: '2020-01-01',
       _embedded: { cast: [{ person: { id: 7, name: 'An actor' } }] }
     }.to_json)
-    get '/media/import_preview',
-        params: { type: 'tv_show', selection: token('tv_show', title: 'A show', api_id: '42', source: 'TVMaze') }
+    post '/media/import_preview',
+         params: { type: 'tv_show', selection: token('tv_show', title: 'A show', api_id: '42', source: 'TVMaze') }
     expect(response).to have_http_status(:ok)
     preview = response.parsed_body
     expect(preview).to include('actors' => 'An actor', 'genre' => 'Drama', 'import_state' => 'ready')
@@ -81,7 +81,7 @@ RSpec.describe 'Imported metadata confirmation', type: :request do
     login
     book = Book.create!(title: 'Curated book', author: 'Correct author', metadata_details: { 'number_of_pages' => 300 })
     selection = token('book', title: 'Stale title', author: 'Wrong', is_local: true, catalog_id: book.id)
-    get '/media/import_preview', params: { type: 'book', selection: selection }
+    post '/media/import_preview', params: { type: 'book', selection: selection }
     expect(response.parsed_body).to include('author' => 'Correct author', 'import_state' => 'catalog')
     post books_path, params: { book: { import_selection: selection, title: 'Overwrite', review: 'My opinion' } }
     expect(Book.count).to eq(1)
@@ -93,8 +93,8 @@ RSpec.describe 'Imported metadata confirmation', type: :request do
     login
     %w[wiki_4 itunes_4].each do |id|
       stub_request(:get, 'https://itunes.apple.com/lookup?id=4').to_return(status: 503)
-      get '/media/import_preview',
-          params: { type: 'book', selection: token('book', title: 'Summary', api_id: id, author: 'Author') }
+      post '/media/import_preview',
+           params: { type: 'book', selection: token('book', title: 'Summary', api_id: id, author: 'Author') }
       expect(response.parsed_body).to include('author' => 'Author')
       expect(%w[summary unavailable]).to include(response.parsed_body['import_state'])
     end
@@ -131,5 +131,28 @@ RSpec.describe 'Imported metadata confirmation', type: :request do
     post video_games_path, params: { video_game: { import_selection: token('video_game', attrs) } }
     follow_redirect!
     expect(response.body).to include('Exploration', '2020-02-03', 'https://example.com/game')
+  end
+
+  it 'accepts large signed descriptions in the request body and keeps tokens stable during polling' do
+    login
+    fields = { title: 'A long source description', api_id: 'wiki_42', metadata_details: { 'description' => 'x' * 30_000 } }
+    first = token('book', fields)
+    travel_to(5.seconds.from_now) { expect(token('book', fields)).to eq(first) }
+    post '/media/import_preview', params: { type: 'book', selection: first }
+    expect(response).to have_http_status(:ok)
+    expect(response.parsed_body['metadata_details']['description'].length).to eq(30_000)
+  end
+
+  it 'keeps local game identity and import tokens stable across unchanged search polls' do
+    login
+    VideoGame.create!(title: 'Stable game')
+    allow(MediaSearchService).to receive(:request).and_return(state: 'pending', results: [])
+    get '/media/autocomplete', params: { q: 'Stable game', type: 'video_game', async: '1' }
+    first = response.parsed_body.first
+    travel_to(5.seconds.from_now) do
+      get '/media/autocomplete', params: { q: 'Stable game', type: 'video_game', async: '1' }
+      expect(response.parsed_body.first['catalog_selection']).to eq(first['catalog_selection'])
+      expect(response.parsed_body.first['import_selection']).to eq(first['import_selection'])
+    end
   end
 end

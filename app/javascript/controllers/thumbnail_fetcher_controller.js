@@ -436,7 +436,12 @@ export default class extends Controller {
     this.renderImport(option, "Loading selected source details…")
     this.submitButtonTargets.forEach(button => { button.disabled = true })
     try {
-      const response = await fetch(`/media/import_preview?type=${encodeURIComponent(this.mediaTypeValue)}&selection=${encodeURIComponent(option.import_selection)}`, { signal: this.detailAbortController.signal })
+      const response = await fetch("/media/import_preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" },
+        body: JSON.stringify({ type: this.mediaTypeValue, selection: option.import_selection }),
+        signal: this.detailAbortController.signal
+      })
       if (!response.ok) throw new Error("Preview unavailable")
       const result = await response.json()
       if (generation !== this.detailGeneration) return

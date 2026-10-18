@@ -8,9 +8,17 @@ class MetadataImport
               developer platform release_year issue_number game_type synopsis metadata_details metadata_credits_data].freeze
 
   def self.sign(type, attributes)
-    Rails.application.message_verifier('metadata-import').generate(
-      { 'type' => type, 'attributes' => attributes.stringify_keys }, expires_in: 30.minutes
-    )
+    payload = { 'type' => type, 'attributes' => attributes.stringify_keys }
+    key = ['metadata-import-token-v1', Digest::SHA256.hexdigest(payload.to_json)]
+    MediaSources::Registry::CACHE.fetch(key, expires_in: 20.minutes) do
+      Rails.application.message_verifier('metadata-import').generate(payload, expires_in: 30.minutes)
+    end
+  end
+
+  def self.game_selection(game)
+    MediaSources::Registry::CACHE.fetch(['game-catalog-selection-v1', game.id, game.updated_at], expires_in: 20.minutes) do
+      game.signed_id(purpose: 'game-catalog-selection', expires_in: 30.minutes)
+    end
   end
 
   def self.read(token, type)
