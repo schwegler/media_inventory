@@ -18,14 +18,15 @@ RSpec.describe 'Series entries and review drawers', type: :system do
                                        air_date: '2000-07-06', thumbnail_url: '/missing-artwork.png',
                                        summary: 'The group sits around the kitchen table, sharing their life stories.')
     show.tv_episodes.create!(name: 'Next season', season: 3, episode: 1)
-    page.current_window.resize_to(1440, 1000)
+    resize_browser_viewport(1440, 1000)
     visit tv_show_path(show)
     expect(page).to have_select('Season', selected: 'Season 1')
     click_button 'Next season'
     expect(page).to have_select('Season', selected: 'Season 3')
     click_button 'Previous season'
     within "#tv_episode_#{episode.id}" do
-      find('.series-entry-details > summary').click
+      find('.series-entry-details > summary').send_keys(:enter)
+      expect(page).to have_css('.series-entry-details[open]')
       click_link 'Write review'
     end
     expect(page).to have_css('.review-drawer', visible: true)
@@ -45,12 +46,16 @@ RSpec.describe 'Series entries and review drawers', type: :system do
     select 'Unwatched', from: 'Watch status'
     expect(page).to have_text('No matching episodes')
     select 'All episodes', from: 'Watch status'
+    expect(page).to have_css('#series-entries .series-entry-title', text: 'Episode 2')
+    expect(page).to have_css('.child-collection-toolbar[data-connected="true"]')
     fill_in 'Search episodes', with: 'not an episode'
     expect(page).to have_text('No matching episodes')
     fill_in 'Search episodes', with: ''
-    page.current_window.resize_to(390, 844)
+    expect(page).to have_css('#series-entries .series-entry-title', text: 'Episode 2')
+    resize_browser_viewport(390, 844)
     within "#tv_episode_#{episode.id}" do
-      find('.series-entry-details > summary').click
+      find('.series-entry-details > summary').send_keys(:enter)
+      expect(page).to have_css('.series-entry-details[open]')
       click_link 'Edit review'
     end
     expect(page).to have_css('.review-drawer')
@@ -74,7 +79,8 @@ RSpec.describe 'Series entries and review drawers', type: :system do
     comic.comic_issues.create!(issue_number: 2, title: 'Second issue')
     visit comic_path(comic)
     within "#comic_issue_#{issue.id}" do
-      find('.series-entry-details > summary').click
+      find('.series-entry-details > summary').send_keys(:enter)
+      expect(page).to have_css('.series-entry-details[open]')
       click_link 'Write review'
     end
     within '.review-drawer' do
@@ -97,7 +103,7 @@ RSpec.describe 'Series entries and review drawers', type: :system do
     expect(series_lib.consumption_passes.count).to eq(2)
     within("#comic_issue_#{issue.id}") { find('.series-entry-details > summary').click }
     capture_series_screenshot('comics-desktop')
-    page.current_window.resize_to(390, 844)
+    resize_browser_viewport(390, 844)
     page.execute_script("document.querySelector('#media-entries').scrollIntoView({ behavior: 'instant', block: 'start' })")
     capture_series_screenshot('comics-mobile')
     expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be true

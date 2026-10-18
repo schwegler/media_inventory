@@ -8,8 +8,9 @@ export default class extends Controller {
   }
   disconnect() { clearTimeout(this.timer) }
   search() { clearTimeout(this.timer); this.timer = setTimeout(() => this.submit(), 300) }
-  submit() { this.element.requestSubmit() }
+  submit() { clearTimeout(this.timer); this.element.requestSubmit() }
   start(event) {
+    clearTimeout(this.timer)
     // A season button overrides the select's successful-control value.
     const button = event.submitter
     if (button?.name === "season") this.element.querySelector('select[name="season"]').value = button.value
