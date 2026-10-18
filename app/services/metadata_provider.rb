@@ -376,7 +376,7 @@ class MetadataProvider
     fields = { metadata_credits_data: authors + contributors + publishers,
                metadata_details: openlibrary_details(data, edition),
                (@item.is_a?(Comic) ? :writer : :author) => names(authors),
-               release_year: openlibrary_year(data['first_publish_date']) || openlibrary_year(edition['publish_date']),
+               release_year: openlibrary_release_year(data, edition, path),
                thumbnail_url: openlibrary_cover(data, edition),
                publisher: Array(edition['publishers']).join(', ').presence }
     [fields, []]
@@ -390,6 +390,11 @@ class MetadataProvider
   def openlibrary_details(data, edition)
     fields = edition.slice('isbn_10', 'isbn_13', 'number_of_pages', 'edition_name', 'publish_date')
     fields['description'] = plain_description(data['description'] || edition['description'])
+    if @id.include?('/works/') && edition.present?
+      fields['edition_note'] =
+        'Publisher, ISBN and publication facts refer to one available edition; other editions may differ.'
+    end
+    fields['edition_source'] = edition['key'] if edition['key'].to_s.match?(%r{\A/books/OL\d+M\z})
     fields['subjects'] = Array(data['subjects']).first(20)
     fields['languages'] = Array(edition['languages']).filter_map do |language|
       language['key']&.delete_prefix('/languages/')
@@ -431,6 +436,11 @@ class MetadataProvider
   def plain_description(value)
     value = value['value'] if value.is_a?(Hash)
     ActionController::Base.helpers.strip_tags(value.to_s).presence
+  end
+
+  def openlibrary_release_year(data, edition, path)
+    work_year = @item.release_year if path.include?('/works/') && @item.respond_to?(:release_year)
+    openlibrary_year(data['first_publish_date']) || work_year || openlibrary_year(edition['publish_date'])
   end
 
   def openlibrary_year(value)

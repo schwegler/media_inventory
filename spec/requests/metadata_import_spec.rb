@@ -122,4 +122,14 @@ RSpec.describe 'Imported metadata confirmation', type: :request do
     expect(VideoGame.count).to eq(2)
     expect(user.library_items).to be_empty
   end
+
+  it 'renders retained RAWG tags and exact release facts on the saved game' do
+    login
+    attrs = { title: 'A detailed game', api_id: 'wiki_42', metadata_details: {
+      'tags' => ['Exploration'], 'original_release_date' => '2020-02-03', 'official_website' => 'https://example.com/game'
+    } }
+    post video_games_path, params: { video_game: { import_selection: token('video_game', attrs) } }
+    follow_redirect!
+    expect(response.body).to include('Exploration', '2020-02-03', 'https://example.com/game')
+  end
 end

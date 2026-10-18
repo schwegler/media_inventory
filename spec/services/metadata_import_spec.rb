@@ -19,6 +19,10 @@ RSpec.describe MetadataImport do
     expect(result).not_to have_key(:author)
     book = described_class.preview({ title: 'Book', api_id: 'openlibrary_/works/OL42W' }.with_indifferent_access, 'book')
     expect(book).to include('release_year' => 1899, 'author' => 'Comic writer')
+    work = described_class.preview({ title: 'Book', api_id: 'openlibrary_/works/OL42W', release_year: 1900 }
+                                    .with_indifferent_access, 'book')
+    expect(work[:release_year]).to eq(1900)
+    expect(work[:metadata_details]['edition_note']).to include('one available edition')
   end
 
   it 'retains the actual cover source rather than storing a rendered derivative' do
