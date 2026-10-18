@@ -9,7 +9,7 @@ RSpec.describe 'Halloween invitation', type: :system do
 
   before do
     page.driver.browser.execute_cdp('Page.addScriptToEvaluateOnNewDocument',
-                                    source: "Date.now = () => Date.UTC(2026, 9, 20, 12)")
+                                    source: 'Date.now = () => Date.UTC(2026, 9, 20, 12)')
   end
 
   it 'requires activation, offers keyboard Undo, and preserves the original appearance' do
