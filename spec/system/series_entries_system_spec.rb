@@ -44,8 +44,10 @@ RSpec.describe 'Series entries and review drawers', type: :system do
     expect(page).to have_css('[data-child-collection-target="completed"]', text: '1 of 2')
     expect(page).to have_css('.child-collection-toolbar[data-connected="true"]')
     select 'Unwatched', from: 'Watch status'
+    click_button 'Apply'
     expect(page).to have_text('No matching episodes')
     select 'All episodes', from: 'Watch status'
+    click_button 'Apply'
     fill_in 'Search episodes', with: 'not an episode'
     expect(page).to have_text('No matching episodes')
     fill_in 'Search episodes', with: ''
