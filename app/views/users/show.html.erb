@@ -16,14 +16,10 @@
   <header class="library-profile-heading">
     <%= user_avatar_tag(@user, size: 112) %>
     <div class="library-profile-identity">
-      <h1><%= @user.name %>’s library</h1>
+      <h1><%= @user.name %></h1>
       <% if @user.display_handle.present? %><p class="library-profile-handle"><%= @user.display_handle %></p><% end %>
-      <% if @user.bio.present? %><p class="library-profile-bio"><%= @user.bio %></p><% end %>
-      <p class="library-profile-member">Cataloging since <%= @user.created_at.strftime('%B %Y') %></p>
     </div>
-    <div class="profile-companion-mascot" aria-hidden="true">
-      <%= image_tag 'brand/facet_pose_03_crate_digger.png', class: 'mascot-sticker profile-crate-digger', width: 68, height: 89, alt: '' %>
-    </div>
+
     <div class="library-profile-actions">
       <% if @profile_owner %>
         <%= link_to 'Edit profile', settings_path, class: 'sleek-btn sleek-btn-primary' %>
@@ -40,6 +36,8 @@
         <input readonly hidden value="<%= public_url %>" aria-label="Public profile link" data-link-share-target="fallback">
       </div>
     </div>
+    <% if @user.bio.present? %><p class="library-profile-bio"><%= @user.bio %></p><% end %>
+    <p class="library-profile-member">Cataloging since <%= @user.created_at.strftime('%B %Y') %></p>
   </header>
   <div class="library-profile-layout">
     <section class="library-profile-main" aria-label="Library">
@@ -155,6 +153,9 @@
       <% else %>
         <%= link_to 'Explore the library', movies_path, class: 'sleek-btn sleek-btn-secondary' %>
       <% end %>
+    <div class="profile-companion-mascot" aria-hidden="true">
+      <%= image_tag 'brand/facet_pose_03_crate_digger.png', class: 'mascot-sticker profile-crate-digger', width: 68, height: 89, alt: '' %>
+    </div>
     </aside>
   </div>
 </div>

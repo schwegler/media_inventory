@@ -12,7 +12,7 @@
 
         <nav class="workspace-primary-nav" aria-label="Primary navigation">
           <%= link_to 'Home', root_path, aria: { current: controller_name == 'landing' ? 'page' : nil } %>
-          <details class="browse-navigation">
+          <details class="browse-navigation" data-controller="disclosure-menu">
             <summary>Browse</summary>
             <div class="browse-navigation-links">
               <% MediaLayoutHelper::CATALOGS.each do |type, (label, _singular, _icon)| %>

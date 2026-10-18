@@ -148,6 +148,15 @@
   .media-sections a { min-height: 44px; }
   .library-profile-banner { height: 200px; border-radius: 3px; overflow: hidden; }
   .library-profile-banner .banner-img { width: 100%; height: 100%; object-fit: cover; }
+  .library-profile-banner { margin-bottom: 0; }
+  .library-profile .library-profile-heading { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: .5rem 1.5rem; padding: 0 1.5rem; margin-top: -18px; }
+  .library-profile-heading > :is(img, .avatar-placeholder, .user-avatar, .user-avatar-fallback) { width: 88px; height: 88px; border: 5px solid var(--canvas); }
+  .library-profile-identity { padding-top: 1.5rem; }
+  .library-profile .library-profile-heading h1 { font-size: 2.25rem; }
+  .library-profile .library-profile-heading .library-profile-actions { padding-top: 2rem; }
+  .library-profile .library-profile-heading > :is(.library-profile-bio, .library-profile-member) { grid-column: 1/-1; margin: .75rem 0 0; padding: 0; }
+  .library-profile .library-profile-heading > .library-profile-bio { font-size: 1rem; max-width: 76ch; }
+  .library-profile-sidebar .profile-companion-mascot { justify-content: start; padding: 1.5rem 0 0; }
   .library-profile-heading { position: static; background: transparent; backdrop-filter: none; box-shadow: none; border: 0; padding-top: 1.5rem; }
   .library-profile :is(h2, h3) { font-weight: 500; }
   .library-profile-heading h1 { font-size: clamp(2.0625rem, 3.4vw, 2.75rem); font-weight: 500; }
@@ -155,8 +164,9 @@
   .library-profile-stats strong { font-family: 'Space Grotesk', sans-serif; font-weight: 500; }
   .library-profile-sidebar { background: transparent; border: 0; border-left: 1px solid var(--border); border-radius: 0; padding: 0 0 0 1.5rem; }
   .library-profile-tabs a { border-radius: 0; min-height: 44px; }
-  .profile-favorites { display: grid; grid-template-columns: minmax(150px, 1fr) 2fr; align-items: center; gap: 2rem; border-block: 1px solid var(--border); padding-block: 2rem; margin-bottom: 2rem; }
+  .profile-favorites { display: grid; grid-template-columns: minmax(150px, 1fr) 2fr; align-items: center; gap: 2rem; border: 0; border-radius: 3px; background: var(--surface); padding: 2rem; margin: 2rem 0; }
   .profile-favorites h2 { font: 400 2.5rem/1.05 Georgia, serif; letter-spacing: -.045em; margin: 0 0 1rem; }
+  .profile-favorites p { color: var(--text-secondary); font-size: .875rem; }
   .profile-favorites-art { display: flex; align-items: end; gap: 1rem; }
   .profile-favorites-art a { display: block; flex: 1; min-width: 0; }
   .profile-favorites-art img { width: 100%; height: auto; aspect-ratio: 2/3; object-fit: cover; display: block; border-radius: 3px; }
@@ -172,7 +182,7 @@
   .settings-container .settings-content { background: transparent; padding: 0; border: 0; border-radius: 0; box-shadow: none; }
   .settings-content .settings-title { margin-bottom: 1rem; }
   .settings-sidebar nav a { border-radius: 0; }
-  .settings-sidebar nav a[aria-current='page'] { background: transparent; box-shadow: inset 2px 0 var(--accent); }
+  .settings-sidebar nav a[aria-current='page'] { border-left: 0; background: transparent; box-shadow: inset 2px 0 var(--accent); }
   .settings-form .form-field-grid { padding-top: 1.5rem; margin-block: 2rem; }
   .settings-form .form-field-grid > legend { font: 500 1.5rem/1.25 'Space Grotesk', sans-serif; }
   .settings-form .appearance-choices { margin-bottom: .75rem; }
@@ -202,12 +212,17 @@
     .media-workspace .media-overview .media-cover { width: 90px; }
     .media-workspace .media-identity h1 { font-size: 2.0625rem; overflow-wrap: anywhere; }
     .library-profile-banner { height: 144px; }
+    .library-profile .library-profile-heading { grid-template-columns: 76px minmax(0, 1fr); padding: 0 .5rem; gap: .5rem 1rem; }
+    .library-profile .library-profile-heading h1 { font-size: 1.875rem; }
+    .library-profile-heading > :is(img, .avatar-placeholder, .user-avatar, .user-avatar-fallback) { width: 74px; height: 74px; }
+    .library-profile .library-profile-heading .library-profile-actions { grid-column: 1/-1; padding-top: 1rem; }
+
     .appearance-choice { flex-wrap: wrap; padding: .75rem; gap: .5rem; align-content: start; }
     .appearance-choice > span:last-child { flex-basis: 100%; font-size: .8125rem; }
     .appearance-choice input { width: 20px; height: 20px; }
     .settings-sidebar nav a[aria-current='page'] { box-shadow: inset 0 -2px var(--accent); }
 
-    .profile-favorites { grid-template-columns: 1fr; gap: 1.25rem; }
+    .profile-favorites { grid-template-columns: 1fr; gap: 1.25rem; padding: 1.5rem; }
     .profile-favorites h2 { font-size: 2rem; }
     .profile-favorites-art { max-width: 420px; }
     .favorite-shelf .shelf-heading h1 { font-size: 4.125rem; }

@@ -74,7 +74,7 @@
 
     </div>
     <% if profile_owner && in_progress.pass %>
-      <details class="tracking-options">
+      <details class="tracking-options" data-controller="disclosure-menu">
         <summary aria-label="Tracking options for <%= series_title %>" title="Tracking options"><%= ui_icon("more-horizontal") %><span class="tracking-options-label">Tracking</span></summary>
         <div class="tracking-options-menu">
           <p>Your progress is kept when you dismiss a series.</p>

@@ -1,5 +1,5 @@
 <section class="profile-favorites" aria-label="Favorite shelf preview">
-  <div><h2>A few forever favorites.</h2><%= link_to 'Explore the full shelf', shelf_path(@user.username) %></div>
+  <div><h2>A few favorites.<br>A whole world.</h2><p>Stories, records and places worth coming back to.</p><%= link_to 'Explore the full shelf', shelf_path(@user.username) %></div>
   <div class="profile-favorites-art">
     <% items.each do |item| %>
       <%= link_to item, data: { media_kind: item.class.name }, title: item.title do %>

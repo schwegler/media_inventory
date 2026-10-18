@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Presentation and keyboard access', type: :system do
-  before { page.current_window.resize_to(1440, 1000) }
+  before { resize_browser_viewport(1440, 1000) }
 
   it 'keeps item navigation compact when scrolling and restores account menu focus' do
     create_and_login_user
@@ -13,6 +13,11 @@ RSpec.describe 'Presentation and keyboard access', type: :system do
     expect(page).to have_css('[data-controller="floating-header"][data-connected="true"]')
     expect(page).not_to have_css('.combined-header')
     expect(page).to have_css('.workspace-primary-nav', visible: true)
+    find('.browse-navigation > summary').send_keys(:enter)
+    expect(page).to have_link('Movies', visible: true)
+    find('.browse-navigation > summary').send_keys(:escape)
+    expect(page).to have_no_css('.browse-navigation[open]')
+    expect(page).to have_css('.browse-navigation > summary:focus')
     page.execute_script('window.scrollTo(0, 400)')
     expect(page).to have_css('.combined-header')
     pinned_bottom = page.evaluate_script('document.querySelector(".app-header").getBoundingClientRect().bottom')
@@ -27,7 +32,7 @@ RSpec.describe 'Presentation and keyboard access', type: :system do
     expect(page).not_to have_css('.combined-header')
     expect(page).to have_css('.workspace-primary-nav', visible: true)
     page.execute_script('window.scrollTo(0, 400)')
-    page.current_window.resize_to(320, 844)
+    resize_browser_viewport(320, 844)
     click_button 'Search the library'
     expect(page.evaluate_script('document.activeElement.classList.contains("global-search-input")')).to be true
     page.driver.browser.action.send_keys(:escape).perform
@@ -36,7 +41,7 @@ RSpec.describe 'Presentation and keyboard access', type: :system do
 
   it 'supports narrow navigation, restores menu focus, and previews and persists profile themes' do
     user = create_and_login_user
-    page.current_window.resize_to(390, 844)
+    resize_browser_viewport(390, 844)
     visit movies_path
     expect(page).to have_css('[data-controller~="mobile-menu"][data-connected="true"]')
     click_button 'Toggle navigation'
