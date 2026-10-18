@@ -1,6 +1,8 @@
 <div class="container" style="max-width: 600px; margin: 2rem auto; background: var(--surface-color); padding: 2rem; border-radius: 8px;">
   <h2>Suggest Edit for <%= @suggestable.try(:title) || @suggestable.try(:name) || 'Item' %></h2>
-  
+
+  <p>Suggestions are reviewed before changing this shared title. Approved corrections are preserved on metadata refresh.</p>
+
   <%= form_with model: @edit_suggestion, url: polymorphic_path([@suggestable, :edit_suggestions]), local: true do |f| %>
     <% if @edit_suggestion.errors.any? %>
       <div class="alert alert-danger" style="background: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
@@ -16,6 +18,7 @@
        allowed_columns = Admin::ModerateSuggestion::ALLOWED_FIELDS
        @suggestable.class.columns.each do |col| 
          next unless allowed_columns.include?(col.name)
+         next if col.name == 'metadata_details'
          current_val = @suggestable.send(col.name)
     %>
       <div class="form-group" style="margin-bottom: 1rem;">
@@ -26,6 +29,25 @@
           <%= text_field_tag "edit_suggestion[proposed_changes][#{col.name}]", current_val, class: "form-control", style: "width: 100%; padding: 0.5rem;" %>
         <% end %>
       </div>
+    <% end %>
+
+    <% if @suggestable.respond_to?(:metadata_details) %>
+      <fieldset>
+        <legend>Imported source details</legend>
+        <% @suggestable.metadata_details.each do |key, value| %>
+          <% next unless MetadataDetailFields::LABELS.key?(key) %>
+          <% name = "edit_suggestion[proposed_changes][metadata_details][#{key}]" %>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <%= label_tag name, MetadataDetailFields::LABELS.fetch(key) %>
+            <% if value.is_a?(Numeric) %>
+              <%= number_field_tag name, value, step: 'any', class: 'form-control' %>
+            <% else %>
+              <%= text_area_tag name, value.is_a?(Array) ? value.join("\n") : value, rows: 3, class: 'form-control' %>
+              <% if value.is_a?(Array) %><p class="form-help">One value per line.</p><% end %>
+            <% end %>
+          </div>
+        <% end %>
+      </fieldset>
     <% end %>
 
     <div class="form-actions" style="margin-top: 2rem;">

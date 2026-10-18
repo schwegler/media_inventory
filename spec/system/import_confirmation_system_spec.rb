@@ -77,4 +77,19 @@ RSpec.describe 'Import confirmation', type: :system do
       expect(find("input[name='#{type}[import_selection]']", visible: :all).value).to eq('')
     end
   end
+
+  it 'lets readers propose ordinary provider fact corrections without editing JSON or changing the catalog directly' do
+    book = Book.create!(title: 'A sourced book', metadata_details: { 'number_of_pages' => 300, 'subjects' => ['Fiction'] })
+    visit new_book_edit_suggestion_path(book)
+    expect(page).to have_field('Pages', with: '300')
+    fill_in 'Pages', with: '320'
+    fill_in 'Subjects', with: "Fiction\nHistory"
+    resize_browser_viewport(390, 844)
+    expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be true
+    capture_ui_screenshot('import-correction-mobile')
+    click_button 'Submit Suggestion'
+    expect(page).to have_text('Edit suggestion submitted successfully and is pending review.')
+    expect(book.reload.metadata_details['number_of_pages']).to eq(300)
+    expect(EditSuggestion.last.proposed_changes['metadata_details']).to include('number_of_pages' => '320')
+  end
 end

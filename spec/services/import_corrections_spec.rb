@@ -25,3 +25,37 @@ RSpec.describe 'Approved import corrections' do
     expect(review.reload).to have_attributes(review: 'Keep my review', rating: '4')
   end
 end
+
+RSpec.describe 'Corrections to imported provider facts' do
+  it 'protects individual corrected facts and refreshes unrelated facts while preserving numeric and list types' do
+    user = User.create!(name: 'Reader', password: 'password')
+    movie = Movie.create!(title: 'My movie', metadata_details: { 'Runtime' => 90, 'Languages' => ['English'] })
+    movie.update_columns(api_id: 'itunes_42')
+    suggestion = EditSuggestion.create!(suggestable: movie, user: user, proposed_changes: {
+                                          'metadata_details' => { 'Runtime' => '100', 'Languages' => "English\nFrench" }
+                                        })
+    Admin::ModerateSuggestion.new(suggestion, user).call('approved')
+    expect(movie.reload.metadata_details).to eq('Runtime' => 100, 'Languages' => %w[English French])
+    adapter = instance_double(MetadataProvider, partial: false, provider: 'iTunes',
+                                                call: [{ metadata_details: { 'Runtime' => 120,
+                                                                             'Languages' => ['German'],
+                                                                             'description' => 'New synopsis' } }, []])
+    allow(MetadataProvider).to receive(:new).and_return(adapter)
+    expect(MetadataRefresher.call(movie, user)).to eq('success')
+    expect(movie.reload.metadata_details).to eq('Runtime' => 100, 'Languages' => %w[English French],
+                                                'description' => 'New synopsis')
+  end
+
+  it 'rejects internal keys and malformed nested values without changing the catalog' do
+    user = User.create!(name: 'Reader', password: 'password')
+    game = VideoGame.create!(title: 'Game', metadata_details: { 'genres' => ['Adventure'] })
+    [{ 'related_steam_dlc_ids' => [999] }, { 'genres' => { 'injected' => 'nested' } }].each do |details|
+      suggestion = EditSuggestion.create!(suggestable: game, user: user,
+                                          proposed_changes: { 'metadata_details' => details })
+      expect { Admin::ModerateSuggestion.new(suggestion, user).call('approved') }
+        .to raise_error(Admin::ModerateSuggestion::InvalidDecision)
+      expect(suggestion.reload.status).to eq('pending')
+      expect(game.reload.metadata_details).to eq('genres' => ['Adventure'])
+    end
+  end
+end

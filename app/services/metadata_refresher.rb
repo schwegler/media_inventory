@@ -99,7 +99,7 @@ class MetadataRefresher
 
     value = preserve_credit_corrections(value, values) if field == :metadata_credits_data
     if %i[metadata_credits_data metadata_details].include?(field)
-      value = @item.public_send(field).merge(value) if field == :metadata_details
+      value = corrected_details(value, values) if field == :metadata_details
       @item.public_send("#{field}=", value)
       values[field.to_s] = value
       return
@@ -108,6 +108,11 @@ class MetadataRefresher
     old = @item.public_send(field)
     @item.public_send("#{field}=", value) if field == :thumbnail_url || old.blank? || values[field.to_s] == old
     values[field.to_s] = value
+  end
+
+  def corrected_details(value, values)
+    protected_keys = Array(values['corrected_detail_fields'])
+    @item.metadata_details.merge(value.except(*protected_keys))
   end
 
   def assignable_field?(field, values)

@@ -10,6 +10,11 @@
         <% if refresh.provider %>Source: <%= refresh.provider %>.<% end %>
       </p>
     <% end %>
+    <% if refresh %>
+      <% corrected = Array(refresh.provider_values['corrected_fields']).map(&:humanize) +
+                     Array(refresh.provider_values['corrected_detail_fields']).map { |key| MetadataDetailFields::LABELS.fetch(key, key.humanize) } %>
+      <% if corrected.any? %><p class="form-help">Reviewed corrections override source values for: <%= corrected.join(', ') %>.</p><% end %>
+    <% end %>
     <% if item.api_id.present? %>
       <%= button_to 'Refresh metadata', refresh_metadata_path(media_type: item.class.model_name.route_key, media_id: item.id), class: 'btn btn-secondary btn-sm', data: { turbo_submits_with: 'Refreshing…' }, form: { data: { controller: 'refresh', action: 'turbo:submit-start->refresh#start turbo:submit-end->refresh#finish' } } %>
       <span role="status" aria-live="polite" class="refresh-status"></span>

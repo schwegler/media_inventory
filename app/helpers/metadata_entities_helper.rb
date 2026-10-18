@@ -1,22 +1,17 @@
 # frozen_string_literal: true
 
 module MetadataEntitiesHelper
-  PROVIDER_FIELDS = {
-    'Original title' => 'Original title', 'Languages' => 'Languages', 'Countries' => 'Production countries',
-    'Runtime' => 'Runtime (minutes)', 'Overview' => 'Synopsis', 'IMDb ID' => 'IMDb ID',
-    'language' => 'Language', 'status' => 'Status', 'primary-type' => 'Release type',
-    'secondary-types' => 'Release categories', 'disambiguation' => 'Edition',
-    'collectionExplicitness' => 'Content rating', 'copyright' => 'Copyright',
-    'trackCount' => 'Tracks', 'releaseDate' => 'Release date', 'isbn_10' => 'ISBN-10', 'isbn_13' => 'ISBN-13',
-    'number_of_pages' => 'Pages', 'edition_name' => 'Edition', 'publish_date' => 'Publication date',
-    'type' => 'Type', 'start_year' => 'Series start year', 'count_of_issues' => 'Issues',
-    'subjects' => 'Subjects', 'languages' => 'Languages', 'description' => 'Description'
-  }.freeze
+  PROVIDER_FIELDS = MetadataDetailFields::LABELS
 
   def provider_display_details(item)
-    return {} unless item.respond_to?(:metadata_details) && !item.is_a?(VideoGame)
+    return {} unless item.respond_to?(:metadata_details)
 
-    PROVIDER_FIELDS.each_with_object({}) do |(field, label), result|
+    fields = if item.is_a?(VideoGame)
+               PROVIDER_FIELDS.slice('original_release_date', 'release_date_label', 'official_website')
+             else
+               PROVIDER_FIELDS
+             end
+    fields.each_with_object({}) do |(field, label), result|
       value = item.metadata_details[field]
       result[label] = value if value.present? && (value.is_a?(String) || value.is_a?(Numeric) || value.is_a?(Array))
     end
