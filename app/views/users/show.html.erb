@@ -6,24 +6,20 @@
 <% content_for(:meta_image, url_for(@user.avatar)) if @user.avatar.attached? %>
 <div class="library-profile profile-page" data-profile-accent="<%= @user.profile_accent %>" data-profile-header="<%= @user.profile_header %>">
   <% if current_user?(@user) && !@profile_owner %>
-    <div class="profile-notice">You’re viewing your public profile. Private items are hidden. <%= link_to 'Back to your profile', user_path(@user) %></div>
+    <div class="profile-notice">You’re viewing your public profile. Private reviews and ratings are hidden. <%= link_to 'Back to your profile', user_path(@user) %></div>
   <% end %>
   <% if @user.header_banner.attached? %>
     <div class="library-profile-banner"><%= image_tag @user.header_banner, alt: '', class: 'banner-img' %></div>
   <% else %>
-    <div class="library-profile-banner"><div class="banner-placeholder" aria-hidden="true"></div></div>
+    <div class="library-profile-banner"><div class="banner-placeholder banner-meadow" aria-hidden="true"></div></div>
   <% end %>
   <header class="library-profile-heading">
     <%= user_avatar_tag(@user, size: 112) %>
     <div class="library-profile-identity">
-      <h1><%= @user.name %>’s library</h1>
+      <h1><%= @user.name %></h1>
       <% if @user.display_handle.present? %><p class="library-profile-handle"><%= @user.display_handle %></p><% end %>
-      <% if @user.bio.present? %><p class="library-profile-bio"><%= @user.bio %></p><% end %>
-      <p class="library-profile-member">Cataloging since <%= @user.created_at.strftime('%B %Y') %></p>
     </div>
-    <div class="profile-companion-mascot" aria-hidden="true">
-      <%= image_tag 'brand/facet_pose_03_crate_digger.png', class: 'mascot-sticker profile-crate-digger', width: 68, height: 89, alt: '' %>
-    </div>
+
     <div class="library-profile-actions">
       <% if @profile_owner %>
         <%= link_to 'Edit profile', settings_path, class: 'sleek-btn sleek-btn-primary' %>
@@ -40,6 +36,8 @@
         <input readonly hidden value="<%= public_url %>" aria-label="Public profile link" data-link-share-target="fallback">
       </div>
     </div>
+    <% if @user.bio.present? %><p class="library-profile-bio"><%= @user.bio %></p><% end %>
+    <p class="library-profile-member">Cataloging since <%= @user.created_at.strftime('%B %Y') %></p>
   </header>
   <div class="library-profile-layout">
     <section class="library-profile-main" aria-label="Library">
@@ -56,6 +54,7 @@
         <% end %>
       </nav>
       <% if @profile_tab == 'overview' %>
+        <%= render 'profile_favorites', items: @profile_favorites if @profile_favorites.any? && @user.username.present? %>
         <% if @in_progress_items.any? %>
           <section class="profile-section" id="in_progress_section">
             <div class="profile-section-heading">
@@ -154,6 +153,9 @@
       <% else %>
         <%= link_to 'Explore the library', movies_path, class: 'sleek-btn sleek-btn-secondary' %>
       <% end %>
+    <div class="profile-companion-mascot" aria-hidden="true">
+      <%= image_tag 'brand/facet_pose_03_crate_digger.png', class: 'mascot-sticker profile-crate-digger', width: 68, height: 89, alt: '' %>
+    </div>
     </aside>
   </div>
 </div>

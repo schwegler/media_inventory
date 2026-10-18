@@ -20,6 +20,23 @@ RSpec.describe 'Landing and Authentication', type: :system do
     expect(page).to have_text('Make it yours')
     expect(page).to have_text('Active Trackers')
     expect(page).to have_text('Active Tracker')
+
+    [390, 720, 1440].each do |width|
+      resize_browser_viewport(width, 1000)
+      hero = find('.home-hero-mascot')
+      copy = find('.home-hero-copy')
+      expect(hero.find('img')['naturalWidth'].to_i).to be_positive
+      if width <= 720
+        expect(hero.rect.y + hero.rect.height).to be <= copy.rect.y
+        header = find('.app-header').rect
+        expect(hero.rect.y).to be >= header.y + header.height
+      else
+        expect(hero.rect.x).to be >= copy.rect.x + copy.rect.width
+      end
+      expect(page).to have_css('.home-blog img[src*="telly-facet-duo"]')
+      expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be true
+      capture_ui_screenshot("landing-mascots-#{width}")
+    end
   end
 
   it 'allows a user to sign up' do
@@ -59,7 +76,7 @@ RSpec.describe 'Landing and Authentication', type: :system do
 
     # Visit dashboard (root)
     visit root_path
-    expect(page).to have_text('Welcome back, Active Tracker')
+    expect(page).to have_text('Continue your story')
 
     # Log out
     if Capybara.current_driver == :rack_test
@@ -118,7 +135,7 @@ RSpec.describe 'Landing and Authentication', type: :system do
     visit root_path
 
     # Verify dashboard loads successfully and displays the friend's activity
-    expect(page).to have_text('Welcome back, Active Tracker')
+    expect(page).to have_text('Continue your story')
     expect(page).to have_text('New from friends')
     expect(page).to have_text('Popular with friends')
     expect(page).to have_text('Popular reviews with friends')

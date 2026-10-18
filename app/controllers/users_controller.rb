@@ -47,6 +47,7 @@ class UsersController < ApplicationController
       @likes = fetch_likes
     end
 
+    @profile_favorites = profile_favorites
     load_shared_items
   end
 
@@ -134,6 +135,12 @@ class UsersController < ApplicationController
     @collection_count = @visible_library.where(is_collected: true).count
     @backlog_count = @visible_library.where(in_backlog: true).count
     @library_mix = @visible_library.where(is_collected: true).group(:item_type).count
+  end
+
+  def profile_favorites
+    return [] unless @profile_tab == 'overview'
+
+    (@user.favorite_shelves.find_by(category: 'overall')&.items || []).first(3)
   end
 
   def load_shared_items

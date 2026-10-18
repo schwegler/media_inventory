@@ -1,6 +1,6 @@
 <% content_for(:media_workspace, 'true') %>
 <% content_for(:title, "#{@entity.name} — Trove") %>
-<section class="catalog-page entity-page" aria-labelledby="entity-heading">
+<section class="catalog-page entity-page" data-entity-kind="<%= @entity.kind %>" aria-labelledby="entity-heading">
   <%= link_to '← People & Metadata', metadata_entities_path(library: @library), class: 'media-back-link' %>
   <header class="entity-hero">
     <div class="entity-photo">

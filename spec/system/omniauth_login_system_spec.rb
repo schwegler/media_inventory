@@ -49,7 +49,7 @@ RSpec.describe 'OmniAuth Logins', type: :system do
     click_button 'Log in via Mastodon'
 
     expect(page).to have_content('Successfully connected to Mastodon!')
-    expect(page).to have_content('Welcome back')
+    expect(page).to have_content('Continue your story')
   end
 
   it 'logs in with Bluesky' do
@@ -59,6 +59,6 @@ RSpec.describe 'OmniAuth Logins', type: :system do
     click_button 'Log in via Bluesky'
 
     expect(page).to have_content('Successfully connected to Bluesky!')
-    expect(page).to have_content('Welcome back')
+    expect(page).to have_content('Continue your story')
   end
 end

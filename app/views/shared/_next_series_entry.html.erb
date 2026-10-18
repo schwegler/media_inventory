@@ -1,0 +1,16 @@
+<% tv = item.is_a?(TvShow) %>
+<% label = tv ? "S#{entry.season}E#{entry.episode} · #{entry.name.presence || 'Next episode'}" : "Issue ##{entry.issue_number} · #{entry.title}" %>
+<% release = media_release_date(entry) %>
+<div class="media-next-entry">
+  <p><strong><%= release && release > Date.current ? 'Upcoming' : 'Up next' %></strong> · <%= link_to label, entry %></p>
+  <% upcoming = release && release > Date.current %>
+  <% if upcoming %><details class="media-early-log"><summary>Log an early <%= tv ? 'watch' : 'read' %></summary><p>This release is expected in the future. Log it only if you’ve already finished it.</p><% end %>
+  <%= form_with url: tv ? toggle_watched_tv_episode_path(entry) : toggle_read_comic_issue_path(entry), method: :patch, data: { turbo: false }, class: 'media-next-log-form' do |form| %>
+    <% key = tv ? :tv_episode : :comic_issue %>
+    <%= hidden_field_tag "#{key}[consumed]", true, id: nil %>
+    <%= hidden_field_tag "#{key}[consumed_at]", Date.current, id: nil %>
+    <%= form.button tv ? 'Mark watched' : 'Mark read', class: 'sleek-btn sleek-btn-primary', aria: { label: "#{tv ? 'Mark watched' : 'Mark read'}: #{label}" } %>
+  <% end %>
+  <% if upcoming %></details><% end %>
+  <span class="media-next-release"><%= release.present? ? "Release: #{release}" : 'Release date unknown' %></span>
+</div>

@@ -97,7 +97,7 @@ RSpec.describe 'Media catalog organization', type: :request do
       expect(response.body).to include('Add series to my library', 'Account menu')
       expect(response.body).not_to include('to log your progress for this')
       get root_path
-      expect(response.body).to include('Welcome back', user.name)
+      expect(response.body).to include('Continue your story')
     end
   end
 end

@@ -16,6 +16,7 @@ module UiIconsHelper
     'globe' => '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a18 18 0 0 1 0 18 18 18 0 0 1 0-18Z"/>',
     'search' => '<circle cx="10.5" cy="10.5" r="7.5"/><path d="m16 16 5 5"/>',
     'shopping-bag' => '<path d="M5 7h14l2 14H3L5 7Zm3 0V6a4 4 0 0 1 8 0v1M8 7v4m8-4v4"/>',
+    'more-horizontal' => '<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
     'chevron-down' => '<path d="m6 9 6 6 6-6"/>',
     'wrestling' => '<path d="m3 8 9-4 9 4v10l-9 3-9-3V8Zm0 5 9 4 9-4M3 8l9 4 9-4m-9 4v9"/>',
     'user' => '<circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/>',

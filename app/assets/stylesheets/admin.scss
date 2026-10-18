@@ -1,8 +1,8 @@
 @font-face { font-family: 'Instrument Sans'; font-weight: 400; font-display: swap; src: url('instrument-sans-400.ttf'); }
 @font-face { font-family: 'Instrument Sans'; font-weight: 600; font-display: swap; src: url('instrument-sans-600.ttf'); }
-@font-face { font-family: 'Space Grotesk'; font-weight: 700; font-display: swap; src: url('space-grotesk-700.ttf'); }
-:root { color-scheme: light; --bg: #ffffff; --surface: #fafafa; --nav: #f7f6f9; --text: #17151b; --muted: #5f5967; --border: #ddd8e2; --blue: #654098; --active: #efe8f8; --danger: #a52d39; --danger-bg: #fff1f3; --warning: #79551a; --warning-bg: #fff4d8; --mark: #efe8f8; --radius: 8px; }
-@mixin dark { color-scheme: dark; --bg: #111113; --surface: #1c1c20; --nav: #18171c; --text: #f5f3f7; --muted: #c0bbc6; --border: #3a363f; --blue: #c5adff; --active: #30263f; --danger: #ffb3b3; --danger-bg: #38232a; --warning: #e9c685; --warning-bg: #352c1e; --mark: #30263f; }
+@font-face { font-family: 'Space Grotesk'; font-weight: 500; font-display: swap; src: url('space-grotesk-500.ttf'); }
+:root { color-scheme: light; --bg: #f7f7fa; --surface: #ffffff; --nav: #f7f6f9; --text: #17151b; --muted: #5f5967; --border: #ddd8e2; --blue: #654098; --active: #efe8f8; --danger: #a52d39; --danger-bg: #fff1f3; --warning: #79551a; --warning-bg: #fff4d8; --mark: #efe8f8; --radius: 8px; }
+@mixin dark { color-scheme: dark; --bg: #111216; --surface: #191b21; --nav: #15171c; --text: #efedf4; --muted: #b3b4c0; --border: #343740; --blue: #c5adff; --active: #30263f; --danger: #ffb3b3; --danger-bg: #38232a; --warning: #e9c685; --warning-bg: #352c1e; --mark: #30263f; }
 :root[data-theme='dark'] { @include dark; }
 @media(prefers-color-scheme: dark) { :root[data-theme='os'] { @include dark; } }
 *, *::before, *::after { box-sizing: border-box; }
@@ -239,3 +239,17 @@ mark { background: var(--mark); color: var(--text); padding: 2px; border-radius:
 .artwork-option .button { width: 100%; }
 .media-summary-artwork { display: flex; flex-direction: column; align-items: center; gap: 8px; flex-shrink: 0; }
 .artwork-change-btn { font-size: 11px; min-height: 28px; padding: 4px 8px; }
+
+// The public library and operations share craft, while retaining different density.
+h1, h2 { font-weight: 500; }
+.admin-brand-text { font-weight: 500; }
+.metric strong { font-weight: 500; }
+.nav-link { min-height: 44px; }
+.button, button, input[type='submit'] { border-radius: 6px; font-size: 14px; }
+:root { --action: #65418f; }
+:root[data-theme='dark'] { --action: #704cae; }
+@media(prefers-color-scheme: dark) { :root[data-theme='os'] { --action: #704cae; } }
+.button--primary { background: var(--action) !important; border-color: var(--action) !important; color: #fff !important; }
+:root[data-theme='dark'] .button--primary { color: #fff !important; }
+@media(prefers-color-scheme: dark) { :root[data-theme='os'] .button--primary { color: #fff !important; } }
+.panel:has(.empty-state) { min-height: 0; }

@@ -26,6 +26,7 @@ RSpec.configure do |config|
       driven_by :rack_test
     else
       driven_by :selenium_chrome_headless_custom
+      page.driver.browser.execute_cdp('Emulation.clearDeviceMetricsOverride')
       page.current_window.resize_to(1400, 900)
     end
   end
@@ -33,6 +34,13 @@ end
 
 # Shared helper methods for system specs
 module SystemTestHelpers
+  def resize_browser_viewport(width, height)
+    page.current_window.resize_to(width, height)
+    page.driver.browser.execute_cdp('Emulation.setDeviceMetricsOverride',
+                                    width: width, height: height, deviceScaleFactor: 1, mobile: false)
+    expect(page.evaluate_script('window.innerWidth')).to eq(width)
+  end
+
   def capture_ui_screenshot(name)
     return unless ENV['UI_QA_DIR']
 

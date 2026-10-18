@@ -13,7 +13,7 @@ RSpec.describe 'Quick tracking accessibility', type: :system do
       LibraryItem.create!(user: user, item: pilot, consumed: true, consumed_at: Date.current)
     end
     [390, 1440].each do |width|
-      page.current_window.resize_to(width, 900)
+      resize_browser_viewport(width, 900)
       visit root_path
       expect(page).to have_css('.in-progress-card', count: 2)
       expect(page).to have_css('.in-progress-next-badge', text: /upcoming/i, count: 2)
@@ -21,6 +21,20 @@ RSpec.describe 'Quick tracking accessibility', type: :system do
       expect(page).to have_no_css('.in-progress-log-btn', visible: true)
       first('.in-progress-early summary').click
       expect(first('.in-progress-log-btn')[:'aria-label']).to include('Future series 0').or include('Future series 1')
+      card = first('.in-progress-card')
+      title = card.find('.in-progress-series-title').text
+      options = card.find('.tracking-options > summary')
+      options.send_keys(:enter)
+      expect(card).to have_button("Dismiss #{title} from In progress", visible: true)
+      options.send_keys(:escape)
+      expect(card).to have_no_css('.tracking-options[open]')
+      expect(card).to have_css('.tracking-options > summary:focus')
+      options.send_keys(:space)
+      expect(card).to have_button("Dismiss #{title} from In progress", visible: true)
+      find('h1').click
+      expect(card).to have_no_css('.tracking-options[open]')
+      options.click
+      expect(card).to have_button("Dismiss #{title} from In progress", visible: true)
       heights = page.evaluate_script(<<~JS)
         Array.from(document.querySelectorAll('.in-progress-dismiss,.in-progress-log-btn,.in-progress-rating-select'))
           .filter(el => el.getClientRects().length).map(el => el.getBoundingClientRect().height)

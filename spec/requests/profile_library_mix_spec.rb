@@ -35,11 +35,14 @@ RSpec.describe 'Profile library mix and avatar mascot badge', type: :request do
     )
     expect(avatar).to be_present
 
-    # Companion mascot is separate from avatar
-    companion = page.at_css('.library-profile-heading .profile-companion-mascot img')
+    # The editorial profile keeps the decorative companion in the sidebar,
+    # outside the identity heading so it cannot overlap the user's avatar.
+    expect(page.at_css('.library-profile-heading .profile-companion-mascot')).to be_nil
+    companion = page.at_css('.library-profile-sidebar .profile-companion-mascot[aria-hidden="true"] img')
     expect(companion).to be_present
     expect(companion['src']).to include('brand/facet_pose_03_crate_digger')
     expect(companion['class']).to include('mascot-sticker')
+    expect(companion['alt']).to eq('')
   end
 
   it 'renders visual horizontal progress bars for library mix with calculated widths' do

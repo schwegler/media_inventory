@@ -18,7 +18,7 @@ RSpec.describe 'Series entries and review drawers', type: :system do
                                        air_date: '2000-07-06', thumbnail_url: '/missing-artwork.png',
                                        summary: 'The group sits around the kitchen table, sharing their life stories.')
     show.tv_episodes.create!(name: 'Next season', season: 3, episode: 1)
-    page.current_window.resize_to(1440, 1000)
+    resize_browser_viewport(1440, 1000)
     visit tv_show_path(show)
     expect(page).to have_select('Season', selected: 'Season 1')
     click_button 'Next season'
@@ -53,7 +53,7 @@ RSpec.describe 'Series entries and review drawers', type: :system do
     expect(page).to have_text('No matching episodes')
     fill_in 'Search episodes', with: ''
     expect(page).to have_css('#series-entries .series-entry-title', text: 'Episode 2')
-    page.current_window.resize_to(390, 844)
+    resize_browser_viewport(390, 844)
     within "#tv_episode_#{episode.id}" do
       find('.series-entry-details > summary').send_keys(:enter)
       expect(page).to have_css('.series-entry-details[open]')
@@ -91,6 +91,7 @@ RSpec.describe 'Series entries and review drawers', type: :system do
     end
     expect(page).to have_no_css('.review-drawer')
     expect(LibraryItem.find_by!(user: user, item: issue).is_public?).to be true
+    find('.series-bulk > summary').click
     accept_confirm { click_button 'Mark all read' }
     expect(page).to have_css('[data-child-collection-target="completed"]', text: '2 of 2')
     click_button 'Start reread'
@@ -103,7 +104,7 @@ RSpec.describe 'Series entries and review drawers', type: :system do
     expect(series_lib.consumption_passes.count).to eq(2)
     within("#comic_issue_#{issue.id}") { find('.series-entry-details > summary').click }
     capture_series_screenshot('comics-desktop')
-    page.current_window.resize_to(390, 844)
+    resize_browser_viewport(390, 844)
     page.execute_script("document.querySelector('#media-entries').scrollIntoView({ behavior: 'instant', block: 'start' })")
     capture_series_screenshot('comics-mobile')
     expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be true

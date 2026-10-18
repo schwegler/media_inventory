@@ -55,10 +55,10 @@ RSpec.describe 'Landing page hero and companion bridge redesign', type: :request
       expect(tune_in_link.text).to include('Tune into the blog')
 
       duo_mascot = companion.at_css('img')
-      expect(duo_mascot['src']).to include('brand/mascot_duo_telly_and_facet_transparent')
+      expect(duo_mascot['src']).to include('brand/telly-facet-duo')
       expect(duo_mascot['class']).to include('mascot-sticker')
-      expect(duo_mascot['width'].to_i).to eq(197)
-      expect(duo_mascot['height'].to_i).to eq(110)
+      expect(duo_mascot['width'].to_i).to eq(240)
+      expect(duo_mascot['height'].to_i).to eq(160)
     end
 
     it 'renders updated Make It Yours onboarding capabilities' do
@@ -82,7 +82,7 @@ RSpec.describe 'Landing page hero and companion bridge redesign', type: :request
       page = Nokogiri::HTML(response.body)
       expect(page.at_css('.home-intro')).to be_nil
       expect(page.at_css('.dashboard-welcome')).to be_present
-      expect(page.at_css('.welcome-name').text).to eq('Collector Jane')
+      expect(page.at_css('.dashboard-welcome h1').text).to eq('Continue your story')
     end
   end
 end

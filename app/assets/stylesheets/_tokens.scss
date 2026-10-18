@@ -5,14 +5,15 @@
 }
 @mixin dark {
   color-scheme: dark;
-  --canvas: #111119; --surface: #1b1b26; --inset: #232330;
-  --text: #f3f2f8; --text-secondary: #b8b5c8; --text-tertiary: #9591a6;
-  --border: #393744; --border-strong: #595568;
+  --canvas: #111216; --surface: #191b21; --inset: #22252d;
+  --text: #efedf4; --text-secondary: #b3b4c0; --text-tertiary: #a0a1af;
+  --border: #343740; --border-strong: #595568;
   --violet: #cab5ff; --violet-hover: #dfcfff; --violet-subtle: #2d2442;
   --ink: #d1cdd8; --ink-hover: #f4effc; --ink-subtle: #302d36;
   --moss: #a6c8a3; --moss-hover: #c4e5c1; --moss-subtle: #233329;
   --highlight-gold: #e4b65b; --highlight-gold-subtle: #382c16;
-  --on-accent: #17131e; --positive: #a4cfb6; --positive-hover: #c2e6d1;
+  --action-violet: #704cae; --action-ink: #595462; --action-moss: #476c50;
+  --on-action: #ffffff; --on-accent: #17131e; --positive: #a4cfb6; --positive-hover: #c2e6d1;
   --warning: #e4b65b; --destructive: #ffb3b3; --info: #abc7dd;
   --hero-gradient-base: 17, 17, 25; --rgb-inverse: 255, 255, 255;
   --hero-brightness: .35;
@@ -20,28 +21,29 @@
 :root {
   color-scheme: light;
   --canvas: #f7f7fa; --surface: #ffffff; --inset: #f1f0f5;
-  --text: #20202b; --text-secondary: #5d5b6c; --text-tertiary: #757285;
-  --border: #dedce7; --border-strong: #8b8296;
+  --text: #27262e; --text-secondary: #62616c; --text-tertiary: #62616c;
+  --border: #dcdbe3; --border-strong: #8b8296;
   --violet: #6d3acb; --violet-hover: #582ca8; --violet-subtle: #f3effa;
   --ink: #47414f; --ink-hover: #29242f; --ink-subtle: #ebe8ef;
   --moss: #3e6544; --moss-hover: #294c2f; --moss-subtle: #e7f0e7;
   --highlight-gold: #b8750b; --highlight-gold-subtle: #fbf5e8;
-  --on-accent: #ffffff; --positive: #326448; --positive-hover: #244d36;
+  --action-violet: #65418f; --action-ink: #47414f; --action-moss: #3e6544;
+  --on-action: #ffffff; --on-accent: #ffffff; --positive: #326448; --positive-hover: #244d36;
   --warning: #b8750b; --destructive: #a52d39; --info: #365d75;
   --overlay: rgba(12, 10, 17, .72); --selection: var(--accent-subtle);
   --space-1: .25rem; --space-2: .5rem; --space-3: .75rem; --space-4: 1rem;
   --space-5: 1.5rem; --space-6: 2rem; --space-7: 3rem; --space-8: 4rem;
-  --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-pill: 999px;
+  --radius-sm: 6px; --radius-md: 8px; --radius-lg: 8px; --radius-pill: 999px;
   --target-size: 44px;
   --hero-gradient-base: 247, 247, 250; --rgb-inverse: 0, 0, 0; --hero-brightness: .55;
 }
 :root[data-theme='dark'] { @include dark; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme='light']):not([data-theme='dark']) { @include dark; } }
 :root, [data-profile-accent], :root[data-accent='violet'] {
-  --accent: var(--violet); --accent-hover: var(--violet-hover); --accent-subtle: var(--violet-subtle);
+  --action: var(--action-violet); --accent: var(--violet); --accent-hover: var(--violet-hover); --accent-subtle: var(--violet-subtle);
 }
-:root[data-accent='ink'], [data-profile-accent='ink'] { --accent: var(--ink); --accent-hover: var(--ink-hover); --accent-subtle: var(--ink-subtle); }
-:root[data-accent='moss'], [data-profile-accent='moss'] { --accent: var(--moss); --accent-hover: var(--moss-hover); --accent-subtle: var(--moss-subtle); }
+:root[data-accent='ink'], [data-profile-accent='ink'] { --action: var(--action-ink); --accent: var(--ink); --accent-hover: var(--ink-hover); --accent-subtle: var(--ink-subtle); }
+:root[data-accent='moss'], [data-profile-accent='moss'] { --action: var(--action-moss); --accent: var(--moss); --accent-hover: var(--moss-hover); --accent-subtle: var(--moss-subtle); }
 :root, [data-profile-accent] {
   --focus-ring: var(--accent); --link: var(--accent); --link-hover: var(--accent-hover);
   // Compatibility aliases keep mature Rails components using the same semantic palette.
