@@ -74,6 +74,7 @@ jobs:
           spec/system/quick_tracking_system_spec.rb
           spec/system/catalog_consistency_system_spec.rb
           spec/system/presentation_system_spec.rb
+          spec/system/halloween_system_spec.rb
           spec/system/metadata_status_system_spec.rb
           spec/system/landing_and_auth_system_spec.rb:16
 

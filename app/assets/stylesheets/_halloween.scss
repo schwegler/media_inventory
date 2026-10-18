@@ -22,4 +22,13 @@
 }
 [data-profile-header="halloween"] .banner-meadow, [data-profile-header="halloween"] .member-card-banner { background: radial-gradient(circle at 78% 38%, #f3cf92 0 28px, transparent 29px), linear-gradient(140deg, #211528, #573044); }
 
+// Profile accents follow the visitor's light/dark appearance independently.
+:root[data-theme='dark'] [data-profile-accent='halloween'] {
+  --accent: #ffbd78; --accent-hover: #ffdbb5; --accent-subtle: #3d2933;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']):not([data-theme='dark']) [data-profile-accent='halloween'] {
+    --accent: #ffbd78; --accent-hover: #ffdbb5; --accent-subtle: #3d2933;
+  }
+}
 }

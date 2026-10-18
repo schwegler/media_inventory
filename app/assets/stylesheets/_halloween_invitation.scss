@@ -10,10 +10,10 @@
 }
 .halloween-invitation-actions { display: flex; gap: .5rem; align-items: center; }
 .halloween-bat { display: flex; align-items: center; gap: .75rem; }
-.halloween-bat > [aria-hidden] { font-size: 32px; animation: halloween-hover 4s ease-in-out 3; }
+.halloween-bat > img { object-fit: contain; animation: halloween-hover 4s ease-in-out 3; }
 @keyframes halloween-hover { 50% { transform: translateY(-5px) rotate(-4deg); } }
-@media (prefers-reduced-motion: reduce) { .halloween-bat > [aria-hidden] { animation: none; } }
-:root[data-effects='reduced'] .halloween-bat > [aria-hidden] { animation: none; }
+@media (prefers-reduced-motion: reduce) { .halloween-bat > img { animation: none; } }
+:root[data-effects='reduced'] .halloween-bat > img { animation: none; }
 @media(max-width: 640px) { .shelf-themes { flex-wrap: wrap; } }
 
 .halloween-invitation[hidden], .halloween-invitation [hidden] { display: none !important; }

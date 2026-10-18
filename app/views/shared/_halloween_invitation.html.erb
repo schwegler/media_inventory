@@ -2,7 +2,7 @@
 <% if Time.current >= Time.utc(2026, 10, 18) && Time.current < Time.utc(2026, 11, 1) %>
   <aside class="halloween-invitation" data-controller="halloween" data-action="turbo:before-cache@document->halloween#reset" hidden aria-label="Halloween appearance invitation">
     <div data-halloween-target="invitation" class="halloween-invitation-actions">
-      <button type="button" data-action="halloween#apply" aria-label="Try the Halloween theme" class="halloween-bat"><span aria-hidden="true">🦇</span><span>Try Halloween</span></button>
+      <button type="button" data-action="halloween#apply" aria-label="Try the Halloween theme" class="halloween-bat"><%= image_tag "brand/facet_pose_03_crate_digger.png", alt: "", width: 42, height: 56, decoding: "async", aria: { hidden: true } %><span>Try Halloween</span></button>
       <button type="button" data-action="halloween#dismiss" aria-label="Dismiss Halloween invitation">×</button>
     </div>
     <div data-halloween-target="notice" hidden>
