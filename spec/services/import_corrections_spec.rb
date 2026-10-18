@@ -59,3 +59,32 @@ RSpec.describe 'Corrections to imported provider facts' do
     end
   end
 end
+
+RSpec.describe 'Correction protection in game enrichment' do
+  it 'keeps cleared credits, corrected classifications and genre categories through queued enrichment and refresh' do
+    user = User.create!(name: 'Reader', password: 'password')
+    game = VideoGame.create!(title: 'A corrected game', developer: 'Old studio', game_type: 'game',
+                             metadata_details: { 'genres' => ['Old genre'] },
+                             metadata_credits_data: [{ 'name' => 'Old studio', 'role' => 'Developer' },
+                                                     { 'name' => 'Old genre', 'role' => 'Genre', 'kind' => 'genre' }])
+    game.update_columns(api_id: 'steam_42')
+    suggestion = EditSuggestion.create!(suggestable: game, user: user, proposed_changes: {
+                                          'developer' => '', 'game_type' => 'unknown',
+                                          'metadata_details' => { 'genres' => 'Correct genre' }
+                                        })
+    Admin::ModerateSuggestion.new(suggestion, user).call('approved')
+    adapter = instance_double(MetadataProvider, partial: false, provider: 'Steam', call: [{
+                                developer: 'Old studio', game_type: 'dlc', metadata_details: { 'genres' => ['Old genre'] },
+                                metadata_credits_data: [{ 'name' => 'Old studio', 'role' => 'Developer' },
+                                                        { 'name' => 'Old genre', 'role' => 'Genre', 'kind' => 'genre' }]
+                              }, []])
+    allow(MetadataProvider).to receive(:new).and_return(adapter)
+    EnrichVideoGameJob.perform_now(game)
+    MetadataRefresh.find_by!(item: game).update!(requested_at: nil)
+    MetadataRefresher.call(game, user)
+    expect(game.reload).to have_attributes(developer: '', game_type: 'unknown')
+    expect(game.metadata_details['genres']).to eq(['Correct genre'])
+    expect(game.metadata_entities.pluck(:name)).to include('Correct genre')
+    expect(game.metadata_entities.pluck(:name)).not_to include('Old studio', 'Old genre')
+  end
+end

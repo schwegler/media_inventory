@@ -22,7 +22,7 @@
          current_val = @suggestable.send(col.name)
     %>
       <div class="form-group" style="margin-bottom: 1rem;">
-        <%= label_tag "edit_suggestion[proposed_changes][#{col.name}]", col.name.humanize, style: "display: block; margin-bottom: 0.5rem; font-weight: bold;" %>
+        <%= label_tag "edit_suggestion[proposed_changes][#{col.name}]", { 'api_id' => 'Source ID', 'external_url' => 'Source page URL', 'thumbnail_url' => 'Cover source URL' }.fetch(col.name, col.name.humanize), style: "display: block; margin-bottom: 0.5rem; font-weight: bold;" %>
         <% if col.type == :text %>
           <%= text_area_tag "edit_suggestion[proposed_changes][#{col.name}]", current_val, class: "form-control", style: "width: 100%; padding: 0.5rem;" %>
         <% else %>

@@ -120,9 +120,8 @@ class MetadataRefresher
   end
 
   def preserve_credit_corrections(credits, values)
-    fields = Array(values['corrected_fields']).map(&:to_sym)
-    roles = MetadataEntitySync::FIELDS.fetch(@item.class.name, {}).slice(*fields).values
-    credits.reject { |credit| roles.include?(credit['role']) }
+    MetadataEntitySync.without_corrected_roles(@item, credits, Array(values['corrected_fields']),
+                                               Array(values['corrected_detail_fields']))
   end
 
   def finish(state)
