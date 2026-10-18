@@ -61,6 +61,7 @@ export default class extends Controller {
         form.querySelector('[name="consumed"]').value = String(!all)
         const button = form.querySelector('button')
         button.textContent = all ? "Undo all read" : "Mark all read"
+        button.setAttribute('aria-label', all ? "Mark all issues as unread" : "Mark all issues as read")
         button.dataset.turboConfirm = all ? "Mark all issues unread in this pass?" : "Mark all issues read in this pass?"
       }
     }

@@ -25,7 +25,8 @@ RSpec.describe 'Series entries and review drawers', type: :system do
     expect(page).to have_select('Season', selected: 'Season 3')
     click_button 'Previous season'
     within "#tv_episode_#{episode.id}" do
-      find('.series-entry-details > summary').click
+      find('.series-entry-details > summary').send_keys(:enter)
+      expect(page).to have_css('.series-entry-details[open]')
       click_link 'Write review'
     end
     expect(page).to have_css('.review-drawer', visible: true)
@@ -42,15 +43,20 @@ RSpec.describe 'Series entries and review drawers', type: :system do
     expect(child_lib.is_public?).to be false
     within("#tv_episode_#{episode.id}") { click_button 'Mark watched: 2. Episode 2' }
     expect(page).to have_css('[data-child-collection-target="completed"]', text: '1 of 2')
+    expect(page).to have_css('.child-collection-toolbar[data-connected="true"]')
     select 'Unwatched', from: 'Watch status'
     expect(page).to have_text('No matching episodes')
     select 'All episodes', from: 'Watch status'
+    expect(page).to have_css('#series-entries .series-entry-title', text: 'Episode 2')
+    expect(page).to have_css('.child-collection-toolbar[data-connected="true"]')
     fill_in 'Search episodes', with: 'not an episode'
     expect(page).to have_text('No matching episodes')
     fill_in 'Search episodes', with: ''
+    expect(page).to have_css('#series-entries .series-entry-title', text: 'Episode 2')
     page.current_window.resize_to(390, 844)
     within "#tv_episode_#{episode.id}" do
-      find('.series-entry-details > summary').click
+      find('.series-entry-details > summary').send_keys(:enter)
+      expect(page).to have_css('.series-entry-details[open]')
       click_link 'Edit review'
     end
     expect(page).to have_css('.review-drawer')
@@ -74,7 +80,8 @@ RSpec.describe 'Series entries and review drawers', type: :system do
     comic.comic_issues.create!(issue_number: 2, title: 'Second issue')
     visit comic_path(comic)
     within "#comic_issue_#{issue.id}" do
-      find('.series-entry-details > summary').click
+      find('.series-entry-details > summary').send_keys(:enter)
+      expect(page).to have_css('.series-entry-details[open]')
       click_link 'Write review'
     end
     within '.review-drawer' do
