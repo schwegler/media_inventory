@@ -8,8 +8,13 @@ RSpec.describe 'Halloween invitation', type: :system do
   around { |example| travel_to(Time.utc(2026, 10, 20, 12)) { example.run } }
 
   before do
-    page.driver.browser.execute_cdp('Page.addScriptToEvaluateOnNewDocument',
-                                    source: 'Date.now = () => Date.UTC(2026, 9, 20, 12)')
+    clock = page.driver.browser.execute_cdp('Page.addScriptToEvaluateOnNewDocument',
+                                            source: 'Date.now = () => Date.UTC(2026, 9, 20, 12)')
+    @clock_script_id = clock.fetch('identifier')
+  end
+
+  after do
+    page.driver.browser.execute_cdp('Page.removeScriptToEvaluateOnNewDocument', identifier: @clock_script_id)
   end
 
   it 'requires activation, offers keyboard Undo, and preserves the original appearance' do
