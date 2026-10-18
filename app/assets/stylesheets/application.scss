@@ -1,3 +1,4 @@
+@use "refined_system";
 @use "metadata_entities";
 @use "favorite_shelf";
 @use "tokens";
@@ -92,3 +93,5 @@
   .shared-collection .card-2026-heading { flex-wrap: wrap; }
   .shared-collection .card-2026-ratings { flex-wrap: wrap; }
 }
+
+@include refined_system.styles;
