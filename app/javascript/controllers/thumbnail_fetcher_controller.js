@@ -458,7 +458,7 @@ export default class extends Controller {
       if (target && typeof value !== "object") target.value = value ?? ""
     }
     this.thumbnailUrlTarget.value = option.cover_source_url || option.thumbnail_url || ""
-    this.previewImgTarget.src = option.thumbnail_url || ""
+    this.previewImgTarget.src = option.thumbnail_url || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
     this.previewImgTarget.style.display = option.thumbnail_url ? "block" : "none"
     this.placeholderTarget.style.display = option.thumbnail_url ? "none" : "block"
   }

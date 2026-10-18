@@ -49,3 +49,15 @@ test('failed preview never silently enables an unconfirmed import', async () => 
   assert.match(message, /Unable to load the preview/)
   assert.equal(controller.submitButtonTargets[0].disabled, true)
 })
+
+test('missing artwork does not request an empty URL or trigger the global broken-image fallback', () => {
+  const { controller } = setup()
+  delete controller.applyOption
+  controller.previewImgTarget = { style: {} }
+  controller.thumbnailUrlTarget = { value: '' }
+  controller.placeholderTarget = { style: {} }
+  controller.applyOption({ title: 'No cover' })
+  assert.match(controller.previewImgTarget.src, /^data:image\/gif/)
+  assert.equal(controller.previewImgTarget.style.display, 'none')
+  assert.equal(controller.placeholderTarget.style.display, 'block')
+})
