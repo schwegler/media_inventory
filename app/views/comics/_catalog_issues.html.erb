@@ -9,6 +9,7 @@
               <div class="issue-bulk-actions">
               <%= button_to read_count == issues.size ? 'Undo all read' : 'Mark all read', mark_all_read_comic_path(@comic), method: :patch,
                             params: { consumed: read_count != issues.size }, class: 'sleek-btn sleek-btn-secondary',
+                            aria: { label: read_count == issues.size ? 'Mark all issues as unread' : 'Mark all issues as read' },
                             data: { turbo_confirm: read_count == issues.size ? 'Mark all issues unread in this pass?' : 'Mark all issues read in this pass?' } %>
               </div>
             </div>

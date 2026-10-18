@@ -38,10 +38,11 @@
       <% if !collection.tv? || collection.season != 'all' %>
         <% done = count == total %>
         <% action = collection.tv? ? "#{done ? 'Undo season' : 'Mark season watched'}" : (done ? 'Undo all read' : 'Mark all read') %>
+        <% aria_text = collection.tv? ? (done ? "Mark Season #{collection.season} as unwatched" : "Mark Season #{collection.season} as watched") : (done ? 'Mark all issues as unread' : 'Mark all issues as read') %>
         <details class="series-bulk"><summary>Bulk tracking actions</summary>
         <div class="season-panel-header">
           <span class="season-watched-tally"><strong><%= count %></strong> of <strong><%= total %></strong> <%= collection.tv? ? 'watched in this season' : 'read' %></span>
-          <%= button_to action, collection.tv? ? mark_season_watched_tv_show_path(item, season: collection.season) : mark_all_read_comic_path(item), method: :patch, params: { consumed: !done }, class: 'sleek-btn sleek-btn-secondary', data: { turbo_confirm: "#{action} for the entire #{collection.tv? ? 'season' : 'series'}?" } %>
+          <%= button_to action, collection.tv? ? mark_season_watched_tv_show_path(item, season: collection.season) : mark_all_read_comic_path(item), method: :patch, params: { consumed: !done }, class: 'sleek-btn sleek-btn-secondary', aria: { label: aria_text }, data: { turbo_confirm: "#{action} for the entire #{collection.tv? ? 'season' : 'series'}?" } %>
         </div>
         </details>
       <% end %>

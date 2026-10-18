@@ -10,6 +10,19 @@ RSpec.describe 'Bulk issue tracking', type: :request do
                  password_confirmation: 'password123', confirmed_at: Time.current)
   end
 
+  it 'renders accessible aria-label on bulk action button when logged in' do
+    post login_path, params: { session: { email: user.email, password: 'password123' } }
+    LibraryItem.create!(user: user, item: comic)
+    get comic_path(comic)
+    follow_redirect! if response.redirect?
+    expect(response.body).to include('aria-label="Mark all issues as read"')
+
+    patch mark_all_read_comic_path(comic), params: { consumed: true }
+    get comic_path(comic)
+    follow_redirect! if response.redirect?
+    expect(response.body).to include('aria-label="Mark all issues as unread"')
+  end
+
   it 'requires authentication' do
     patch mark_all_read_comic_path(comic)
     expect(response).to redirect_to(login_path)

@@ -89,6 +89,16 @@
   .auth-tabs-container { max-width: 580px; margin: 24px auto; }
   .form-control { border-radius: 8px; border-color: var(--border-medium); font-family: inherit; min-height: 44px; }
   .app-footer { background: none; border: 0; padding: 0 0 24px; margin-top: 36px; }
+  .app-footer .creator-credit { display: inline-flex; width: fit-content; min-height: 44px; align-items: center; gap: 8px; color: var(--text-secondary); text-decoration: none; font: 12px/1.5 system-ui, sans-serif; white-space: nowrap; margin-bottom: 10px; }
+  .app-footer .creator-credit img { display: block; width: 132px; height: auto; aspect-ratio: 1945 / 576; }
+  .app-footer .creator-credit:focus-visible { outline: 3px solid var(--text); outline-offset: 5px; }
+  .app-footer .creator-credit .creator-signature-light { display: none; }
+  :root[data-theme='dark'] .app-footer .creator-signature-ink { display: none; }
+  :root[data-theme='dark'] .app-footer .creator-signature-light { display: block; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']):not([data-theme='dark']) .app-footer .creator-signature-ink { display: none; }
+    :root:not([data-theme='light']):not([data-theme='dark']) .app-footer .creator-signature-light { display: block; }
+  }
   .app-footer .footer-content { display: flex; align-items: center; justify-content: space-between; padding: 20px 0; border-top: 1px solid var(--border-medium); gap: 20px; }
   .footer-wordmark { display: flex; align-items: baseline; gap: 10px; }
   .footer-logo { object-fit: contain; object-position: bottom; flex-shrink: 0; }
