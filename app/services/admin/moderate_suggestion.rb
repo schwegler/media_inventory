@@ -39,6 +39,13 @@ module Admin
       raise InvalidDecision, 'Proposed links must be valid HTTP or HTTPS URLs.'
     end
 
+    def protect_credit_corrections(media, changes)
+      roles = MetadataEntitySync::FIELDS.fetch(media.class.name, {}).slice(*changes.keys.map(&:to_sym)).values
+      return if roles.empty? || !media.respond_to?(:metadata_credits_data)
+
+      media.metadata_credits_data = media.metadata_credits_data.reject { |credit| roles.include?(credit['role']) }
+    end
+
     def apply_changes!
       media = @suggestion.suggestable
       raise InvalidDecision, 'The affected media record no longer exists.' unless media
@@ -50,7 +57,14 @@ module Admin
       end
 
       validate_links!(changes)
-      media.with_lock { media.update!(changes) }
+      media.with_lock do
+        changes = changes.reject { |field, value| media.public_send(field).to_s == value.to_s }
+        protect_credit_corrections(media, changes)
+        media.update!(changes)
+        refresh = MetadataRefresh.find_or_create_by!(item: media)
+        corrected = Array(refresh.provider_values['corrected_fields']) | changes.keys
+        refresh.update!(provider_values: refresh.provider_values.merge('corrected_fields' => corrected))
+      end
     rescue JSON::ParserError
       raise InvalidDecision, 'The proposed changes could not be read. Review the record manually.'
     end

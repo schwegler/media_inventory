@@ -13,10 +13,9 @@
     <% end %>
 
     <% 
-       skip_columns = %w[id created_at updated_at api_id thumbnail_url external_url]
+       allowed_columns = Admin::ModerateSuggestion::ALLOWED_FIELDS
        @suggestable.class.columns.each do |col| 
-         next if skip_columns.include?(col.name)
-         next if col.name.end_with?('_id')
+         next unless allowed_columns.include?(col.name)
          current_val = @suggestable.send(col.name)
     %>
       <div class="form-group" style="margin-bottom: 1rem;">

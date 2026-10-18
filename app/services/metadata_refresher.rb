@@ -2,6 +2,7 @@
 
 require 'timeout'
 
+# rubocop:disable-next Metrics/ClassLength
 class MetadataRefresher
   COOLDOWN = 5.minutes
   USER_COOLDOWN = 20.seconds
@@ -91,11 +92,12 @@ class MetadataRefresher
   end
 
   def assign_provider_value(field, value, values)
-    return unless @item.has_attribute?(field)
+    return unless assignable_field?(field, values)
 
     value = MetadataProvider.image(value) if field == :thumbnail_url
     return if value.blank? || (field == :thumbnail_url && @item.cover_image.attached?)
 
+    value = preserve_credit_corrections(value, values) if field == :metadata_credits_data
     if %i[metadata_credits_data metadata_details].include?(field)
       value = @item.public_send(field).merge(value) if field == :metadata_details
       @item.public_send("#{field}=", value)
@@ -106,6 +108,16 @@ class MetadataRefresher
     old = @item.public_send(field)
     @item.public_send("#{field}=", value) if field == :thumbnail_url || old.blank? || values[field.to_s] == old
     values[field.to_s] = value
+  end
+
+  def assignable_field?(field, values)
+    @item.has_attribute?(field) && !Array(values['corrected_fields']).include?(field.to_s)
+  end
+
+  def preserve_credit_corrections(credits, values)
+    fields = Array(values['corrected_fields']).map(&:to_sym)
+    roles = MetadataEntitySync::FIELDS.fetch(@item.class.name, {}).slice(*fields).values
+    credits.reject { |credit| roles.include?(credit['role']) }
   end
 
   def finish(state)
