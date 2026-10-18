@@ -46,10 +46,10 @@ RSpec.describe 'Presentation and keyboard access', type: :system do
     expect(page.evaluate_script('document.activeElement.getAttribute("data-mobile-menu-target")')).to eq('button')
     visit settings_appearance_path
     expect(page).to have_css('[data-controller="appearance"][data-connected="true"]')
-    select 'Garden moss', from: 'Profile accent'
-    select 'Solid', from: 'Header treatment'
+    within('fieldset.appearance-choices', text: 'Profile accent') { choose 'Garden moss' }
+    choose 'Solid'
     expect(page).to have_css('.profile-preview[data-profile-accent="moss"][data-profile-header="solid"]')
-    select 'Dark', from: 'Appearance'
+    choose 'Dark'
     click_button 'Save preferences'
     expect(page).to have_content('Appearance preferences saved.')
     expect(page).to have_css('html[data-theme="dark"]')

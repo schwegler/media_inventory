@@ -47,6 +47,7 @@ class UsersController < ApplicationController
     @backlog_items = @profile_tab == 'backlog' ? preload_library_items(fetch_library_items(in_backlog: true)) : []
     @recent_collection = preload_library_items(@visible_library.where(is_collected: true).order(created_at: :desc).limit(6))
     @in_progress_items = InProgressTracker.items_for(@user)
+    @profile_favorites = @profile_tab == 'overview' ? (@user.favorite_shelves.find_by(category: 'overall')&.items || []).first(3) : []
     load_shared_items
   end
 

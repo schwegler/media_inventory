@@ -8,8 +8,16 @@
       <%= render 'shared/error_messages', object: f.object %>
       <fieldset class="form-field-grid">
         <legend>Your experience</legend>
-        <div class="form-group"><%= f.label :theme, 'Appearance' %><%= f.select :theme, [['System', 'os'], ['Light', 'light'], ['Dark', 'dark']], {}, class: 'form-control' %></div>
-        <div class="form-group"><%= f.label :accent_theme, 'Accent' %><%= f.select :accent_theme, [['Editorial violet', 'violet'], ['Graphite ink', 'ink'], ['Garden moss', 'moss']], {}, class: 'form-control' %></div>
+        <fieldset class="appearance-choices"><legend>Appearance</legend>
+          <label class="appearance-choice"><%= f.radio_button :theme, 'os' %><span class="appearance-swatch" style="--swatch: #b3b4c0" aria-hidden="true"></span><span>System</span></label>
+          <label class="appearance-choice"><%= f.radio_button :theme, 'light' %><span class="appearance-swatch" style="--swatch: #ffffff" aria-hidden="true"></span><span>Light</span></label>
+          <label class="appearance-choice"><%= f.radio_button :theme, 'dark' %><span class="appearance-swatch" style="--swatch: #191b21" aria-hidden="true"></span><span>Dark</span></label>
+        </fieldset>
+        <fieldset class="appearance-choices"><legend>Accent</legend>
+          <label class="appearance-choice"><%= f.radio_button :accent_theme, 'violet' %><span class="appearance-swatch" style="--swatch: #704cae" aria-hidden="true"></span><span>Editorial violet</span></label>
+          <label class="appearance-choice"><%= f.radio_button :accent_theme, 'ink' %><span class="appearance-swatch" style="--swatch: #595462" aria-hidden="true"></span><span>Graphite ink</span></label>
+          <label class="appearance-choice"><%= f.radio_button :accent_theme, 'moss' %><span class="appearance-swatch" style="--swatch: #476c50" aria-hidden="true"></span><span>Garden moss</span></label>
+        </fieldset>
         <div class="form-group"><%= f.label :content_density, 'Content density' %><%= f.select :content_density, [['Comfortable', 'comfortable'], ['Compact', 'compact']], {}, class: 'form-control' %></div>
         <div class="form-group"><%= f.label :media_layout, 'Media display' %><%= f.select :media_layout, [['Cover gallery', 'covers'], ['Editorial rows', 'rows']], {}, class: 'form-control' %></div>
         <div class="check-field"><%= f.check_box :reduce_effects %><%= f.label :reduce_effects, 'Reduce decorative effects and motion' %></div>
@@ -17,8 +25,16 @@
       <fieldset class="form-field-grid">
         <legend>Your profile</legend>
         <p>Visible to people visiting your profile. Your profile theme stays within your profile.</p>
-        <div class="form-group"><%= f.label :profile_accent, 'Profile accent' %><%= f.select :profile_accent, [['Editorial violet', 'violet'], ['Graphite ink', 'ink'], ['Garden moss', 'moss']], {}, class: 'form-control', data: { action: 'change->appearance#preview', appearance_target: 'accent' } %></div>
-        <div class="form-group"><%= f.label :profile_header, 'Header treatment' %><%= f.select :profile_header, [['Linen', 'linen'], ['Solid', 'solid'], ['Minimal', 'minimal']], {}, class: 'form-control', data: { action: 'change->appearance#preview', appearance_target: 'header' } %></div>
+        <fieldset class="appearance-choices"><legend>Profile accent</legend>
+          <label class="appearance-choice"><%= f.radio_button :profile_accent, 'violet', data: { action: 'change->appearance#preview', appearance_target: 'accent' } %><span class="appearance-swatch" style="--swatch: #704cae" aria-hidden="true"></span><span>Editorial violet</span></label>
+          <label class="appearance-choice"><%= f.radio_button :profile_accent, 'ink', data: { action: 'change->appearance#preview', appearance_target: 'accent' } %><span class="appearance-swatch" style="--swatch: #595462" aria-hidden="true"></span><span>Graphite ink</span></label>
+          <label class="appearance-choice"><%= f.radio_button :profile_accent, 'moss', data: { action: 'change->appearance#preview', appearance_target: 'accent' } %><span class="appearance-swatch" style="--swatch: #476c50" aria-hidden="true"></span><span>Garden moss</span></label>
+        </fieldset>
+        <fieldset class="appearance-choices"><legend>Header treatment</legend>
+          <label class="appearance-choice"><%= f.radio_button :profile_header, 'linen', data: { action: 'change->appearance#preview', appearance_target: 'header' } %><span class="appearance-swatch" style="--swatch: #e5e1d7" aria-hidden="true"></span><span>Linen</span></label>
+          <label class="appearance-choice"><%= f.radio_button :profile_header, 'solid', data: { action: 'change->appearance#preview', appearance_target: 'header' } %><span class="appearance-swatch" style="--swatch: #65418f" aria-hidden="true"></span><span>Solid</span></label>
+          <label class="appearance-choice"><%= f.radio_button :profile_header, 'minimal', data: { action: 'change->appearance#preview', appearance_target: 'header' } %><span class="appearance-swatch" style="--swatch: #f7f7fa" aria-hidden="true"></span><span>Minimal</span></label>
+        </fieldset>
         <div class="profile-preview profile-page" data-appearance-target="preview" data-profile-accent="<%= @user.profile_accent %>" data-profile-header="<%= @user.profile_header %>" aria-label="Profile theme preview">
           <div class="banner-placeholder"></div>
           <div class="profile-preview-body"><%= user_avatar_tag(@user, size: 48) %><div><strong><%= @user.name %></strong><p>A collection of things you love.</p></div></div>

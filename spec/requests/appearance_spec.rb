@@ -13,9 +13,9 @@ RSpec.describe 'Appearance preferences', type: :request do
     document = Nokogiri::HTML(response.body)
     expect(document.at_css('h1').text).to eq('Make Trove yours')
     expect(document.at_css('nav[aria-label="Settings"] a[aria-current="page"]')['href']).to eq(settings_appearance_path)
-    expect(document.css('select[name="user[theme]"] option').map { |option| option['value'] }).to eq(%w[os light dark])
-    expect(document.at_css('select[name="user[accent_theme]"]')).to be_present
-    expect(document.at_css('select[name="user[profile_accent]"]')).to be_present
+    expect(document.css('input[type="radio"][name="user[theme]"]').map { |option| option['value'] }).to eq(%w[os light dark])
+    expect(document.at_css('input[type="radio"][name="user[accent_theme]"]')).to be_present
+    expect(document.at_css('input[type="radio"][name="user[profile_accent]"]')).to be_present
 
     get settings_basic_info_path
     expect(response).to have_http_status(:ok)
