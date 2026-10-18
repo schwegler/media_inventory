@@ -40,6 +40,7 @@ RSpec.describe 'Import confirmation', type: :system do
     expect(find('input[name="book[import_selection]"]', visible: :all).value).to eq('')
     fill_in 'Review', with: 'My review'
     click_button 'Save manual entry'
+    expect(page).to have_text('Book was successfully logged.')
     expect(Book.last).to have_attributes(author: 'My correction', api_id: nil)
     expect(LibraryItem.last.review).to eq('My review')
   end
@@ -52,6 +53,27 @@ RSpec.describe 'Import confirmation', type: :system do
     expect(page).to have_text('Source details are unavailable')
     expect(page).to have_text('Search author')
     click_button 'Confirm and save'
+    expect(page).to have_text('Book was successfully logged.')
     expect(Book.last.author).to eq('Search author')
+  end
+
+  it 'preserves the import and manual field boundary for every media type' do
+    %w[movie tv_show album book comic video_game].each do |type|
+      allow(MediaSearchService).to receive(:request).and_return(
+        state: 'ready', results: [{ title: 'A selected title', api_id: 'wiki_42', source: 'Wikipedia' }]
+      )
+      visit public_send("new_#{type}_path")
+      expect(page).to have_css('[data-connected="true"]')
+      fill_in 'Title', with: 'A selected title'
+      find('[role="button"][aria-label="Select A selected title"]').click
+      expect(page).to have_text('Search summary only')
+      expect(page).to have_field('Review', visible: true)
+      expect(page).to have_button('Confirm and save')
+      expect(page).not_to have_css('.import-confirmation.hidden')
+      click_button 'Use as manual entry'
+      expect(page).to have_field('Title', visible: true)
+      expect(find("input[name='#{type}[api_id]']", visible: :all).value).to eq('')
+      expect(find("input[name='#{type}[import_selection]']", visible: :all).value).to eq('')
+    end
   end
 end

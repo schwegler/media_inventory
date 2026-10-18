@@ -18,7 +18,7 @@ function debounce(func, wait) {
 // Connects to data-controller="thumbnail-fetcher"
 export default class extends Controller {
   static targets = [
-    "importPreview", "importStatus", "importFacts", "importSelection", "titleInput", "previewImg", "placeholder", "statusText", "optionsGrid", "thumbnailUrl",
+    "importPreview", "importStatus", "importFacts", "importExtra", "importSelection", "titleInput", "previewImg", "placeholder", "statusText", "optionsGrid", "thumbnailUrl",
     "director", "artist", "writer", "actors", "publisher", "releaseYear", "genre", "network", "venue", "promotion", "date",
     "season", "episode", "issueNumber", "apiId", "catalogSelection", "externalUrl", "manualFormSection", "developer", "platform",
     "searchStage", "detailsStage", "backBtn", "modalTitle", "selectedTitleDisplay", "gameType", "author", "searchYear", "submitButton"
@@ -402,25 +402,31 @@ export default class extends Controller {
     this.importPreviewTarget.classList.remove("hidden")
     this.importStatusTarget.textContent = message
     this.importFactsTarget.replaceChildren()
+    this.importExtraTarget.replaceChildren()
     const fields = { source: "Source", api_id: "Source ID", title: "Title", author: "Author", director: "Director", writer: "Writer", actors: "Cast", artist: "Artist", publisher: "Publisher", developer: "Developer", platform: "Platforms", network: "Network", genre: "Genres", release_year: "Release year", game_type: "Type" }
     const targetNames = { release_year: "releaseYear", game_type: "gameType" }
     for (const [key, label] of Object.entries(fields)) {
       if (!["source", "api_id", "title"].includes(key) && !this.targets.find(targetNames[key] || key)) continue
       this.appendImportFact(label, option[key])
     }
-    this.appendImportFact("Cover", option.thumbnail_url ? "Source artwork available" : null)
-    if (option.synopsis) this.appendImportFact("Synopsis", option.synopsis)
-    for (const [key, value] of Object.entries(option.metadata_details || {})) this.appendImportFact(key.replaceAll("_", " "), value)
-    for (const credit of option.metadata_credits_data || []) this.appendImportFact(credit.role || "Contributor", credit.name)
+    this.appendImportFact("Cover", option.thumbnail_url ? "Artwork URL supplied" : null)
+    if (option.synopsis) this.appendImportFact("Synopsis", option.synopsis, this.importExtraTarget)
+    for (const [key, value] of Object.entries(option.metadata_details || {})) this.appendImportFact(key.replaceAll("_", " ").replace(/^./, letter => letter.toUpperCase()), value, this.importExtraTarget)
+    const credits = new Map()
+    for (const credit of option.metadata_credits_data || []) {
+      const role = credit.role || "Contributor"
+      credits.set(role, [...(credits.get(role) || []), credit.name])
+    }
+    for (const [role, names] of credits) this.appendImportFact(role, [...new Set(names)], this.importExtraTarget)
     this.metadataControls().forEach(input => { input.closest(".details-field-group")?.style.setProperty("display", "none") })
   }
 
-  appendImportFact(label, value) {
+  appendImportFact(label, value, list = this.importFactsTarget) {
     const row = document.createElement("div"), term = document.createElement("dt"), description = document.createElement("dd")
     term.textContent = label
     description.textContent = Array.isArray(value) ? value.join(", ") : (value === null || value === undefined || value === "" ? "Not provided by this source" : String(value))
     row.append(term, description)
-    this.importFactsTarget.append(row)
+    list.append(row)
   }
 
   async loadImport(option) {

@@ -90,9 +90,7 @@ class MetadataProvider
     end
 
     fields = { metadata_credits_data: ProviderEntityMetadata.tvmaze(data),
-               metadata_details: data.slice('language', 'status', 'type').merge(
-                 'description' => plain_description(data['summary']), 'Runtime' => data['averageRuntime'] || data['runtime']
-               ).compact_blank,
+               metadata_details: television_details(data),
                network: data.dig('network', 'name') || data.dig('webChannel', 'name'),
                thumbnail_url: data.dig('image', 'original') || data.dig('image', 'medium'),
                director: directors,
@@ -101,6 +99,12 @@ class MetadataProvider
                genre: Array(data['genres']).join(', ').presence,
                release_year: year(data['premiered']) }
     [fields, children { json("https://api.tvmaze.com/shows/#{id}/episodes") }]
+  end
+
+  def television_details(data)
+    data.slice('language', 'status', 'type').merge(
+      'description' => plain_description(data['summary']), 'Runtime' => data['averageRuntime'] || data['runtime']
+    ).compact_blank
   end
 
   def tvmaze_credits(embedded)
@@ -202,7 +206,8 @@ class MetadataProvider
                                                    kind: 'organization')].compact
     [{ metadata_credits_data: ProviderEntityMetadata.comic(credits) + organizations,
        metadata_details: { 'description' => plain_description(volume['description'] || volume['deck']),
-                           'start_year' => volume['start_year'], 'count_of_issues' => volume['count_of_issues'] }.compact_blank,
+                           'start_year' => volume['start_year'],
+                           'count_of_issues' => volume['count_of_issues'] }.compact_blank,
        publisher: volume.dig('publisher', 'name'), writer: comic_creators(credits, %w[writer]),
        artist: comic_creators(credits, %w[artist penciler inker colorist]),
        thumbnail_url: volume.dig('image', 'original_url'), external_url: volume['site_detail_url'] }, rows]
@@ -275,7 +280,7 @@ class MetadataProvider
 
     [{ metadata_credits_data: itunes_credits(data, :author),
        metadata_details: data.slice('language').merge('description' => plain_description(data['description']),
-                                                                  'subjects' => data['genres']).compact_blank,
+                                                      'subjects' => data['genres']).compact_blank,
        author: data['artistName'], publisher: data['sellerName'], release_year: year(data['releaseDate']),
        thumbnail_url: data['artworkUrl100']&.sub('100x100bb', '400x400bb') }, []]
   end

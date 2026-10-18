@@ -153,3 +153,10 @@
     button { width: 100%; white-space: normal; }
   }
 }
+
+form.standard-form .details-modal-layout:has(.import-confirmation) .thumbnail-preview-placeholder {
+  padding: 0.25rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  &::after { display: none; }
+}
