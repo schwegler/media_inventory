@@ -453,7 +453,7 @@ export default class extends Controller {
 
   applyOption(option) {
     for (const [key, value] of Object.entries(option)) {
-      const name = { release_year: "releaseYear", game_type: "gameType", api_id: "apiId", external_url: "externalUrl" }[key] || key
+      const name = { title: "titleInput", release_year: "releaseYear", game_type: "gameType", issue_number: "issueNumber", api_id: "apiId", external_url: "externalUrl" }[key] || key
       const target = this.targets.find(name)
       if (target && typeof value !== "object") target.value = value ?? ""
     }
