@@ -34,6 +34,7 @@ RSpec.describe 'Imported metadata confirmation', type: :request do
   it 'loads only the selected TV detail, persists credits/categories and leaves episodes to background reconciliation' do
     login
     stub_request(:get, 'https://api.tvmaze.com/shows/42').to_return(body: {
+      summary: '<p>A synopsis</p>', averageRuntime: 45,
       network: { name: 'A network' }, genres: ['Drama'], premiered: '2020-01-01',
       _embedded: { cast: [{ person: { id: 7, name: 'An actor' } }] }
     }.to_json)
@@ -50,6 +51,7 @@ RSpec.describe 'Imported metadata confirmation', type: :request do
     show = TvShow.last
     expect(show).to have_attributes(title: 'A show', network: 'A network', actors: 'An actor', genre: 'Drama')
     expect(show.metadata_entities.pluck(:name)).to include('An actor', 'Drama', 'A network')
+    expect(show.metadata_details).to include('description' => 'A synopsis', 'Runtime' => 45)
     expect(user.library_items.find_by!(item: show)).to have_attributes(review: 'My review', rating: '4.5', in_backlog: true)
     expect(MetadataRefresh.find_by!(item: show).provider_values['network']).to eq('A network')
   end

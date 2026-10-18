@@ -17,6 +17,8 @@ RSpec.describe MetadataImport do
     expect(result[:metadata_credits_data].map { |row| row['name'] }).to include('Comic writer', 'Press')
     expect(result[:metadata_details]['isbn_13']).to eq(['123'])
     expect(result).not_to have_key(:author)
+    book = described_class.preview({ title: 'Book', api_id: 'openlibrary_/works/OL42W' }.with_indifferent_access, 'book')
+    expect(book).to include('release_year' => 1899, 'author' => 'Comic writer')
   end
 
   it 'retains the actual cover source rather than storing a rendered derivative' do
@@ -28,5 +30,27 @@ RSpec.describe MetadataImport do
     expect(described_class.preview(data,
                                    'movie')).to include('cover_source_url' => 'https://example.com/original.jpg',
                                                         'thumbnail_url' => '/rendered-cover')
+  end
+
+  it 'maps iTunes video descriptions, runtime and advisory ratings to displayed metadata' do
+    stub_request(:get, 'https://itunes.apple.com/lookup?id=42').to_return(body: {
+      results: [{ artistName: 'Director', longDescription: '<p>A film</p>', trackTimeMillis: 7_200_000,
+                  contentAdvisoryRating: 'PG', releaseDate: '1899-01-01' }]
+    }.to_json)
+    result = described_class.preview({ title: 'Film', api_id: 'itunes_42' }.with_indifferent_access, 'movie')
+    expect(result[:metadata_details]).to include('description' => 'A film', 'Runtime' => 120,
+                                                 'collectionExplicitness' => 'PG')
+    expect(result[:release_year]).to eq(1899)
+  end
+
+  it 'retains ComicVine series description and issue count without downloading issues in the preview' do
+    ApiConfiguration.create!(source_name: 'ComicVine', is_active: true, access_token: 'test')
+    stub_request(:get, 'https://comicvine.gamespot.com/api/volume/4050-42/?api_key=test&format=json').to_return(body: {
+      status_code: 1, results: { description: '<p>A series</p>', start_year: '2001', count_of_issues: 24 }
+    }.to_json)
+    result = described_class.preview({ title: 'Series', api_id: '42' }.with_indifferent_access, 'comic')
+    expect(result[:metadata_details]).to include('description' => 'A series', 'start_year' => '2001',
+                                                 'count_of_issues' => 24)
+    expect(WebMock).not_to have_requested(:get, %r{comicvine.gamespot.com/api/issues/})
   end
 end
