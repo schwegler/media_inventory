@@ -118,7 +118,7 @@
     .app-header { margin-bottom: 28px; }
     .home-intro, .dashboard-layout { grid-template-columns: minmax(0, 1fr); gap: 28px; }
     .home-intro-main { grid-template-columns: 1fr; gap: 20px; }
-    .home-hero-mascot { justify-content: flex-start; }
+    .home-hero-mascot { grid-row: 1; justify-content: flex-start; }
     .home-hero-copy h1 { font-size: clamp(32px, 8vw, 48px); }
     .home-hero-copy > p { font-size: 18px; }
     .home-actions { gap: 20px; }

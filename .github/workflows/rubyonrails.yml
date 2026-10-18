@@ -75,6 +75,7 @@ jobs:
           spec/system/catalog_consistency_system_spec.rb
           spec/system/presentation_system_spec.rb
           spec/system/metadata_status_system_spec.rb
+          spec/system/landing_and_auth_system_spec.rb:16
 
       - name: Retain responsive UI evidence
         if: always()
