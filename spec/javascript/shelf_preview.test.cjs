@@ -165,3 +165,31 @@ test('an external response cannot target a subsequently opened slot or close its
   assert.equal(instance.resultsTarget.textContent, 'New search in slot B')
   assert.equal(closes, 0); assert.equal(changes, 0)
 })
+
+test('appearance edits during a pick save prevent the following download', async () => {
+  const { instance, renders } = fixture()
+  instance.picks = [{ id: 1, type: 'Book' }]; instance.dirty = true
+  instance.imageStyle = { layout: 'exhibition' }
+  let finish
+  global.fetch = async () => new Promise(resolve => { finish = resolve })
+  const downloading = instance.download()
+  await Promise.resolve()
+  instance.imageStyle = { layout: 'collector' }; instance.presentationDirty = true
+  finish({ ok: true, json: async () => ({ preview_signature: 'saved-picks' }) })
+  await downloading
+  assert.equal(instance.presentationDirty, true)
+  assert.equal(renders(), 0)
+})
+
+test('appearance changes during PNG encoding cannot upload mismatched preview metadata', async () => {
+  const { instance } = fixture()
+  instance.imageStyle = { layout: 'exhibition' }
+  let encode
+  global.document.createElement = () => ({ toBlob: callback => { encode = callback } })
+  global.fetch = () => { throw new Error('Stale preview must not upload') }
+  const publishing = instance.storePreview()
+  await Promise.resolve()
+  instance.imageStyle = { layout: 'collector' }; instance.presentationDirty = true
+  encode(new Blob(['png']))
+  assert.equal(await publishing, false)
+})

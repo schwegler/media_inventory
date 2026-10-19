@@ -15,7 +15,7 @@ export default class extends Controller {
     this.applyTheme(); this.render()
     this.guard = event => { if (this.dirty || this.presentationDirty) { event.preventDefault(); event.returnValue = "" } }
     this.visitGuard = event => { if ((this.dirty || this.presentationDirty) && !window.confirm("Leave without saving your shelf?")) event.preventDefault() }
-    this.onDialogClose = () => { this.dialogGeneration = (this.dialogGeneration || 0) + 1; const opener = this.opener; this.opener = null; if (opener && typeof opener.focus === "function" && opener.isConnected) opener.focus() }
+    this.onDialogClose = () => { if (this.dialogTarget.open) return; this.dialogGeneration = (this.dialogGeneration || 0) + 1; const opener = this.opener; this.opener = null; if (opener && typeof opener.focus === "function" && opener.isConnected) opener.focus() }
     if (this.hasDialogTarget) this.dialogTarget.addEventListener("close", this.onDialogClose)
     window.addEventListener("beforeunload", this.guard)
     document.addEventListener("turbo:before-visit", this.visitGuard)
@@ -70,7 +70,7 @@ export default class extends Controller {
   }
   changed() { this.dirty = true; this.statusTarget.textContent = "Unsaved changes"; this.render() }
   move(index, direction) { [this.picks[index], this.picks[index + direction]] = [this.picks[index + direction], this.picks[index]]; this.changed() }
-  open(index, event) { this.dialogGeneration = (this.dialogGeneration || 0) + 1; this.slot = Math.min(index, this.picks.length); this.opener = event?.currentTarget || document.activeElement; this.dialogTarget.showModal(); this.queryTarget.value = ""; this.resultsTarget.textContent = "Type at least two characters to search."; requestAnimationFrame(() => this.queryTarget.focus()) }
+  open(index, event) { clearTimeout(this.timer); this.abort?.abort(); this.dialogGeneration = (this.dialogGeneration || 0) + 1; this.slot = Math.min(index, this.picks.length); this.opener = event?.currentTarget || document.activeElement; this.dialogTarget.showModal(); this.queryTarget.value = ""; this.resultsTarget.textContent = "Type at least two characters to search."; requestAnimationFrame(() => this.queryTarget.focus()) }
   close() { this.dialogGeneration = (this.dialogGeneration || 0) + 1; this.dialogTarget.close() }
   localSource() { this.searchSource = "local"; this.updateSourceButtons(); this.search() }
   externalSource() { this.searchSource = "external"; this.updateSourceButtons(); this.search() }
@@ -118,11 +118,12 @@ export default class extends Controller {
   }
   async save() {
     if (this.picksSaving) return false
-    const snapshot = JSON.stringify(this.picks.map(({ id, type }) => ({ id, type })))
+    const picks = this.picks.map(({ id, type }) => ({ id, type }))
+    const snapshot = JSON.stringify(picks)
     this.picksSaving = true
     this.statusTarget.textContent = "Saving…"
     try {
-      const response = await fetch(this.urlValue, { method: "PATCH", headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" }, body: `{ "picks": ${snapshot} }` })
+      const response = await fetch(this.urlValue, { method: "PATCH", headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" }, body: JSON.stringify({ picks }) })
       const result = await response.json()
       if (!response.ok) throw new Error(result.error || "Save failed")
       this.previewSignatureValue = result.preview_signature
@@ -173,10 +174,11 @@ export default class extends Controller {
   async savePresentation() {
     if (this.presentationSaving) { this.statusTarget.textContent = "Appearance is saving. Please wait, then retry sharing."; return false }
     if (!this.presentationDirty) { this.statusTarget.textContent = "Appearance saved. Visitors will see this presentation."; return true }
-    const snapshot = this.presentationSnapshot()
+    const presentation = { theme: this.imageTheme, ...this.imageStyle }
+    const snapshot = JSON.stringify(presentation)
     this.presentationSaving = true
     try {
-      const response = await fetch(this.urlValue, { method: "PATCH", headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" }, body: `{ "presentation": ${snapshot} }` })
+      const response = await fetch(this.urlValue, { method: "PATCH", headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" }, body: JSON.stringify({ presentation }) })
       if (!response.ok) throw new Error("Appearance save failed")
       if (snapshot !== this.presentationSnapshot()) {
         this.presentationDirty = true
