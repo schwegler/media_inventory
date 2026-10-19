@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module ShelvesHelper
-  SHELF_THEMES = %w[midnight gallery electric halloween telly facet midnight_feature].freeze
-  SHELF_IMAGE_STYLES = { 'layout' => %w[exhibition reading collector], 'texture' => %w[clean paper stars],
+  SHELF_THEMES = %w[midnight gallery electric halloween christmas everyday telly facet midnight_feature].freeze
+  SHELF_IMAGE_STYLES = { 'layout' => %w[exhibition reading collector mixtape], 'texture' => %w[clean paper stars],
                          'companion' => %w[auto none telly facet bat] }.freeze
 
   def shelf_theme_label(theme)
@@ -21,9 +21,15 @@ module ShelvesHelper
   end
 
   def shelf_preview_signature(user, category)
+    if category.start_with?('collection:')
+      collection = user.shelf_collections.find_by!(slug: category.delete_prefix('collection:'))
+      return Digest::SHA256.hexdigest(['collection-v2-campaign', user.username, collection.title, collection.description,
+                                       collection.picks].to_json)
+    end
+
     shelves = user.favorite_shelves.order(:category)
     shelves = shelves.where(category: category) unless category == 'overview'
-    payload = ['shelf-image-v3-headline', user.username, user.shelf_headline, shelves.pluck(:category, :picks)]
+    payload = ['shelf-image-v5-campaign', user.username, user.shelf_headline, shelves.pluck(:category, :picks)]
     Digest::SHA256.hexdigest(payload.to_json)
   end
 

@@ -1,7 +1,7 @@
 <%= link_to shelf_path(@user.username, category: shelf[:key], theme: @theme), class: "shelf-exhibit #{'shelf-exhibit-featured' if featured}", data: { shelf_link: true } do %>
   <div class="shelf-exhibit-label"><span class="shelf-index"><%= format('%02d', index + 1) %></span><h2><%= shelf[:label] %></h2><span class="shelf-explore">Explore shelf <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></span></div>
   <div class="shelf-artwork" aria-label="<%= shelf[:items].size %> selections, up to 5 covers">
-    <% 5.times do |position| %>
+    <% (@shelf_owner ? 5 : shelf[:items].size).times do |position| %>
       <% item = shelf[:items][position] %>
       <div class="shelf-artwork-cover" data-media-type="<%= item&.class&.name || shelf[:key] %>">
         <% if item&.stored_cover_url.present? %><%= image_tag item.stored_cover_url, alt: item.title, loading: featured ? 'eager' : 'lazy' %>
