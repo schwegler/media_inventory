@@ -50,7 +50,7 @@
       <label for="shelf-companion">Companion</label><select id="shelf-companion" name="companion" data-action="favorite-shelf#customize"><%= options_for_select([['Match theme', 'auto'], ['None', 'none'], ['Telly', 'telly'], ['Facet', 'facet'], ['Facet in bat costume', 'bat']], @image_style['companion']) %></select>
       <p>Curated, readable defaults. Your layout, background and companion travel with copied shelf links.</p>
     </fieldset>
-    <% if current_user?(@user) %><p>Publish a preview after saving favorites so social links show your current shelf image.</p><button type="button" class="shelf-copy" data-action="favorite-shelf#publishPreview">Publish share preview</button><% end %>
+    <% if current_user?(@user) %><div class="shelf-publish"><p>Publish a preview after saving favorites so social links show your current shelf image.</p><button type="button" class="shelf-copy" data-action="favorite-shelf#publishPreview">Publish share preview</button></div><% end %>
     <div class="shelf-share-actions"><button type="button" class="shelf-copy shelf-download" data-action="favorite-shelf#download"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 15v6h16v-6"/></svg>Download share image</button><button type="button" class="shelf-primary" data-action="favorite-shelf#copyLink">Copy shelf link</button><button type="button" class="shelf-copy" data-action="favorite-shelf#copyAltText">Copy image alt text</button></div>
   </section>
   <details class="shelf-alt-text" data-favorite-shelf-target="altTextDetails"><summary>Image alt text</summary><label for="shelf-image-alt-text">Description of your share image</label><textarea id="shelf-image-alt-text" rows="8" readonly data-favorite-shelf-target="altText"></textarea></details>
