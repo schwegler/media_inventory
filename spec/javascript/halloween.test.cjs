@@ -77,3 +77,12 @@ test('saved settings apply after a Turbo morph without reconnecting or revealing
  f.body.dataset.uiPreferences=JSON.stringify({theme:'light',accent:'ink',seasonalTheme:'off'})
  f.instance.refresh();assert.equal(f.values.get('data-theme'),'light');assert.equal(f.values.has('data-season'),false)
 })
+
+
+test('an explicit pre-preset browser choice survives the added default field when base preferences match',()=>{
+ const f=fixture();f.body.dataset.uiPreferences=JSON.stringify({theme:'os',accent:'moss'})
+ f.instance.connect();f.instance.apply();f.instance.reset()
+ f.body.dataset.uiPreferences=JSON.stringify({seasonalTheme:'off',theme:'os',accent:'moss'})
+ f.instance.connect();assert.equal(f.values.get('data-season'),'halloween')
+ f.instance.undo();assert.deepEqual(Object.fromEntries(f.values),f.original)
+})

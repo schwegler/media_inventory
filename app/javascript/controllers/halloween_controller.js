@@ -13,7 +13,8 @@ export default class extends Controller {
     this.stageTarget.dataset.motion = this.motion
     this.syncControls()
     let active = this.readSession()
-    if (active && (active.viewer !== this.viewer || active.preferences !== this.preferences)) {
+    const legacy = active?.viewer === this.viewer && this.legacyPreferences(active.preferences)
+    if (active && (active.viewer !== this.viewer || (active.preferences !== this.preferences && !legacy))) {
       this.clearSession(); this.write("local", SEASONAL_KEYS.theme, "off"); active = null
     }
     const accountTheme = this.accountPreferences.seasonalTheme
@@ -40,6 +41,7 @@ export default class extends Controller {
     window.addEventListener("resize", this.reposition)
     window.addEventListener("scroll", this.reposition, { passive: true })
     if (currentSeason(this.configValue)?.window) this.scheduleExpiry()
+    if (legacy && this.previous) this.persistTheme(this.season.theme)
   }
   refresh() {
     const preferences = this.accountPreferences
@@ -84,6 +86,14 @@ export default class extends Controller {
   }
   announce(source) {
     window.dispatchEvent(new CustomEvent("schweg:seasonal-change", { detail: { schemaVersion: 2, seasonId: this.season.id, theme: this.season.theme, active: Boolean(this.previous), motion: this.motion, source } }))
+  }
+  legacyPreferences(signature) {
+    try {
+      const previous = JSON.parse(signature), current = { ...this.accountPreferences }
+      if (Object.hasOwn(previous, "seasonalTheme") || current.seasonalTheme !== "off") return false
+      delete current.seasonalTheme
+      return JSON.stringify(Object.entries(previous).sort()) === JSON.stringify(Object.entries(current).sort())
+    } catch { return false }
   }
   get accountPreferences() { try { return JSON.parse(this.preferences || "{}") } catch { return {} } }
   get preferencesUrl() { return document.body.dataset.seasonalPreferencesUrl }
