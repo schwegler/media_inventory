@@ -20,12 +20,12 @@ The picker retains Trove's local catalog search and adds an explicit **Search ex
 - Everyday, Halloween, Christmas and Midnight Feature are core palettes. Approved Telly/Facet assets and the exact bat costume remain optional under **Mascot**. No new art is generated.
 - The large live preview defaults to 1080×1920. Landscape remains 1200×630. Rendering contains every artwork image, preserving portrait/square/landscape proportions.
 - The design reserves generous empty space around the composition. These are conservative design defaults, not a claim of guaranteed Instagram overlay safety. Use Instagram's final composer to place link/music/sticker overlays.
-- The canvas title, page title, description and alt text share the saved collection identity. Save & download persists pending selections and appearance before exporting. Copy collection link uses the actual destination. Social OG previews remain an explicit owner publication and use landscape PNGs.
+- The canvas title, page title, description and alt text share the saved collection identity. Save & download persists pending selections and appearance before exporting. Copy collection link uses the actual destination. Social OG previews remain an explicit owner publication and use landscape PNGs. The renderer signature is versioned so a prior cached image cannot prevent publishing the new cover-led composition.
 - Anonymous CORS requests, bounded image timeouts and image-error fallback prevent remote artwork from tainting the download canvas. Failed artwork retains the named caption.
 
 ## Verification
 
-Request regressions cover ownership, guest visibility, persistence, independent collections, stable identity and signed catalog imports. JavaScript checks cover geometry, contrast, remote-image fallback and aspect ratio. Browser regressions exercise actual canvas PNG encoding and a downloaded PNG, all three layouts, mixed ratios, a missing cover, long titles, saved visitor presentation, and desktop/tablet/phone widths. CI retains browser screenshot and PNG evidence under `trove-responsive-ui`.
+Request regressions cover ownership, guest visibility, persistence, independent collections, stable identity and signed catalog imports. JavaScript checks cover geometry, contrast, remote-image fallback and aspect ratio. Browser regressions exercise actual canvas PNG encoding and a downloaded PNG, all three layouts, mixed ratios, a missing cover, long titles, saved visitor presentation, and desktop/tablet/phone widths. A simulated touch on the phone viewport also switches the format and verifies the resulting canvas dimensions. CI retains browser screenshot and PNG evidence under `trove-responsive-ui`.
 
 ## Deferred optional enhancements
 

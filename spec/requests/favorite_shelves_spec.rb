@@ -21,6 +21,10 @@ RSpec.describe 'Favorite shelves', type: :request do
     expect(page.css('.shelf-themes, .shelf-customization')).to be_empty
     other = User.create!(name: 'Visitor', email: 'visitor@example.com', password: 'password')
     post login_path, params: { session: { email: other.email, password: 'password' } }
+    get shelf_path(user.username)
+    visitor_page = Nokogiri::HTML(response.body)
+    expect(visitor_page.css('.shelf-themes, .shelf-customization, .shelf-headline-editor')).to be_empty
+    expect(visitor_page.at_css('.favorite-shelf')['data-favorite-shelf-owner-value']).to eq('false')
     patch shelf_path(user.username), params: { presentation: { theme: 'electric' } }, as: :json
     expect(response).to have_http_status(:forbidden)
     expect(user.reload.shelf_presentation['theme']).to eq('gallery')
