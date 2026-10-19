@@ -1,27 +1,33 @@
 import { Controller } from "@hotwired/stimulus"
-import { currentSeason, SEASONAL_KEYS } from "controllers/season_config"
+import { availableSeason, currentSeason, SEASONAL_KEYS } from "controllers/season_config"
 
 const ATTRIBUTES = ["theme", "accent", "season", "season-id", "season-motion", "season-effects"]
 export default class extends Controller {
-  static targets = ["stage", "invitation", "notice", "message", "pause", "atmosphere", "controls"]
+  static targets = ["stage", "invitation", "notice", "message", "pause", "atmosphere", "controls", "undo", "on", "off", "announcement"]
   static values = { config: Object }
   connect() {
     window.SchwegSeasonalConfig = this.configValue
-    this.season = currentSeason(this.configValue)
+    this.season = availableSeason(this.configValue)
     if (!this.season) { if (this.hasControlsTarget) this.controlsTarget.hidden = true; return }
     this.motion = this.read("local", SEASONAL_KEYS.motion) === "paused" ? "paused" : "auto"
     this.stageTarget.dataset.motion = this.motion
     this.syncControls()
-    const active = this.readSession()
-    if (active && (active.viewer !== this.viewer || active.preferences !== this.preferences)) {
-      this.clearSession(); this.write("local", SEASONAL_KEYS.theme, "off")
-    } else if (active || this.read("local", SEASONAL_KEYS.theme) === this.season.theme) {
+    let active = this.readSession()
+    const legacy = active?.viewer === this.viewer && this.legacyPreferences(active.preferences)
+    if (active && (active.viewer !== this.viewer || (active.preferences !== this.preferences && !legacy))) {
+      this.clearSession(); this.write("local", SEASONAL_KEYS.theme, "off"); active = null
+    }
+    const accountTheme = this.accountPreferences.seasonalTheme
+    this.accountTheme = accountTheme
+    this.appliedPreferences = this.preferences; this.viewerIdentity = this.viewer
+    const wantsTheme = active || accountTheme === this.season.theme ||
+      (!this.preferencesUrl && this.read("local", SEASONAL_KEYS.theme) === this.season.theme)
+    if (wantsTheme) {
       this.previous = active?.previous || this.snapshot()
-      this.closed = active?.closed || false
+      this.closed = active?.closed ?? (Boolean(this.read("session", SEASONAL_KEYS.prompt(this.season.id))) || !currentSeason(this.configValue) || accountTheme === this.season.theme)
       this.effects = active?.effects || "on"
       this.paint(); this.showNotice(false); this.saveSession(); this.announce("restore")
-    } else if (!this.read("session", SEASONAL_KEYS.prompt(this.season.id)) && this.read("local", SEASONAL_KEYS.theme) !== "off") {
-      // Fixed overlay adds no layout height; only visible controls receive pointer events.
+    } else if (currentSeason(this.configValue) && !this.read("session", SEASONAL_KEYS.prompt(this.season.id)) && this.read("local", SEASONAL_KEYS.theme) !== "off") {
       this.stageTarget.hidden = false
       this.invitationTarget.hidden = true
       this.noticeTarget.hidden = true
@@ -35,7 +41,33 @@ export default class extends Controller {
     if (window.ResizeObserver) { this.observer = new window.ResizeObserver(this.reposition); this.observer.observe(document.body) }
     window.addEventListener("resize", this.reposition)
     window.addEventListener("scroll", this.reposition, { passive: true })
-    if (this.season.window) this.scheduleExpiry()
+    if (currentSeason(this.configValue)?.window) this.scheduleExpiry()
+    if (legacy && this.previous) this.persistTheme(this.season.theme)
+  }
+  refresh() {
+    const preferences = this.accountPreferences
+    if (!this.season) return
+    if (this.viewerIdentity === this.viewer && this.appliedPreferences === this.preferences) {
+      if (this.previous) this.paint()
+      else {
+        const active = this.readSession()
+        if (active?.viewer === this.viewer && active.preferences === this.preferences) {
+          this.previous = active.previous; this.closed = active.closed; this.effects = active.effects || "on"
+          this.paint(); this.showNotice(false)
+        }
+      }
+      return
+    }
+    this.viewerIdentity = this.viewer; this.appliedPreferences = this.preferences
+    this.accountTheme = preferences.seasonalTheme
+    const previous = this.snapshot()
+    previous.theme = preferences.theme || "os"; previous.accent = preferences.accent || "violet"
+    for (const key of ["season", "season-id", "season-motion", "season-effects"]) previous[key] = null
+    this.previous = previous; this.clearSession()
+    if (this.accountTheme === this.season.theme) {
+      this.closed = true; this.effects = "on"; this.paint(); this.showNotice(false); this.saveSession()
+    } else { this.reset(); this.write("local", SEASONAL_KEYS.theme, "off") }
+    this.announce("settings")
   }
   position() {
     if (this.stageTarget.hidden || !this.stageTarget.getBoundingClientRect) return
@@ -43,7 +75,7 @@ export default class extends Controller {
     const width = this.stageTarget.offsetWidth || 176
     const height = this.stageTarget.offsetHeight || 170
     const margin = 20
-    const obstacles = Array.from(document.querySelectorAll('header, nav, [role="alert"], dialog[open], [aria-modal="true"], main button, main a, main input, main select')).filter(node => !this.stageTarget.contains(node)).map(node => node.getBoundingClientRect()).filter(box => box.width && box.height)
+    const obstacles = Array.from(document.querySelectorAll('header, nav, [role="alert"], dialog[open], [aria-modal="true"], .appearance-menu[open] .appearance-panel, main button, main a, main input, main select')).filter(node => !this.stageTarget.contains(node)).map(node => node.getBoundingClientRect()).filter(box => box.width && box.height)
     const candidates = [
       [innerWidth - width - margin, Math.max(120, innerHeight * .36)],
       [margin, Math.max(120, innerHeight * .36)],
@@ -67,6 +99,32 @@ export default class extends Controller {
   }
   announce(source) {
     window.dispatchEvent(new CustomEvent("schweg:seasonal-change", { detail: { schemaVersion: 2, seasonId: this.season.id, theme: this.season.theme, active: Boolean(this.previous), motion: this.motion, source } }))
+  }
+  legacyPreferences(signature) {
+    try {
+      const previous = JSON.parse(signature), current = { ...this.accountPreferences }
+      if (Object.hasOwn(previous, "seasonalTheme") || current.seasonalTheme !== "off") return false
+      delete current.seasonalTheme
+      return JSON.stringify(Object.entries(previous).sort()) === JSON.stringify(Object.entries(current).sort())
+    } catch { return false }
+  }
+  get accountPreferences() { try { return JSON.parse(this.preferences || "{}") } catch { return {} } }
+  get preferencesUrl() { return document.body.dataset.seasonalPreferencesUrl }
+  persistTheme(theme) {
+    if (!this.preferencesUrl) return
+    const url = this.preferencesUrl, viewer = this.viewer
+    this.preferenceWrite = (this.preferenceWrite || Promise.resolve()).then(async () => {
+      if ((document.body.dataset.viewerId || "guest") !== viewer) return
+      const response = await fetch(url, { method: "PATCH", keepalive: true, headers: { "Content-Type": "application/json", Accept: "application/json", "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" }, body: JSON.stringify({ user: { seasonal_theme: theme } }) })
+      if (!response.ok) throw new Error("Appearance was not saved")
+      const result = await response.json()
+      if ((document.body.dataset.viewerId || "guest") !== viewer) return
+      document.body.dataset.uiPreferences = JSON.stringify(result.preferences)
+      this.accountTheme = result.preferences.seasonalTheme
+      this.appliedPreferences = this.preferences
+      const active = this.readSession()
+      if (active?.viewer === viewer) this.write("session", SEASONAL_KEYS.active(this.season.id), JSON.stringify({ ...active, preferences: this.preferences }))
+    }).catch(() => { if (this.hasAnnouncementTarget) this.announcementTarget.textContent = "Your browser theme is active, but the account preference could not be saved. Try again in Appearance settings." })
   }
   get viewer() { return document.body.dataset.viewerId || "guest" }
   get preferences() { return document.body.dataset.uiPreferences || "" }
@@ -105,25 +163,45 @@ export default class extends Controller {
     this.stageTarget.dataset.motion = this.motion
     this.syncControls()
   }
+  baseChoice() {
+    this.reset(); this.clearSession(); this.write("local", SEASONAL_KEYS.theme, "off"); this.persistTheme("off"); this.announce("base-choice")
+  }
+  character() {
+    if (this.previous) this.openAppearance()
+    else this.apply()
+  }
+  openAppearance() {
+    const menu = document.querySelector("details.appearance-menu")
+    if (menu) menu.open = true
+    this.noticeTarget.querySelector("button")?.focus()
+  }
   syncControls() {
+    const active = Boolean(this.previous)
+    ;(this.undoTargets || []).forEach(button => { button.disabled = !active })
+    ;(this.onTargets || []).forEach(button => button.setAttribute("aria-pressed", String(active)))
+    ;(this.offTargets || []).forEach(button => button.setAttribute("aria-pressed", String(!active)))
+    this.invitationTarget?.querySelector?.(".halloween-bat")?.setAttribute("aria-label", active ? "Open Halloween appearance controls" : "Turn on Halloween mode")
     this.pauseTargets.forEach(button => { button.textContent = this.motion === "paused" ? (button.dataset?.compact ? "Resume" : "Resume motion") : (button.dataset?.compact ? "Pause" : "Pause motion"); button.setAttribute("aria-label", this.motion === "paused" ? "Resume motion" : "Pause motion"); button.setAttribute("aria-pressed", String(this.motion === "paused")) })
     this.atmosphereTargets.forEach(button => { button.textContent = this.effects === "off" ? "Show atmosphere" : "Hide atmosphere"; button.setAttribute("aria-pressed", String(this.effects === "off")); button.disabled = !this.previous })
   }
   showNotice(activated) {
-    this.invitationTarget.hidden = true
+    this.invitationTarget.hidden = false
     this.noticeTarget.hidden = false
     this.stageTarget.hidden = Boolean(this.closed)
     this.messageTarget.textContent = "well. it’s haunted now."
     this.position()
-    if (activated && this.stageTarget.style?.visibility !== "hidden") this.noticeTarget.querySelector("button").focus()
+    if (activated) {
+      if (this.hasAnnouncementTarget) this.announcementTarget.textContent = "well. it’s haunted now. Undo is available in Appearance."
+      document.querySelector("details.appearance-menu > summary")?.focus({ preventScroll: true })
+    }
   }
   apply() {
-    if (!currentSeason(this.configValue)) return this.expire()
+    if (!this.season) return
     clearTimeout(this.entrance)
     this.previous ||= this.snapshot()
-    this.closed = false; this.effects = "on"
+    this.closed = Boolean(this.read("session", SEASONAL_KEYS.prompt(this.season.id))) || (!currentSeason(this.configValue) && this.stageTarget.hidden); this.effects = "on"
     this.write("local", SEASONAL_KEYS.theme, this.season.theme)
-    this.paint(); this.showNotice(true); this.saveSession(); this.announce("activation")
+    this.paint(); this.showNotice(true); this.saveSession(); this.persistTheme(this.season.theme); this.announce("activation")
   }
   pause() {
     this.motion = this.motion === "paused" ? "auto" : "paused"
@@ -147,11 +225,13 @@ export default class extends Controller {
       this.previous = null
     }
     if (this.hasStageTarget) this.stageTarget.hidden = true
+    if (this.noticeTarget) this.noticeTarget.hidden = true
+    if (this.hasAnnouncementTarget) this.announcementTarget.textContent = ""
     this.syncControls()
   }
   undo() {
     this.reset(); this.clearSession()
-    this.write("local", SEASONAL_KEYS.theme, "off")
+    this.write("local", SEASONAL_KEYS.theme, "off"); this.persistTheme("off")
     this.dismiss(); this.announce("undo")
   }
   dismiss() {
@@ -159,13 +239,17 @@ export default class extends Controller {
     if (this.previous) { this.closed = true; this.saveSession() }
     this.write("session", SEASONAL_KEYS.prompt(this.season.id), "dismissed")
     this.stageTarget.hidden = true
+    const menu = document.querySelector("details.appearance-menu")
+    if (menu) menu.open = false
     document.querySelector("main")?.focus({ preventScroll: true })
   }
   resetChoice() {
-    this.reset(); this.clearSession()
-    this.remove("local", SEASONAL_KEYS.theme)
+    clearTimeout(this.entrance)
+    this.closed = false
     this.remove("session", SEASONAL_KEYS.prompt(this.season.id))
-    this.stageTarget.hidden = false; this.invitationTarget.hidden = false; this.noticeTarget.hidden = true; this.announce("reset")
+    if (this.previous) this.saveSession()
+    else { this.clearSession(); this.remove("local", SEASONAL_KEYS.theme) }
+    this.stageTarget.hidden = false; this.invitationTarget.hidden = false; this.position(); this.announce("reset")
   }
-  expire() { this.reset(); this.clearSession(); clearTimeout(this.expiry); clearTimeout(this.entrance); if (this.hasControlsTarget) this.controlsTarget.hidden = true }
+  expire() { clearTimeout(this.expiry); clearTimeout(this.entrance); this.stageTarget.hidden = true; if (this.previous) { this.closed = true; this.saveSession() } }
 }

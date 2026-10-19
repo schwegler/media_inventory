@@ -3,6 +3,13 @@
 module SeasonalHelper
   SEASON_CONFIG = JSON.parse(Rails.root.join('config/seasonal.json').read).freeze
 
+  def available_season
+    SEASON_CONFIG.fetch('seasons').find do |season|
+      (!SEASON_CONFIG['activeSeason'] || season['id'] == SEASON_CONFIG['activeSeason']) &&
+        season['enabled'] && season['asset'].present?
+    end
+  end
+
   def active_season(now: Time.current)
     SEASON_CONFIG.fetch('seasons').find do |season|
       next false if SEASON_CONFIG['activeSeason'] && season['id'] != SEASON_CONFIG['activeSeason']

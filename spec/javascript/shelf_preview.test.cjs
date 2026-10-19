@@ -6,8 +6,9 @@ const source = readFileSync('app/javascript/controllers/favorite_shelf_controlle
 
 function fixture() {
   let renders = 0
+  const renderOptions = []
   const Controller = new Function('Controller', 'renderShelfImage', 'shelfImageAltText', 'SHELF_THEMES', source)(
-    class {}, async () => { renders++ }, () => 'Shelf image description', { midnight: {} }
+    class {}, async (_canvas, options) => { renders++; renderOptions.push(options) }, () => 'Shelf image description', { midnight: {} }
   )
   const instance = Object.create(Controller.prototype)
   instance.imageOptions = () => ({ picks: [], theme: 'midnight' })
@@ -20,7 +21,7 @@ function fixture() {
     createElement: () => ({ getContext: () => ({ drawImage() {} }), toBlob: callback => callback(new Blob(['png'])) }),
     querySelector: () => ({ content: 'csrf-test' })
   }
-  return { instance, renders: () => renders }
+  return { instance, renders: () => renders, renderOptions }
 }
 
 test('browsing and closed previews do no canvas or upload work', async () => {
@@ -64,7 +65,7 @@ test('unsaved changes prevent publication and failure restores an actionable con
   await instance.publishPreview({ currentTarget: button })
   assert.equal(calls, 1)
   assert.equal(button.disabled, false)
-  assert.match(instance.statusTarget.textContent, /saved favorites are safe/)
+  assert.match(instance.statusTarget.textContent, /saved picks are safe/)
 })
 
 test('a detached shelf cannot upload the result of a completed render', async () => {
@@ -72,4 +73,17 @@ test('a detached shelf cannot upload the result of a completed render', async ()
   instance.element.isConnected = false
   global.fetch = () => { throw new Error('Unexpected stale upload') }
   assert.equal(await instance.storePreview(), false)
+})
+
+
+test('published category previews retain the custom identity while using the social landscape format', async()=>{
+ const {instance,renderOptions}=fixture()
+ delete instance.imageOptions
+ instance.picks=[];instance.shelvesValue=[];instance.overviewValue=false;instance.headlineValue="it's finally spooky szn"
+ instance.imageStyle={layout:'reading',texture:'clean',companion:'auto'};instance.categoryValue='Books';instance.imageFormat='portrait'
+ global.fetch=async()=>({ok:true})
+ assert.equal(await instance.storePreview(),true)
+ assert.equal(renderOptions[0].headline,"it's finally spooky szn")
+ assert.equal(renderOptions[0].category,'Books');assert.equal(renderOptions[0].format,'landscape')
+ assert.equal(renderOptions[0].layout,'reading')
 })

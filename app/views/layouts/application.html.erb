@@ -1,4 +1,4 @@
-<% season = active_season %>
+<% season = available_season %>
 <!DOCTYPE html>
 <html lang="en" data-theme="<%= logged_in? ? current_user.theme : 'os' %>"
       data-accent="<%= logged_in? ? current_user.accent_theme : 'violet' %>"
@@ -53,7 +53,7 @@
     gtag('config', 'G-PPD2TWSZBW');
   </script>
 </head>
-<body class="<%= 'item-detail' if content_for?(:item_detail) %> <%= 'media-workspace' if content_for?(:media_workspace) %>" data-controller="artwork form-errors<%= ' halloween' if season %>" data-halloween-config-value="<%= SeasonalHelper::SEASON_CONFIG.to_json if season %>" data-action="turbo:before-cache@document->halloween#reset" data-viewer-id="<%= logged_in? ? current_user.id : 'guest' %>" data-ui-preferences="<%= ui_preferences.to_json %>" <% if hotwire_native_app? %>data-native="true"<% end %>>
+<body class="<%= 'item-detail' if content_for?(:item_detail) %> <%= 'media-workspace' if content_for?(:media_workspace) %>" data-controller="artwork form-errors<%= ' halloween' if season %>" data-halloween-config-value="<%= SeasonalHelper::SEASON_CONFIG.to_json if season %>" data-action="turbo:render@document->halloween#refresh turbo:before-cache@document->halloween#reset trove:base-appearance@document->halloween#baseChoice" data-seasonal-preferences-url="<%= settings_appearance_path if logged_in? %>" data-viewer-id="<%= logged_in? ? current_user.id : 'guest' %>" data-ui-preferences="<%= ui_preferences.to_json %>" <% if hotwire_native_app? %>data-native="true"<% end %>>
   <a href="#main-content" class="skip-link">Skip to content</a>
   <% if content_for?(:header_artwork) %>
     <div class="item-page-artwork" aria-hidden="true">
@@ -77,7 +77,7 @@
   <%= yield %>
 </main>
 
-<%= render 'shared/seasonal_controls' %>
+
 <footer class="app-footer">
   <div class="container">
     <div class="footer-content">

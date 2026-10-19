@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_14_170000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_19_013000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -668,6 +668,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_170000) do
     t.string "profile_header", default: "linen", null: false
     t.datetime "metadata_requested_at"
     t.string "shelf_headline"
+    t.string "seasonal_theme", default: "off", null: false
     t.index ["created_at"], name: "index_users_on_created_at"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["username"], name: "index_users_on_username", unique: true

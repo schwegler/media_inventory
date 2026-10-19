@@ -22,6 +22,8 @@ class User < ApplicationRecord
                        allow_nil: true
   validates :theme, inclusion: { in: %w[light dark os] }
 
+  validates :seasonal_theme, inclusion: { in: %w[off halloween] }
+
   ACCENTS = %w[violet ink moss halloween].freeze
   validates :accent_theme, :profile_accent, inclusion: { in: ACCENTS }
   validates :content_density, inclusion: { in: %w[comfortable compact] }

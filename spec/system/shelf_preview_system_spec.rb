@@ -14,11 +14,11 @@ RSpec.describe 'Deliberate shelf sharing', type: :system do
       document.querySelector('.shelf-preview canvas').getContext('2d').getImageData(0,0,1,1).data[3]
     JS
     expect(alpha).to eq(0)
-    find('button[aria-label="Choose favorite 1"]').click
+    find('button[aria-label="Choose pick 1"]').click
     expect(page).to have_css('dialog[open] input:focus')
     find('dialog input').send_keys(:escape)
     expect(page).to have_no_css('dialog[open]')
-    expect(page.evaluate_script('document.activeElement.getAttribute("aria-label")')).to eq('Choose favorite 1')
+    expect(page.evaluate_script('document.activeElement.getAttribute("aria-label")')).to eq('Choose pick 1')
     click_button 'Publish share preview'
     expect(page).to have_text('Share preview published.')
     expect(user.shelf_previews.count).to eq(1)

@@ -119,13 +119,13 @@ RSpec.describe 'Favorite shelves', type: :request do
         expect(page.at_css('button[data-action="favorite-shelf#copyAltText"]').text).to eq('Copy image alt text')
         expect(page.at_css('textarea[data-favorite-shelf-target="altText"]')['readonly']).to be_present
         toolbar_links = page.css('.shelf-toolbar-links a')
-        expected_links = signed_in ? ['Curate favorites', 'Customize profile'] : []
-        expected_links << 'All shelves' if category
-        expect(toolbar_links.map(&:text)).to eq(expected_links + ['Share'])
-        if category
-          expect(toolbar_links.find { |link| link.text == 'All shelves' }['href'])
-            .to eq(shelf_path(user.username, theme: 'electric'))
-        end
+        expected_links = ['View shelf overview']
+        expected_links << 'Edit selections' if signed_in && category.nil?
+        expected_links << 'Customize profile' if signed_in
+        expect(toolbar_links.map(&:text)).to eq(expected_links + ['View profile', 'Share'])
+        overview = toolbar_links.find { |link| link.text == 'View shelf overview' }
+        expect(URI.parse(overview['href']).path).to eq(shelf_path(user.username))
+        expect(Rack::Utils.parse_nested_query(URI.parse(overview['href']).query)).not_to have_key('category')
         if signed_in
           expect(page.at_css('[aria-label="Account menu"]')).to be_present
         else
@@ -222,5 +222,54 @@ RSpec.describe 'Favorite shelves', type: :request do
     get shelf_path(user.username, theme: 'facet', layout: 'unknown', texture: 'invalid', companion: 'other')
     style = JSON.parse(Nokogiri::HTML(response.body).at_css('.favorite-shelf')['data-favorite-shelf-style-value'])
     expect(style).to eq('layout' => 'exhibition', 'texture' => 'clean', 'companion' => 'auto')
+  end
+  it 'separates the showcase overview from editing Overall and retains presentation choices' do
+    login
+    get shelf_path(user.username, category: 'overall', theme: 'electric', layout: 'reading',
+                                  texture: 'stars', companion: 'facet')
+    doc = Nokogiri::HTML(response.body)
+    overview = doc.at_css('a.shelf-overview-link')
+    query = Rack::Utils.parse_nested_query(URI.parse(overview['href']).query)
+    expect(query).to include('theme' => 'electric', 'layout' => 'reading', 'texture' => 'stars', 'companion' => 'facet')
+    expect(query).not_to have_key('category')
+    expect(doc.at_css('.shelf-view-state').text).to eq('Editing Overall selections')
+    expect(doc.at_css('.shelf-heading > a')['href']).to eq(overview['href'])
+    get overview['href']
+    doc = Nokogiri::HTML(response.body)
+    expect(doc.at_css('.shelf-view-state').text).to eq('Viewing shelf overview')
+    edit = doc.css('a').find { |link| link.text == 'Edit selections' }
+    expect(edit['href']).to include('category=overall', 'theme=electric', 'layout=reading')
+    expect(doc.at_css('.shelf-overview-link')['aria-current']).to eq('page')
+  end
+  it 'offers Midnight Feature separately and accepts its explicitly published preview' do
+    login
+    get shelf_path(user.username, category: 'Movie', theme: 'midnight_feature')
+    doc = Nokogiri::HTML(response.body)
+    expect(doc.at_css('.favorite-shelf')['data-shelf-theme']).to eq('midnight_feature')
+    expect(doc.css('.shelf-themes label').map(&:text)).to include('Midnight Feature', 'Halloween')
+    signature = doc.at_css('.favorite-shelf')['data-favorite-shelf-preview-signature-value']
+    patch shelf_path(user.username, category: 'Movie'), params: {
+      preview_image: fixture_file_upload('transparent-logo.png', 'image/png'), preview_category: 'Movie',
+      preview_signature: signature, theme: 'midnight_feature', layout: 'collector'
+    }
+    expect(response).to have_http_status(:no_content)
+    expect(user.shelf_previews.first.blob.metadata).to include('theme' => 'midnight_feature')
+  end
+  it 'keeps an escaped custom headline primary in category pages, metadata and published signatures' do
+    headline = "it's finally spooky szn 🦇 <script>no()</script>"
+    user.update!(shelf_headline: headline)
+    [nil, 'overall', 'Book'].each do |category|
+      get shelf_path(user.username, category: category, theme: 'halloween')
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css('h1').text).to include(headline)
+      expect(doc.at_css('.favorite-shelf')['data-favorite-shelf-headline-value']).to eq(headline)
+      expect(doc.at_css('meta[property="og:title"]')['content']).to include(headline)
+      expect(doc.at_css('meta[property="og:description"]')['content']).to include(headline)
+      expect(doc.css('.shelf-heading script')).to be_empty
+      expect(doc.text).not_to include('Five favorites.', 'My top five')
+    end
+    old_signature = controller.helpers.shelf_preview_signature(user, 'Book')
+    user.update!(shelf_headline: 'a different night')
+    expect(controller.helpers.shelf_preview_signature(user, 'Book')).not_to eq(old_signature)
   end
 end

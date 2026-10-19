@@ -52,13 +52,13 @@ export default class extends Controller {
     for (let index = 0; index < 5; index++) {
       const pick = this.picks[index], slot = document.createElement("article")
       slot.className = "shelf-slot"; slot.dataset.mediaType = pick?.type || ""
-      const cover = owner ? this.button(pick ? "Replace" : "+ Add favorite", event => this.open(index, event), `Choose favorite ${index + 1}`) : document.createElement(pick?.url ? "a" : "div")
+      const cover = owner ? this.button(pick ? "Replace" : "+ Add pick", event => this.open(index, event), `Choose pick ${index + 1}`) : document.createElement(pick?.url ? "a" : "div")
       if (!owner && pick?.url) cover.href = pick.url
       cover.className = "shelf-pick"
       if (pick?.cover) { const img = new Image(); img.src = pick.cover; img.alt = pick.title; cover.replaceChildren(img) }
       else if (pick) cover.textContent = pick.title
       else if (!owner) cover.textContent = "Not picked yet"
-      const title = document.createElement("h3"); title.textContent = `${index + 1}. ${pick?.title || "Your next favorite"}`
+      const title = document.createElement("h3"); title.textContent = `${index + 1}. ${pick?.title || "Your next pick"}`
       if (pick?.url) {
         const link = document.createElement("a"); link.href = pick.url; link.textContent = title.textContent; title.replaceChildren(link)
       }
@@ -191,7 +191,7 @@ export default class extends Controller {
     try {
       const saved = await this.storePreview()
       this.statusTarget.textContent = saved ? "Share preview published. Your public shelf link is ready." : "Preview changed or could not be saved. Please try again."
-    } catch { this.statusTarget.textContent = "Could not publish the preview. Your saved favorites are safe. Please try again." }
+    } catch { this.statusTarget.textContent = "Could not publish the preview. Your saved picks are safe. Please try again." }
     finally { this.publishing = false; button.disabled = false; button.removeAttribute("aria-busy") }
   }
   async storePreview() {
