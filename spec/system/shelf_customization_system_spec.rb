@@ -16,7 +16,7 @@ RSpec.describe 'Shelf Story customization', type: :system do
     select 'Telly', from: 'Companion'
     expect(page).to have_css('.favorite-shelf[data-shelf-theme="telly"][data-shelf-texture="stars"]')
     expect(page).to have_css('.shelf-companion img[alt=""][src*="telly_shelf"]')
-    expect(find_link('All shelves')[:href]).to include('layout=reading', 'texture=stars', 'companion=telly')
+    expect(find_link('View shelf overview')[:href]).to include('layout=reading', 'texture=stars', 'companion=telly')
     find('input[name="shelf-format"][value="portrait"]').choose
     find('summary', text: 'Share image preview').click
     expect(page).to have_css('.shelf-preview canvas[width="1080"][height="1920"]')
@@ -30,5 +30,26 @@ RSpec.describe 'Shelf Story customization', type: :system do
     choose 'Facet'
     select 'Match theme', from: 'Companion'
     expect(page).to have_css('.shelf-companion img[alt=""][src*="facet_shelf"]')
+  end
+  it 'returns from the Overall editor to the showcase using keyboard navigation on mobile' do
+    user = create_and_login_user
+    user.update!(username: 'overview_navigation')
+    visit shelf_path(user.username, category: 'overall', theme: 'electric', layout: 'reading',
+                                    texture: 'stars', companion: 'facet')
+    expect(page).to have_text('Editing Overall favorites')
+    capture_ui_screenshot('shelf-overview-navigation-desktop')
+    resize_browser_viewport(390, 844)
+    expect(page.evaluate_script('document.documentElement.scrollWidth <= innerWidth')).to be(true)
+    overview = find_link('View shelf overview')
+    page.execute_script('arguments[0].focus()', overview)
+    expect(overview).to match_css(':focus')
+    overview.send_keys(:enter)
+    expect(page).to have_text('Viewing shelf overview')
+    expect(page).to have_css('.shelf-introduction')
+    expect(page).to have_css('.favorite-shelf[data-shelf-theme="electric"][data-shelf-texture="stars"]')
+    expect(page).to have_select('Portrait layout', selected: 'Reading list')
+    capture_ui_screenshot('shelf-overview-navigation-mobile')
+    click_link 'Edit favorites'
+    expect(page).to have_text('Editing Overall favorites')
   end
 end

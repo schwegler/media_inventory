@@ -119,13 +119,13 @@ RSpec.describe 'Favorite shelves', type: :request do
         expect(page.at_css('button[data-action="favorite-shelf#copyAltText"]').text).to eq('Copy image alt text')
         expect(page.at_css('textarea[data-favorite-shelf-target="altText"]')['readonly']).to be_present
         toolbar_links = page.css('.shelf-toolbar-links a')
-        expected_links = signed_in ? ['Curate favorites', 'Customize profile'] : []
-        expected_links << 'All shelves' if category
-        expect(toolbar_links.map(&:text)).to eq(expected_links + ['Share'])
-        if category
-          expect(toolbar_links.find { |link| link.text == 'All shelves' }['href'])
-            .to eq(shelf_path(user.username, theme: 'electric'))
-        end
+        expected_links = ['View shelf overview']
+        expected_links << 'Edit favorites' if signed_in && category.nil?
+        expected_links << 'Customize profile' if signed_in
+        expect(toolbar_links.map(&:text)).to eq(expected_links + ['View profile', 'Share'])
+        overview = toolbar_links.find { |link| link.text == 'View shelf overview' }
+        expect(URI.parse(overview['href']).path).to eq(shelf_path(user.username))
+        expect(Rack::Utils.parse_nested_query(URI.parse(overview['href']).query)).not_to have_key('category')
         if signed_in
           expect(page.at_css('[aria-label="Account menu"]')).to be_present
         else
@@ -222,5 +222,23 @@ RSpec.describe 'Favorite shelves', type: :request do
     get shelf_path(user.username, theme: 'facet', layout: 'unknown', texture: 'invalid', companion: 'other')
     style = JSON.parse(Nokogiri::HTML(response.body).at_css('.favorite-shelf')['data-favorite-shelf-style-value'])
     expect(style).to eq('layout' => 'exhibition', 'texture' => 'clean', 'companion' => 'auto')
+  end
+  it 'separates the showcase overview from editing Overall and retains presentation choices' do
+    login
+    get shelf_path(user.username, category: 'overall', theme: 'electric', layout: 'reading',
+                                  texture: 'stars', companion: 'facet')
+    doc = Nokogiri::HTML(response.body)
+    overview = doc.at_css('a.shelf-overview-link')
+    query = Rack::Utils.parse_nested_query(URI.parse(overview['href']).query)
+    expect(query).to include('theme' => 'electric', 'layout' => 'reading', 'texture' => 'stars', 'companion' => 'facet')
+    expect(query).not_to have_key('category')
+    expect(doc.at_css('.shelf-view-state').text).to eq('Editing Overall favorites')
+    expect(doc.at_css('.shelf-heading > a')['href']).to eq(overview['href'])
+    get overview['href']
+    doc = Nokogiri::HTML(response.body)
+    expect(doc.at_css('.shelf-view-state').text).to eq('Viewing shelf overview')
+    edit = doc.css('a').find { |link| link.text == 'Edit favorites' }
+    expect(edit['href']).to include('category=overall', 'theme=electric', 'layout=reading')
+    expect(doc.at_css('.shelf-overview-link')['aria-current']).to eq('page')
   end
 end

@@ -134,3 +134,10 @@
   .favorite-shelf .shelf-share-actions .shelf-primary { width: 100%; }
   .favorite-shelf .shelf-formats label { min-width: 0; }
 }
+
+// Showcase navigation is separate from the Overall favorites category.
+.favorite-shelf .shelf-toolbar-links { flex-wrap: wrap; gap: 16px; }
+.favorite-shelf .shelf-toolbar-links a { display: inline-flex; align-items: center; min-height: 44px; }
+.favorite-shelf .shelf-toolbar-links .shelf-overview-link { padding: 12px 18px; color: var(--shelf-bg); font-size: 14px; }
+.favorite-shelf .shelf-view-state { margin: 0; color: var(--shelf-muted); font-size: 13px; }
+@media(max-width: 640px) { .favorite-shelf .shelf-toolbar-links { gap: 12px 18px; } .favorite-shelf .shelf-view-state { flex-basis: 100%; } }

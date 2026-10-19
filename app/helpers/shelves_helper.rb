@@ -5,6 +5,10 @@ module ShelvesHelper
   SHELF_IMAGE_STYLES = { 'layout' => %w[exhibition reading collector], 'texture' => %w[clean paper stars],
                          'companion' => %w[auto none telly facet bat] }.freeze
 
+  def shelf_navigation_path(user, theme:, style:, category: nil)
+    shelf_path(user.username, **shelf_image_style(style).symbolize_keys, category: category, theme: theme)
+  end
+
   def shelf_image_style(input)
     SHELF_IMAGE_STYLES.to_h do |key, choices|
       value = input[key]
