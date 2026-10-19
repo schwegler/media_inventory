@@ -127,6 +127,16 @@
   .home-empty-state h2, .home-empty-state h3 { margin: 0 0 .75rem; }
   .profile-companion-mascot .mascot-sticker { width: 42px; height: 55px; filter: none; transition: none; transform: none; }
   .media-workspace .media-overview { grid-template-columns: 240px minmax(0, 1fr); gap: 2.5rem; }
+  // Comic art must retain its source proportions; the child-page height cap
+  // otherwise clips covers after this layer widens the artwork column.
+  .media-workspace .media-detail:is([data-media-kind='Comic'], [data-media-kind='ComicIssue']) .media-overview .media-cover {
+    max-height: none;
+    aspect-ratio: auto;
+  }
+  .media-workspace .media-detail:is([data-media-kind='Comic'], [data-media-kind='ComicIssue']) .media-cover > .artwork-zoom { height: auto; }
+  .media-workspace .media-detail:is([data-media-kind='Comic'], [data-media-kind='ComicIssue']) .media-cover img { height: auto; object-fit: contain; }
+  .media-workspace .media-detail:is([data-media-kind='Comic'], [data-media-kind='ComicIssue']) .media-cover > .artwork-fallback { aspect-ratio: 2 / 3; }
+
   .media-workspace .media-overview .media-cover { width: 240px; border-radius: 3px; box-shadow: none; }
   .media-workspace .media-identity h1 { font-family: 'Space Grotesk', sans-serif; font-size: clamp(2.0625rem, 4vw, 3.5rem); font-weight: 500; line-height: 1.08; }
   .media-overview-stats { grid-column: 2; display: flex; flex-wrap: wrap; gap: 1.5rem; border: 0; padding: 0; background: transparent; box-shadow: none; }
