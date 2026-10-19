@@ -459,8 +459,10 @@ class MediaSearchService
   end
 
   def archive_credits(record)
+    role = { 'book' => 'Author', 'comic' => 'Writer', 'album' => 'Album artist' }.fetch(@type, 'Contributor')
+    kind = @type == 'album' ? 'artist' : 'person'
     Array(record['creator']).filter_map do |name|
-      ProviderEntityMetadata.credit({ 'name' => name }, 'Contributor', 'InternetArchive')
+      ProviderEntityMetadata.credit({ 'name' => name }, role, 'InternetArchive', kind: kind)
     end
   end
 

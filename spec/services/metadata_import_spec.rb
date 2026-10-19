@@ -75,4 +75,12 @@ RSpec.describe MetadataImport do
       expect(preview[:metadata_credits_data].size).to eq(2)
     end
   end
+
+  it 'keeps Archive book, comic and album creator roles aligned with their existing category mappings' do
+    { 'book' => %w[Author person], 'comic' => %w[Writer person], 'album' => ['Album artist', 'artist'] }
+      .each do |type, (role, kind)|
+      result = MediaSearchService.new('A title', type).send(:archive_result, { 'creator' => ['Creator'] }, 'source')
+      expect(result[:metadata_credits_data].first).to include('role' => role, 'kind' => kind)
+    end
+  end
 end
