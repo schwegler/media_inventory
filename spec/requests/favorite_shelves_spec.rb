@@ -93,6 +93,10 @@ RSpec.describe 'Favorite shelves', type: :request do
     user.favorite_shelves.create!(category: 'Movie', picks: [{ type: 'Movie', id: movie.id }])
     get shelf_path(user.username, category: 'Movie')
     page = Nokogiri::HTML(response.body)
+    public_url = URI.parse(page.at_css('.favorite-shelf')['data-favorite-shelf-public-url-value'])
+    expect(public_url.scheme).to eq('https')
+    expect(public_url.host).to eq('trove.schweg.xyz')
+    expect(public_url.path).to eq(shelf_path(user.username))
     picks = JSON.parse(page.at_css('.favorite-shelf')['data-favorite-shelf-picks-value'])
     expect(picks.first['url']).to eq(movie_path(movie))
     login

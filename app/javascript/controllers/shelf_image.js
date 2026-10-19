@@ -37,8 +37,8 @@ async function cover(pick) {
   })
 }
 
-function text(ctx, value, x, y, width, size, lines = 2, family = "sans-serif") {
-  ctx.font = `${size}px ${family}`
+function text(ctx, value, x, y, width, size, lines = 2, family = '"Instrument Sans", sans-serif', weight = 400) {
+  ctx.font = `${weight} ${size}px ${family}`
   const words = String(value ?? "").trim().split(/\s+/)
   for (let line = 0; line < lines && words.length; line++) {
     let result = words.shift()
@@ -51,16 +51,21 @@ function text(ctx, value, x, y, width, size, lines = 2, family = "sans-serif") {
 }
 
 function artwork(ctx, image, x, y, width, height, theme, rank, pick) {
-  ctx.fillStyle = theme.surface; ctx.fillRect(x, y, width, height)
   if (image) {
     const scale = Math.min(width / image.width, height / image.height)
-    ctx.save(); ctx.beginPath(); ctx.rect(x, y, width, height); ctx.clip()
-    ctx.drawImage(image, x + (width - image.width * scale) / 2, y + (height - image.height * scale) / 2, image.width * scale, image.height * scale)
+    const w = image.width * scale, h = image.height * scale
+    const left = x + (width - w) / 2, top = y + (height - h) / 2
+    ctx.save()
+    ctx.shadowColor = '#00000038'; ctx.shadowBlur = 20; ctx.shadowOffsetY = 10
+    ctx.fillStyle = theme.surface; ctx.fillRect(left - 6, top - 6, w + 12, h + 12)
     ctx.restore()
+    ctx.drawImage(image, left, top, w, h)
+    ctx.strokeStyle = theme.line; ctx.strokeRect(left, top, w, h)
   } else {
-    ctx.fillStyle = theme.muted; ctx.font = `${Math.min(width / 3, 40)}px Georgia`; ctx.fillText(String(rank).padStart(2, '0'), x + 12, y + 40)
+    ctx.fillStyle = theme.surface; ctx.fillRect(x, y, width, height)
+    ctx.fillStyle = theme.muted; ctx.font = '32px Georgia'; ctx.fillText(String(rank).padStart(2, '0'), x + 16, y + 48)
+    ctx.strokeStyle = theme.line; ctx.strokeRect(x, y, width, height)
   }
-  ctx.strokeStyle = theme.line; ctx.strokeRect(x, y, width, height)
 }
 
 export const SHELF_STYLES = { layout: ["exhibition", "reading", "collector", "mixtape"], texture: ["clean", "paper", "stars"], companion: ["auto", "none", "telly", "facet", "bat"] }
@@ -74,18 +79,65 @@ export function portraitShelfLayout(count, layout = "exhibition") {
       const width = height * 2 / 3, y = n === 1 ? 600 : (n === 2 ? 600 : 540) + i * (n === 2 ? 460 : n === 3 ? 330 : n === 4 ? 240 : 196)
       return { x: 72, y, width, height, labelX: 112 + width, labelY: y + (n === 1 ? 170 : 65), labelWidth: 896 - width, font: n === 1 ? 48 : 34, labelLines: 3 }
     }
-    if (layout === "collector") {
-      const featured = i === 0, width = n === 1 ? 440 : featured ? 420 : 200
-      const x = n === 1 ? 320 : featured ? 72 : 568 + (n > 3 ? ((i - 1) % 2) * 240 : 0)
-      const y = 560 + (featured ? 0 : Math.floor((i - 1) / (n > 3 ? 2 : 1)) * 335)
-      return { x, y, width, height: width * 1.5, labelX: 72, labelY: 1220 + i * 52, labelWidth: 936, font: n === 1 ? 38 : 34, labelLines: 1 }
+    if (layout === "collector" && n > 1) {
+      if (i === 0) return { x: 260, y: 550, width: 560, height: 520, labelX: 72, labelY: 1106, labelWidth: 936, font: 38, labelLines: 1 }
+      const columns = n - 1, width = Math.min(250, (936 - (columns - 1) * 32) / columns)
+      const left = (1080 - columns * width - (columns - 1) * 32) / 2
+      return { x: left + (i - 1) * (width + 32), y: 1210, width, height: 220, labelX: left + (i - 1) * (width + 32), labelY: 1462, labelWidth: width, font: 27, labelLines: 3 }
     }
-    const cols = Math.min(3, n), width = n === 1 ? 440 : n === 2 ? 340 : n === 3 ? 272 : 220
-    const row = Math.floor(i / cols), inRow = Math.min(cols, n - row * cols), gap = n === 3 ? 60 : 40
-    const x = (1080 - (inRow * width + (inRow - 1) * gap)) / 2 + (i % cols) * (width + gap)
-    const y = n === 1 ? 540 : n === 2 ? 560 : n === 3 ? 650 : 540 + row * 455
-    return { x, y, width, height: width * 1.5, labelX: n === 1 ? 72 : x, labelY: y + width * 1.5 + 48, labelWidth: n === 1 ? 936 : width, font: n === 1 ? 42 : 32, labelLines: n === 1 ? 2 : 3 }
+    if (layout === "mixtape" && n >= 3) {
+      if (i < 2) return { x: i === 0 ? 104 : 600, y: 560, width: i === 0 ? 400 : 300, height: 400, labelX: i === 0 ? 90 : 570, labelY: 1000, labelWidth: i === 0 ? 440 : 360, font: 30, labelLines: 2 }
+      const columns = n - 2, width = 260, left = (1080 - columns * width - (columns - 1) * 61) / 2
+      return { x: left + (i - 2) * 321, y: 1120, width, height: 270, labelX: left + (i - 2) * 321, labelY: 1435, labelWidth: width, font: 28, labelLines: 3 }
+    }
+    if (n >= 4) {
+      const topCount = n === 5 ? 3 : 2, bottom = i >= topCount, columns = bottom ? n - topCount : topCount
+      const width = columns === 3 ? 250 : 310, gap = columns === 3 ? 72 : 50
+      const left = (1080 - columns * width - (columns - 1) * gap) / 2, column = bottom ? i - topCount : i
+      return { x: left + column * (width + gap), y: bottom ? 1080 : 560, width, height: 325, labelX: left + column * (width + gap), labelY: bottom ? 1442 : 922, labelWidth: width, font: 28, labelLines: 3 }
+    }
+    const width = n === 1 ? 520 : n === 2 ? 360 : 260, gap = 44
+    const left = (1080 - n * width - (n - 1) * gap) / 2
+    return { x: left + i * (width + gap), y: 570, width, height: n === 1 ? 740 : 660, labelX: n === 1 ? 72 : left + i * (width + gap), labelY: n === 1 ? 1380 : 1300, labelWidth: n === 1 ? 936 : width, font: n === 1 ? 40 : 32, labelLines: 3 }
   })
+}
+
+export function shelfPublicLink(handle, candidate, sharePath) {
+  const fallback = `https://trove.schweg.xyz/@${encodeURIComponent(handle)}/shelf`
+  try {
+    const url = new URL(candidate || sharePath || fallback, 'https://trove.schweg.xyz')
+    if (url.protocol === 'https:' && !url.username && !url.password && !['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)) return url
+  } catch { /* Use the public canonical default. */ }
+  return new URL(fallback)
+}
+
+function seasonalFrame(ctx, theme, name, portrait) {
+  const x = portrait ? 40 : 24, y = portrait ? 182 : 18, width = portrait ? 1000 : 1152, height = portrait ? 1556 : 594
+  ctx.strokeStyle = theme.line; ctx.lineWidth = 2; ctx.strokeRect(x, y, width, height)
+  ctx.fillStyle = theme.accent
+  for (const left of [x, x + width - 52]) for (const top of [y, y + height - 3]) ctx.fillRect(left, top, 52, 3)
+  if (!portrait) return
+  if (name === 'halloween' || name === 'midnight_feature') {
+    ctx.fillStyle = theme.accent; ctx.beginPath(); ctx.arc(980, 225, 19, 0, Math.PI * 2); ctx.fill()
+    ctx.fillStyle = theme.bg; ctx.beginPath(); ctx.arc(988, 219, 18, 0, Math.PI * 2); ctx.fill()
+  }
+  if (name === 'christmas') {
+    ctx.strokeStyle = theme.muted; ctx.lineWidth = 1.5
+    for (const [left, drop] of [[912, 36], [948, 52], [985, 30]]) {
+      ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(left, y + drop); ctx.stroke()
+      ctx.fillStyle = theme.accent; ctx.beginPath(); ctx.arc(left, y + drop + 9, 8, 0, Math.PI * 2); ctx.fill()
+    }
+    ctx.strokeStyle = theme.text; ctx.lineWidth = 2
+    for (const [left, top, direction] of [[80, 1695, 1], [1000, 1695, -1]]) {
+      ctx.beginPath(); ctx.moveTo(left, top); ctx.lineTo(left + direction * 90, top - 24)
+      for (let i = 1; i < 6; i++) {
+        const px = left + direction * i * 14, py = top - i * 4
+        ctx.moveTo(px, py); ctx.lineTo(px - direction * 8, py - 17)
+        ctx.moveTo(px, py); ctx.lineTo(px + direction * 2, py + 13)
+      }
+      ctx.stroke()
+    }
+  }
 }
 
 async function companionImage(name, theme, assets) {
@@ -95,17 +147,19 @@ async function companionImage(name, theme, assets) {
   return image ? { image, selected } : null
 }
 
-export async function renderShelfImage(canvas, { picks = [], shelves = [], overview, theme: themeName, format, handle, category, headline, layout = "exhibition", texture = "clean", companion = "auto", assets = {}, siteHost = window.location.host, sharePath }) {
+export async function renderShelfImage(canvas, { picks = [], shelves = [], overview, theme: themeName, format, handle, category, headline, layout = "exhibition", texture = "clean", companion = "auto", assets = {}, siteHost = "trove.schweg.xyz", sharePath, canonicalUrl }) {
   const portrait = format === "portrait", theme = SHELF_THEMES[themeName] || SHELF_THEMES.midnight
   const source = overview ? shelves.filter(shelf => shelf.picks.length) : [{ label: category, picks }]
-  const [images, mascot] = await Promise.all([
+  await document.fonts?.load('700 48px "Instrument Sans"')
+  const [images, mascot, logo] = await Promise.all([
     Promise.all(source.map(shelf => Promise.all(shelf.picks.slice(0, 5).map(cover)))),
-    companionImage(companion, themeName, assets)
+    companionImage(companion, themeName, assets), cover({ cover: assets.logo })
   ])
   const output = document.createElement("canvas")
   output.width = portrait ? 1080 : 1200; output.height = portrait ? 1920 : 630
   const ctx = output.getContext("2d"), w = output.width, h = output.height, edge = 72
   ctx.fillStyle = theme.bg; ctx.fillRect(0, 0, w, h)
+  seasonalFrame(ctx, theme, themeName, portrait)
   const horror = themeName === "midnight_feature"
   if (horror) {
     // Static film grain is generated only when an image is requested; never animated.
@@ -122,15 +176,21 @@ export async function renderShelfImage(canvas, { picks = [], shelves = [], overv
       ctx.beginPath(); ctx.arc(x, y, texture === "paper" ? 0.7 : 1.7, 0, Math.PI * 2); ctx.fill()
     }
   }
-  ctx.fillStyle = theme.accent; ctx.font = `${portrait ? 28 : 20}px sans-serif`; ctx.fillText(horror ? "TROVE / MIDNIGHT FEATURE" : "TROVE / THE PERSONAL SHELF", edge, portrait ? 284 : 55)
-  ctx.fillStyle = theme.text
+  const brandY = portrait ? 270 : 59
+  if (logo) ctx.drawImage(logo, edge, brandY - (portrait ? 43 : 32), portrait ? 48 : 36, portrait ? 48 : 36)
+  ctx.fillStyle = theme.text; ctx.font = `700 ${portrait ? 50 : 34}px "Instrument Sans", sans-serif`
+  ctx.fillText('trove', edge + (logo ? (portrait ? 60 : 46) : 0), brandY)
+  const edition = themeName === 'christmas' ? 'WINTER EDITION' : themeName === 'halloween' ? 'AFTER DARK' : horror ? 'MIDNIGHT FEATURE' : 'A PERSONAL COLLECTION'
+  ctx.fillStyle = theme.accent; text(ctx, edition, portrait ? 520 : 825, brandY - 3, portrait ? 390 : 300, portrait ? 22 : 16, 1, '"Instrument Sans", sans-serif', 600)
+  ctx.strokeStyle = theme.line; ctx.beginPath(); ctx.moveTo(edge, portrait ? 306 : 78); ctx.lineTo(w - edge, portrait ? 306 : 78); ctx.stroke()
   const heading = shelfImageHeading(headline)
-  text(ctx, heading, edge, portrait ? 350 : 110, portrait ? 780 : 936, portrait ? 58 : 36, 2, horror ? 'Impact, "Arial Narrow", sans-serif' : "Georgia")
+  ctx.fillStyle = theme.text
+  text(ctx, heading, edge, portrait ? 395 : 122, portrait ? (mascot ? 780 : 936) : 936, portrait ? 80 : 36, 2, horror ? 'Impact, "Arial Narrow", sans-serif' : 'Georgia, serif')
   ctx.fillStyle = theme.muted
-  text(ctx, `@${handle}’s Shelf · ${overview ? "All selections" : category || "Selections"}`, edge, portrait ? 496 : 185, portrait ? 780 : 1056, portrait ? 26 : 19, 1)
+  text(ctx, `@${handle} / ${overview ? 'The shelf' : category || 'Selections'}`, edge, portrait ? 520 : 185, portrait ? 850 : 1056, portrait ? 26 : 19, 1)
   if (mascot) {
-    const image = mascot.image, height = portrait ? 128 : 86, width = height * image.width / image.height
-    ctx.drawImage(image, w - edge - width, portrait ? 270 : 20, width, height)
+    const image = mascot.image, height = portrait ? 112 : 76, width = height * image.width / image.height
+    ctx.drawImage(image, w - edge - width, portrait ? 340 : 88, width, height)
   }
   const displayedPicks = overview && source.length === 1 ? source[0].picks : picks
   if (overview && source.length !== 1) {
@@ -145,10 +205,13 @@ export async function renderShelfImage(canvas, { picks = [], shelves = [], overv
   } else if (portrait) {
     portraitShelfLayout(displayedPicks.length, layout).forEach((box, i) => {
       ctx.save()
-      if (layout === "mixtape") { const angle = [0.035, -0.04, 0.025, -0.03, 0.035][i]; ctx.translate(box.x + box.width / 2, box.y + box.height / 2); ctx.rotate(angle); ctx.translate(-box.x - box.width / 2, -box.y - box.height / 2) }
+      if (layout === "mixtape") { const angle = [-0.045, 0.035, -0.03, 0.04, 0.025][i]; ctx.translate(box.x + box.width / 2, box.y + box.height / 2); ctx.rotate(angle); ctx.translate(-box.x - box.width / 2, -box.y - box.height / 2) }
       artwork(ctx, images[0][i], box.x, box.y, box.width, box.height, theme, i + 1, displayedPicks[i])
+      if (layout === "mixtape" && images[0][i]) { ctx.globalAlpha = 0.65; ctx.fillStyle = themeName === 'christmas' ? theme.accent : theme.muted; ctx.fillRect(box.x + box.width / 2 - 34, box.y - 10, 68, 20); ctx.globalAlpha = 1 }
       ctx.restore()
-      ctx.fillStyle = theme.text; text(ctx, `${String(i + 1).padStart(2, "0")} · ${displayedPicks[i].title || "Untitled selection"}`, box.labelX, box.labelY, box.labelWidth, box.font, box.labelLines)
+      const types = { Album: 'MUSIC', TvShow: 'TV', Movie: 'FILM', Book: 'BOOK', Comic: 'COMIC', VideoGame: 'GAME' }
+      ctx.fillStyle = theme.accent; text(ctx, `${String(i + 1).padStart(2, "0")} / ${types[displayedPicks[i].type] || 'PICK'}`, box.labelX, box.labelY, box.labelWidth, 18, 1, '"Instrument Sans", sans-serif', 600)
+      ctx.fillStyle = theme.text; text(ctx, displayedPicks[i].title || "Untitled selection", box.labelX, box.labelY + 32, box.labelWidth, box.font, box.labelLines)
     })
     if (!displayedPicks.length) { ctx.fillStyle = theme.text; text(ctx, "A shelf taking shape.", edge, 840, 936, 64, 2); ctx.fillStyle = theme.muted; text(ctx, "Room for your next favorite.", edge, 970, 936, 32, 2) }
   } else {
@@ -160,7 +223,9 @@ export async function renderShelfImage(canvas, { picks = [], shelves = [], overv
     }
     if (!n) { ctx.fillStyle = theme.muted; text(ctx, "A shelf taking shape. Room for your next favorite.", edge, 320, 1056, 32, 2) }
   }
-  ctx.strokeStyle = theme.line; ctx.beginPath(); ctx.moveTo(edge, h - (portrait ? 450 : 100)); ctx.lineTo(w - edge, h - (portrait ? 450 : 100)); ctx.stroke()
-  ctx.fillStyle = theme.muted; text(ctx, `@${handle} · ${siteHost} · Explore the collection`, edge, h - (portrait ? 410 : 49), w - edge * 2, portrait ? 26 : 18, 1)
+  const link = shelfPublicLink(handle, canonicalUrl, sharePath)
+  ctx.strokeStyle = theme.line; ctx.beginPath(); ctx.moveTo(edge, portrait ? 1590 : h - 100); ctx.lineTo(w - edge, portrait ? 1590 : h - 100); ctx.stroke()
+  ctx.fillStyle = theme.accent; text(ctx, 'OPEN THE FULL SHELF  →', edge, portrait ? 1624 : h - 72, w - edge * 2, portrait ? 20 : 15, 1, '"Instrument Sans", sans-serif', 600)
+  ctx.fillStyle = theme.text; text(ctx, `${link.host}${link.pathname}${link.search}`, edge, portrait ? 1664 : h - 40, w - edge * 2, portrait ? 25 : 18, 1)
   canvas.width = w; canvas.height = h; canvas.getContext("2d").drawImage(output, 0, 0)
 }

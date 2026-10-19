@@ -6,7 +6,7 @@ RSpec.describe 'Deliberate shelf sharing', type: :system do
   it 'keeps browsing read-only, publishes explicitly, and restores keyboard focus on mobile' do
     user = create_and_login_user
     user.update!(username: 'preview_owner')
-    page.current_window.resize_to(390, 844)
+    resize_browser_viewport(390, 844)
     visit shelf_path(user.username, category: 'Movie')
     expect(page).to have_css('[data-favorite-shelf-owner-value="true"][data-connected="true"]')
     expect(user.shelf_previews.count).to eq(0)

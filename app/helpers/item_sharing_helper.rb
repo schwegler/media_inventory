@@ -20,6 +20,10 @@ module ItemSharingHelper
     "#{public_trove_origin}#{path}"
   end
 
+  def canonical_shelf_url(user, **)
+    "#{public_trove_origin}#{shelf_path(user.username, **)}"
+  end
+
   def canonical_collection_url(user)
     "#{public_trove_origin}#{collection_path(user)}"
   end

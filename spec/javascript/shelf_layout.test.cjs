@@ -10,7 +10,7 @@ test('all portrait layouts keep artwork and readable text outside Story chrome',
    assert.ok(box.x>=72 && box.x+box.width<=1008,`${layout}/${n}: horizontal cover safety`)
    assert.ok(box.y>=250 && box.y+box.height<1550,`${layout}/${n}: vertical cover safety`)
    assert.ok(box.labelX>=72 && box.labelX+box.labelWidth<=1008,`${layout}/${n}: label width`)
-   assert.ok(box.labelY>=250 && box.labelY+box.font*1.3*(box.labelLines-1)<=1570,`${layout}/${n}: lower label safety`)
+   assert.ok(box.labelY>=250 && box.labelY+32+box.font*1.3*(box.labelLines-1)<=1570,`${layout}/${n}: lower label safety`)
   }
  }
 })
@@ -67,4 +67,22 @@ test('all media artwork is contained with its original ratio',()=>{
   assert.ok(x>=71.999&&y>=559.999&&x+w<=292.001&&y+h<=890.001)
   assert.ok(Math.abs(w/h-width/height)<1e-9)
  }
+})
+
+
+test('export links remain public and canonical when rendering from localhost',()=>{
+ const {shelfPublicLink}=new Function(source+';return {shelfPublicLink}')()
+ const expected='https://trove.schweg.xyz/@schwegler/shelf?category=overall'
+ assert.equal(shelfPublicLink('schwegler',expected).href,expected)
+ assert.equal(shelfPublicLink('schwegler',undefined,'/@schwegler/shelf?category=overall').href,expected)
+ for(const invalid of ['http://localhost:3129/shelf','https://127.0.0.1/shelf','https://user:password@example.com/shelf']){
+  const result=shelfPublicLink('schwegler',invalid)
+  assert.equal(result.origin,'https://trove.schweg.xyz')
+  assert.equal(result.pathname,'/@schwegler/shelf')
+ }
+})
+
+test('Gallery, Feature and Mixtape have distinct five-pick compositions',()=>{
+ const layouts=['exhibition','collector','mixtape'].map(name=>JSON.stringify(portraitShelfLayout(5,name)))
+ assert.equal(new Set(layouts).size,3)
 })

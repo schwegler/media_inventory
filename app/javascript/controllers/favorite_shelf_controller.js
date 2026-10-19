@@ -3,7 +3,7 @@ import { renderShelfImage, shelfImageAltText, SHELF_THEMES, SHELF_STYLES } from 
 
 export default class extends Controller {
   static targets = ["slots", "dialog", "query", "results", "status", "canvas", "altText", "altTextDetails", "companion", "searchType"]
-  static values = { style: Object, assets: Object, picks: Array, url: String, search: String, handle: String, category: String, shelves: Array, overview: Boolean, headline: String, owner: Boolean, previewCategory: String, previewSignature: String, previewStored: Boolean, previewTheme: String }
+  static values = { style: Object, assets: Object, picks: Array, publicUrl: String, url: String, search: String, handle: String, category: String, shelves: Array, overview: Boolean, headline: String, owner: Boolean, previewCategory: String, previewSignature: String, previewStored: Boolean, previewTheme: String }
 
   connect() {
     this.picks = this.picksValue; this.dirty = false; this.imageFormat = this.element.querySelector('[name="shelf-format"]:checked')?.value || "portrait"
@@ -196,14 +196,14 @@ export default class extends Controller {
   async copyLink() {
     if (!(await this.savePresentation())) return
     if (this.dirty) { this.statusTarget.textContent = "Save your changes before sharing your public shelf."; return }
-    const url = new URL(window.location.href); url.searchParams.set("theme", this.imageTheme); for (const [key, value] of Object.entries(this.imageStyle)) url.searchParams.set(key, value)
+    const url = new URL(this.publicUrlValue || this.urlValue, window.location.origin); url.searchParams.set("theme", this.imageTheme); for (const [key, value] of Object.entries(this.imageStyle)) url.searchParams.set(key, value)
     try { await navigator.clipboard.writeText(url.href); this.statusTarget.textContent = "Shelf link copied, including your theme." }
     catch { this.statusTarget.textContent = `Copy this shelf link: ${url.href}` }
   }
   imageOptions() {
     return { picks: [...this.picks], shelves: this.shelvesValue,
       overview: this.overviewValue, headline: this.headlineValue, ...this.imageStyle, assets: this.assetsValue, theme: this.imageTheme, format: this.imageFormat,
-      handle: this.handleValue, category: this.categoryValue, sharePath: this.urlValue }
+      handle: this.handleValue, category: this.categoryValue, sharePath: this.urlValue, canonicalUrl: this.publicUrlValue }
   }
   async copyAltText() {
     if (!(await this.savePresentation())) return
