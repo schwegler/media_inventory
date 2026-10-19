@@ -92,6 +92,12 @@ RSpec.describe 'Halloween invitation', type: :system do
     expect(user.reload.seasonal_theme).to eq('halloween')
     expect(user.theme).to eq('os')
     expect(page).to have_checked_field('Halloween night')
+    page.execute_script(<<~JS)
+      document.addEventListener('turbo:render', () => { document.body.dataset.presetResaved = 'true' }, { once: true })
+    JS
+    find('input[value="Save preferences"]').send_keys(:enter)
+    expect(page).to have_css('body[data-preset-resaved="true"]')
+    expect(page).to have_css('html[data-theme="dark"][data-accent="halloween"]')
     expect(page).to have_no_button('Turn on Halloween mode')
     page.execute_script('window.scrollTo(0, 0)')
     capture_ui_screenshot('saved-halloween-settings-desktop')

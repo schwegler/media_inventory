@@ -74,8 +74,12 @@ test('saved settings apply after a Turbo morph without reconnecting or revealing
  const f=fixture();f.instance.connect()
  f.body.dataset.uiPreferences=JSON.stringify({theme:'os',accent:'moss',seasonalTheme:'halloween'})
  f.instance.refresh();assert.equal(f.values.get('data-season'),'halloween');assert.equal(f.instance.stageTarget.hidden,true)
+ f.values.set('data-theme','os');f.values.set('data-accent','moss');f.instance.refresh();assert.equal(f.values.get('data-theme'),'dark')
+ f.instance.reset();f.instance.refresh();assert.equal(f.values.get('data-theme'),'dark')
  f.body.dataset.uiPreferences=JSON.stringify({theme:'light',accent:'ink',seasonalTheme:'off'})
  f.instance.refresh();assert.equal(f.values.get('data-theme'),'light');assert.equal(f.values.has('data-season'),false)
+ const g=fixture();g.body.dataset.uiPreferences=JSON.stringify({theme:'os',accent:'moss',seasonalTheme:'off'})
+ g.instance.connect();g.instance.apply();g.body.dataset.viewerId='2';g.instance.refresh();assert.equal(g.values.has('data-season'),false)
 })
 
 

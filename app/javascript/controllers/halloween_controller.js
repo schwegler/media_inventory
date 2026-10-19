@@ -19,6 +19,7 @@ export default class extends Controller {
     }
     const accountTheme = this.accountPreferences.seasonalTheme
     this.accountTheme = accountTheme
+    this.appliedPreferences = this.preferences; this.viewerIdentity = this.viewer
     const wantsTheme = active || accountTheme === this.season.theme ||
       (!this.preferencesUrl && this.read("local", SEASONAL_KEYS.theme) === this.season.theme)
     if (wantsTheme) {
@@ -45,7 +46,19 @@ export default class extends Controller {
   }
   refresh() {
     const preferences = this.accountPreferences
-    if (!this.season || preferences.seasonalTheme === this.accountTheme) return
+    if (!this.season) return
+    if (this.viewerIdentity === this.viewer && this.appliedPreferences === this.preferences) {
+      if (this.previous) this.paint()
+      else {
+        const active = this.readSession()
+        if (active?.viewer === this.viewer && active.preferences === this.preferences) {
+          this.previous = active.previous; this.closed = active.closed; this.effects = active.effects || "on"
+          this.paint(); this.showNotice(false)
+        }
+      }
+      return
+    }
+    this.viewerIdentity = this.viewer; this.appliedPreferences = this.preferences
     this.accountTheme = preferences.seasonalTheme
     const previous = this.snapshot()
     previous.theme = preferences.theme || "os"; previous.accent = preferences.accent || "violet"
@@ -108,6 +121,7 @@ export default class extends Controller {
       if ((document.body.dataset.viewerId || "guest") !== viewer) return
       document.body.dataset.uiPreferences = JSON.stringify(result.preferences)
       this.accountTheme = result.preferences.seasonalTheme
+      this.appliedPreferences = this.preferences
       const active = this.readSession()
       if (active?.viewer === viewer) this.write("session", SEASONAL_KEYS.active(this.season.id), JSON.stringify({ ...active, preferences: this.preferences }))
     }).catch(() => { if (this.hasAnnouncementTarget) this.announcementTarget.textContent = "Your browser theme is active, but the account preference could not be saved. Try again in Appearance settings." })
