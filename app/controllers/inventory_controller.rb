@@ -43,7 +43,7 @@ class InventoryController < ApplicationController
     global_params = imported_attributes(global_params)
     library_params[:in_backlog] = library_params.delete(:in_watchlist) if library_params.key?(:in_watchlist)
     @resource = selected_import_resource(global_params)
-    @resource.assign_attributes(global_params) unless @resource.persisted?
+    assign_logged_attributes(global_params)
     instance_variable_set("@#{resource_name}", @resource)
 
     saved = save_logged_resource(library_params)
@@ -167,6 +167,15 @@ class InventoryController < ApplicationController
   end
 
   private
+
+  def assign_logged_attributes(attributes)
+    if @resource.persisted?
+      return if @resource.is_a?(VideoGame)
+
+      attributes = attributes.slice(:cover_image).compact_blank
+    end
+    @resource.assign_attributes(attributes)
+  end
 
   def save_logged_resource(library_params)
     saved = false

@@ -155,4 +155,31 @@ RSpec.describe 'Imported metadata confirmation', type: :request do
       expect(response.parsed_body.first['import_selection']).to eq(first['import_selection'])
     end
   end
+
+  it 'retains explicit non-game cover uploads while preserving shared text and ignoring empty upload fields' do
+    login
+    book = Book.create!(title: 'A curated book', author: 'Correct author')
+    selection = token('book', title: book.title, author: 'Wrong author', is_local: true, catalog_id: book.id)
+    post books_path, params: { book: { import_selection: selection,
+                                       cover_image: fixture_file_upload('valid-cover.png', 'image/png') } }
+    expect(response).to have_http_status(:redirect)
+    expect(book.reload.cover_image).to be_attached
+    expect(book.author).to eq('Correct author')
+    cover_id = book.cover_image.blob.id
+    post books_path, params: { book: { import_selection: selection, cover_image: '' } }
+    expect(book.reload.cover_image.blob.id).to eq(cover_id)
+    expect(book.author).to eq('Correct author')
+  end
+
+  it 'retains the existing shared game cover boundary when logging an existing game' do
+    login
+    game = VideoGame.create!(title: 'A curated game')
+    selection = token('video_game', title: game.title, is_local: true, catalog_id: game.id,
+                                    catalog_selection: MetadataImport.game_selection(game))
+    post video_games_path, params: { video_game: { import_selection: selection,
+                                                   cover_image: fixture_file_upload('valid-cover.png', 'image/png') } }
+    expect(response).to have_http_status(:redirect)
+    expect(game.reload.cover_image).not_to be_attached
+    expect(user.library_items.find_by(item: game)).to be_present
+  end
 end
