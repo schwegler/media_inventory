@@ -93,6 +93,7 @@ RSpec.describe 'Halloween invitation', type: :system do
     expect(user.theme).to eq('os')
     expect(page).to have_checked_field('Halloween night')
     expect(page).to have_no_button('Turn on Halloween mode')
+    page.execute_script('window.scrollTo(0, 0)')
     capture_ui_screenshot('saved-halloween-settings-desktop')
     visit shelf_path(user.username, category: 'Movie', theme: 'electric')
     find('summary[aria-label="Appearance"]').click
@@ -109,6 +110,9 @@ RSpec.describe 'Halloween invitation', type: :system do
     expect(page).to have_checked_field('Halloween night')
     resize_browser_viewport(390, 844)
     expect(page.evaluate_script('document.documentElement.scrollWidth <= innerWidth')).to be(true)
+    page.execute_script(<<~JS)
+      document.querySelector("#user_seasonal_theme_halloween").closest("fieldset").scrollIntoView({block: "center"})
+    JS
     capture_ui_screenshot('saved-halloween-settings-mobile')
   end
 end

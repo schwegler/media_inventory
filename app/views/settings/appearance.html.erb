@@ -8,10 +8,10 @@
       <%= render 'shared/error_messages', object: f.object %>
       <fieldset class="form-field-grid">
         <legend>Your experience</legend>
-        <fieldset class="appearance-choices"><legend>Global theme</legend>
-          <label class="appearance-choice"><%= f.radio_button :seasonal_theme, 'off' %><span>Standard</span></label>
-          <label class="appearance-choice"><%= f.radio_button :seasonal_theme, 'halloween' %><span class="appearance-swatch" style="--swatch: #f49b48" aria-hidden="true"></span><span>Halloween night</span></label>
-          <p>Dark plum, orange light and the haunted atmosphere. Available independently of the character invitation. Shelf export themes stay separate.</p>
+        <fieldset class="appearance-choices appearance-preset-choices"><legend>Global theme</legend>
+          <label class="appearance-choice"><%= f.radio_button :seasonal_theme, 'off', aria: { describedby: 'global-theme-hint' } %><span>Standard</span></label>
+          <label class="appearance-choice"><%= f.radio_button :seasonal_theme, 'halloween', aria: { describedby: 'global-theme-hint' } %><span class="appearance-swatch" style="--swatch: #f49b48" aria-hidden="true"></span><span>Halloween night</span></label>
+          <p class="appearance-help" id="global-theme-hint">Dark plum, orange light and the haunted atmosphere. Your base mode and accent are kept for Standard. No character invitation is needed. Shelf export themes stay separate.</p>
         </fieldset>
         <fieldset class="appearance-choices"><legend>Base mode</legend>
           <label class="appearance-choice"><%= f.radio_button :theme, 'os' %><span class="appearance-swatch" style="--swatch: #b3b4c0" aria-hidden="true"></span><span>System</span></label>
