@@ -14,14 +14,14 @@ class ShelvesController < ApplicationController
   end
 
   def show
-    @overview = !FavoriteShelf::CATEGORIES.key?(params[:category])
-    @theme = ShelvesHelper::SHELF_THEMES.include?(params[:theme]) ? params[:theme] : 'midnight'
-    @image_style = helpers.shelf_image_style(params)
-    @category = @overview ? 'overall' : params[:category]
+    load_collection_context
+    load_presentation
+    @overview = !@collection && !FavoriteShelf::CATEGORIES.key?(params[:category])
+    @category = @overview || @collection ? 'overall' : params[:category]
     @shelves = load_shelves_with_batch_items(@user)
-    @items = @shelves.find { |shelf| shelf[:key] == @category }[:items]
+    @items = @collection ? @collection.items : @shelves.find { |shelf| shelf[:key] == @category }[:items]
     @shelves = @shelves.select { |shelf| shelf[:items].any? } unless current_user?(@user)
-    @preview_category = @overview ? 'overview' : @category
+    @preview_category = preview_category
     @preview_signature = helpers.shelf_preview_signature(@user, @preview_category)
     @preview_image = helpers.shelf_preview_image(@user, @preview_category, @theme, style: @image_style)
     render layout: 'shelf'
@@ -30,22 +30,18 @@ class ShelvesController < ApplicationController
   def update
     return head :forbidden unless current_user?(@user)
 
+    return create_collection if params.key?(:new_collection)
+
+    @collection = @user.shelf_collections.find_by!(slug: params[:collection]) if params[:collection].present?
+    return update_collection if @collection && !params.key?(:preview_image)
+
+    return update_presentation if params.key?(:presentation)
+
     return update_preview if params.key?(:preview_image)
 
     return update_headline if params.key?(:shelf_headline)
 
-    shelf = @user.favorite_shelves.find_or_initialize_by(category: params[:category])
-    input = params[:picks]
-    unless input.is_a?(Array) && input.all? { |pick| pick.respond_to?(:permit) }
-      return render json: { error: 'Choose up to five picks.' }, status: :unprocessable_content
-    end
-
-    shelf.picks = input.map { |pick| { 'type' => pick[:type], 'id' => pick[:id].to_i } }
-    if shelf.save
-      render json: { saved: true, preview_signature: helpers.shelf_preview_signature(@user, shelf.category) }
-    else
-      render json: { error: shelf.errors.full_messages.to_sentence }, status: :unprocessable_content
-    end
+    update_picks
   end
 
   def search
@@ -66,6 +62,78 @@ class ShelvesController < ApplicationController
   end
 
   private
+
+  def load_collection_context
+    @collection = @user.shelf_collections.find_by!(slug: params[:collection]) if params[:collection].present?
+    @collections = @user.shelf_collections.order(:created_at)
+    @collections = @collections.select { |collection| collection.items.any? } unless current_user?(@user)
+  end
+
+  def load_presentation
+    presentation = (@collection ? @collection.presentation : @user.shelf_presentation).presence || params
+    @theme = ShelvesHelper::SHELF_THEMES.include?(presentation['theme']) ? presentation['theme'] : 'midnight'
+    @image_style = helpers.shelf_image_style(presentation)
+  end
+
+  def preview_category
+    return "collection:#{@collection.slug}" if @collection
+
+    @overview ? 'overview' : @category
+  end
+
+  def update_picks
+    shelf = @user.favorite_shelves.find_or_initialize_by(category: params[:category])
+    input = params[:picks]
+    unless input.is_a?(Array) && input.all? { |pick| pick.respond_to?(:permit) }
+      return render json: { error: 'Choose up to five picks.' }, status: :unprocessable_content
+    end
+
+    shelf.picks = input.map { |pick| { 'type' => pick[:type], 'id' => pick[:id].to_i } }
+    if shelf.save
+      render json: { saved: true, preview_signature: helpers.shelf_preview_signature(@user, shelf.category) }
+    else
+      render json: { error: shelf.errors.full_messages.to_sentence }, status: :unprocessable_content
+    end
+  end
+
+  def create_collection
+    collection = @user.shelf_collections.new(params.require(:new_collection).permit(:title, :description))
+    if collection.save
+      redirect_to shelf_path(@user.username, collection: collection.slug), status: :see_other
+    else
+      redirect_to shelf_path(@user.username), alert: collection.errors.full_messages.to_sentence, status: :see_other
+    end
+  end
+
+  def update_collection
+    if params.key?(:presentation)
+      input = params[:presentation]
+      return head :unprocessable_content unless input.respond_to?(:permit) &&
+                                                ShelvesHelper::SHELF_THEMES.include?(input[:theme])
+
+      @collection.presentation = helpers.shelf_image_style(input).merge('theme' => input[:theme])
+    else
+      input = params[:picks]
+      return head :unprocessable_content unless input.is_a?(Array) && input.all? { |pick| pick.respond_to?(:permit) }
+
+      @collection.picks = input.map { |pick| { 'type' => pick[:type], 'id' => pick[:id].to_i } }
+    end
+    if @collection.save
+      render json: { saved: true,
+                     preview_signature: helpers.shelf_preview_signature(@user, "collection:#{@collection.slug}") }
+    else
+      render json: { error: @collection.errors.full_messages.to_sentence }, status: :unprocessable_content
+    end
+  end
+
+  def update_presentation
+    input = params[:presentation]
+    return head :unprocessable_content unless input.respond_to?(:permit) &&
+                                              ShelvesHelper::SHELF_THEMES.include?(input[:theme])
+
+    @user.update!(shelf_presentation: helpers.shelf_image_style(input).merge('theme' => input[:theme]))
+    render json: { saved: true }
+  end
 
   def update_preview
     category = params[:preview_category].to_s
@@ -88,7 +156,10 @@ class ShelvesController < ApplicationController
   end
 
   def valid_preview_upload?(image, category, theme)
-    (FavoriteShelf::CATEGORIES.key?(category) || category == 'overview') &&
+    valid_category = FavoriteShelf::CATEGORIES.key?(category) || category == 'overview' ||
+                     (category.start_with?('collection:') &&
+                      @user.shelf_collections.exists?(slug: category.delete_prefix('collection:')))
+    valid_category &&
       ShelvesHelper::SHELF_THEMES.include?(theme) &&
       image.is_a?(ActionDispatch::Http::UploadedFile) && image.content_type == 'image/png' &&
       image.size <= 5.megabytes && image.read(8) == "\x89PNG\r\n\x1a\n".b

@@ -3,6 +3,7 @@
 SampleApp::Application.routes.draw do
   get '/api/reviews', to: 'public_reviews#index', defaults: { format: :json }
   get 'shelf', to: 'shelves#mine', as: :my_shelf
+  post 'shelves/catalog_items', to: 'shelf_catalog_items#create', as: :shelf_catalog_items
   get 'shelves/search', to: 'shelves#search', as: :search_shelves
   get '/@:username/shelf', to: 'shelves#show', as: :shelf
   patch '/@:username/shelf', to: 'shelves#update'

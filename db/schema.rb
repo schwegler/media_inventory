@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_19_013000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_19_181000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -561,6 +561,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_013000) do
     t.index ["follower_id"], name: "index_relationships_on_follower_id"
   end
 
+  create_table "shelf_collections", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "slug", null: false
+    t.string "title", null: false
+    t.string "description"
+    t.json "picks", default: [], null: false
+    t.json "presentation", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "slug"], name: "index_shelf_collections_on_user_id_and_slug", unique: true
+    t.index ["user_id"], name: "index_shelf_collections_on_user_id"
+  end
+
   create_table "steam_library_syncs", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "steam_id", null: false
@@ -669,6 +682,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_013000) do
     t.datetime "metadata_requested_at"
     t.string "shelf_headline"
     t.string "seasonal_theme", default: "off", null: false
+    t.json "shelf_presentation", default: {}, null: false
     t.index ["created_at"], name: "index_users_on_created_at"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["username"], name: "index_users_on_username", unique: true
@@ -725,6 +739,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_013000) do
   add_foreign_key "metadata_credits", "metadata_entities"
   add_foreign_key "metadata_identities", "metadata_entities"
   add_foreign_key "posts", "users"
+  add_foreign_key "shelf_collections", "users"
   add_foreign_key "steam_library_syncs", "users"
   add_foreign_key "tv_episodes", "tv_shows", on_delete: :cascade
 end

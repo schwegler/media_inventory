@@ -10,6 +10,60 @@ RSpec.describe 'Favorite shelves', type: :request do
     post login_path, params: { session: { email: user.email, password: 'password' } }
   end
 
+  it 'saves owner presentation for guests and rejects other users' do
+    login
+    patch shelf_path(user.username), params: { presentation: { theme: 'gallery', layout: 'collector' } }, as: :json
+    expect(response).to have_http_status(:ok)
+    delete logout_path
+    get shelf_path(user.username, theme: 'electric')
+    page = Nokogiri::HTML(response.body)
+    expect(page.at_css('.favorite-shelf')['data-shelf-theme']).to eq('gallery')
+    expect(page.css('.shelf-themes, .shelf-customization')).to be_empty
+    other = User.create!(name: 'Visitor', email: 'visitor@example.com', password: 'password')
+    post login_path, params: { session: { email: other.email, password: 'password' } }
+    patch shelf_path(user.username), params: { presentation: { theme: 'electric' } }, as: :json
+    expect(response).to have_http_status(:forbidden)
+    expect(user.reload.shelf_presentation['theme']).to eq('gallery')
+  end
+
+  it 'keeps named seasonal collections independent of existing shelves' do
+    original = user.favorite_shelves.create!(category: 'overall', picks: [{ type: 'Movie', id: movie.id }])
+    login
+    %w[Halloween Christmas Everyday].each do |title|
+      patch shelf_path(user.username), params: { new_collection: { title: title, description: 'A little context' } }
+      expect(response).to have_http_status(:see_other)
+    end
+    expect(user.shelf_collections.count).to eq(3)
+    collection = user.shelf_collections.find_by!(title: 'Christmas')
+    patch shelf_path(user.username, collection: collection.slug), params: { picks: [{ type: 'Movie', id: movie.id }] }, as: :json
+    expect(response).to have_http_status(:ok)
+    expect(original.reload.items).to eq([movie])
+    delete logout_path
+    get shelf_path(user.username)
+    expect(response.body).to include('Christmas')
+    expect(response.body).not_to include('>Halloween</a>', '>Everyday</a>')
+    get shelf_path(user.username, collection: collection.slug)
+    expect(response.body).to include('Christmas', 'A little context', movie.title)
+    expect(response.body).not_to include('Create collection', 'Save shelf')
+  end
+
+  it 'imports a signed external pick without library ownership and deduplicates provider IDs' do
+    login
+    selection = MetadataImport.sign('book', { title: 'An API discovery', api_id: 'openlibrary_OL123W' })
+    expect do
+      2.times do
+        post shelf_catalog_items_path, params: { type: 'book', selection: selection }, as: :json
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body['title']).to eq('An API discovery')
+      end
+    end.to change(Book, :count).by(1).and change(LibraryItem, :count).by(0)
+    post shelf_catalog_items_path, params: { type: 'book', selection: 'tampered' }, as: :json
+    expect(response).to have_http_status(:unprocessable_content)
+    delete logout_path
+    post shelf_catalog_items_path, params: { type: 'book', selection: selection }, as: :json
+    expect(response).to have_http_status(:redirect)
+  end
+
   it 'includes item destinations in the interactive shelf data and search results' do
     user.favorite_shelves.create!(category: 'Movie', picks: [{ type: 'Movie', id: movie.id }])
     get shelf_path(user.username, category: 'Movie')
@@ -88,17 +142,17 @@ RSpec.describe 'Favorite shelves', type: :request do
     delete logout_path
     get shelf_path(user.username, category: 'Movie')
     expect(response).to have_http_status(:ok)
-    expect(response.body).to include('A favorite', 'Download share image')
+    expect(response.body).to include('A favorite', 'Save &amp; download image')
     expect(response.body).not_to include('Save shelf')
   end
 
-  it 'exhibits all seven shelves at the landing URL and links each category' do
+  it 'exhibits only populated shelves to visitors' do
     user.favorite_shelves.create!(category: 'Movie', picks: [{ type: 'Movie', id: movie.id }])
     get shelf_path(user.username)
     expect(response).to have_http_status(:ok)
     page = Nokogiri::HTML(response.body)
-    expect(page.css('.shelf-exhibit').size).to eq(7)
-    expect(page.css('.shelf-exhibit h2').map(&:text)).to eq(FavoriteShelf::CATEGORIES.values)
+    expect(page.css('.shelf-exhibit').size).to eq(1)
+    expect(page.css('.shelf-exhibit h2').map(&:text)).to eq(['Movies'])
     expect(page.css('.shelf-exhibit').map(&:text).join).to include(movie.title)
     expect(page.css('.shelf-formats input').map { |input| input['value'] }).to eq(%w[landscape portrait])
     expect(page.css('.favorite-shelf-slots')).to be_empty
