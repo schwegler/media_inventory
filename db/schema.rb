@@ -748,7 +748,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_183000) do
   add_foreign_key "metadata_credits", "metadata_entities"
   add_foreign_key "metadata_identities", "metadata_entities"
   add_foreign_key "posts", "users"
-  add_foreign_key "shelf_collections", "users"
+  add_foreign_key "shelf_collections", "users", on_delete: :cascade
   add_foreign_key "steam_library_syncs", "users"
   add_foreign_key "tv_episodes", "tv_shows", on_delete: :cascade
 end

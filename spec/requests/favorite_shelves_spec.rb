@@ -66,6 +66,12 @@ RSpec.describe 'Favorite shelves', type: :request do
     expect(collection.title).to eq('Halloween nights')
   end
 
+  it 'cascades new collections when an older account-deletion path bypasses new associations' do
+    collection = user.shelf_collections.create!(title: 'Seasonal collection')
+    user.delete
+    expect(ShelfCollection.exists?(collection.id)).to be(false)
+  end
+
   it 'imports a signed external pick without library ownership and deduplicates provider IDs' do
     login
     selection = MetadataImport.sign('book', { title: 'An API discovery', api_id: 'openlibrary_OL123W' })
