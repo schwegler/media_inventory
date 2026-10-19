@@ -50,11 +50,29 @@ RSpec.describe MetadataImport do
   it 'retains ComicVine series description and issue count without downloading issues in the preview' do
     ApiConfiguration.create!(source_name: 'ComicVine', is_active: true, access_token: 'test')
     stub_request(:get, 'https://comicvine.gamespot.com/api/volume/4050-42/?api_key=test&format=json').to_return(body: {
-      status_code: 1, results: { description: '<p>A series</p>', start_year: '2001', count_of_issues: 24 }
+      status_code: 1, results: { description: '<p>A series</p>', start_year: '2001', count_of_issues: 24,
+                                 person_credits: [], people: [{ id: 7, name: 'A volume contributor' }] }
     }.to_json)
     result = described_class.preview({ title: 'Series', api_id: '42' }.with_indifferent_access, 'comic')
     expect(result[:metadata_details]).to include('description' => 'A series', 'start_year' => '2001',
                                                  'count_of_issues' => 24)
+    expect(result[:metadata_credits_data]).to include(hash_including('name' => 'A volume contributor',
+                                                                     'role' => 'Contributor'))
+    expect(result[:writer]).to be_blank
+    expect(result[:artist]).to be_blank
     expect(WebMock).not_to have_requested(:get, %r{comicvine.gamespot.com/api/issues/})
+  end
+
+  it 'retains generic Archive creators without assigning unsupported writer roles to films, shows or games' do
+    %w[movie tv_show video_game].each do |type|
+      search = MediaSearchService.new('A title', type)
+      record = { 'title' => 'A title', 'creator' => ['One creator', 'Another creator'] }
+      result = search.send(:archive_result, record, 'source')
+      expect(result[:writer]).to be_nil
+      expect(result[:metadata_credits_data].map { |credit| credit['name'] }).to eq(['One creator', 'Another creator'])
+      expect(result[:metadata_credits_data].map { |credit| credit['role'] }.uniq).to eq(['Contributor'])
+      preview = described_class.preview(result.with_indifferent_access, type)
+      expect(preview[:metadata_credits_data].size).to eq(2)
+    end
   end
 end

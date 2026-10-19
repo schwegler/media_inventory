@@ -403,7 +403,7 @@ export default class extends Controller {
     this.importStatusTarget.textContent = message
     this.importFactsTarget.replaceChildren()
     this.importExtraTarget.replaceChildren()
-    const fields = { source: "Source", api_id: "Source ID", title: "Title", author: "Author", director: "Director", writer: "Writer", actors: "Cast", artist: "Artist", publisher: "Publisher", developer: "Developer", platform: "Platforms", network: "Network", genre: "Genres", release_year: "Release year", game_type: "Type" }
+    const fields = { source: "Selected source", api_id: "Source ID", title: "Title", author: "Author", director: "Director", writer: "Writer", actors: "Cast", artist: "Artist", publisher: "Publisher", developer: "Developer", platform: "Platforms", network: "Network", genre: "Genres", release_year: "Release year", game_type: "Type" }
     const targetNames = { release_year: "releaseYear", game_type: "gameType" }
     for (const [key, label] of Object.entries(fields)) {
       if (!["source", "api_id", "title"].includes(key) && !this.targets.find(targetNames[key] || key)) continue
@@ -414,7 +414,8 @@ export default class extends Controller {
     for (const [key, value] of Object.entries(option.metadata_details || {})) this.appendImportFact(key.replaceAll("_", " ").replace(/^./, letter => letter.toUpperCase()), value, this.importExtraTarget)
     const credits = new Map()
     for (const credit of option.metadata_credits_data || []) {
-      const role = credit.role || "Contributor"
+      const provider = credit.provider?.split(":")[0]
+      const role = `${credit.role || "Contributor"}${provider ? ` (${provider})` : ""}`
       credits.set(role, [...(credits.get(role) || []), credit.name])
     }
     for (const [role, names] of credits) this.appendImportFact(role, [...new Set(names)], this.importExtraTarget)

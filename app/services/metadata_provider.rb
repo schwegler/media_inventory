@@ -201,7 +201,7 @@ class MetadataProvider
 
     volume = data['results']
     rows = children { comic_pages(id, token) }
-    credits = volume['person_credits'] || []
+    credits = Array(volume['person_credits']).presence || Array(volume['people'])
     organizations = [ProviderEntityMetadata.credit(volume['publisher'] || {}, 'Publisher', 'ComicVine',
                                                    kind: 'organization')].compact
     [{ metadata_credits_data: ProviderEntityMetadata.comic(credits) + organizations,

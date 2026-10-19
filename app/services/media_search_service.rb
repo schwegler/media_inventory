@@ -13,7 +13,7 @@ class MediaSearchService
   # Browser polling releases Puma threads while background workers search.
   def self.request(query, type, client_id: nil)
     fingerprint = ApiConfiguration.order(:id).pluck(:source_name, :media_type, :is_active, :updated_at)
-    key = ['async-search-v2', Digest::SHA256.hexdigest([query.to_s.strip.first(200).downcase, type, fingerprint].to_json)]
+    key = ['async-search-v3', Digest::SHA256.hexdigest([query.to_s.strip.first(200).downcase, type, fingerprint].to_json)]
     cache = MediaSources::Registry::CACHE
     latest_key = ['search-client-v1', client_id] if client_id.to_s.match?(/\A[a-zA-Z0-9-]{16,64}\z/)
     REQUEST_LOCK.synchronize do
@@ -44,13 +44,13 @@ class MediaSearchService
     started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     @deadline = started_at + 12
     MediaSources::Registry::CACHE.fetch(
-      ['media-search-v7', @type, @query.downcase.strip,
+      ['media-search-v8', @type, @query.downcase.strip,
        ApiConfiguration.order(:id).pluck(:source_name, :media_type, :is_active, :updated_at)], expires_in: 15.minutes
     ) do
       results = search_sources(&progress)
       results = ComicSearchQuery.new(@query).rank(results).first(20) if @type == 'comic'
       # Games need bounded detail lookup to distinguish DLC and resolve real cover candidates.
-      # Other media fill remaining details through their existing save callbacks.
+      # Other media fetch details only after an explicit selection.
       results = rank_results(results)
       if @type == 'video_game'
         @deadline = started_at + 18
@@ -450,11 +450,18 @@ class MediaSearchService
 
   def archive_result(record, id)
     creator = Array(record['creator']).join(', ').presence
-    { title: Array(record['title']).first, author: creator, writer: creator,
+    { title: Array(record['title']).first, author: @type == 'book' ? creator : nil,
+      writer: @type == 'comic' ? creator : nil, metadata_credits_data: archive_credits(record),
       artist: @type == 'album' ? creator : nil, publisher: Array(record['publisher']).join(', ').presence,
       release_year: record['date'].to_s[/\A\d{4}/], api_id: "archive_#{id}",
       thumbnail_url: "https://archive.org/services/img/#{id}",
       external_url: "https://archive.org/details/#{id}", is_local: false }
+  end
+
+  def archive_credits(record)
+    Array(record['creator']).filter_map do |name|
+      ProviderEntityMetadata.credit({ 'name' => name }, 'Contributor', 'InternetArchive')
+    end
   end
 
   def fetch_open_library(query)
