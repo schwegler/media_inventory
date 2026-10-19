@@ -24,11 +24,12 @@ RSpec.describe 'Halloween invitation', type: :system do
     expect(page).to have_css('html[data-theme="os"][data-accent="violet"]')
     find('[aria-label="Turn on Halloween mode"]').send_keys(:enter)
     expect(page).to have_css('html[data-theme="dark"][data-accent="halloween"]')
-    expect(page).to have_css('[role="alert"]', text: 'well. it’s haunted now.')
-    expect(page).to have_css('button:focus', text: 'Undo')
+    expect(page).to have_css('[role="alert"]', text: 'well. it’s haunted now.', visible: :all)
+    expect(page).to have_css('details.appearance-menu > summary:focus')
     visit movies_path
     expect(page).to have_css('html[data-theme="dark"][data-accent="halloween"]')
-    click_button 'Undo'
+    find('summary[aria-label="Appearance"]').click unless page.has_css?('details.appearance-menu[open]')
+    click_button 'Undo Halloween'
     expect(page).to have_css('html[data-theme="os"][data-accent="violet"]')
     page.execute_script(<<~JS)
       localStorage.removeItem('seasonal-theme:v1');
@@ -40,9 +41,42 @@ RSpec.describe 'Halloween invitation', type: :system do
     resize_browser_viewport(390, 844)
     expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
     capture_ui_screenshot('halloween-mobile')
-    find('button', text: 'Undo', exact_text: true).send_keys(:enter)
+    find('summary[aria-label="Appearance"]').click
+    find('button', text: 'Undo Halloween', exact_text: true).send_keys(:enter)
     expect(page).to have_css('html[data-theme="os"][data-accent="violet"]')
     visit root_path
     expect(page).not_to have_button('Turn on Halloween mode')
+  end
+
+  it 'dismisses only the mascot and consolidates persistent controls in Appearance on mobile' do
+    create_and_login_user
+    visit root_path
+    click_button 'Turn on Halloween mode'
+    expect(page).to have_no_css('details.appearance-menu[open]')
+    expect(page).to have_no_css('.seasonal-notice', visible: true)
+    click_button 'Dismiss Halloween character'
+    expect(page).to have_css('html[data-season="halloween"]')
+    expect(page).to have_no_css('.halloween-invitation', visible: true)
+    expect(page).to have_no_css('.seasonal-notice', visible: true)
+    visit movies_path
+    expect(page).to have_css('html[data-season="halloween"]')
+    resize_browser_viewport(390, 844)
+    appearance = find('summary[aria-label="Appearance"]')
+    appearance.send_keys(:enter)
+    click_button 'Pause motion'
+    expect(page).to have_css('html[data-season-motion="paused"]')
+    click_button 'Hide atmosphere'
+    expect(page).to have_css('html[data-season-effects="off"]')
+    capture_ui_screenshot('appearance-menu-mobile')
+    click_button 'Restore Halloween character'
+    expect(page).to have_css('html[data-season="halloween"]')
+    expect(page).to have_css('button[aria-label="Open Halloween appearance controls"]', visible: :all)
+    choose 'Light'
+    expect(page).to have_css('html[data-theme="light"]')
+    expect(page).not_to have_css('html[data-season]')
+    appearance.send_keys(:escape)
+    expect(appearance).to match_css(':focus')
+    visit root_path
+    expect(page).to have_css('html[data-theme="light"]')
   end
 end

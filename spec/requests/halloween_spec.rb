@@ -30,4 +30,16 @@ RSpec.describe 'Halloween appearance', type: :request do
       end
     end
   end
+  it 'consolidates appearance controls in one accessible header menu' do
+    travel_to(Time.utc(2026, 10, 20)) do
+      get root_path
+      doc = Nokogiri::HTML(response.body)
+      menu = doc.at_css('details.appearance-menu')
+      expect(menu.css('input[name="base-mode"]').map { |input| input['value'] }).to eq(%w[os light dark])
+      expect(menu.text).to include('Seasonal theme', 'Undo Halloween', 'Pause motion', 'Hide atmosphere')
+      expect(doc.css('.seasonal-controls').size).to eq(1)
+      expect(doc.at_css('.halloween-invitation .seasonal-notice')).to be_nil
+      expect(doc.at_css('.halloween-invitation').text).not_to include('Undo', 'Pause')
+    end
+  end
 end

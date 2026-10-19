@@ -3,7 +3,7 @@ import { currentSeason, SEASONAL_KEYS } from "controllers/season_config"
 
 const ATTRIBUTES = ["theme", "accent", "season", "season-id", "season-motion", "season-effects"]
 export default class extends Controller {
-  static targets = ["stage", "invitation", "notice", "message", "pause", "atmosphere", "controls"]
+  static targets = ["stage", "invitation", "notice", "message", "pause", "atmosphere", "controls", "undo", "on", "off", "announcement"]
   static values = { config: Object }
   connect() {
     window.SchwegSeasonalConfig = this.configValue
@@ -43,7 +43,7 @@ export default class extends Controller {
     const width = this.stageTarget.offsetWidth || 176
     const height = this.stageTarget.offsetHeight || 170
     const margin = 20
-    const obstacles = Array.from(document.querySelectorAll('header, nav, [role="alert"], dialog[open], [aria-modal="true"], main button, main a, main input, main select')).filter(node => !this.stageTarget.contains(node)).map(node => node.getBoundingClientRect()).filter(box => box.width && box.height)
+    const obstacles = Array.from(document.querySelectorAll('header, nav, [role="alert"], dialog[open], [aria-modal="true"], .appearance-menu[open] .appearance-panel, main button, main a, main input, main select')).filter(node => !this.stageTarget.contains(node)).map(node => node.getBoundingClientRect()).filter(box => box.width && box.height)
     const candidates = [
       [innerWidth - width - margin, Math.max(120, innerHeight * .36)],
       [margin, Math.max(120, innerHeight * .36)],
@@ -105,17 +105,37 @@ export default class extends Controller {
     this.stageTarget.dataset.motion = this.motion
     this.syncControls()
   }
+  baseChoice() {
+    this.reset(); this.clearSession(); this.write("local", SEASONAL_KEYS.theme, "off"); this.announce("base-choice")
+  }
+  character() {
+    if (this.previous) this.openAppearance()
+    else this.apply()
+  }
+  openAppearance() {
+    const menu = document.querySelector("details.appearance-menu")
+    if (menu) menu.open = true
+    this.noticeTarget.querySelector("button")?.focus()
+  }
   syncControls() {
+    const active = Boolean(this.previous)
+    ;(this.undoTargets || []).forEach(button => { button.disabled = !active })
+    ;(this.onTargets || []).forEach(button => button.setAttribute("aria-pressed", String(active)))
+    ;(this.offTargets || []).forEach(button => button.setAttribute("aria-pressed", String(!active)))
+    this.invitationTarget?.querySelector?.(".halloween-bat")?.setAttribute("aria-label", active ? "Open Halloween appearance controls" : "Turn on Halloween mode")
     this.pauseTargets.forEach(button => { button.textContent = this.motion === "paused" ? (button.dataset?.compact ? "Resume" : "Resume motion") : (button.dataset?.compact ? "Pause" : "Pause motion"); button.setAttribute("aria-label", this.motion === "paused" ? "Resume motion" : "Pause motion"); button.setAttribute("aria-pressed", String(this.motion === "paused")) })
     this.atmosphereTargets.forEach(button => { button.textContent = this.effects === "off" ? "Show atmosphere" : "Hide atmosphere"; button.setAttribute("aria-pressed", String(this.effects === "off")); button.disabled = !this.previous })
   }
   showNotice(activated) {
-    this.invitationTarget.hidden = true
+    this.invitationTarget.hidden = false
     this.noticeTarget.hidden = false
     this.stageTarget.hidden = Boolean(this.closed)
     this.messageTarget.textContent = "well. it’s haunted now."
     this.position()
-    if (activated && this.stageTarget.style?.visibility !== "hidden") this.noticeTarget.querySelector("button").focus()
+    if (activated) {
+      if (this.hasAnnouncementTarget) this.announcementTarget.textContent = "well. it’s haunted now. Undo is available in Appearance."
+      document.querySelector("details.appearance-menu > summary")?.focus({ preventScroll: true })
+    }
   }
   apply() {
     if (!currentSeason(this.configValue)) return this.expire()
@@ -147,6 +167,8 @@ export default class extends Controller {
       this.previous = null
     }
     if (this.hasStageTarget) this.stageTarget.hidden = true
+    if (this.noticeTarget) this.noticeTarget.hidden = true
+    if (this.hasAnnouncementTarget) this.announcementTarget.textContent = ""
     this.syncControls()
   }
   undo() {
@@ -159,13 +181,17 @@ export default class extends Controller {
     if (this.previous) { this.closed = true; this.saveSession() }
     this.write("session", SEASONAL_KEYS.prompt(this.season.id), "dismissed")
     this.stageTarget.hidden = true
+    const menu = document.querySelector("details.appearance-menu")
+    if (menu) menu.open = false
     document.querySelector("main")?.focus({ preventScroll: true })
   }
   resetChoice() {
-    this.reset(); this.clearSession()
-    this.remove("local", SEASONAL_KEYS.theme)
+    clearTimeout(this.entrance)
+    this.closed = false
     this.remove("session", SEASONAL_KEYS.prompt(this.season.id))
-    this.stageTarget.hidden = false; this.invitationTarget.hidden = false; this.noticeTarget.hidden = true; this.announce("reset")
+    if (this.previous) this.saveSession()
+    else { this.clearSession(); this.remove("local", SEASONAL_KEYS.theme) }
+    this.stageTarget.hidden = false; this.invitationTarget.hidden = false; this.position(); this.announce("reset")
   }
   expire() { this.reset(); this.clearSession(); clearTimeout(this.expiry); clearTimeout(this.entrance); if (this.hasControlsTarget) this.controlsTarget.hidden = true }
 }

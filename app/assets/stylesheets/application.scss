@@ -1,3 +1,4 @@
+@use "appearance_menu";
 @use "halloween";
 @use "halloween_invitation";
 @use "refined_system";
@@ -100,3 +101,5 @@
 
 @include halloween.styles;
 @include halloween_invitation.styles;
+
+@include appearance_menu.styles;
