@@ -1,5 +1,7 @@
 export const SHELF_THEMES = {
   midnight_feature: { label: 'Midnight Feature', bg: '#0b090b', text: '#f5e9d8', muted: '#c5aba7', accent: '#ff5964', surface: '#211416', line: '#ff59644d' },
+  everyday: { bg: '#f8f4eb', text: '#262724', muted: '#595e53', accent: '#3d573f', surface: '#e9e5db', line: '#26272430' },
+  christmas: { bg: '#faf2e2', text: '#183d32', muted: '#526154', accent: '#9b283c', surface: '#e6ddc9', line: '#183d3230' },
   halloween: { bg: '#140f1b', text: '#fff0d6', muted: '#efc196', accent: '#ffbd65', surface: '#302136', line: '#ffbd6540' },
   telly: { bg: '#e6f4ff', text: '#102a49', muted: '#3c5871', accent: '#075c9c', surface: '#c7e4f7', line: '#102a4930' },
   facet: { bg: '#eee5fa', text: '#291e40', muted: '#594568', accent: '#6330a6', surface: '#ddc9f0', line: '#291e4030' },
@@ -13,7 +15,7 @@ export function shelfImageHeading(headline) {
 }
 
 export function shelfImageAltText({ picks, shelves, overview, theme, format, handle, category, headline, layout = "exhibition", texture = "clean", companion = "auto" }) {
-  const source = overview ? shelves : [{ label: category, picks }]
+  const source = overview ? shelves.filter(shelf => shelf.picks.length) : [{ label: category, picks }]
   const heading = shelfImageHeading(headline)
   const description = source.map(shelf => {
     const titles = shelf.picks.slice(0, 5).map((pick, index) => `${index + 1}. ${pick.title || 'Untitled selection'}`)
@@ -30,6 +32,7 @@ async function cover(pick) {
     image.onload = () => { clearTimeout(timer); resolve(image) }
     image.onerror = () => { clearTimeout(timer); resolve(null) }
     // Stored artwork is proxied through the app, so downloads remain origin-clean.
+    image.crossOrigin = "anonymous"
     image.src = pick.cover
   })
 }
@@ -50,7 +53,7 @@ function text(ctx, value, x, y, width, size, lines = 2, family = "sans-serif") {
 function artwork(ctx, image, x, y, width, height, theme, rank, pick) {
   ctx.fillStyle = theme.surface; ctx.fillRect(x, y, width, height)
   if (image) {
-    const scale = (pick?.type === "Album" ? Math.min : Math.max)(width / image.width, height / image.height)
+    const scale = (pick?.type === "Album" ? Math.min : Math.min)(width / image.width, height / image.height)
     ctx.save(); ctx.beginPath(); ctx.rect(x, y, width, height); ctx.clip()
     ctx.drawImage(image, x + (width - image.width * scale) / 2, y + (height - image.height * scale) / 2, image.width * scale, image.height * scale)
     ctx.restore()
@@ -60,7 +63,7 @@ function artwork(ctx, image, x, y, width, height, theme, rank, pick) {
   ctx.strokeStyle = theme.line; ctx.strokeRect(x, y, width, height)
 }
 
-export const SHELF_STYLES = { layout: ["exhibition", "reading", "collector"], texture: ["clean", "paper", "stars"], companion: ["auto", "none", "telly", "facet", "bat"] }
+export const SHELF_STYLES = { layout: ["exhibition", "reading", "collector", "mixtape"], texture: ["clean", "paper", "stars"], companion: ["auto", "none", "telly", "facet", "bat"] }
 
 // Geometry is deterministic, including sparse shelves. Labels stay inside a 72px safe edge.
 export function portraitShelfLayout(count, layout = "exhibition") {
@@ -75,12 +78,12 @@ export function portraitShelfLayout(count, layout = "exhibition") {
       const featured = i === 0, width = n === 1 ? 440 : featured ? 420 : 200
       const x = n === 1 ? 320 : featured ? 72 : 568 + (n > 3 ? ((i - 1) % 2) * 240 : 0)
       const y = 560 + (featured ? 0 : Math.floor((i - 1) / (n > 3 ? 2 : 1)) * 335)
-      return { x, y, width, height: width * 1.5, labelX: 72, labelY: 1270 + i * 58, labelWidth: 936, font: n === 1 ? 38 : 34, labelLines: 1 }
+      return { x, y, width, height: width * 1.5, labelX: 72, labelY: 1220 + i * 52, labelWidth: 936, font: n === 1 ? 38 : 34, labelLines: 1 }
     }
     const cols = Math.min(3, n), width = n === 1 ? 440 : n === 2 ? 340 : n === 3 ? 272 : 220
     const row = Math.floor(i / cols), inRow = Math.min(cols, n - row * cols), gap = n === 3 ? 60 : 40
     const x = (1080 - (inRow * width + (inRow - 1) * gap)) / 2 + (i % cols) * (width + gap)
-    const y = n === 1 ? 600 : n === 2 ? 690 : n === 3 ? 760 : 560 + row * 490
+    const y = n === 1 ? 540 : n === 2 ? 560 : n === 3 ? 650 : 540 + row * 455
     return { x, y, width, height: width * 1.5, labelX: n === 1 ? 72 : x, labelY: y + width * 1.5 + 48, labelWidth: n === 1 ? 936 : width, font: n === 1 ? 42 : 32, labelLines: n === 1 ? 2 : 3 }
   })
 }
@@ -92,9 +95,9 @@ async function companionImage(name, theme, assets) {
   return image ? { image, selected } : null
 }
 
-export async function renderShelfImage(canvas, { picks = [], shelves = [], overview, theme: themeName, format, handle, category, headline, layout = "exhibition", texture = "clean", companion = "auto", assets = {}, siteHost = window.location.host }) {
+export async function renderShelfImage(canvas, { picks = [], shelves = [], overview, theme: themeName, format, handle, category, headline, layout = "exhibition", texture = "clean", companion = "auto", assets = {}, siteHost = window.location.host, sharePath }) {
   const portrait = format === "portrait", theme = SHELF_THEMES[themeName] || SHELF_THEMES.midnight
-  const source = overview ? shelves : [{ label: category, picks }]
+  const source = overview ? shelves.filter(shelf => shelf.picks.length) : [{ label: category, picks }]
   const [images, mascot] = await Promise.all([
     Promise.all(source.map(shelf => Promise.all(shelf.picks.slice(0, 5).map(cover)))),
     companionImage(companion, themeName, assets)
@@ -140,7 +143,10 @@ export async function renderShelfImage(canvas, { picks = [], shelves = [], overv
     })
   } else if (portrait) {
     portraitShelfLayout(picks.length, layout).forEach((box, i) => {
+      ctx.save()
+      if (layout === "mixtape") { const angle = [0.035, -0.04, 0.025, -0.03, 0.035][i]; ctx.translate(box.x + box.width / 2, box.y + box.height / 2); ctx.rotate(angle); ctx.translate(-box.x - box.width / 2, -box.y - box.height / 2) }
       artwork(ctx, images[0][i], box.x, box.y, box.width, box.height, theme, i + 1, picks[i])
+      ctx.restore()
       ctx.fillStyle = theme.text; text(ctx, `${String(i + 1).padStart(2, "0")} · ${picks[i].title || "Untitled selection"}`, box.labelX, box.labelY, box.labelWidth, box.font, box.labelLines)
     })
     if (!picks.length) { ctx.fillStyle = theme.text; text(ctx, "A shelf taking shape.", edge, 840, 936, 64, 2); ctx.fillStyle = theme.muted; text(ctx, "Room for your next favorite.", edge, 970, 936, 32, 2) }
@@ -153,7 +159,7 @@ export async function renderShelfImage(canvas, { picks = [], shelves = [], overv
     }
     if (!n) { ctx.fillStyle = theme.muted; text(ctx, "A shelf taking shape. Room for your next favorite.", edge, 320, 1056, 32, 2) }
   }
-  ctx.strokeStyle = theme.line; ctx.beginPath(); ctx.moveTo(edge, h - (portrait ? 330 : 100)); ctx.lineTo(w - edge, h - (portrait ? 330 : 100)); ctx.stroke()
-  ctx.fillStyle = theme.muted; text(ctx, `${siteHost}/@${handle}`, edge, h - (portrait ? 280 : 49), w - edge * 2, portrait ? 26 : 18, 1)
+  ctx.strokeStyle = theme.line; ctx.beginPath(); ctx.moveTo(edge, h - (portrait ? 450 : 100)); ctx.lineTo(w - edge, h - (portrait ? 450 : 100)); ctx.stroke()
+  ctx.fillStyle = theme.muted; text(ctx, `${siteHost}${sharePath || `/@${handle}/shelf`}`, edge, h - (portrait ? 410 : 49), w - edge * 2, portrait ? 26 : 18, 1)
   canvas.width = w; canvas.height = h; canvas.getContext("2d").drawImage(output, 0, 0)
 }

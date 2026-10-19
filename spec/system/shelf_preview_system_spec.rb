@@ -13,7 +13,7 @@ RSpec.describe 'Deliberate shelf sharing', type: :system do
     alpha = page.evaluate_script(<<~JS)
       document.querySelector('.shelf-preview canvas').getContext('2d').getImageData(0,0,1,1).data[3]
     JS
-    expect(alpha).to eq(0)
+    expect(alpha).to be > 0
     find('button[aria-label="Choose pick 1"]').click
     expect(page).to have_css('dialog[open] input:focus')
     find('dialog input').send_keys(:escape)

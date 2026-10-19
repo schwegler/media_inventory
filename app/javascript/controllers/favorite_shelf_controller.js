@@ -2,20 +2,14 @@ import { Controller } from "@hotwired/stimulus"
 import { renderShelfImage, shelfImageAltText, SHELF_THEMES, SHELF_STYLES } from "controllers/shelf_image"
 
 export default class extends Controller {
-  static targets = ["slots", "dialog", "query", "results", "status", "canvas", "altText", "altTextDetails", "companion"]
+  static targets = ["slots", "dialog", "query", "results", "status", "canvas", "altText", "altTextDetails", "companion", "searchType"]
   static values = { style: Object, assets: Object, picks: Array, url: String, search: String, handle: String, category: String, shelves: Array, overview: Boolean, headline: String, owner: Boolean, previewCategory: String, previewSignature: String, previewStored: Boolean, previewTheme: String }
 
   connect() {
-    this.picks = this.picksValue; this.dirty = false; this.imageFormat = this.element.querySelector('[name="shelf-format"]:checked')?.value || "landscape"
+    this.picks = this.picksValue; this.dirty = false; this.imageFormat = this.element.querySelector('[name="shelf-format"]:checked')?.value || "portrait"
     this.imageStyle = { layout: "exhibition", texture: "clean", companion: "auto", ...this.styleValue }
     const serverStyle = JSON.stringify(this.imageStyle)
-    if (!["layout", "texture", "companion"].some(key => new URL(window.location.href).searchParams.has(key))) {
-      try { const stored = JSON.parse(localStorage.getItem("trove-shelf-style")); for (const [key, choices] of Object.entries(SHELF_STYLES)) if (choices.includes(stored?.[key])) this.imageStyle[key] = stored[key] } catch { /* Optional storage. */ }
-    }
     this.imageTheme = this.element.dataset.shelfTheme
-    if (!new URL(window.location.href).searchParams.has("theme")) {
-      try { this.imageTheme = localStorage.getItem("trove-shelf-theme") || this.imageTheme } catch { /* Storage can be disabled. */ }
-    }
     if (!SHELF_THEMES[this.imageTheme]) this.imageTheme = "midnight"
     if (this.previewStoredValue && JSON.stringify(this.imageStyle) === serverStyle) this.storedPreview = `${this.previewSignatureValue}:${this.previewThemeValue}:${serverStyle}`
     this.applyTheme(); this.render()
@@ -78,6 +72,21 @@ export default class extends Controller {
   move(index, direction) { [this.picks[index], this.picks[index + direction]] = [this.picks[index + direction], this.picks[index]]; this.changed() }
   open(index, event) { this.slot = Math.min(index, this.picks.length); this.opener = event?.currentTarget || document.activeElement; this.dialogTarget.showModal(); this.queryTarget.value = ""; this.resultsTarget.textContent = "Type at least two characters to search."; requestAnimationFrame(() => this.queryTarget.focus()) }
   close() { this.dialogTarget.close() }
+  localSource() { this.searchSource = "local"; this.updateSourceButtons(); this.search() }
+  externalSource() { this.searchSource = "external"; this.updateSourceButtons(); this.search() }
+  updateSourceButtons() {
+    this.element.querySelectorAll('.shelf-search-sources button').forEach((button, index) => button.setAttribute("aria-pressed", String(index === (this.searchSource === "external" ? 1 : 0))))
+  }
+  async selectExternal(pick) {
+    this.resultsTarget.textContent = "Adding from catalog…"
+    try {
+      const response = await fetch("/shelves/catalog_items", { method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" }, body: JSON.stringify({ type: this.searchTypeTarget.value, selection: pick.import_selection }) })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || "Could not add this title")
+      if (this.picks.some(p => p.id === result.id && p.type === result.type)) throw new Error("Already selected. Choose another title.")
+      this.picks[this.slot] = result; this.changed(); this.close()
+    } catch (error) { this.resultsTarget.textContent = `${error.message}. Your search is preserved; retry the search to try again.` }
+  }
   search() {
     clearTimeout(this.timer); this.abort?.abort()
     const query = this.queryTarget.value.trim()
@@ -86,14 +95,16 @@ export default class extends Controller {
     this.timer = setTimeout(async () => {
       this.abort = new AbortController()
       try {
-        const response = await fetch(`${this.searchValue}&q=${encodeURIComponent(query)}`, { signal: this.abort.signal })
+        const external = this.searchSource === "external"
+        const url = external ? `/media/autocomplete?type=${encodeURIComponent(this.searchTypeTarget.value)}&q=${encodeURIComponent(query)}` : `${this.searchValue}&q=${encodeURIComponent(query)}`
+        const response = await fetch(url, { signal: this.abort.signal })
         if (!response.ok) throw new Error("Search failed")
         const results = await response.json(); this.resultsTarget.replaceChildren()
         results.forEach(pick => {
           const selected = this.picks.some(p => p.type === pick.type && p.id === pick.id)
-          const result = this.button(`${pick.title} · ${pick.type} ${pick.year || ""}${selected ? " · Already selected" : ""}`, () => { this.picks[this.slot] = pick; this.changed(); this.close() })
+          const result = this.button(`${pick.title} · ${pick.type || this.searchTypeTarget.value} ${pick.year || pick.release_year || ""}${selected ? " · Already selected" : ""}`, () => { if (external) this.selectExternal(pick); else { this.picks[this.slot] = pick; this.changed(); this.close() } })
           result.className = "shelf-result"; result.disabled = selected
-          if (pick.cover) { const img = new Image(); img.src = pick.cover; img.alt = ""; result.prepend(img) }
+          if (pick.cover || pick.thumbnail_url) { const img = new Image(); img.src = pick.cover || pick.thumbnail_url; img.alt = ""; result.prepend(img) }
           this.resultsTarget.append(result)
         })
         if (!results.length) this.resultsTarget.textContent = "No matches. Try a different title."
@@ -106,15 +117,19 @@ export default class extends Controller {
       const response = await fetch(this.urlValue, { method: "PATCH", headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" }, body: JSON.stringify({ picks: this.picks.map(({ id, type }) => ({ id, type })) }) })
       const result = await response.json()
       if (!response.ok) throw new Error(result.error || "Save failed")
-      this.dirty = false; this.previewSignatureValue = result.preview_signature; this.render(); this.statusTarget.textContent = "Shelf saved. Your public shelf is ready to share."
-    } catch (error) { this.statusTarget.textContent = error.message }
+      this.dirty = false; this.previewSignatureValue = result.preview_signature; this.render(); this.statusTarget.textContent = "Shelf saved. Your public shelf is ready to share."; return true
+    } catch (error) { this.statusTarget.textContent = error.message; return false }
   }
   theme(event) {
+    if (!this.ownerValue) return
+    this.presentationDirty = true
     this.imageTheme = event.target.value
     try { localStorage.setItem("trove-shelf-theme", this.imageTheme) } catch { /* Presentation still works without storage. */ }
     this.applyTheme(); this.schedulePreview()
   }
   customize(event) {
+    if (!this.ownerValue) return
+    this.presentationDirty = true
     const key = event.target.name
     if (!SHELF_STYLES[key]?.includes(event.target.value)) return
     this.imageStyle[key] = event.target.value
@@ -124,6 +139,7 @@ export default class extends Controller {
   applyTheme() {
     this.element.dataset.shelfTheme = this.imageTheme
     this.element.dataset.shelfTexture = this.imageStyle.texture
+    this.element.dataset.shelfLayout = this.imageStyle.layout
     for (const [key, value] of Object.entries(this.imageStyle)) { const input = this.element.querySelector(`select[name="${key}"]`); if (input) input.value = value }
     if (this.hasCompanionTarget) {
       const selected = this.imageStyle.companion === "auto" ? (this.imageTheme === "halloween" ? "bat" : this.imageTheme) : this.imageStyle.companion
@@ -138,7 +154,16 @@ export default class extends Controller {
     })
   }
   format(event) { this.imageFormat = event.target.value; this.schedulePreview() }
+  async savePresentation() {
+    if (!this.presentationDirty) return true
+    const response = await fetch(this.urlValue, { method: "PATCH", headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" }, body: JSON.stringify({ presentation: { theme: this.imageTheme, ...this.imageStyle } }) })
+    if (!response.ok) { this.statusTarget.textContent = "Could not save appearance. Please retry before sharing."; return false }
+    this.presentationDirty = false
+    this.statusTarget.textContent = "Appearance saved. Visitors will see this presentation."
+    return true
+  }
   async copyLink() {
+    if (!(await this.savePresentation())) return
     if (this.dirty) { this.statusTarget.textContent = "Save your changes before sharing your public shelf."; return }
     const url = new URL(window.location.href); url.searchParams.set("theme", this.imageTheme); for (const [key, value] of Object.entries(this.imageStyle)) url.searchParams.set(key, value)
     try { await navigator.clipboard.writeText(url.href); this.statusTarget.textContent = "Shelf link copied, including your theme." }
@@ -147,7 +172,7 @@ export default class extends Controller {
   imageOptions() {
     return { picks: [...this.picks], shelves: this.shelvesValue,
       overview: this.overviewValue, headline: this.headlineValue, ...this.imageStyle, assets: this.assetsValue, theme: this.imageTheme, format: this.imageFormat,
-      handle: this.handleValue, category: this.categoryValue }
+      handle: this.handleValue, category: this.categoryValue, sharePath: this.urlValue }
   }
   async copyAltText() {
     if (this.dirty) { this.statusTarget.textContent = "Save your changes before copying alt text so it matches your share image."; return }
@@ -185,6 +210,7 @@ export default class extends Controller {
   async publishPreview(event) {
     if (!this.ownerValue || this.publishing) return
     if (this.dirty) { this.statusTarget.textContent = "Save your shelf before publishing a share preview."; return }
+    if (!(await this.savePresentation())) return
     const button = event.currentTarget
     this.publishing = true; button.disabled = true; button.setAttribute("aria-busy", "true")
     this.statusTarget.textContent = "Publishing your share preview…"
@@ -214,9 +240,11 @@ export default class extends Controller {
     return response.ok
   }
   async download() {
-    if (this.dirty) { this.statusTarget.textContent = "Save your changes before downloading so the image matches your public shelf."; return }
+    if (!(await this.savePresentation())) return
+    if (this.dirty && !(await this.save())) return
     this.statusTarget.textContent = "Preparing your share image…"
-    const canvas = await this.preview()
+    let canvas
+    try { canvas = await this.preview() } catch { this.statusTarget.textContent = "Could not render this image. Your picks are safe; retry the download."; return }
     if (!canvas) { this.statusTarget.textContent = "Presentation changed. Download again to use the latest version."; return }
     canvas.toBlob(blob => {
       if (!blob) { this.statusTarget.textContent = "Image export failed. Please try again."; return }
