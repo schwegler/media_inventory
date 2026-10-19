@@ -20,13 +20,13 @@ RSpec.describe 'Halloween appearance', type: :request do
     [Time.utc(2026, 10, 18), Time.utc(2026, 10, 31, 23, 59, 59)].each do |instant|
       travel_to(instant) do
         get root_path
-        expect(response.body).to include('data-controller="halloween"')
+        expect(Nokogiri::HTML(response.body).at_css('body')['data-controller'].split).to include('halloween')
       end
     end
     [Time.utc(2026, 10, 17, 23, 59, 59), Time.utc(2026, 11, 1), Time.utc(2027, 10, 20)].each do |instant|
       travel_to(instant) do
         get root_path
-        expect(response.body).not_to include('data-controller="halloween"')
+        expect(Nokogiri::HTML(response.body).at_css('body')['data-controller'].to_s.split).not_to include('halloween')
       end
     end
   end

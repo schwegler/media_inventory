@@ -20,19 +20,22 @@ RSpec.describe 'Halloween invitation', type: :system do
   it 'requires activation, offers keyboard Undo, and preserves the original appearance' do
     create_and_login_user
     visit root_path
-    expect(page).to have_button('Try the Halloween theme')
+    expect(page).to have_button('Turn on Halloween mode')
     expect(page).to have_css('html[data-theme="os"][data-accent="violet"]')
-    find('[aria-label="Try the Halloween theme"]').send_keys(:enter)
+    find('[aria-label="Turn on Halloween mode"]').send_keys(:enter)
     expect(page).to have_css('html[data-theme="dark"][data-accent="halloween"]')
-    expect(page).to have_css('[role="alert"]', text: 'Halloween appearance applied')
+    expect(page).to have_css('[role="alert"]', text: 'well. it’s haunted now.')
     expect(page).to have_css('button:focus', text: 'Undo')
     visit movies_path
     expect(page).to have_css('html[data-theme="dark"][data-accent="halloween"]')
     click_button 'Undo'
     expect(page).to have_css('html[data-theme="os"][data-accent="violet"]')
-    page.execute_script("localStorage.removeItem('trove-halloween-2026')")
+    page.execute_script(<<~JS)
+      localStorage.removeItem('seasonal-theme:v1');
+      sessionStorage.removeItem('seasonal-prompt:v1:halloween-2026');
+    JS
     visit root_path
-    click_button 'Try the Halloween theme'
+    click_button 'Turn on Halloween mode'
     capture_ui_screenshot('halloween-desktop')
     resize_browser_viewport(390, 844)
     expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
@@ -40,6 +43,6 @@ RSpec.describe 'Halloween invitation', type: :system do
     find('button', text: 'Undo', exact_text: true).send_keys(:enter)
     expect(page).to have_css('html[data-theme="os"][data-accent="violet"]')
     visit root_path
-    expect(page).not_to have_button('Try the Halloween theme')
+    expect(page).not_to have_button('Turn on Halloween mode')
   end
 end

@@ -1,21 +1,28 @@
 @mixin styles {
-.halloween-invitation {
-  // In normal flow: never obscures controls, including mobile navigation.
-  margin: 1rem auto; width: fit-content; max-width: calc(100% - 2rem);
-  padding: .75rem; border: 1px solid var(--border); border-radius: 16px;
-  background: var(--surface); color: var(--text);
-  button { min-width: 44px; min-height: 44px; padding: .5rem .75rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); cursor: pointer; }
-  button:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
-  p { max-width: 34rem; }
-}
-.halloween-invitation-actions { display: flex; gap: .5rem; align-items: center; }
-.halloween-bat { display: flex; align-items: center; gap: .75rem; }
-.halloween-bat > img { object-fit: contain; animation: halloween-hover 4s ease-in-out 3; }
-@keyframes halloween-hover { 50% { transform: translateY(-5px) rotate(-4deg); } }
-@media (prefers-reduced-motion: reduce) { .halloween-bat > img { animation: none; } }
-:root[data-effects='reduced'] .halloween-bat > img { animation: none; }
-@media(max-width: 640px) { .shelf-themes { flex-wrap: wrap; } }
-
-.halloween-invitation[hidden], .halloween-invitation [hidden] { display: none !important; }
+// Small fixed character, no layout shift. Empty overlay space never intercepts input.
+.halloween-invitation { position: fixed; z-index: 40; top: 36vh; right: max(20px, env(safe-area-inset-right)); width: 176px; margin: 0; color: var(--text); pointer-events: none; }
+.halloween-invitation button { pointer-events: auto; }
+.halloween-invitation button, .seasonal-controls button { min-width: 44px; min-height: 44px; padding: .5rem .75rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); cursor: pointer; }
+.halloween-invitation button:focus-visible, .seasonal-controls button:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 4px; }
+.halloween-invitation-actions { display: flex; align-items: flex-start; justify-content: flex-end; gap: .25rem; }
+.halloween-invitation .halloween-bat { padding: 0 12px; border: 0; background: transparent; animation: seasonal-entrance .65s ease-out both; }
+.halloween-bat img { object-fit: contain; animation: seasonal-hover 5s ease-in-out infinite; }
+.halloween-invitation .seasonal-dismiss { border-radius: 50%; background: var(--surface); }
+.seasonal-notice { position: relative; width: 176px; padding: 0; border: 0; background: transparent; }
+.seasonal-active-character { display: block; margin: 0 auto 4px; object-fit: contain; animation: seasonal-hover 5s ease-in-out infinite; }
+.seasonal-notice .seasonal-dismiss { position: absolute; top: 0; right: 0; }
+.seasonal-notice p { margin: 0 0 6px; font-size: 13px; line-height: 1.4; padding: 5px; border-radius: 6px; background: var(--surface); }
+.seasonal-notice > div { display: flex; flex-wrap: wrap; gap: 4px; }
+.seasonal-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 3rem auto 2rem; padding: 0 1rem; max-width: 1200px; font-size: 13px; }
+.seasonal-controls > span { margin-right: 8px; }
+@keyframes seasonal-entrance { from { opacity: 0; transform: translate3d(70px, -22px, 0) rotate(8deg); } to { opacity: 1; transform: none; } }
+@keyframes seasonal-hover { 50% { transform: translate3d(0, -9px, 0) rotate(-3deg); } }
+.halloween-invitation[data-motion='paused'] *, :root[data-effects='reduced'] .halloween-invitation * { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .halloween-invitation * { animation: none !important; } }
+.seasonal-controls[hidden], .halloween-invitation[hidden], .halloween-invitation [hidden] { display: none !important; }
+// Ordinary notices also need breathing room below the header.
+#flash-messages { padding-top: 2rem; }
+#flash-messages:empty { display: none; }
+.shelf-page main > .alert { margin-top: 3rem; }
 
 }
