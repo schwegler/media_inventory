@@ -4,6 +4,8 @@ require 'rails_helper'
 
 RSpec.describe 'Header spacing', type: :system do
   it 'keeps the credit beside the wordmark without enlarging desktop or responsive headers' do
+    # Selenium retains console entries from earlier examples in the same browser.
+    page.driver.browser.logs.get(:browser)
     create_and_login_user
     visit movies_path
     expect(page).to have_current_path(movies_path)
