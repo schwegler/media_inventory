@@ -49,7 +49,7 @@ export default class extends Controller {
     if (!this.hasSlotsTarget) { this.schedulePreview(); return }
     const owner = this.slotsTarget.dataset.owner === "true"
     this.slotsTarget.replaceChildren()
-    for (let index = 0; index < 5; index++) {
+    for (let index = 0; index < (owner ? 5 : this.picks.length); index++) {
       const pick = this.picks[index], slot = document.createElement("article")
       slot.className = "shelf-slot"; slot.dataset.mediaType = pick?.type || ""
       const cover = owner ? this.button(pick ? "Replace" : "+ Add pick", event => this.open(index, event), `Choose pick ${index + 1}`) : document.createElement(pick?.url ? "a" : "div")

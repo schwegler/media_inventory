@@ -20,6 +20,7 @@ class ShelvesController < ApplicationController
     @category = @overview ? 'overall' : params[:category]
     @shelves = load_shelves_with_batch_items(@user)
     @items = @shelves.find { |shelf| shelf[:key] == @category }[:items]
+    @shelves = @shelves.select { |shelf| shelf[:items].any? } unless current_user?(@user)
     @preview_category = @overview ? 'overview' : @category
     @preview_signature = helpers.shelf_preview_signature(@user, @preview_category)
     @preview_image = helpers.shelf_preview_image(@user, @preview_category, @theme, style: @image_style)
