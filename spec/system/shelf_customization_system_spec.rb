@@ -52,4 +52,25 @@ RSpec.describe 'Shelf Story customization', type: :system do
     click_link 'Edit favorites'
     expect(page).to have_text('Editing Overall favorites')
   end
+  it 'renders Midnight Feature in every export layout without changing Halloween' do
+    user = create_and_login_user
+    user.update!(username: 'midnight_feature')
+    visit shelf_path(user.username, category: 'Movie', theme: 'midnight_feature')
+    expect(page).to have_checked_field('Midnight Feature')
+    expect(page).to have_text('the late show. questionable decisions.')
+    find('summary', text: 'Share image preview').click
+    expect(page).to have_css('.shelf-preview canvas[width="1200"][height="630"]')
+    find('input[name="shelf-format"][value="portrait"]').choose
+    ['Exhibition gallery', 'Reading list', 'Collector’s edition'].each do |layout|
+      select layout, from: 'Portrait layout'
+      expect(page).to have_css('.shelf-preview canvas[width="1080"][height="1920"]')
+      expect(find('#shelf-image-alt-text', visible: :all).value).to include('Midnight Feature')
+    end
+    capture_ui_screenshot('midnight-feature-desktop')
+    resize_browser_viewport(390, 844)
+    expect(page.evaluate_script('document.documentElement.scrollWidth <= innerWidth')).to be(true)
+    capture_ui_screenshot('midnight-feature-mobile')
+    choose 'Halloween'
+    expect(page).to have_css('.favorite-shelf[data-shelf-theme="halloween"]')
+  end
 end

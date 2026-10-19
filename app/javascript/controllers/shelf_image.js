@@ -1,4 +1,5 @@
 export const SHELF_THEMES = {
+  midnight_feature: { label: 'Midnight Feature', bg: '#0b090b', text: '#f5e9d8', muted: '#c5aba7', accent: '#ff5964', surface: '#211416', line: '#ff59644d' },
   halloween: { bg: '#140f1b', text: '#fff0d6', muted: '#efc196', accent: '#ffbd65', surface: '#302136', line: '#ffbd6540' },
   telly: { bg: '#e6f4ff', text: '#102a49', muted: '#3c5871', accent: '#075c9c', surface: '#c7e4f7', line: '#102a4930' },
   facet: { bg: '#eee5fa', text: '#291e40', muted: '#594568', accent: '#6330a6', surface: '#ddc9f0', line: '#291e4030' },
@@ -14,7 +15,7 @@ export function shelfImageAltText({ picks, shelves, overview, theme, format, han
     const titles = shelf.picks.slice(0, 5).map((pick, index) => `${index + 1}. ${pick.title}`)
     return `${shelf.label}: ${titles.length ? titles.join('; ') : 'No favorites chosen yet'}.`
   }).join('\n')
-  return `${format === 'portrait' ? 'Portrait' : 'Landscape'} Trove share image for @${handle}’s Shelf in the ${theme} theme. Heading: “${heading}”. ${layout} layout, ${texture} texture, ${companion} companion. Covers appear in favorite order.\n${description}`
+  return `${format === 'portrait' ? 'Portrait' : 'Landscape'} Trove share image for @${handle}’s Shelf in the ${SHELF_THEMES[theme]?.label || theme} theme. Heading: “${heading}”. ${layout} layout, ${texture} texture, ${companion} companion. Covers appear in favorite order.\n${description}`
 }
 
 async function cover(pick) {
@@ -97,6 +98,15 @@ export async function renderShelfImage(canvas, { picks = [], shelves = [], overv
   output.width = portrait ? 1080 : 1200; output.height = portrait ? 1920 : 630
   const ctx = output.getContext("2d"), w = output.width, h = output.height, edge = 72
   ctx.fillStyle = theme.bg; ctx.fillRect(0, 0, w, h)
+  const horror = themeName === "midnight_feature"
+  if (horror) {
+    // Static film grain is generated only when an image is requested; never animated.
+    ctx.fillStyle = "#ffffff0a"
+    for (let i = 0; i < 1800; i++) ctx.fillRect((i * 71 + 19) % w, (i * 137 + 31) % h, 1, 1)
+    ctx.fillStyle = theme.accent
+    const ruleY = portrait ? 518 : 187
+    for (let x = edge; x < w - edge; x += 31) ctx.fillRect(x, ruleY, Math.min(27, w - edge - x), 2)
+  }
   if (texture !== "clean") {
     ctx.fillStyle = theme.line
     const step = texture === "paper" ? 24 : 78
@@ -104,9 +114,10 @@ export async function renderShelfImage(canvas, { picks = [], shelves = [], overv
       ctx.beginPath(); ctx.arc(x, y, texture === "paper" ? 0.7 : 1.7, 0, Math.PI * 2); ctx.fill()
     }
   }
-  ctx.fillStyle = theme.accent; ctx.font = `${portrait ? 28 : 20}px sans-serif`; ctx.fillText("TROVE / THE PERSONAL SHELF", edge, portrait ? 284 : 55)
+  ctx.fillStyle = theme.accent; ctx.font = `${portrait ? 28 : 20}px sans-serif`; ctx.fillText(horror ? "TROVE / MIDNIGHT FEATURE" : "TROVE / THE PERSONAL SHELF", edge, portrait ? 284 : 55)
   ctx.fillStyle = theme.text
-  text(ctx, overview ? (headline || "The things I keep.") : `My favorites · ${category}`, edge, portrait ? 350 : 118, portrait ? 780 : 1056, portrait ? 58 : 42, 2, "Georgia")
+  const heading = overview ? (headline || "The things I keep.") : `My favorites · ${category}`
+  text(ctx, horror ? heading.toUpperCase() : heading, edge, portrait ? 350 : 118, portrait ? 780 : 1056, portrait ? 58 : 42, 2, horror ? 'Impact, "Arial Narrow", sans-serif' : "Georgia")
   ctx.fillStyle = theme.muted
   text(ctx, `@${handle}’s Shelf`, edge, portrait ? 496 : 165, portrait ? 780 : 1056, portrait ? 26 : 19, 1)
   if (mascot) {

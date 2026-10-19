@@ -22,8 +22,16 @@ test('Telly and Facet palettes are distinct and sparse-image alt text names only
 
 test('every shelf palette meets AA body and secondary text contrast',()=>{
  const luminance=hex=>{const c=[0,2,4].map(i=>parseInt(hex.slice(i+1,i+3),16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);return c[0]*.2126+c[1]*.7152+c[2]*.0722}
- for(const [name,theme] of Object.entries(SHELF_THEMES))for(const role of ['text','muted']){
+ for(const [name,theme] of Object.entries(SHELF_THEMES))for(const role of ['text','muted','accent']){
   const [low,high]=[luminance(theme.bg),luminance(theme[role])].sort((a,b)=>a-b)
   assert.ok((high+.05)/(low+.05)>=4.5,`${name} ${role} contrast`)
  }
+})
+
+
+test('Midnight Feature is distinct from Halloween and has a readable export description',()=>{
+ assert.notEqual(SHELF_THEMES.midnight_feature.bg,SHELF_THEMES.halloween.bg)
+ assert.notEqual(SHELF_THEMES.midnight_feature.accent,SHELF_THEMES.halloween.accent)
+ const alt=shelfImageAltText({picks:[],overview:false,category:'Movies',theme:'midnight_feature',format:'portrait',handle:'demo'})
+ assert.match(alt,/Midnight Feature theme/);assert.match(alt,/No favorites chosen yet/)
 })

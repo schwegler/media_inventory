@@ -12,8 +12,9 @@
       <a href="#shelf-sharing">Share</a>
     </div>
     <p class="shelf-view-state"><%= @overview ? 'Viewing shelf overview' : "#{current_user?(@user) ? 'Editing' : 'Viewing'} #{FavoriteShelf::CATEGORIES[@category]} favorites" %></p>
-    <fieldset class="shelf-themes"><legend>Theme</legend><% ShelvesHelper::SHELF_THEMES.each do |theme| %><label><input type="radio" name="shelf-theme" value="<%= theme %>" <%= 'checked' if @theme == theme %> data-action="favorite-shelf#theme"><span><%= theme.capitalize %></span></label><% end %></fieldset>
+    <fieldset class="shelf-themes"><legend>Theme</legend><% ShelvesHelper::SHELF_THEMES.each do |theme| %><label><input type="radio" name="shelf-theme" value="<%= theme %>" <%= 'checked' if @theme == theme %> data-action="favorite-shelf#theme"><span><%= shelf_theme_label(theme) %></span></label><% end %></fieldset>
   </nav>
+  <p class="shelf-screening-note">the late show. questionable decisions.</p>
   <div class="shelf-companion" hidden><img alt="" width="96" height="126" decoding="async" data-favorite-shelf-target="companion"></div>
   <% if @overview && !current_user?(@user) && @shelves.all? { |shelf| shelf[:items].empty? } %>
     <header class="shelf-heading"><h1>A shelf<br>taking shape.</h1></header>

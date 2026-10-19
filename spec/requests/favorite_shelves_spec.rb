@@ -241,4 +241,18 @@ RSpec.describe 'Favorite shelves', type: :request do
     expect(edit['href']).to include('category=overall', 'theme=electric', 'layout=reading')
     expect(doc.at_css('.shelf-overview-link')['aria-current']).to eq('page')
   end
+  it 'offers Midnight Feature separately and accepts its explicitly published preview' do
+    login
+    get shelf_path(user.username, category: 'Movie', theme: 'midnight_feature')
+    doc = Nokogiri::HTML(response.body)
+    expect(doc.at_css('.favorite-shelf')['data-shelf-theme']).to eq('midnight_feature')
+    expect(doc.css('.shelf-themes label').map(&:text)).to include('Midnight Feature', 'Halloween')
+    signature = doc.at_css('.favorite-shelf')['data-favorite-shelf-preview-signature-value']
+    patch shelf_path(user.username, category: 'Movie'), params: {
+      preview_image: fixture_file_upload('transparent-logo.png', 'image/png'), preview_category: 'Movie',
+      preview_signature: signature, theme: 'midnight_feature', layout: 'collector'
+    }
+    expect(response).to have_http_status(:no_content)
+    expect(user.shelf_previews.first.blob.metadata).to include('theme' => 'midnight_feature')
+  end
 end

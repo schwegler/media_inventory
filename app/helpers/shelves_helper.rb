@@ -1,9 +1,13 @@
 # frozen_string_literal: true
 
 module ShelvesHelper
-  SHELF_THEMES = %w[midnight gallery electric halloween telly facet].freeze
+  SHELF_THEMES = %w[midnight gallery electric halloween telly facet midnight_feature].freeze
   SHELF_IMAGE_STYLES = { 'layout' => %w[exhibition reading collector], 'texture' => %w[clean paper stars],
                          'companion' => %w[auto none telly facet bat] }.freeze
+
+  def shelf_theme_label(theme)
+    theme == 'midnight_feature' ? 'Midnight Feature' : theme.capitalize
+  end
 
   def shelf_navigation_path(user, theme:, style:, category: nil)
     shelf_path(user.username, **shelf_image_style(style).symbolize_keys, category: category, theme: theme)
