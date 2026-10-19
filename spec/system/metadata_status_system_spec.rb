@@ -12,7 +12,8 @@ RSpec.describe 'Metadata status feedback', type: :system do
       'refreshing'
     end
     visit tv_show_path(show)
-    find('#metadata-health > summary').click
+    find('#metadata-health > summary').send_keys(:enter)
+    expect(page).to have_css('#metadata-health[open]')
     click_button 'Refresh metadata'
     expect(page).to have_css('#metadata-health[data-refresh-result="true"][data-refresh-state="refreshing"]')
     expect(page).to have_text('Refreshing metadata')

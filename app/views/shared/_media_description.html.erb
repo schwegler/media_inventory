@@ -21,7 +21,7 @@
           <dd><%= render_media_metadata_value(item, attribute, value) %></dd>
         </div>
       <% end %>
-      <% { 'genres' => 'Genres', 'features' => 'Features', 'controller_support' => 'Controller support' }.each do |key, label| %>
+      <% { 'genres' => 'Genres', 'features' => 'Features', 'tags' => 'Tags', 'controller_support' => 'Controller support' }.each do |key, label| %>
         <% value = game_details[key] %>
         <% next if value.blank? %>
         <div class="media-description-row media-description-row-wide">

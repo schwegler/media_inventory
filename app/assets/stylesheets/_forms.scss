@@ -133,3 +133,30 @@
     .settings-form .form-field-grid { grid-template-columns: 1fr; }
   }
 }
+
+.import-confirmation {
+  padding: 1rem;
+  margin-block: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  overflow-wrap: anywhere;
+  h4 { margin-top: 0; }
+  p { line-height: 1.5; }
+  .import-facts {
+    margin-block: 1rem;
+    > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 0.75rem; margin-block: 0.5rem; }
+    dt { font-weight: 600; }
+    dd { margin: 0; white-space: pre-wrap; }
+  }
+  @media (max-width: 480px) {
+    .import-facts > div { grid-template-columns: minmax(0, 1fr); gap: 0.15rem; }
+    button { width: 100%; white-space: normal; }
+  }
+}
+
+form.standard-form .details-modal-layout:has(.import-confirmation) .thumbnail-preview-placeholder {
+  padding: 0.25rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  &::after { display: none; }
+}

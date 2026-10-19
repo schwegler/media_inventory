@@ -7,7 +7,7 @@ class VideoGamesController < InventoryController
   def create
     super
   rescue GameCatalogIdentity::Invalid => e
-    @video_game = VideoGame.new(resource_params.except(:catalog_selection))
+    @video_game = VideoGame.new(resource_params.except(:catalog_selection, :import_selection))
     @video_game.errors.add(:base, e.message)
     render :new, status: :unprocessable_content
   end
@@ -124,6 +124,7 @@ class VideoGamesController < InventoryController
 
   def resource_params
     params.require(:video_game).permit(
+      :import_selection,
       :catalog_selection, :copy_platform, :storefront, :edition, :access_method, :ownership_status, :play_status,
       :title, :game_type, :developer, :publisher, :platform, :release_year, :rating, :is_public, :thumbnail_url,
       :in_watchlist,

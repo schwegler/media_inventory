@@ -5,6 +5,7 @@ class BooksController < InventoryController
 
   def resource_params
     params.require(:book).permit(
+      :import_selection,
       :title, :author, :release_year, :publisher, :rating, :is_public, :thumbnail_url, :in_watchlist,
       :is_collected, :consumed, :consumed_at, :review, :cover_image, :api_id, :external_url,
       :owned_physically, :owned_physically_format, :owned_digitally, :owned_digitally_format

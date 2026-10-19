@@ -38,31 +38,18 @@ class InventoryController < ApplicationController
     global_params = resource_params.except(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
                                            :consumed_at, :is_public, :owned_physically, :owned_physically_format,
                                            :owned_digitally, :owned_digitally_format)
-    library_params = resource_params.slice(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
-                                           :consumed_at, :is_public, :owned_physically, :owned_physically_format,
-                                           :owned_digitally, :owned_digitally_format)
+    library_params = personal_library_params
 
-    # Handle the transition from watchlist to backlog
+    global_params = imported_attributes(global_params)
     library_params[:in_backlog] = library_params.delete(:in_watchlist) if library_params.key?(:in_watchlist)
-
-    @resource = resolve_catalog_resource(global_params)
-
-    # Logging a shared game must not overwrite another user's curated catalog.
-    @resource.assign_attributes(global_params) unless @resource.is_a?(VideoGame) && @resource.persisted?
+    @resource = selected_import_resource(global_params)
+    assign_logged_attributes(global_params)
     instance_variable_set("@#{resource_name}", @resource)
 
-    saved = false
-    ActiveRecord::Base.transaction do
-      if @resource.save
-        @library_item = LibraryItem.find_or_initialize_by(user: current_user, item: @resource)
-        @library_item.assign_attributes(library_params)
-        @library_item.save!
-        after_library_saved
-        saved = true
-      end
-    end
+    saved = save_logged_resource(library_params)
 
     if saved
+      record_import_baseline
       enqueue_initial_metadata
       respond_to do |format|
         format.html { redirect_to @resource, notice: "#{resource_class.model_name.human} was successfully logged." }
@@ -73,6 +60,11 @@ class InventoryController < ApplicationController
       end
     end
     # rubocop:enable Metrics/MethodLength
+  rescue MetadataImport::Invalid => e
+    @resource = resource_class.new(resource_params.except(:import_selection, :catalog_selection))
+    @resource.errors.add(:base, e.message)
+    instance_variable_set("@#{resource_name}", @resource)
+    render :new, status: failure_status
   end
 
   def show
@@ -129,7 +121,8 @@ class InventoryController < ApplicationController
     @resource = resource_class.find(params[:id])
     @library_item = LibraryItem.find_or_initialize_by(user: current_user, item: @resource)
 
-    global_params = resource_params.except(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
+    global_params = resource_params.except(:import_selection, :is_collected, :in_watchlist, :in_backlog,
+                                           :rating, :review, :consumed,
                                            :consumed_at, :is_public, :owned_physically, :owned_physically_format,
                                            :owned_digitally, :owned_digitally_format)
     library_params = resource_params.slice(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
@@ -174,6 +167,69 @@ class InventoryController < ApplicationController
   end
 
   private
+
+  def assign_logged_attributes(attributes)
+    if @resource.persisted?
+      return if @resource.is_a?(VideoGame)
+
+      attributes = attributes.slice(:cover_image).compact_blank
+    end
+    @resource.assign_attributes(attributes)
+  end
+
+  def save_logged_resource(library_params)
+    saved = false
+    ActiveRecord::Base.transaction do
+      if @resource.save
+        @library_item = LibraryItem.find_or_initialize_by(user: current_user, item: @resource)
+        @library_item.assign_attributes(library_params)
+        @library_item.save!
+        after_library_saved
+        saved = true
+      end
+    end
+
+    saved
+  end
+
+  def personal_library_params
+    resource_params.slice(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed, :consumed_at,
+                          :is_public, :owned_physically, :owned_physically_format,
+                          :owned_digitally, :owned_digitally_format)
+  end
+
+  def imported_attributes(attributes)
+    token = attributes.delete(:import_selection)
+    @imported = MetadataImport.read(token, resource_name) if token.present?
+    return attributes unless @imported
+
+    result = MetadataImport.attributes(@imported, resource_class).merge(attributes.slice(:cover_image))
+    result[:thumbnail_url] = @imported[:cover_source_url] if @imported[:cover_source_url].present?
+    result
+  end
+
+  def selected_import_resource(attributes)
+    if @imported && resource_class == VideoGame
+      resource = resolve_catalog_resource(attributes.merge(catalog_selection: @imported[:catalog_selection]))
+      resource.importing_metadata = true
+      return resource
+    end
+    resource = if @imported && @imported[:is_local] && @imported[:catalog_id]
+                 resource_class.find(@imported[:catalog_id])
+               else
+                 resolve_catalog_resource(attributes)
+               end
+    resource.importing_metadata = true if @imported
+    resource
+  end
+
+  def record_import_baseline
+    return unless @imported && @resource.previously_new_record?
+
+    MetadataRefresh.find_or_create_by!(item: @resource).update!(
+      provider_values: MetadataImport.attributes(@imported, resource_class).stringify_keys
+    )
+  end
 
   def preload_entity_credits
     return unless @resource.respond_to?(:metadata_credits)

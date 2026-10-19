@@ -22,6 +22,8 @@ class Album < ApplicationRecord
   private
 
   def sync_details_from_api
+    return if importing_metadata
+
     return unless MediaSources::Registry.enabled?('MusicBrainz', 'Album')
 
     return unless api_id.to_s.match?(/\A(?:musicbrainz_)?[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\z/i)

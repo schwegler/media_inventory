@@ -12,6 +12,12 @@ class MetadataEntitySync
   KINDS = { 'Genre' => 'genre', 'Platform' => 'platform', 'Network' => 'organization',
             'Publisher' => 'organization', 'Developer' => 'organization', 'Album artist' => 'artist' }.freeze
 
+  def self.without_corrected_roles(item, credits, fields, detail_fields = [])
+    roles = FIELDS.fetch(item.class.name, {}).slice(*fields.map(&:to_sym)).values
+    roles << 'Genre' if item.is_a?(VideoGame) && detail_fields.include?('genres')
+    credits.reject { |credit| roles.include?(credit['role']) }
+  end
+
   def self.call(item)
     item.class.transaction do
       rows = structured(item)

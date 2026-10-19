@@ -40,4 +40,23 @@ RSpec.describe 'EditSuggestions', type: :request do
       expect(flash[:alert]).to eq('Resource not found or unauthorized')
     end
   end
+
+  it 'offers labeled provider facts and queues their corrections without allowing members to approve them' do
+    movie.update!(metadata_details: { 'Runtime' => 90, 'Languages' => ['English'], 'related_steam_dlc_ids' => [123] })
+    get new_movie_edit_suggestion_path(movie)
+    html = Nokogiri::HTML(response.body)
+    runtime = html.at_css('input[name="edit_suggestion[proposed_changes][metadata_details][Runtime]"]')
+    expect(runtime['type']).to eq('number')
+    expect(response.body).to include('Runtime (minutes)', 'One value per line.')
+    expect(response.body).not_to include('[metadata_details][related_steam_dlc_ids]')
+    post movie_edit_suggestions_path(movie), params: { edit_suggestion: { proposed_changes: {
+      metadata_details: { 'Runtime' => '100', 'Languages' => "English\nFrench" }
+    } } }
+    suggestion = EditSuggestion.last
+    expect(suggestion.status).to eq('pending')
+    expect(movie.reload.metadata_details['Runtime']).to eq(90)
+    post approve_admin_edit_suggestion_path(suggestion)
+    expect(suggestion.reload.status).to eq('pending')
+    expect(movie.reload.metadata_details['Runtime']).to eq(90)
+  end
 end
