@@ -13,3 +13,9 @@ The header's Appearance control is available at desktop/mobile widths, using nat
 Activating Facet changes the theme and announces Undo's location; it does not open a floating panel. Only the PNG and X remain over content. X preserves the active theme and closes the menu if open. The theme persists across navigation, while the character remains dismissed. Restore character keeps an already active theme. The header menu opens only on an explicit Appearance action or a click on the already active character.
 
 Live verification before this refinement: production deployment `9eba03126fa005e603ef6e6a48b93b4df6f1a509` succeeded (Fly release 204 complete). Public `/@schwegler/shelf?category=overall&theme=electric` exposed all three portrait layouts and rendered a genuine 1080×1920 canvas. Halloween activation, exact Undo and mobile overflow checks passed. Existing analytics CSP blocks appeared; no relevant seasonal/share runtime errors were observed. New refinement work remains a PR until separately merged/deployed.
+
+## Review evidence
+
+`docs/screenshots/shelf-refinements/` retains actual local application captures at desktop/mobile sizes, including keyboard overview navigation, the explicit header menu, mascot-only activation, and dismissal with Halloween still active. Native `midnight-feature-portrait-*.png` and `midnight-feature-landscape-*.png` come directly from `shelf_image.js` with clearly synthetic demo jackets; no production ownership, history or ratings were invented. The comparison image orders Exhibition, Reading list, Collector’s edition left to right.
+
+Focused verification: 19 request examples, 31 JavaScript tests and 12 browser examples passed; all 573 Ruby files linted clean and the asset build passed. Export capture independently exercised all three portrait layouts, one/three/five picks and landscape. CI checks the full suite on the PR’s final head. Telly artwork has no diff from current master.
