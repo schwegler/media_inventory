@@ -199,4 +199,28 @@ RSpec.describe 'Favorite shelves', type: :request do
     get search_shelves_path(category: 'Book', q: 'favorite')
     expect(response.parsed_body).to eq([])
   end
+  it 'keeps curated image choices in shared links and publishes each chosen style explicitly' do
+    login
+    get shelf_path(user.username, category: 'Movie', theme: 'telly', layout: 'reading',
+                                  texture: 'stars', companion: 'facet')
+    doc = Nokogiri::HTML(response.body)
+    section = doc.at_css('.favorite-shelf')
+    expect(section['data-shelf-theme']).to eq('telly')
+    expect(JSON.parse(section['data-favorite-shelf-style-value'])).to eq(
+      'layout' => 'reading', 'texture' => 'stars', 'companion' => 'facet'
+    )
+    signature = section['data-favorite-shelf-preview-signature-value']
+    %w[reading collector].each do |layout|
+      patch shelf_path(user.username, category: 'Movie'), params: {
+        preview_image: fixture_file_upload('transparent-logo.png', 'image/png'), preview_category: 'Movie',
+        preview_signature: signature, theme: 'telly', layout: layout, texture: 'stars', companion: 'facet'
+      }
+      expect(response).to have_http_status(:no_content)
+    end
+    expect(user.shelf_previews.count).to eq(1)
+    expect(user.shelf_previews.first.blob.metadata['style']['layout']).to eq('collector')
+    get shelf_path(user.username, theme: 'facet', layout: 'unknown', texture: 'invalid', companion: 'other')
+    style = JSON.parse(Nokogiri::HTML(response.body).at_css('.favorite-shelf')['data-favorite-shelf-style-value'])
+    expect(style).to eq('layout' => 'exhibition', 'texture' => 'clean', 'companion' => 'auto')
+  end
 end

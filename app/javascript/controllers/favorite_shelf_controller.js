@@ -1,18 +1,23 @@
 import { Controller } from "@hotwired/stimulus"
-import { renderShelfImage, shelfImageAltText, SHELF_THEMES } from "controllers/shelf_image"
+import { renderShelfImage, shelfImageAltText, SHELF_THEMES, SHELF_STYLES } from "controllers/shelf_image"
 
 export default class extends Controller {
-  static targets = ["slots", "dialog", "query", "results", "status", "canvas", "altText", "altTextDetails"]
-  static values = { picks: Array, url: String, search: String, handle: String, category: String, shelves: Array, overview: Boolean, headline: String, owner: Boolean, previewCategory: String, previewSignature: String, previewStored: Boolean, previewTheme: String }
+  static targets = ["slots", "dialog", "query", "results", "status", "canvas", "altText", "altTextDetails", "companion"]
+  static values = { style: Object, assets: Object, picks: Array, url: String, search: String, handle: String, category: String, shelves: Array, overview: Boolean, headline: String, owner: Boolean, previewCategory: String, previewSignature: String, previewStored: Boolean, previewTheme: String }
 
   connect() {
     this.picks = this.picksValue; this.dirty = false; this.imageFormat = this.element.querySelector('[name="shelf-format"]:checked')?.value || "landscape"
+    this.imageStyle = { layout: "exhibition", texture: "clean", companion: "auto", ...this.styleValue }
+    const serverStyle = JSON.stringify(this.imageStyle)
+    if (!["layout", "texture", "companion"].some(key => new URL(window.location.href).searchParams.has(key))) {
+      try { const stored = JSON.parse(localStorage.getItem("trove-shelf-style")); for (const [key, choices] of Object.entries(SHELF_STYLES)) if (choices.includes(stored?.[key])) this.imageStyle[key] = stored[key] } catch { /* Optional storage. */ }
+    }
     this.imageTheme = this.element.dataset.shelfTheme
     if (!new URL(window.location.href).searchParams.has("theme")) {
       try { this.imageTheme = localStorage.getItem("trove-shelf-theme") || this.imageTheme } catch { /* Storage can be disabled. */ }
     }
     if (!SHELF_THEMES[this.imageTheme]) this.imageTheme = "midnight"
-    if (this.previewStoredValue) this.storedPreview = `${this.previewSignatureValue}:${this.previewThemeValue}`
+    if (this.previewStoredValue && JSON.stringify(this.imageStyle) === serverStyle) this.storedPreview = `${this.previewSignatureValue}:${this.previewThemeValue}:${serverStyle}`
     this.applyTheme(); this.render()
     this.guard = event => { if (this.dirty) { event.preventDefault(); event.returnValue = "" } }
     this.visitGuard = event => { if (this.dirty && !window.confirm("Leave without saving your shelf?")) event.preventDefault() }
@@ -109,23 +114,39 @@ export default class extends Controller {
     try { localStorage.setItem("trove-shelf-theme", this.imageTheme) } catch { /* Presentation still works without storage. */ }
     this.applyTheme(); this.schedulePreview()
   }
+  customize(event) {
+    const key = event.target.name
+    if (!SHELF_STYLES[key]?.includes(event.target.value)) return
+    this.imageStyle[key] = event.target.value
+    try { localStorage.setItem("trove-shelf-style", JSON.stringify(this.imageStyle)) } catch { /* Optional storage. */ }
+    this.applyTheme(); this.schedulePreview()
+  }
   applyTheme() {
     this.element.dataset.shelfTheme = this.imageTheme
+    this.element.dataset.shelfTexture = this.imageStyle.texture
+    for (const [key, value] of Object.entries(this.imageStyle)) { const input = this.element.querySelector(`select[name="${key}"]`); if (input) input.value = value }
+    if (this.hasCompanionTarget) {
+      const selected = this.imageStyle.companion === "auto" ? (this.imageTheme === "halloween" ? "bat" : this.imageTheme) : this.imageStyle.companion
+      const source = this.assetsValue[selected]
+      this.companionTarget.parentElement.hidden = !source
+      if (source) this.companionTarget.src = source
+      else this.companionTarget.removeAttribute("src")
+    }
     this.element.querySelectorAll('[name="shelf-theme"]').forEach(input => { input.checked = input.value === this.imageTheme })
     this.element.querySelectorAll('[data-shelf-link]').forEach(link => {
-      const url = new URL(link.href); url.searchParams.set("theme", this.imageTheme); link.href = url.href
+      const url = new URL(link.href); url.searchParams.set("theme", this.imageTheme); for (const [key, value] of Object.entries(this.imageStyle)) url.searchParams.set(key, value); link.href = url.href
     })
   }
   format(event) { this.imageFormat = event.target.value; this.schedulePreview() }
   async copyLink() {
     if (this.dirty) { this.statusTarget.textContent = "Save your changes before sharing your public shelf."; return }
-    const url = new URL(window.location.href); url.searchParams.set("theme", this.imageTheme)
+    const url = new URL(window.location.href); url.searchParams.set("theme", this.imageTheme); for (const [key, value] of Object.entries(this.imageStyle)) url.searchParams.set(key, value)
     try { await navigator.clipboard.writeText(url.href); this.statusTarget.textContent = "Shelf link copied, including your theme." }
     catch { this.statusTarget.textContent = `Copy this shelf link: ${url.href}` }
   }
   imageOptions() {
     return { picks: [...this.picks], shelves: this.shelvesValue,
-      overview: this.overviewValue, headline: this.headlineValue, theme: this.imageTheme, format: this.imageFormat,
+      overview: this.overviewValue, headline: this.headlineValue, ...this.imageStyle, assets: this.assetsValue, theme: this.imageTheme, format: this.imageFormat,
       handle: this.handleValue, category: this.categoryValue }
   }
   async copyAltText() {
@@ -175,15 +196,17 @@ export default class extends Controller {
   }
   async storePreview() {
     const signature = this.previewSignatureValue, theme = this.imageTheme
-    const key = `${signature}:${theme}`
+    const style = JSON.stringify(this.imageStyle || {})
+    const key = `${signature}:${theme}:${style}`
     if (this.storedPreview === key) return true
     const canvas = document.createElement("canvas")
     await renderShelfImage(canvas, { ...this.imageOptions(), theme, format: "landscape" })
-    if (this.dirty || !this.element.isConnected || signature !== this.previewSignatureValue || theme !== this.imageTheme) return false
+    if (this.dirty || !this.element.isConnected || signature !== this.previewSignatureValue || theme !== this.imageTheme || style !== JSON.stringify(this.imageStyle || {})) return false
     const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"))
     if (!blob) return false
     const body = new FormData()
     body.append("preview_image", blob, "shelf.png"); body.append("theme", theme)
+    for (const [key, value] of Object.entries(this.imageStyle || {})) body.append(key, value)
     body.append("preview_category", this.previewCategoryValue); body.append("preview_signature", signature)
     const response = await fetch(this.urlValue, { method: "PATCH", body,
       headers: { "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" } })

@@ -69,6 +69,7 @@ jobs:
           spec/system/tv_episodes_system_spec.rb
           spec/system/tv_shows_system_spec.rb
           spec/system/shelf_preview_system_spec.rb
+          spec/system/shelf_customization_system_spec.rb
           spec/system/child_collection_performance_spec.rb
           spec/system/series_entries_system_spec.rb
           spec/system/quick_tracking_system_spec.rb
