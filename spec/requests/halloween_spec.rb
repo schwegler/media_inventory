@@ -26,7 +26,9 @@ RSpec.describe 'Halloween appearance', type: :request do
     [Time.utc(2026, 10, 17, 23, 59, 59), Time.utc(2026, 11, 1), Time.utc(2027, 10, 20)].each do |instant|
       travel_to(instant) do
         get root_path
-        expect(Nokogiri::HTML(response.body).at_css('body')['data-controller'].to_s.split).not_to include('halloween')
+        config = JSON.parse(Nokogiri::HTML(response.body).at_css('body')['data-halloween-config-value'])
+        expect(config['seasons'].first['window']['until']).to eq('2026-11-01T00:00:00Z')
+        expect(controller.helpers.active_season).to be_nil
       end
     end
   end
@@ -41,5 +43,26 @@ RSpec.describe 'Halloween appearance', type: :request do
       expect(doc.at_css('.halloween-invitation .seasonal-notice')).to be_nil
       expect(doc.at_css('.halloween-invitation').text).not_to include('Undo', 'Pause')
     end
+  end
+  it 'persists the approved Halloween night preset independently of base and shelf choices' do
+    user = User.create!(name: 'Theme reader', email: 'theme@example.com', password: 'password123')
+    post login_path, params: { session: { email: user.email, password: 'password123' } }
+    get settings_appearance_path
+    expect(response.body).to include('Halloween night', 'user[seasonal_theme]')
+    patch settings_appearance_path, params: { user: { seasonal_theme: 'halloween' } }, as: :json
+    expect(response).to have_http_status(:ok)
+    expect(response.parsed_body['preferences']['seasonalTheme']).to eq('halloween')
+    expect(user.reload.seasonal_theme).to eq('halloween')
+    expect(user.theme).to eq('os')
+    expect(user.accent_theme).to eq('violet')
+    expect(user.shelf_previews).to be_empty
+    travel_to(Time.utc(2027, 2, 1)) do
+      get settings_appearance_path
+      expect(Nokogiri::HTML(response.body).at_css('input[value="halloween"][name="user[seasonal_theme]"]')['checked'])
+        .to be_present
+    end
+    patch settings_appearance_path, params: { user: { seasonal_theme: 'unapproved' } }, as: :json
+    expect(response).to have_http_status(:unprocessable_content)
+    expect(user.reload.seasonal_theme).to eq('halloween')
   end
 end

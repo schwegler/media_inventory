@@ -28,7 +28,7 @@ module ApplicationHelper
 
   def ui_preferences
     user = current_user if logged_in?
-    { theme: user&.theme || 'os', accent: user&.accent_theme || 'violet',
+    { seasonalTheme: user&.seasonal_theme || 'off', theme: user&.theme || 'os', accent: user&.accent_theme || 'violet',
       density: user&.content_density || 'comfortable', mediaLayout: user&.media_layout || 'covers',
       effects: user&.reduce_effects? ? 'reduced' : 'full' }
   end

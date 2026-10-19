@@ -14,8 +14,8 @@ function fixture(instant = '2026-10-20T12:00:00Z', attributes = { theme: 'os', a
   const document = { addEventListener() {}, removeEventListener() {}, documentElement: root, body, readyState: 'complete', querySelectorAll: () => [], querySelector: selector => selector === 'main' ? { focus() {} } : null }
   const window = { localStorage: adapter, sessionStorage: adapter, dispatchEvent: e => events.push(e), addEventListener() {}, removeEventListener() {} }
   const clock = { now: () => now, parse: Date.parse }
-  const { currentSeason, SEASONAL_KEYS } = new Function('Date', configSource+';return {currentSeason, SEASONAL_KEYS}')(clock)
-  const Controller = new Function('Controller', 'document', 'window', 'currentSeason', 'SEASONAL_KEYS', 'Date', 'CustomEvent', 'setTimeout', 'clearTimeout', 'innerWidth', 'innerHeight', source)(class {}, document, window, currentSeason, SEASONAL_KEYS, clock, class { constructor(name, options){ this.name=name;this.detail=options.detail } }, (fn, delay) => { timers.push({fn,delay}); return timers.length }, () => {}, 1000, 800)
+  const { availableSeason, currentSeason, SEASONAL_KEYS } = new Function('Date', configSource+';return {availableSeason, currentSeason, SEASONAL_KEYS}')(clock)
+  const Controller = new Function('Controller', 'document', 'window', 'availableSeason', 'currentSeason', 'SEASONAL_KEYS', 'Date', 'CustomEvent', 'setTimeout', 'clearTimeout', 'innerWidth', 'innerHeight', source)(class {}, document, window, availableSeason, currentSeason, SEASONAL_KEYS, clock, class { constructor(name, options){ this.name=name;this.detail=options.detail } }, (fn, delay) => { timers.push({fn,delay}); return timers.length }, () => {}, 1000, 800)
   const instance = Object.create(Controller.prototype)
   instance.configValue = config; instance.stageTarget = { hidden: true, dataset: {} }; instance.hasStageTarget = true
   instance.invitationTarget = { hidden: true }; instance.noticeTarget = { hidden: true, querySelector: () => ({ focus() {} }) }; instance.messageTarget = {}; instance.pauseTargets = []; instance.atmosphereTargets = []
@@ -53,11 +53,11 @@ test('choice survives navigation, while viewer and saved-preference changes take
   const g=fixture();g.instance.connect();g.instance.apply();g.instance.reset();g.body.dataset.viewerId='2';g.instance.connect()
   assert.deepEqual(Object.fromEntries(g.values),g.original)
 })
-test('X dismissal is per-tab, footer reset reopens, and the deadline clears a live override', () => {
+test('X dismissal is per-tab, footer reset reopens, and the promotion deadline hides the character while preserving explicit appearance', () => {
   const f=fixture();f.instance.connect();f.instance.dismiss();f.instance.connect();assert.equal(f.instance.stageTarget.hidden,true)
   f.instance.resetChoice();assert.equal(f.instance.invitationTarget.hidden,false)
   f.instance.apply();f.setTime('2026-11-01T00:00:00Z');f.timers.find(t=>t.delay>1000).fn()
-  assert.deepEqual(Object.fromEntries(f.values),f.original);assert.equal(f.instance.stageTarget.hidden,true)
+  assert.equal(f.values.get('data-season'),'halloween');assert.equal(f.instance.stageTarget.hidden,true)
 })
 
 test('crowded viewport defers the overlay instead of covering protected controls', () => {
@@ -67,4 +67,13 @@ test('crowded viewport defers the overlay instead of covering protected controls
  f.instance.position();assert.equal(f.instance.stageTarget.style.visibility,'hidden')
  f.document.querySelectorAll=()=>[]
  f.instance.position();assert.equal(f.instance.stageTarget.style.visibility,'visible')
+})
+
+
+test('saved settings apply after a Turbo morph without reconnecting or revealing the mascot',()=>{
+ const f=fixture();f.instance.connect()
+ f.body.dataset.uiPreferences=JSON.stringify({theme:'os',accent:'moss',seasonalTheme:'halloween'})
+ f.instance.refresh();assert.equal(f.values.get('data-season'),'halloween');assert.equal(f.instance.stageTarget.hidden,true)
+ f.body.dataset.uiPreferences=JSON.stringify({theme:'light',accent:'ink',seasonalTheme:'off'})
+ f.instance.refresh();assert.equal(f.values.get('data-theme'),'light');assert.equal(f.values.has('data-season'),false)
 })

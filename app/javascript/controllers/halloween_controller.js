@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { currentSeason, SEASONAL_KEYS } from "controllers/season_config"
+import { availableSeason, currentSeason, SEASONAL_KEYS } from "controllers/season_config"
 
 const ATTRIBUTES = ["theme", "accent", "season", "season-id", "season-motion", "season-effects"]
 export default class extends Controller {
@@ -7,21 +7,25 @@ export default class extends Controller {
   static values = { config: Object }
   connect() {
     window.SchwegSeasonalConfig = this.configValue
-    this.season = currentSeason(this.configValue)
+    this.season = availableSeason(this.configValue)
     if (!this.season) { if (this.hasControlsTarget) this.controlsTarget.hidden = true; return }
     this.motion = this.read("local", SEASONAL_KEYS.motion) === "paused" ? "paused" : "auto"
     this.stageTarget.dataset.motion = this.motion
     this.syncControls()
-    const active = this.readSession()
+    let active = this.readSession()
     if (active && (active.viewer !== this.viewer || active.preferences !== this.preferences)) {
-      this.clearSession(); this.write("local", SEASONAL_KEYS.theme, "off")
-    } else if (active || this.read("local", SEASONAL_KEYS.theme) === this.season.theme) {
+      this.clearSession(); this.write("local", SEASONAL_KEYS.theme, "off"); active = null
+    }
+    const accountTheme = this.accountPreferences.seasonalTheme
+    this.accountTheme = accountTheme
+    const wantsTheme = active || accountTheme === this.season.theme ||
+      (!this.preferencesUrl && this.read("local", SEASONAL_KEYS.theme) === this.season.theme)
+    if (wantsTheme) {
       this.previous = active?.previous || this.snapshot()
-      this.closed = active?.closed || false
+      this.closed = active?.closed ?? (Boolean(this.read("session", SEASONAL_KEYS.prompt(this.season.id))) || !currentSeason(this.configValue) || accountTheme === this.season.theme)
       this.effects = active?.effects || "on"
       this.paint(); this.showNotice(false); this.saveSession(); this.announce("restore")
-    } else if (!this.read("session", SEASONAL_KEYS.prompt(this.season.id)) && this.read("local", SEASONAL_KEYS.theme) !== "off") {
-      // Fixed overlay adds no layout height; only visible controls receive pointer events.
+    } else if (currentSeason(this.configValue) && !this.read("session", SEASONAL_KEYS.prompt(this.season.id)) && this.read("local", SEASONAL_KEYS.theme) !== "off") {
       this.stageTarget.hidden = false
       this.invitationTarget.hidden = true
       this.noticeTarget.hidden = true
@@ -35,7 +39,20 @@ export default class extends Controller {
     if (window.ResizeObserver) { this.observer = new window.ResizeObserver(this.reposition); this.observer.observe(document.body) }
     window.addEventListener("resize", this.reposition)
     window.addEventListener("scroll", this.reposition, { passive: true })
-    if (this.season.window) this.scheduleExpiry()
+    if (currentSeason(this.configValue)?.window) this.scheduleExpiry()
+  }
+  refresh() {
+    const preferences = this.accountPreferences
+    if (!this.season || preferences.seasonalTheme === this.accountTheme) return
+    this.accountTheme = preferences.seasonalTheme
+    const previous = this.snapshot()
+    previous.theme = preferences.theme || "os"; previous.accent = preferences.accent || "violet"
+    for (const key of ["season", "season-id", "season-motion", "season-effects"]) previous[key] = null
+    this.previous = previous; this.clearSession()
+    if (this.accountTheme === this.season.theme) {
+      this.closed = true; this.effects = "on"; this.paint(); this.showNotice(false); this.saveSession()
+    } else { this.reset(); this.write("local", SEASONAL_KEYS.theme, "off") }
+    this.announce("settings")
   }
   position() {
     if (this.stageTarget.hidden || !this.stageTarget.getBoundingClientRect) return
@@ -67,6 +84,23 @@ export default class extends Controller {
   }
   announce(source) {
     window.dispatchEvent(new CustomEvent("schweg:seasonal-change", { detail: { schemaVersion: 2, seasonId: this.season.id, theme: this.season.theme, active: Boolean(this.previous), motion: this.motion, source } }))
+  }
+  get accountPreferences() { try { return JSON.parse(this.preferences || "{}") } catch { return {} } }
+  get preferencesUrl() { return document.body.dataset.seasonalPreferencesUrl }
+  persistTheme(theme) {
+    if (!this.preferencesUrl) return
+    const url = this.preferencesUrl, viewer = this.viewer
+    this.preferenceWrite = (this.preferenceWrite || Promise.resolve()).then(async () => {
+      if ((document.body.dataset.viewerId || "guest") !== viewer) return
+      const response = await fetch(url, { method: "PATCH", keepalive: true, headers: { "Content-Type": "application/json", Accept: "application/json", "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" }, body: JSON.stringify({ user: { seasonal_theme: theme } }) })
+      if (!response.ok) throw new Error("Appearance was not saved")
+      const result = await response.json()
+      if ((document.body.dataset.viewerId || "guest") !== viewer) return
+      document.body.dataset.uiPreferences = JSON.stringify(result.preferences)
+      this.accountTheme = result.preferences.seasonalTheme
+      const active = this.readSession()
+      if (active?.viewer === viewer) this.write("session", SEASONAL_KEYS.active(this.season.id), JSON.stringify({ ...active, preferences: this.preferences }))
+    }).catch(() => { if (this.hasAnnouncementTarget) this.announcementTarget.textContent = "Your browser theme is active, but the account preference could not be saved. Try again in Appearance settings." })
   }
   get viewer() { return document.body.dataset.viewerId || "guest" }
   get preferences() { return document.body.dataset.uiPreferences || "" }
@@ -106,7 +140,7 @@ export default class extends Controller {
     this.syncControls()
   }
   baseChoice() {
-    this.reset(); this.clearSession(); this.write("local", SEASONAL_KEYS.theme, "off"); this.announce("base-choice")
+    this.reset(); this.clearSession(); this.write("local", SEASONAL_KEYS.theme, "off"); this.persistTheme("off"); this.announce("base-choice")
   }
   character() {
     if (this.previous) this.openAppearance()
@@ -138,12 +172,12 @@ export default class extends Controller {
     }
   }
   apply() {
-    if (!currentSeason(this.configValue)) return this.expire()
+    if (!this.season) return
     clearTimeout(this.entrance)
     this.previous ||= this.snapshot()
-    this.closed = false; this.effects = "on"
+    this.closed = Boolean(this.read("session", SEASONAL_KEYS.prompt(this.season.id))) || (!currentSeason(this.configValue) && this.stageTarget.hidden); this.effects = "on"
     this.write("local", SEASONAL_KEYS.theme, this.season.theme)
-    this.paint(); this.showNotice(true); this.saveSession(); this.announce("activation")
+    this.paint(); this.showNotice(true); this.saveSession(); this.persistTheme(this.season.theme); this.announce("activation")
   }
   pause() {
     this.motion = this.motion === "paused" ? "auto" : "paused"
@@ -173,7 +207,7 @@ export default class extends Controller {
   }
   undo() {
     this.reset(); this.clearSession()
-    this.write("local", SEASONAL_KEYS.theme, "off")
+    this.write("local", SEASONAL_KEYS.theme, "off"); this.persistTheme("off")
     this.dismiss(); this.announce("undo")
   }
   dismiss() {
@@ -193,5 +227,5 @@ export default class extends Controller {
     else { this.clearSession(); this.remove("local", SEASONAL_KEYS.theme) }
     this.stageTarget.hidden = false; this.invitationTarget.hidden = false; this.position(); this.announce("reset")
   }
-  expire() { this.reset(); this.clearSession(); clearTimeout(this.expiry); clearTimeout(this.entrance); if (this.hasControlsTarget) this.controlsTarget.hidden = true }
+  expire() { clearTimeout(this.expiry); clearTimeout(this.entrance); this.stageTarget.hidden = true; if (this.previous) { this.closed = true; this.saveSession() } }
 }

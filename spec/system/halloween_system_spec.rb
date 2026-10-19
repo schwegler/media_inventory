@@ -79,4 +79,34 @@ RSpec.describe 'Halloween invitation', type: :system do
     visit root_path
     expect(page).to have_css('html[data-theme="light"]')
   end
+  it 'saves Halloween night from settings and shares that state with the header without an invitation' do
+    user = create_and_login_user
+    user.update!(username: 'saved_halloween')
+    visit settings_appearance_path
+    choose 'Halloween night'
+    find('input[value="Save preferences"]').send_keys(:enter)
+    expect(page).to have_text('Appearance preferences saved.')
+    expect(page).to have_css('html[data-theme="dark"][data-season="halloween"]')
+    expect(user.reload.seasonal_theme).to eq('halloween')
+    expect(user.theme).to eq('os')
+    expect(page).to have_checked_field('Halloween night')
+    expect(page).to have_no_button('Turn on Halloween mode')
+    capture_ui_screenshot('saved-halloween-settings-desktop')
+    visit shelf_path(user.username, category: 'Movie', theme: 'electric')
+    find('summary[aria-label="Appearance"]').click
+    expect(page).to have_css('button[aria-pressed="true"]', text: 'Halloween night')
+    click_button 'Off'
+    expect(page).to have_css(%(body[data-ui-preferences*='"seasonalTheme":"off"']))
+    expect(user.reload.seasonal_theme).to eq('off')
+    expect(page).to have_css('.favorite-shelf[data-shelf-theme="electric"]')
+    find('summary[aria-label="Appearance"]').click
+    click_button 'Halloween night'
+    expect(page).to have_css(%(body[data-ui-preferences*='"seasonalTheme":"halloween"']))
+    expect(user.reload.seasonal_theme).to eq('halloween')
+    visit settings_appearance_path
+    expect(page).to have_checked_field('Halloween night')
+    resize_browser_viewport(390, 844)
+    expect(page.evaluate_script('document.documentElement.scrollWidth <= innerWidth')).to be(true)
+    capture_ui_screenshot('saved-halloween-settings-mobile')
+  end
 end

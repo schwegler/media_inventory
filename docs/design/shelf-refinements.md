@@ -19,3 +19,9 @@ Live verification before this refinement: production deployment `9eba03126fa005e
 `docs/screenshots/shelf-refinements/` retains actual local application captures at desktop/mobile sizes, including keyboard overview navigation, the explicit header menu, mascot-only activation, and dismissal with Halloween still active. Native `midnight-feature-portrait-*.png` and `midnight-feature-landscape-*.png` come directly from `shelf_image.js` with clearly synthetic demo jackets; no production ownership, history or ratings were invented. The comparison image orders Exhibition, Reading list, Collector’s edition left to right.
 
 Focused verification: 19 request examples, 31 JavaScript tests and 12 browser examples passed; all 573 Ruby files linted clean and the asset build passed. Export capture independently exercised all three portrait layouts, one/three/five picks and landscape. CI checks the full suite on the PR’s final head. Telly artwork has no diff from current master.
+
+## Approved Halloween preset
+
+The approved screenshot is Halloween night: dark plum, orange light, moon, mist and fireflies. It is distinct from Midnight Feature. `User.seasonal_theme` persists this explicit global choice independently of existing base mode/accent and profile/shelf settings. The actual Appearance settings page and header use the same validated `off` / `halloween` field. Header writes use the authenticated settings endpoint with CSRF; guests keep browser-only choice. Failed account writes announce that the browser choice could not be saved.
+
+Saving settings through Turbo morph refreshes the live theme and header state. No mascot is required to select or restore the full theme. Only the invitation is limited to the fixed October 2026 window; an explicitly selected account theme remains available afterward. Outside the promotion, no character is automatically invited. Dismissal leaves the theme on and restoration remains explicit.

@@ -1,4 +1,8 @@
 // Shared schema v2: dated, explicitly enabled artwork; no inferred annual recurrence.
+export function availableSeason(config) {
+  if (config?.schemaVersion !== 2) return null
+  return config.seasons?.find(season => (!config.activeSeason || season.id === config.activeSeason) && season.enabled && season.asset) || null
+}
 export function currentSeason(config, now = Date.now()) {
   if (config?.schemaVersion !== 2) return null
   return config.seasons?.find(season => (!config.activeSeason || season.id === config.activeSeason) && season.enabled && season.asset &&

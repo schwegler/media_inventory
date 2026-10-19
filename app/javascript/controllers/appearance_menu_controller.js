@@ -5,15 +5,17 @@ export default class extends Controller {
   static targets = ["mode", "accent", "feedback"]
   connect() {
     this.key = `trove-appearance:v1:${document.body.dataset.viewerId || "guest"}`
-    this.preferences = document.body.dataset.uiPreferences || ""
     let saved, account = {}
-    try { saved = JSON.parse(localStorage.getItem(this.key)); account = JSON.parse(this.preferences || "{}") } catch { /* Optional storage. */ }
+    try { account = JSON.parse(document.body.dataset.uiPreferences || "{}") } catch { /* Server defaults below. */ }
+    this.preferences = JSON.stringify(Object.fromEntries(Object.entries(account).filter(([key]) => key !== "seasonalTheme")))
+    try { saved = JSON.parse(localStorage.getItem(this.key)) } catch { /* Optional storage. */ }
     if (saved?.preferences !== this.preferences) { saved = null; try { localStorage.removeItem(this.key) } catch { /* Optional storage. */ } }
     this.mode = ["os", "light", "dark"].includes(saved?.mode) ? saved.mode : account.theme || "os"
     this.accent = ["violet", "ink", "moss", "halloween"].includes(saved?.accent) ? saved.accent : account.accent || "violet"
     if (!document.documentElement.dataset.season) this.paint()
     this.sync()
   }
+  refresh() { this.connect() }
   change(event) {
     const { name, value } = event.target
     if (name === "base-mode" && ["os", "light", "dark"].includes(value)) this.mode = value
