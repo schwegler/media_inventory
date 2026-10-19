@@ -167,7 +167,7 @@
   .shelf-exhibition { grid-template-columns: 1fr; }
   .shelf-exhibit, .shelf-exhibit-featured { grid-template-columns: 150px minmax(0, 1fr); gap: 32px; padding: 36px 0; }
   .shelf-artwork { gap: 20px; padding: 0 0 18px; }
-  .shelf-artwork-cover, .shelf-artwork-cover:nth-child(n) { transform: none; flex: 0 1 180px; margin: 0; box-shadow: 0 10px 22px #0002; }
+  .shelf-artwork-cover, .shelf-artwork-cover:nth-child(n) { --cover-scale: 1; transform: none; flex: 0 1 180px; margin: 0; box-shadow: 0 10px 22px #0002; }
   .shelf-artwork img, .shelf-pick img { object-fit: contain; }
   .shelf-artwork-cover:only-child { flex-basis: 250px; }
   .shelf-collections { display: grid; gap: 24px; margin: 32px 0; }
