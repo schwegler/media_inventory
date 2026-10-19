@@ -4,10 +4,11 @@
   .header-shell .app-header .app-nav { display: flex; align-items: center; gap: 1rem; width: calc(100% - 40px); max-width: 1320px; min-height: 76px; padding: 16px 0; margin-inline: auto; }
   .header-shell .app-header .library-nav, .header-shell .app-header .workspace-primary-nav, .header-shell .app-header .nav-user-section { display: none; }
   .header-shell .app-header .nav-brand { position: static; display: flex; align-items: center; flex-shrink: 0; top: auto; }
-  .header-shell .app-header .brand-link { display: inline-flex; align-items: center; gap: .5rem; }
+  .header-shell .app-header .brand-link { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; }
   .header-shell .app-header .brand-logo { display: block; width: 36px; height: 36px; border-radius: 8px; margin: 0; }
   .header-shell .app-header .brand-text { position: static; top: auto; font: 700 2rem/1 'Instrument Sans', sans-serif; letter-spacing: -1.5px; text-transform: none; }
-  .header-shell .app-header .brand-companion { display: inline-block; margin-left: 1rem; padding-left: 1rem; }
+  // Keep the credit in the same row as the logo, with its own accessible hit area.
+  .header-shell .app-header .brand-companion { display: inline-flex; align-items: center; min-height: 44px; margin: 0 0 0 .75rem; padding: 0 0 0 .75rem; border: 0; border-left: 1px solid var(--border); font-size: .6875rem; line-height: 1; }
   .header-shell .app-header .combined-search { display: block; flex: 1; min-width: 0; align-self: center; }
   .header-shell .app-header .global-search-form { width: 100%; height: 44px; padding: 0 .75rem; gap: .5rem; align-items: center; }
   .header-shell .app-header .global-search-input { min-width: 0; height: 42px; line-height: normal; padding: 0; border: 0; box-shadow: none; background: transparent; }
@@ -71,6 +72,7 @@
 
   // Anchor the panel to the header, rather than the page or a distant ancestor.
   .header-shell .app-header:not(.combined-header) { position: relative; }
+  .header-shell .app-header .mobile-nav-panel > .blog-nav-link { display: flex; align-items: center; min-height: 44px; }
   .header-shell .app-header .mobile-nav-panel.active {
     box-sizing: border-box;
     right: 12px;
