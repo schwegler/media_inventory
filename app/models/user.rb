@@ -22,11 +22,11 @@ class User < ApplicationRecord
                        allow_nil: true
   validates :theme, inclusion: { in: %w[light dark os] }
 
-  ACCENTS = %w[violet ink moss].freeze
+  ACCENTS = %w[violet ink moss halloween].freeze
   validates :accent_theme, :profile_accent, inclusion: { in: ACCENTS }
   validates :content_density, inclusion: { in: %w[comfortable compact] }
   validates :media_layout, inclusion: { in: %w[covers rows] }
-  validates :profile_header, inclusion: { in: %w[linen solid minimal] }
+  validates :profile_header, inclusion: { in: %w[linen solid minimal halloween] }
 
   has_many_attached :shelf_previews
   has_one_attached :avatar

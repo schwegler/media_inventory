@@ -15,13 +15,14 @@ class ShelvesController < ApplicationController
 
   def show
     @overview = !FavoriteShelf::CATEGORIES.key?(params[:category])
-    @theme = %w[midnight gallery electric].include?(params[:theme]) ? params[:theme] : 'midnight'
+    @theme = ShelvesHelper::SHELF_THEMES.include?(params[:theme]) ? params[:theme] : 'midnight'
+    @image_style = helpers.shelf_image_style(params)
     @category = @overview ? 'overall' : params[:category]
     @shelves = load_shelves_with_batch_items(@user)
     @items = @shelves.find { |shelf| shelf[:key] == @category }[:items]
     @preview_category = @overview ? 'overview' : @category
     @preview_signature = helpers.shelf_preview_signature(@user, @preview_category)
-    @preview_image = helpers.shelf_preview_image(@user, @preview_category, @theme)
+    @preview_image = helpers.shelf_preview_image(@user, @preview_category, @theme, style: @image_style)
     render layout: 'shelf'
   end
 
@@ -68,13 +69,9 @@ class ShelvesController < ApplicationController
   def update_preview
     category = params[:preview_category].to_s
     theme = params[:theme].to_s
+    style = helpers.shelf_image_style(params)
     image = params[:preview_image]
-    unless (FavoriteShelf::CATEGORIES.key?(category) || category == 'overview') &&
-           %w[midnight gallery electric].include?(theme) &&
-           image.is_a?(ActionDispatch::Http::UploadedFile) && image.content_type == 'image/png' &&
-           image.size <= 5.megabytes && image.read(8) == "\x89PNG\r\n\x1a\n".b
-      return head :unprocessable_content
-    end
+    return head :unprocessable_content unless valid_preview_upload?(image, category, theme)
 
     image.rewind
     signature = helpers.shelf_preview_signature(@user, category)
@@ -82,19 +79,26 @@ class ShelvesController < ApplicationController
 
     @user.with_lock do
       return head :conflict unless params[:preview_signature] == helpers.shelf_preview_signature(@user, category)
-      return head :no_content if helpers.shelf_preview_image(@user, category, theme)
+      return head :no_content if helpers.shelf_preview_image(@user, category, theme, style: style)
 
-      persist_preview(image, category, theme, signature)
+      persist_preview(image, category, theme, signature, style)
     end
     head :no_content
   end
 
-  def persist_preview(image, category, theme, signature)
+  def valid_preview_upload?(image, category, theme)
+    (FavoriteShelf::CATEGORIES.key?(category) || category == 'overview') &&
+      ShelvesHelper::SHELF_THEMES.include?(theme) &&
+      image.is_a?(ActionDispatch::Http::UploadedFile) && image.content_type == 'image/png' &&
+      image.size <= 5.megabytes && image.read(8) == "\x89PNG\r\n\x1a\n".b
+  end
+
+  def persist_preview(image, category, theme, signature, style)
     previous = @user.shelf_previews.select do |preview|
       preview.blob.metadata.values_at('category', 'theme') == [category, theme]
     end
     @user.shelf_previews.attach(io: image.tempfile, filename: 'shelf.png', content_type: 'image/png',
-                                metadata: { category: category, theme: theme, signature: signature })
+                                metadata: { category: category, theme: theme, signature: signature, style: style })
     previous.each(&:purge_later)
   end
 

@@ -1,0 +1,14 @@
+<% if (season = active_season) %>
+  <aside class="halloween-invitation" data-halloween-target="stage" hidden aria-label="Halloween character">
+    <div data-halloween-target="invitation" class="halloween-invitation-actions" hidden>
+      <button type="button" data-action="halloween#apply" aria-label="Turn on Halloween mode" title="make it weird" class="halloween-bat"><%= image_tag season['asset'], alt: '', width: 96, height: 126, decoding: 'async', aria: { hidden: true } %></button>
+      <button type="button" class="seasonal-dismiss" data-action="halloween#dismiss" aria-label="Dismiss Halloween character">×</button>
+    </div>
+    <div data-halloween-target="notice" class="seasonal-notice" hidden>
+      <%= image_tag season['asset'], alt: '', width: 72, height: 94, class: 'seasonal-active-character', aria: { hidden: true } %>
+      <p role="alert" data-halloween-target="message"></p>
+      <div><button type="button" data-action="halloween#undo">Undo</button><button type="button" data-halloween-target="pause" data-compact="true" data-action="halloween#pause" aria-label="Pause motion" aria-pressed="false">Pause</button><button type="button" class="seasonal-dismiss" data-action="halloween#dismiss" aria-label="Close seasonal notice">×</button></div>
+    </div>
+  </aside>
+  <div class="seasonal-scene" aria-hidden="true"><span class="seasonal-moon"></span><span class="seasonal-hills"></span><span class="seasonal-trees"></span><span class="seasonal-tent"></span><span class="seasonal-fireflies"></span><span class="seasonal-mist"></span></div>
+<% end %>

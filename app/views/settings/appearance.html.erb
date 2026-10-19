@@ -14,6 +14,7 @@
           <label class="appearance-choice"><%= f.radio_button :theme, 'dark' %><span class="appearance-swatch" style="--swatch: #191b21" aria-hidden="true"></span><span>Dark</span></label>
         </fieldset>
         <fieldset class="appearance-choices"><legend>Accent</legend>
+          <label class="appearance-choice"><%= f.radio_button :accent_theme, 'halloween' %><span class="appearance-swatch" style="--swatch: #a64b12" aria-hidden="true"></span><span>Halloween · candlelight</span></label>
           <label class="appearance-choice"><%= f.radio_button :accent_theme, 'violet' %><span class="appearance-swatch" style="--swatch: #704cae" aria-hidden="true"></span><span>Editorial violet</span></label>
           <label class="appearance-choice"><%= f.radio_button :accent_theme, 'ink' %><span class="appearance-swatch" style="--swatch: #595462" aria-hidden="true"></span><span>Graphite ink</span></label>
           <label class="appearance-choice"><%= f.radio_button :accent_theme, 'moss' %><span class="appearance-swatch" style="--swatch: #476c50" aria-hidden="true"></span><span>Garden moss</span></label>
@@ -26,11 +27,13 @@
         <legend>Your profile</legend>
         <p>Visible to people visiting your profile. Your profile theme stays within your profile.</p>
         <fieldset class="appearance-choices"><legend>Profile accent</legend>
+          <label class="appearance-choice"><%= f.radio_button :profile_accent, 'halloween', data: { action: 'change->appearance#preview', appearance_target: 'accent' } %><span>Halloween · candlelight</span></label>
           <label class="appearance-choice"><%= f.radio_button :profile_accent, 'violet', data: { action: 'change->appearance#preview', appearance_target: 'accent' } %><span class="appearance-swatch" style="--swatch: #704cae" aria-hidden="true"></span><span>Editorial violet</span></label>
           <label class="appearance-choice"><%= f.radio_button :profile_accent, 'ink', data: { action: 'change->appearance#preview', appearance_target: 'accent' } %><span class="appearance-swatch" style="--swatch: #595462" aria-hidden="true"></span><span>Graphite ink</span></label>
           <label class="appearance-choice"><%= f.radio_button :profile_accent, 'moss', data: { action: 'change->appearance#preview', appearance_target: 'accent' } %><span class="appearance-swatch" style="--swatch: #476c50" aria-hidden="true"></span><span>Garden moss</span></label>
         </fieldset>
         <fieldset class="appearance-choices"><legend>Header treatment</legend>
+          <label class="appearance-choice"><%= f.radio_button :profile_header, 'halloween', data: { action: 'change->appearance#preview', appearance_target: 'header' } %><span>Harvest moon</span></label>
           <label class="appearance-choice"><%= f.radio_button :profile_header, 'linen', data: { action: 'change->appearance#preview', appearance_target: 'header' } %><span class="appearance-swatch" style="--swatch: #e5e1d7" aria-hidden="true"></span><span>Linen</span></label>
           <label class="appearance-choice"><%= f.radio_button :profile_header, 'solid', data: { action: 'change->appearance#preview', appearance_target: 'header' } %><span class="appearance-swatch" style="--swatch: #65418f" aria-hidden="true"></span><span>Solid</span></label>
           <label class="appearance-choice"><%= f.radio_button :profile_header, 'minimal', data: { action: 'change->appearance#preview', appearance_target: 'header' } %><span class="appearance-swatch" style="--swatch: #f7f7fa" aria-hidden="true"></span><span>Minimal</span></label>

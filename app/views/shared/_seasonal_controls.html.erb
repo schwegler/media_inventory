@@ -1,0 +1,8 @@
+<% if (season = active_season) %>
+  <div class="seasonal-controls" data-halloween-target="controls" role="group" aria-label="<%= season['label'] %> appearance controls">
+    <span><%= season['label'] %></span>
+    <button type="button" data-action="halloween#apply">On</button><button type="button" data-action="halloween#undo">Off</button><button type="button" data-action="halloween#resetChoice">Reset invitation</button>
+    <button type="button" data-halloween-target="pause" data-action="halloween#pause" aria-pressed="false">Pause motion</button>
+    <button type="button" data-halloween-target="atmosphere" data-action="halloween#atmosphere" aria-pressed="false">Hide atmosphere</button>
+  </div>
+<% end %>
