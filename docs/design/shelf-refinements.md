@@ -25,3 +25,9 @@ Focused verification: 19 request examples, 31 JavaScript tests and 12 browser ex
 The approved screenshot is Halloween night: dark plum, orange light, moon, mist and fireflies. It is distinct from Midnight Feature. `User.seasonal_theme` persists this explicit global choice independently of existing base mode/accent and profile/shelf settings. The actual Appearance settings page and header use the same validated `off` / `halloween` field. Header writes use the authenticated settings endpoint with CSRF; guests keep browser-only choice. Failed account writes announce that the browser choice could not be saved.
 
 Saving settings through Turbo morph refreshes the live theme and header state. No mascot is required to select or restore the full theme. Only the invitation is limited to the fixed October 2026 window; an explicitly selected account theme remains available afterward. Outside the promotion, no character is automatically invited. Dismissal leaves the theme on and restoration remains explicit.
+
+## Atmosphere visibility
+
+The approved dark Halloween palette remains intact. The moon has a soft warm gradient/halo, fireflies move along the outer margins rather than over text, mist drifts farther, and tree/hill layers have clearer separation. Surface panels remain about 92% opaque and inputs about 95% opaque, preserving strong foreground contrast while allowing a trace of movement behind them. Motion remains CSS transform/opacity only, with no flashing or runtime animation loop.
+
+A genuine 24-frame browser recording on a clearly synthetic local book detail page measured changing moon/firefly/mist transforms over approximately 11.5 seconds. The mist moved about 58px and fireflies about 19px vertically during that sample. Pause and OS reduced motion both produced static computed animations. Desktop/mobile detail screenshots and the GIF are retained alongside the other review captures.

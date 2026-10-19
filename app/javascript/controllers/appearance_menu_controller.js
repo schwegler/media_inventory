@@ -19,7 +19,7 @@ export default class extends Controller {
   change(event) {
     const { name, value } = event.target
     if (name === "base-mode" && ["os", "light", "dark"].includes(value)) this.mode = value
-    else if (name === "base-accent" && ["violet", "ink", "moss"].includes(value)) this.accent = value
+    else if (name === "base-accent" && ["violet", "ink", "moss", "halloween"].includes(value)) this.accent = value
     else return
     document.dispatchEvent(new CustomEvent("trove:base-appearance"))
     this.paint()

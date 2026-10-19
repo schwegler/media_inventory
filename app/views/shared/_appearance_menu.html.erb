@@ -2,7 +2,7 @@
   <summary aria-label="Appearance"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4v16a8 8 0 0 0 0-16" fill="currentColor"/></svg><span class="appearance-label">Appearance</span></summary>
   <div class="appearance-panel">
     <fieldset><legend>Base mode</legend><div class="appearance-options"><% { 'os' => 'System', 'light' => 'Light', 'dark' => 'Dark' }.each do |value, label| %><label><input type="radio" name="base-mode" value="<%= value %>" data-appearance-menu-target="mode" data-action="appearance-menu#change"><%= label %></label><% end %></div></fieldset>
-    <fieldset><legend>Base accent</legend><div class="appearance-options"><% { 'violet' => 'Violet', 'ink' => 'Ink', 'moss' => 'Moss' }.each do |value, label| %><label><input type="radio" name="base-accent" value="<%= value %>" data-appearance-menu-target="accent" data-action="appearance-menu#change"><%= label %></label><% end %></div></fieldset>
+    <fieldset><legend>Base accent</legend><div class="appearance-options"><% { 'violet' => 'Violet', 'ink' => 'Ink', 'moss' => 'Moss', 'halloween' => 'Candlelight' }.each do |value, label| %><label><input type="radio" name="base-accent" value="<%= value %>" data-appearance-menu-target="accent" data-action="appearance-menu#change"><%= label %></label><% end %></div></fieldset>
     <p class="appearance-hint">Base mode and accent apply in this browser and turn seasonal styling off. Halloween follows your account when signed in.</p>
     <%= render 'shared/seasonal_controls' %>
     <p class="appearance-feedback" role="status" data-appearance-menu-target="feedback"></p>

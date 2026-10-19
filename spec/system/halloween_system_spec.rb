@@ -65,8 +65,10 @@ RSpec.describe 'Halloween invitation', type: :system do
     appearance.send_keys(:enter)
     click_button 'Pause motion'
     expect(page).to have_css('html[data-season-motion="paused"]')
+    expect(page.evaluate_script('getComputedStyle(document.querySelector(".seasonal-mist")).animationName')).to eq('none')
     click_button 'Hide atmosphere'
     expect(page).to have_css('html[data-season-effects="off"]')
+    expect(page.evaluate_script('getComputedStyle(document.querySelector(".seasonal-scene")).display')).to eq('none')
     capture_ui_screenshot('appearance-menu-mobile')
     click_button 'Restore Halloween character'
     expect(page).to have_css('html[data-season="halloween"]')
