@@ -35,7 +35,8 @@ RSpec.describe 'Favorite shelves', type: :request do
     end
     expect(user.shelf_collections.count).to eq(3)
     collection = user.shelf_collections.find_by!(title: 'Christmas')
-    patch shelf_path(user.username, collection: collection.slug), params: { picks: [{ type: 'Movie', id: movie.id }] }, as: :json
+    patch shelf_path(user.username, collection: collection.slug), params: { picks: [{ type: 'Movie', id: movie.id }] },
+                                                                  as: :json
     expect(response).to have_http_status(:ok)
     expect(original.reload.items).to eq([movie])
     delete logout_path
@@ -45,6 +46,20 @@ RSpec.describe 'Favorite shelves', type: :request do
     get shelf_path(user.username, collection: collection.slug)
     expect(response.body).to include('Christmas', 'A little context', movie.title)
     expect(response.body).not_to include('Create collection', 'Save shelf')
+  end
+
+  it 'offers a private owner visitor preview and preserves collection identity when editing details' do
+    collection = user.shelf_collections.create!(title: 'Halloween', picks: [{ type: 'Movie', id: movie.id }])
+    login
+    get shelf_path(user.username, collection: collection.slug, view: 'visitor')
+    page = Nokogiri::HTML(response.body)
+    expect(page.css('.shelf-themes, .shelf-customization, .shelf-headline-editor')).to be_empty
+    expect(page.at_css('.favorite-shelf')['data-favorite-shelf-owner-value']).to eq('false')
+    patch shelf_path(user.username, collection: collection.slug),
+          params: { collection_details: { title: 'Halloween nights', description: 'A new description' } }
+    expect(response).to redirect_to(shelf_path(user.username, collection: collection.slug))
+    expect(collection.reload.items).to eq([movie])
+    expect(collection.title).to eq('Halloween nights')
   end
 
   it 'imports a signed external pick without library ownership and deduplicates provider IDs' do
@@ -142,7 +157,7 @@ RSpec.describe 'Favorite shelves', type: :request do
     delete logout_path
     get shelf_path(user.username, category: 'Movie')
     expect(response).to have_http_status(:ok)
-    expect(response.body).to include('A favorite', 'Save &amp; download image')
+    expect(response.body).to include('A favorite', 'Download image')
     expect(response.body).not_to include('Save shelf')
   end
 
@@ -175,7 +190,7 @@ RSpec.describe 'Favorite shelves', type: :request do
         toolbar_links = page.css('.shelf-toolbar-links a')
         expected_links = ['View shelf overview']
         expected_links << 'Edit selections' if signed_in && category.nil?
-        expected_links << 'Customize profile' if signed_in
+        expected_links += ['Customize profile', 'Preview as visitor'] if signed_in
         expect(toolbar_links.map(&:text)).to eq(expected_links + ['View profile', 'Share'])
         overview = toolbar_links.find { |link| link.text == 'View shelf overview' }
         expect(URI.parse(overview['href']).path).to eq(shelf_path(user.username))

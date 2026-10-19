@@ -14,13 +14,14 @@ class ShelvesController < ApplicationController
   end
 
   def show
+    @shelf_owner = current_user?(@user) && params[:view] != 'visitor'
     load_collection_context
     load_presentation
     @overview = !@collection && !FavoriteShelf::CATEGORIES.key?(params[:category])
     @category = @overview || @collection ? 'overall' : params[:category]
     @shelves = load_shelves_with_batch_items(@user)
     @items = @collection ? @collection.items : @shelves.find { |shelf| shelf[:key] == @category }[:items]
-    @shelves = @shelves.select { |shelf| shelf[:items].any? } unless current_user?(@user)
+    @shelves = @shelves.select { |shelf| shelf[:items].any? } unless @shelf_owner
     @preview_category = preview_category
     @preview_signature = helpers.shelf_preview_signature(@user, @preview_category)
     @preview_image = helpers.shelf_preview_image(@user, @preview_category, @theme, style: @image_style)
@@ -66,7 +67,7 @@ class ShelvesController < ApplicationController
   def load_collection_context
     @collection = @user.shelf_collections.find_by!(slug: params[:collection]) if params[:collection].present?
     @collections = @user.shelf_collections.order(:created_at)
-    @collections = @collections.select { |collection| collection.items.any? } unless current_user?(@user)
+    @collections = @collections.select { |collection| collection.items.any? } unless @shelf_owner
   end
 
   def load_presentation
@@ -97,7 +98,10 @@ class ShelvesController < ApplicationController
   end
 
   def create_collection
-    collection = @user.shelf_collections.new(params.require(:new_collection).permit(:title, :description))
+    input = params.require(:new_collection)
+    collection = @user.shelf_collections.new(input.permit(:title, :description))
+    theme = %w[everyday halloween christmas].include?(input[:theme]) ? input[:theme] : 'everyday'
+    collection.presentation = helpers.shelf_image_style({}).merge('theme' => theme)
     if collection.save
       redirect_to shelf_path(@user.username, collection: collection.slug), status: :see_other
     else
@@ -106,6 +110,8 @@ class ShelvesController < ApplicationController
   end
 
   def update_collection
+    return update_collection_details if params.key?(:collection_details)
+
     if params.key?(:presentation)
       input = params[:presentation]
       return head :unprocessable_content unless input.respond_to?(:permit) &&
@@ -123,6 +129,15 @@ class ShelvesController < ApplicationController
                      preview_signature: helpers.shelf_preview_signature(@user, "collection:#{@collection.slug}") }
     else
       render json: { error: @collection.errors.full_messages.to_sentence }, status: :unprocessable_content
+    end
+  end
+
+  def update_collection_details
+    if @collection.update(params.require(:collection_details).permit(:title, :description))
+      redirect_to shelf_path(@user.username, collection: @collection.slug), status: :see_other
+    else
+      redirect_to shelf_path(@user.username, collection: @collection.slug),
+                  alert: @collection.errors.full_messages.to_sentence, status: :see_other
     end
   end
 

@@ -53,7 +53,7 @@ function text(ctx, value, x, y, width, size, lines = 2, family = "sans-serif") {
 function artwork(ctx, image, x, y, width, height, theme, rank, pick) {
   ctx.fillStyle = theme.surface; ctx.fillRect(x, y, width, height)
   if (image) {
-    const scale = (pick?.type === "Album" ? Math.min : Math.min)(width / image.width, height / image.height)
+    const scale = Math.min(width / image.width, height / image.height)
     ctx.save(); ctx.beginPath(); ctx.rect(x, y, width, height); ctx.clip()
     ctx.drawImage(image, x + (width - image.width * scale) / 2, y + (height - image.height * scale) / 2, image.width * scale, image.height * scale)
     ctx.restore()
@@ -132,7 +132,8 @@ export async function renderShelfImage(canvas, { picks = [], shelves = [], overv
     const image = mascot.image, height = portrait ? 128 : 86, width = height * image.width / image.height
     ctx.drawImage(image, w - edge - width, portrait ? 270 : 20, width, height)
   }
-  if (overview) {
+  const displayedPicks = overview && source.length === 1 ? source[0].picks : picks
+  if (overview && source.length !== 1) {
     source.forEach((shelf, index) => {
       const x = portrait ? edge : edge + (index % 2) * 550
       const y = portrait ? 548 + index * 140 : 205 + Math.floor(index / 2) * 81
@@ -142,24 +143,24 @@ export async function renderShelfImage(canvas, { picks = [], shelves = [], overv
       for (let i = 0; i < count; i++) artwork(ctx, images[index][i], x + (portrait ? 180 : 110) + i * (width + (portrait ? 68 : 22)), y, width, height, theme, i + 1, shelf.picks[i])
     })
   } else if (portrait) {
-    portraitShelfLayout(picks.length, layout).forEach((box, i) => {
+    portraitShelfLayout(displayedPicks.length, layout).forEach((box, i) => {
       ctx.save()
       if (layout === "mixtape") { const angle = [0.035, -0.04, 0.025, -0.03, 0.035][i]; ctx.translate(box.x + box.width / 2, box.y + box.height / 2); ctx.rotate(angle); ctx.translate(-box.x - box.width / 2, -box.y - box.height / 2) }
-      artwork(ctx, images[0][i], box.x, box.y, box.width, box.height, theme, i + 1, picks[i])
+      artwork(ctx, images[0][i], box.x, box.y, box.width, box.height, theme, i + 1, displayedPicks[i])
       ctx.restore()
-      ctx.fillStyle = theme.text; text(ctx, `${String(i + 1).padStart(2, "0")} · ${picks[i].title || "Untitled selection"}`, box.labelX, box.labelY, box.labelWidth, box.font, box.labelLines)
+      ctx.fillStyle = theme.text; text(ctx, `${String(i + 1).padStart(2, "0")} · ${displayedPicks[i].title || "Untitled selection"}`, box.labelX, box.labelY, box.labelWidth, box.font, box.labelLines)
     })
-    if (!picks.length) { ctx.fillStyle = theme.text; text(ctx, "A shelf taking shape.", edge, 840, 936, 64, 2); ctx.fillStyle = theme.muted; text(ctx, "Room for your next favorite.", edge, 970, 936, 32, 2) }
+    if (!displayedPicks.length) { ctx.fillStyle = theme.text; text(ctx, "A shelf taking shape.", edge, 840, 936, 64, 2); ctx.fillStyle = theme.muted; text(ctx, "Room for your next favorite.", edge, 970, 936, 32, 2) }
   } else {
-    const n = Math.min(5, picks.length), width = 176, gap = 36, start = (w - (n * width + Math.max(0, n - 1) * gap)) / 2
+    const n = Math.min(5, displayedPicks.length), width = 176, gap = 36, start = (w - (n * width + Math.max(0, n - 1) * gap)) / 2
     for (let i = 0; i < n; i++) {
       const x = start + i * (width + gap)
-      artwork(ctx, images[0][i], x, 210, width, 230, theme, i + 1, picks[i])
-      ctx.fillStyle = theme.text; text(ctx, `${i + 1}. ${picks[i].title || "Untitled selection"}`, x, 474, width, 19, 2)
+      artwork(ctx, images[0][i], x, 210, width, 230, theme, i + 1, displayedPicks[i])
+      ctx.fillStyle = theme.text; text(ctx, `${i + 1}. ${displayedPicks[i].title || "Untitled selection"}`, x, 474, width, 19, 2)
     }
     if (!n) { ctx.fillStyle = theme.muted; text(ctx, "A shelf taking shape. Room for your next favorite.", edge, 320, 1056, 32, 2) }
   }
   ctx.strokeStyle = theme.line; ctx.beginPath(); ctx.moveTo(edge, h - (portrait ? 450 : 100)); ctx.lineTo(w - edge, h - (portrait ? 450 : 100)); ctx.stroke()
-  ctx.fillStyle = theme.muted; text(ctx, `${siteHost}${sharePath || `/@${handle}/shelf`}`, edge, h - (portrait ? 410 : 49), w - edge * 2, portrait ? 26 : 18, 1)
+  ctx.fillStyle = theme.muted; text(ctx, `@${handle} · ${siteHost} · Explore the collection`, edge, h - (portrait ? 410 : 49), w - edge * 2, portrait ? 26 : 18, 1)
   canvas.width = w; canvas.height = h; canvas.getContext("2d").drawImage(output, 0, 0)
 }

@@ -4,7 +4,7 @@ const { readFileSync } = require('node:fs')
 const source=readFileSync('app/javascript/controllers/shelf_image.js','utf8').replace(/export /g,'')
 const {portraitShelfLayout,SHELF_THEMES,shelfImageAltText,shelfImageHeading}=new Function(source+';return {portraitShelfLayout,SHELF_THEMES,shelfImageAltText,shelfImageHeading}')()
 test('all portrait layouts keep artwork and readable text outside Story chrome',()=>{
- for(const layout of ['exhibition','reading','collector'])for(let n=0;n<=5;n++){
+ for(const layout of ['exhibition','reading','collector','mixtape'])for(let n=0;n<=5;n++){
   const boxes=portraitShelfLayout(n,layout);assert.equal(boxes.length,n)
   for(const box of boxes){
    assert.ok(box.x>=72 && box.x+box.width<=1008,`${layout}/${n}: horizontal cover safety`)
@@ -39,11 +39,32 @@ test('Midnight Feature is distinct from Halloween and has a readable export desc
 
 test('saved headline is the shared identity for overview and category cards with safe fallbacks',()=>{
  const headline="it's finally spooky szn 🦇"
- for(const overview of [true,false])for(const format of ['landscape','portrait'])for(const layout of ['exhibition','reading','collector']){
+ for(const overview of [true,false])for(const format of ['landscape','portrait'])for(const layout of ['exhibition','reading','collector','mixtape']){
   const alt=shelfImageAltText({picks:[{title:'A selection'}],shelves:[{label:'Books',picks:[]}],overview,theme:'halloween',format,handle:'demo',category:'Books',headline,layout})
   assert.ok(alt.includes(headline));assert.doesNotMatch(alt,/top five|favorites/i)
   if(!overview)assert.match(alt,/Category: Books/)
  }
  for(const missing of [undefined,null,'','   ',42])assert.equal(shelfImageHeading(missing),'The things I keep.')
  assert.equal(shelfImageHeading('  🦇 strange nights  '),'🦇 strange nights')
+})
+
+test('remote artwork requests use anonymous CORS and failures resolve to a fallback', async () => {
+ const {cover}=new Function(source+';return {cover}')()
+ let request
+ global.Image=class { set src(value){request=this;if(value)queueMicrotask(()=>this.onerror())} }
+ assert.equal(await cover({cover:'https://artwork.example/blocked.jpg'}),null)
+ assert.equal(request.crossOrigin,'anonymous')
+ delete global.Image
+})
+
+test('all media artwork is contained with its original ratio',()=>{
+ const {artwork}=new Function(source+';return {artwork}')()
+ const draws=[]
+ const ctx={fillRect(){},save(){},beginPath(){},rect(){},clip(){},restore(){},strokeRect(){},drawImage(...args){draws.push(args)}}
+ for(const type of ['Book','Album','Movie','TvShow','Comic','VideoGame'])for(const [width,height] of [[200,300],[300,300],[400,200]]){
+  artwork(ctx,{width,height},72,560,220,330,SHELF_THEMES.everyday,1,{type})
+  const [,x,y,w,h]=draws.at(-1)
+  assert.ok(x>=71.999&&y>=559.999&&x+w<=292.001&&y+h<=890.001)
+  assert.ok(Math.abs(w/h-width/height)<1e-9)
+ }
 })

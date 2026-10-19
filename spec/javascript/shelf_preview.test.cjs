@@ -16,7 +16,7 @@ function fixture() {
   instance.previewCategoryValue = 'Movie'; instance.urlValue = '/@owner/shelf?category=Movie'
   instance.ownerValue = true; instance.element = { isConnected: true }
   instance.statusTarget = { textContent: '' }; instance.altTextTarget = { value: '' }
-  instance.canvasTarget = { setAttribute() {}, closest: () => ({ open: false }), getContext: () => ({ drawImage() {} }) }
+  instance.canvasTarget = { dataset: {}, setAttribute() {}, closest: () => ({ open: false }), getContext: () => ({ drawImage() {} }) }
   global.document = {
     createElement: () => ({ getContext: () => ({ drawImage() {} }), toBlob: callback => callback(new Blob(['png'])) }),
     querySelector: () => ({ content: 'csrf-test' })
@@ -86,4 +86,14 @@ test('published category previews retain the custom identity while using the soc
  assert.equal(renderOptions[0].headline,"it's finally spooky szn")
  assert.equal(renderOptions[0].category,'Books');assert.equal(renderOptions[0].format,'landscape')
  assert.equal(renderOptions[0].layout,'reading')
+})
+
+test('a network failure preserves unsaved appearance and blocks sharing', async () => {
+  const { instance } = fixture()
+  instance.presentationDirty = true
+  instance.imageStyle = { layout: 'mixtape' }
+  global.fetch = async () => { throw new Error('Offline') }
+  assert.equal(await instance.savePresentation(), false)
+  assert.equal(instance.presentationDirty, true)
+  assert.match(instance.statusTarget.textContent, /choices are preserved/)
 })

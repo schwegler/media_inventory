@@ -11,7 +11,7 @@ RSpec.describe 'Shelf Story customization', type: :system do
     visit shelf_path(user.username, category: 'Movie', theme: 'telly', layout: 'reading')
     expect(page).to have_css('.favorite-shelf[data-connected="true"]')
     choose 'Telly'
-    select 'Reading list', from: 'Layout'
+    select 'Reading list', from: 'Legacy layout'
     find('summary', text: 'Advanced appearance').click
     select 'Star field', from: 'Background'
     select 'Telly', from: 'Mascot'
@@ -27,8 +27,7 @@ RSpec.describe 'Shelf Story customization', type: :system do
     capture_ui_screenshot('shelf-telly-story-mobile')
     select 'None', from: 'Mascot'
     expect(page).to have_no_css('.shelf-companion img', visible: true)
-    visit shelf_path(user.username, category: 'Movie', theme: 'facet')
-    find('summary', text: 'Advanced appearance').click
+    select 'Facet', from: 'All palettes'
     select 'Match theme', from: 'Mascot'
     expect(page).to have_css('.shelf-companion img[alt=""][src*="facet_shelf"]')
   end
@@ -48,7 +47,7 @@ RSpec.describe 'Shelf Story customization', type: :system do
     expect(page).to have_text('Viewing shelf overview')
     expect(page).to have_css('.shelf-introduction')
     expect(page).to have_css('.favorite-shelf[data-shelf-theme="electric"][data-shelf-texture="stars"]')
-    expect(page).to have_select('Layout', selected: 'Reading list')
+    expect(page).to have_select('Legacy layout', selected: 'Reading list')
     capture_ui_screenshot('shelf-overview-navigation-mobile')
     click_link 'Edit selections'
     expect(page).to have_text('Editing Overall selections')
@@ -61,8 +60,8 @@ RSpec.describe 'Shelf Story customization', type: :system do
     expect(page).to have_text('the late show. questionable decisions.')
     expect(page).to have_css('.shelf-preview canvas[width="1080"][height="1920"]')
     find('input[name="shelf-format"][value="portrait"]').choose
-    ['Gallery · balanced covers', 'Feature · lead pick', 'Mixtape · cover collage'].each do |layout|
-      select layout, from: 'Layout'
+    %w[Gallery Feature Mixtape].each do |layout|
+      choose "#{layout} layout"
       expect(page).to have_css('.shelf-preview canvas[width="1080"][height="1920"]')
       expect(find('#shelf-image-alt-text', visible: :all).value).to include('Midnight Feature')
     end
@@ -81,8 +80,8 @@ RSpec.describe 'Shelf Story customization', type: :system do
     expect(page).to have_css('h1 > span', text: 'Books · selections')
     expect(find('#shelf-image-alt-text', visible: :all).value).to include(user.shelf_headline, 'Category: Books')
     find('input[name="shelf-format"][value="portrait"]').choose
-    ['Gallery · balanced covers', 'Feature · lead pick', 'Mixtape · cover collage'].each do |layout|
-      select layout, from: 'Layout'
+    %w[Gallery Feature Mixtape].each do |layout|
+      choose "#{layout} layout"
       expect(find('#shelf-image-alt-text', visible: :all).value).to include(user.shelf_headline)
       expect(page).to have_css('.shelf-preview canvas[height="1920"]')
     end
@@ -90,6 +89,8 @@ RSpec.describe 'Shelf Story customization', type: :system do
     resize_browser_viewport(390, 844)
     expect(page.evaluate_script('document.documentElement.scrollWidth <= innerWidth')).to be(true)
     capture_ui_screenshot('custom-headline-category-mobile')
+    click_button 'Save appearance'
+    expect(page).to have_text('Appearance saved.')
     click_link 'View shelf overview'
     expect(page).to have_css('h1', text: user.shelf_headline)
     expect(user.reload.shelf_headline).to eq("it's finally spooky szn 🦇")

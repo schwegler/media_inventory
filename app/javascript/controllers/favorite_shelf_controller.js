@@ -13,8 +13,8 @@ export default class extends Controller {
     if (!SHELF_THEMES[this.imageTheme]) this.imageTheme = "midnight"
     if (this.previewStoredValue && JSON.stringify(this.imageStyle) === serverStyle) this.storedPreview = `${this.previewSignatureValue}:${this.previewThemeValue}:${serverStyle}`
     this.applyTheme(); this.render()
-    this.guard = event => { if (this.dirty) { event.preventDefault(); event.returnValue = "" } }
-    this.visitGuard = event => { if (this.dirty && !window.confirm("Leave without saving your shelf?")) event.preventDefault() }
+    this.guard = event => { if (this.dirty || this.presentationDirty) { event.preventDefault(); event.returnValue = "" } }
+    this.visitGuard = event => { if ((this.dirty || this.presentationDirty) && !window.confirm("Leave without saving your shelf?")) event.preventDefault() }
     this.onDialogClose = () => { const opener = this.opener; this.opener = null; if (opener && typeof opener.focus === "function" && opener.isConnected) opener.focus() }
     if (this.hasDialogTarget) this.dialogTarget.addEventListener("close", this.onDialogClose)
     window.addEventListener("beforeunload", this.guard)
@@ -85,7 +85,7 @@ export default class extends Controller {
       if (!response.ok) throw new Error(result.error || "Could not add this title")
       if (this.picks.some(p => p.id === result.id && p.type === result.type)) throw new Error("Already selected. Choose another title.")
       this.picks[this.slot] = result; this.changed(); this.close()
-    } catch (error) { this.resultsTarget.textContent = `${error.message}. Your search is preserved; retry the search to try again.` }
+    } catch (error) { this.resultsTarget.textContent = `${error.message}. Your search is preserved.`; this.resultsTarget.append(this.button("Retry search", () => this.search())) }
   }
   search() {
     clearTimeout(this.timer); this.abort?.abort()
@@ -108,7 +108,7 @@ export default class extends Controller {
           this.resultsTarget.append(result)
         })
         if (!results.length) this.resultsTarget.textContent = "No matches. Try a different title."
-      } catch (error) { if (error.name !== "AbortError") this.resultsTarget.textContent = "Search unavailable. Please try again." }
+      } catch (error) { if (error.name !== "AbortError") { this.resultsTarget.textContent = "Search unavailable. Your query is preserved."; this.resultsTarget.append(this.button("Retry search", () => this.search())) } }
     }, 200)
   }
   async save() {
@@ -140,6 +140,7 @@ export default class extends Controller {
     this.element.dataset.shelfTheme = this.imageTheme
     this.element.dataset.shelfTexture = this.imageStyle.texture
     this.element.dataset.shelfLayout = this.imageStyle.layout
+    this.element.querySelectorAll('[name="layout"][type="radio"]').forEach(input => { input.checked = input.value === this.imageStyle.layout })
     for (const [key, value] of Object.entries(this.imageStyle)) { const input = this.element.querySelector(`select[name="${key}"]`); if (input) input.value = value }
     if (this.hasCompanionTarget) {
       const selected = this.imageStyle.companion === "auto" ? (this.imageTheme === "halloween" ? "bat" : this.imageTheme) : this.imageStyle.companion
@@ -148,19 +149,25 @@ export default class extends Controller {
       if (source) this.companionTarget.src = source
       else this.companionTarget.removeAttribute("src")
     }
-    this.element.querySelectorAll('[name="shelf-theme"]').forEach(input => { input.checked = input.value === this.imageTheme })
+    this.element.querySelectorAll('input[name="shelf-theme"]').forEach(input => { input.checked = input.value === this.imageTheme })
+    const paletteSelect = this.element.querySelector('select[name="shelf-theme"]'); if (paletteSelect) paletteSelect.value = this.imageTheme
     this.element.querySelectorAll('[data-shelf-link]').forEach(link => {
       const url = new URL(link.href); url.searchParams.set("theme", this.imageTheme); for (const [key, value] of Object.entries(this.imageStyle)) url.searchParams.set(key, value); link.href = url.href
     })
   }
   format(event) { this.imageFormat = event.target.value; this.schedulePreview() }
   async savePresentation() {
-    if (!this.presentationDirty) return true
-    const response = await fetch(this.urlValue, { method: "PATCH", headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" }, body: JSON.stringify({ presentation: { theme: this.imageTheme, ...this.imageStyle } }) })
-    if (!response.ok) { this.statusTarget.textContent = "Could not save appearance. Please retry before sharing."; return false }
-    this.presentationDirty = false
-    this.statusTarget.textContent = "Appearance saved. Visitors will see this presentation."
-    return true
+    if (!this.presentationDirty) { this.statusTarget.textContent = "Appearance saved. Visitors will see this presentation."; return true }
+    try {
+      const response = await fetch(this.urlValue, { method: "PATCH", headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" }, body: JSON.stringify({ presentation: { theme: this.imageTheme, ...this.imageStyle } }) })
+      if (!response.ok) throw new Error("Appearance save failed")
+      this.presentationDirty = false
+      this.statusTarget.textContent = "Appearance saved. Visitors will see this presentation."
+      return true
+    } catch {
+      this.statusTarget.textContent = "Could not save appearance. Your choices are preserved; retry before sharing."
+      return false
+    }
   }
   async copyLink() {
     if (!(await this.savePresentation())) return
@@ -201,10 +208,13 @@ export default class extends Controller {
     const description = shelfImageAltText(options)
     this.altTextTarget.value = description
     this.canvasTarget.setAttribute("aria-label", description)
+    this.canvasTarget.setAttribute("aria-busy", "true")
     await renderShelfImage(canvas, options)
     if (version !== this.version || !this.element.isConnected) return
     this.canvasTarget.width = canvas.width; this.canvasTarget.height = canvas.height
     this.canvasTarget.getContext("2d").drawImage(canvas, 0, 0)
+    this.canvasTarget.dataset.renderedLayout = options.layout
+    this.canvasTarget.setAttribute("aria-busy", "false")
     return canvas
   }
   async publishPreview(event) {
