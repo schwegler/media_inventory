@@ -39,7 +39,12 @@ module ApplicationHelper
     num = rating.to_f
     full_stars = num.floor
     half_star = num - full_stars >= 0.5 ? '½' : ''
-    ('★' * full_stars) + half_star
+    stars_str = ('★' * full_stars) + half_star
+    display_num = (num % 1).zero? ? num.to_i : num.round(1)
+
+    content_tag(:span, stars_str, class: 'star-rating',
+                                  title: "#{display_num} / 5 stars",
+                                  aria: { label: "#{display_num} out of 5 stars" })
   end
 
   def community_stats_for(item)

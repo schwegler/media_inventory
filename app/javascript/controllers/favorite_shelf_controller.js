@@ -76,7 +76,7 @@ export default class extends Controller {
   }
   changed() { this.dirty = true; this.statusTarget.textContent = "Unsaved changes"; this.render() }
   move(index, direction) { [this.picks[index], this.picks[index + direction]] = [this.picks[index + direction], this.picks[index]]; this.changed() }
-  open(index, event) { this.slot = Math.min(index, this.picks.length); this.opener = event?.currentTarget || document.activeElement; this.dialogTarget.showModal(); this.queryTarget.value = ""; this.resultsTarget.textContent = "Type at least two characters to search."; this.queryTarget.focus() }
+  open(index, event) { this.slot = Math.min(index, this.picks.length); this.opener = event?.currentTarget || document.activeElement; this.dialogTarget.showModal(); this.queryTarget.value = ""; this.resultsTarget.textContent = "Type at least two characters to search."; requestAnimationFrame(() => this.queryTarget.focus()) }
   close() { this.dialogTarget.close() }
   search() {
     clearTimeout(this.timer); this.abort?.abort()
