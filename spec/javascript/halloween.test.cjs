@@ -11,15 +11,15 @@ function fixture(instant = '2026-10-20T12:00:00Z', attributes = { theme: 'os', a
   const storage = new Map(), timers = [], events = []
   const adapter = { getItem: k => storage.get(k), setItem: (k, v) => storage.set(k, v), removeItem: k => storage.delete(k) }
   const body = { dataset: { viewerId: '1', uiPreferences: 'original' } }
-  const document = { addEventListener() {}, removeEventListener() {}, documentElement: root, body, readyState: 'complete', querySelector: () => ({ focus() {} }) }
+  const document = { addEventListener() {}, removeEventListener() {}, documentElement: root, body, readyState: 'complete', querySelectorAll: () => [], querySelector: selector => selector === 'main' ? { focus() {} } : null }
   const window = { localStorage: adapter, sessionStorage: adapter, dispatchEvent: e => events.push(e), addEventListener() {}, removeEventListener() {} }
   const clock = { now: () => now, parse: Date.parse }
   const { currentSeason, SEASONAL_KEYS } = new Function('Date', configSource+';return {currentSeason, SEASONAL_KEYS}')(clock)
-  const Controller = new Function('Controller', 'document', 'window', 'currentSeason', 'SEASONAL_KEYS', 'Date', 'CustomEvent', 'setTimeout', 'clearTimeout', source)(class {}, document, window, currentSeason, SEASONAL_KEYS, clock, class { constructor(name, options){ this.name=name;this.detail=options.detail } }, (fn, delay) => { timers.push({fn,delay}); return timers.length }, () => {})
+  const Controller = new Function('Controller', 'document', 'window', 'currentSeason', 'SEASONAL_KEYS', 'Date', 'CustomEvent', 'setTimeout', 'clearTimeout', 'innerWidth', 'innerHeight', source)(class {}, document, window, currentSeason, SEASONAL_KEYS, clock, class { constructor(name, options){ this.name=name;this.detail=options.detail } }, (fn, delay) => { timers.push({fn,delay}); return timers.length }, () => {}, 1000, 800)
   const instance = Object.create(Controller.prototype)
   instance.configValue = config; instance.stageTarget = { hidden: true, dataset: {} }; instance.hasStageTarget = true
   instance.invitationTarget = { hidden: true }; instance.noticeTarget = { hidden: true, querySelector: () => ({ focus() {} }) }; instance.messageTarget = {}; instance.pauseTargets = []; instance.atmosphereTargets = []
-  return { instance, values, storage, body, timers, events, setTime: value => { now = Date.parse(value) }, original: Object.fromEntries(values) }
+  return { instance, values, storage, body, document, timers, events, setTime: value => { now = Date.parse(value) }, original: Object.fromEntries(values) }
 }
 test('fresh display waits for one settled-page entrance and never activates a theme', () => {
   const f=fixture();f.instance.connect()
@@ -58,4 +58,13 @@ test('X dismissal is per-tab, footer reset reopens, and the deadline clears a li
   f.instance.resetChoice();assert.equal(f.instance.invitationTarget.hidden,false)
   f.instance.apply();f.setTime('2026-11-01T00:00:00Z');f.timers.find(t=>t.delay>1000).fn()
   assert.deepEqual(Object.fromEntries(f.values),f.original);assert.equal(f.instance.stageTarget.hidden,true)
+})
+
+test('crowded viewport defers the overlay instead of covering protected controls', () => {
+ const f=fixture();f.instance.connect()
+ Object.assign(f.instance.stageTarget,{style:{},offsetWidth:176,offsetHeight:170,getBoundingClientRect:()=>({}),contains:()=>false})
+ f.document.querySelectorAll=()=>[{getBoundingClientRect:()=>({left:0,top:0,right:1000,bottom:800,width:1000,height:800})}]
+ f.instance.position();assert.equal(f.instance.stageTarget.style.visibility,'hidden')
+ f.document.querySelectorAll=()=>[]
+ f.instance.position();assert.equal(f.instance.stageTarget.style.visibility,'visible')
 })

@@ -31,6 +31,8 @@ export default class extends Controller {
     }
     this.reposition = () => { if (!this.frame) this.frame = requestAnimationFrame(() => { this.frame = null; this.position() }) }
     document.addEventListener("focusin", this.reposition)
+    document.addEventListener("click", this.reposition)
+    if (window.ResizeObserver) { this.observer = new window.ResizeObserver(this.reposition); this.observer.observe(document.body) }
     window.addEventListener("resize", this.reposition)
     window.addEventListener("scroll", this.reposition, { passive: true })
     if (this.season.window) this.scheduleExpiry()
@@ -48,8 +50,12 @@ export default class extends Controller {
       [innerWidth - width - margin, innerHeight - height - 100],
       [margin, innerHeight - height - 100]
     ].map(([x, y]) => [Math.max(margin, x), Math.max(margin, Math.min(y, innerHeight - height - 40))])
+    const current = [parseFloat(this.stageTarget.style.left), parseFloat(this.stageTarget.style.top)]
+    if (current.every(Number.isFinite) && current[0] >= margin && current[0] + width <= innerWidth - margin && current[1] >= margin && current[1] + height <= innerHeight - 40) candidates.unshift(current)
     const score = ([x, y]) => obstacles.reduce((sum, box) => sum + Math.max(0, Math.min(x + width, box.right + 12) - Math.max(x, box.left - 12)) * Math.max(0, Math.min(y + height, box.bottom + 12) - Math.max(y, box.top - 12)), 0)
     candidates.sort((a, b) => score(a) - score(b))
+    // Dense forms can occupy every edge. Defer the decoration until a clear position exists.
+    if (score(candidates[0]) > 0) this.stageTarget.style.visibility = "hidden"
     this.stageTarget.style.left = `${candidates[0][0]}px`
     this.stageTarget.style.top = `${candidates[0][1]}px`
   }
@@ -80,6 +86,8 @@ export default class extends Controller {
   disconnect() {
     clearTimeout(this.expiry); clearTimeout(this.entrance)
     document.removeEventListener("focusin", this.reposition)
+    document.removeEventListener("click", this.reposition)
+    this.observer?.disconnect()
     window.removeEventListener("resize", this.reposition)
     window.removeEventListener("scroll", this.reposition)
     if (this.frame) cancelAnimationFrame(this.frame)
@@ -107,7 +115,7 @@ export default class extends Controller {
     this.stageTarget.hidden = Boolean(this.closed)
     this.messageTarget.textContent = "well. it’s haunted now."
     this.position()
-    if (activated) this.noticeTarget.querySelector("button").focus()
+    if (activated && this.stageTarget.style?.visibility !== "hidden") this.noticeTarget.querySelector("button").focus()
   }
   apply() {
     if (!currentSeason(this.configValue)) return this.expire()

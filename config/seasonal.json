@@ -1,19 +1,33 @@
 {
   "schemaVersion": 2,
   "invitationDelayMs": 1000,
-  "profile": { "id": "trove", "character": "Facet", "placement": "floating-overlay" },
+  "profile": {
+    "id": "trove",
+    "character": "Facet"
+  },
   "activeSeason": "halloween-2026",
   "seasons": [
     {
-      "id": "halloween-2026", "theme": "halloween", "label": "Halloween", "enabled": true,
-      "asset": "brand/facet_bat_costume_2026.png", "kicker": "",
-      "title": "", "detail": "",
-      "prompt": "Turn on Halloween mode", "window": { "from": "2026-10-18T00:00:00Z", "until": "2026-11-01T00:00:00Z" }
+      "id": "halloween-2026",
+      "theme": "halloween",
+      "label": "Halloween",
+      "enabled": true,
+      "asset": "brand/facet_bat_costume_2026.png",
+      "window": {
+        "from": "2026-10-18T00:00:00Z",
+        "until": "2026-11-01T00:00:00Z"
+      }
     },
     {
-      "id": "christmas-2026", "theme": "christmas", "label": "Christmas", "enabled": false,
-      "asset": null, "kicker": "Holiday magic", "title": "A festive reading room", "detail": "Artwork awaiting approval.",
-      "prompt": "Turn on Christmas", "window": { "from": "2026-11-01T00:00:00Z", "until": "2027-01-01T00:00:00Z" }
+      "id": "christmas-2026",
+      "theme": "christmas",
+      "label": "Christmas",
+      "enabled": false,
+      "asset": null,
+      "window": {
+        "from": "2026-11-01T00:00:00Z",
+        "until": "2027-01-01T00:00:00Z"
+      }
     }
   ]
 }

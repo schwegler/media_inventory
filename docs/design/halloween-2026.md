@@ -15,4 +15,4 @@ Story exports use the production canvas renderer with explicitly synthetic demo 
 - `stories/story-*.png`: native 1080×1920 exports from production renderer with clearly synthetic jackets; `story-layout-comparison.png` compares the three five-cover layouts.
 - `shelf-telly-story-*.png`: actual shelf controls and Story preview at desktop/mobile widths.
 
-Local verification: 901 nonbrowser examples passed, nine existing pending; 21 JavaScript tests passed; nine focused browser examples passed; 567 Ruby files linted clean; asset build passed; Brakeman reported zero warnings. Capture additionally checked reduced motion, Pause, Hide atmosphere, no horizontal mobile overflow and separation from navigation. CI remains the final cross-platform check.
+Local verification: 901 nonbrowser examples passed, nine existing pending; 22 JavaScript tests passed; nine focused browser examples passed; 567 Ruby files linted clean; asset build passed; Brakeman reported zero warnings. Capture additionally checked reduced motion, Pause, Hide atmosphere, no horizontal mobile overflow and separation from navigation. CI remains the final cross-platform check.
