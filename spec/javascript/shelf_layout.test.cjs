@@ -2,7 +2,7 @@ const { test } = require('node:test')
 const assert = require('node:assert/strict')
 const { readFileSync } = require('node:fs')
 const source=readFileSync('app/javascript/controllers/shelf_image.js','utf8').replace(/export /g,'')
-const {portraitShelfLayout,SHELF_THEMES,shelfImageAltText}=new Function(source+';return {portraitShelfLayout,SHELF_THEMES,shelfImageAltText}')()
+const {portraitShelfLayout,SHELF_THEMES,shelfImageAltText,shelfImageHeading}=new Function(source+';return {portraitShelfLayout,SHELF_THEMES,shelfImageAltText,shelfImageHeading}')()
 test('all portrait layouts keep artwork and readable text outside Story chrome',()=>{
  for(const layout of ['exhibition','reading','collector'])for(let n=0;n<=5;n++){
   const boxes=portraitShelfLayout(n,layout);assert.equal(boxes.length,n)
@@ -33,5 +33,17 @@ test('Midnight Feature is distinct from Halloween and has a readable export desc
  assert.notEqual(SHELF_THEMES.midnight_feature.bg,SHELF_THEMES.halloween.bg)
  assert.notEqual(SHELF_THEMES.midnight_feature.accent,SHELF_THEMES.halloween.accent)
  const alt=shelfImageAltText({picks:[],overview:false,category:'Movies',theme:'midnight_feature',format:'portrait',handle:'demo'})
- assert.match(alt,/Midnight Feature theme/);assert.match(alt,/No favorites chosen yet/)
+ assert.match(alt,/Midnight Feature theme/);assert.match(alt,/No selections yet/)
+})
+
+
+test('saved headline is the shared identity for overview and category cards with safe fallbacks',()=>{
+ const headline="it's finally spooky szn 🦇"
+ for(const overview of [true,false])for(const format of ['landscape','portrait'])for(const layout of ['exhibition','reading','collector']){
+  const alt=shelfImageAltText({picks:[{title:'A selection'}],shelves:[{label:'Books',picks:[]}],overview,theme:'halloween',format,handle:'demo',category:'Books',headline,layout})
+  assert.ok(alt.includes(headline));assert.doesNotMatch(alt,/top five|favorites/i)
+  if(!overview)assert.match(alt,/Category: Books/)
+ }
+ for(const missing of [undefined,null,'','   ',42])assert.equal(shelfImageHeading(missing),'The things I keep.')
+ assert.equal(shelfImageHeading('  🦇 strange nights  '),'🦇 strange nights')
 })

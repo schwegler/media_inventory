@@ -1,24 +1,25 @@
-<% content_for :title, "#{@user.name}’s Shelf" %>
-<% content_for :meta_description, "The things that stay with #{@user.name}. Explore seven shelves of personal favorites on Trove." %>
 <% headline = @user.shelf_headline.presence || "The things I keep." %>
+<% category_label = @overview ? 'Shelf overview' : FavoriteShelf::CATEGORIES[@category] %>
+<% content_for :title, h("#{headline} · #{category_label} · #{@user.name}’s Shelf") %>
+<% content_for :meta_description, h("#{headline} — #{category_label} selections by #{@user.name} on Trove.") %>
 <% flash.each do |type, message| %><p class="alert alert-<%= type %>" role="status"><%= message %></p><% end %>
 <section data-favorite-shelf-preview-stored-value="<%= @preview_image.present? %>" data-favorite-shelf-preview-theme-value="<%= @theme %>" data-favorite-shelf-owner-value="<%= current_user?(@user) %>" data-favorite-shelf-preview-category-value="<%= @preview_category %>" data-favorite-shelf-preview-signature-value="<%= @preview_signature %>" data-favorite-shelf-headline-value="<%= headline %>" data-favorite-shelf-style-value="<%= @image_style.to_json %>" data-favorite-shelf-assets-value="<%= { telly: asset_path('brand/telly_shelf.png'), facet: asset_path('brand/facet_shelf.png'), bat: asset_path('brand/facet_bat_costume_2026.png') }.to_json %>" class="favorite-shelf" data-shelf-theme="<%= @theme %>" data-controller="favorite-shelf" data-favorite-shelf-url-value="<%= shelf_path(@user.username, category: @category) %>" data-favorite-shelf-search-value="<%= search_shelves_path(category: @category) %>" data-favorite-shelf-picks-value="<%= shelf_pick_data(@items).to_json %>" data-favorite-shelf-shelves-value="<%= @shelves.map { |s| { label: s[:label], picks: shelf_pick_data(s[:items]) } }.to_json %>" data-favorite-shelf-overview-value="<%= @overview %>" data-favorite-shelf-handle-value="<%= @user.username %>" data-favorite-shelf-category-value="<%= FavoriteShelf::CATEGORIES[@category] %>">
   <nav class="shelf-toolbar" aria-label="Shelf navigation">
     <div class="shelf-toolbar-links">
       <%= link_to 'View shelf overview', shelf_navigation_path(@user, theme: @theme, style: @image_style), class: 'shelf-primary shelf-overview-link', data: { shelf_link: true }, aria: { current: @overview ? 'page' : nil } %>
-      <% if current_user?(@user) && @overview %><%= link_to 'Edit favorites', shelf_navigation_path(@user, category: 'overall', theme: @theme, style: @image_style), data: { shelf_link: true } %><% end %>
+      <% if current_user?(@user) && @overview %><%= link_to 'Edit selections', shelf_navigation_path(@user, category: 'overall', theme: @theme, style: @image_style), data: { shelf_link: true } %><% end %>
       <% if current_user?(@user) %><%= link_to 'Customize profile', settings_path %><% end %>
       <%= link_to 'View profile', handle_profile_path(@user.username) %>
       <a href="#shelf-sharing">Share</a>
     </div>
-    <p class="shelf-view-state"><%= @overview ? 'Viewing shelf overview' : "#{current_user?(@user) ? 'Editing' : 'Viewing'} #{FavoriteShelf::CATEGORIES[@category]} favorites" %></p>
+    <p class="shelf-view-state"><%= @overview ? 'Viewing shelf overview' : "#{current_user?(@user) ? 'Editing' : 'Viewing'} #{FavoriteShelf::CATEGORIES[@category]} selections" %></p>
     <fieldset class="shelf-themes"><legend>Theme</legend><% ShelvesHelper::SHELF_THEMES.each do |theme| %><label><input type="radio" name="shelf-theme" value="<%= theme %>" <%= 'checked' if @theme == theme %> data-action="favorite-shelf#theme"><span><%= shelf_theme_label(theme) %></span></label><% end %></fieldset>
   </nav>
   <p class="shelf-screening-note">the late show. questionable decisions.</p>
   <div class="shelf-companion" hidden><img alt="" width="96" height="126" decoding="async" data-favorite-shelf-target="companion"></div>
   <% if @overview && !current_user?(@user) && @shelves.all? { |shelf| shelf[:items].empty? } %>
-    <header class="shelf-heading"><h1>A shelf<br>taking shape.</h1></header>
-    <p><%= @user.name %> hasn't chosen favorites yet. Their library has more to explore.</p>
+    <header class="shelf-heading"><h1 title="<%= headline %>"><% if @user.shelf_headline.present? %><%= headline %><% else %>A shelf<br>taking shape.<% end %></h1></header>
+    <p><%= @user.name %> hasn't chosen selections yet. Their library has more to explore.</p>
     <%= link_to "Explore #{@user.name}’s library", handle_profile_path(@user.username), class: 'shelf-primary' %>
     <nav class="shelf-categories" aria-label="Shelf categories"><% FavoriteShelf::CATEGORIES.each do |key, label| %><%= link_to label, shelf_path(@user.username, category: key, theme: @theme), data: { shelf_link: true } %><% end %></nav>
   <% elsif @overview %>
@@ -35,14 +36,14 @@
       <% end %></header><%= render 'exhibit', shelf: @shelves.first, index: 0, featured: true %></div>
     <div class="shelf-exhibition"><% @shelves.drop(1).each_with_index do |shelf, index| %><%= render 'exhibit', shelf: shelf, index: index + 1, featured: false %><% end %></div>
   <% else %>
-    <header class="shelf-heading shelf-detail-heading"><%= link_to "#{@user.name}’s Shelf", shelf_navigation_path(@user, theme: @theme, style: @image_style), data: { shelf_link: true } %><h1><%= FavoriteShelf::CATEGORIES[@category] %><span>Five favorites. Entirely personal.</span></h1></header>
+    <header class="shelf-heading shelf-detail-heading"><%= link_to "#{@user.name}’s Shelf", shelf_navigation_path(@user, theme: @theme, style: @image_style), data: { shelf_link: true } %><h1 title="<%= headline %>"><span class="shelf-custom-title"><%= headline %></span><span><%= category_label %> · selections</span></h1></header>
     <nav class="shelf-categories" aria-label="Shelf categories"><% FavoriteShelf::CATEGORIES.each do |key, label| %><%= link_to label, shelf_path(@user.username, category: key, theme: @theme), data: { shelf_link: true }, aria: { current: @category == key ? 'page' : nil } %><% end %></nav>
-    <% if current_user?(@user) %><p class="shelf-edit-hint">Choose a cover to find a favorite. Reorder your picks, then save your public shelf.</p><% end %>
+    <% if current_user?(@user) %><p class="shelf-edit-hint">Choose a cover to find a pick. Reorder your picks, then save your public shelf.</p><% end %>
     <div class="favorite-shelf-slots" data-favorite-shelf-target="slots" data-owner="<%= current_user?(@user) %>"></div>
     <noscript><ol><% @items.each do |item| %><li><%= link_to item.title, item %></li><% end %></ol><p>Enable JavaScript to edit your shelf and download its share image.</p></noscript>
     <% if current_user?(@user) %>
       <button type="button" class="shelf-primary" data-action="favorite-shelf#save">Save shelf</button>
-      <dialog data-favorite-shelf-target="dialog" aria-labelledby="shelf-picker-heading"><div class="shelf-picker"><h2 id="shelf-picker-heading">Find a favorite</h2><button type="button" data-action="favorite-shelf#close" aria-label="Close search">Close</button><label for="shelf-search">Search titles</label><input id="shelf-search" type="search" autofocus placeholder="Start typing a title…" autocomplete="off" data-favorite-shelf-target="query" data-action="input->favorite-shelf#search"><div data-favorite-shelf-target="results" aria-live="polite">Search across the catalog. No need to add it to your library first.</div></div></dialog>
+      <dialog data-favorite-shelf-target="dialog" aria-labelledby="shelf-picker-heading"><div class="shelf-picker"><h2 id="shelf-picker-heading">Find a pick</h2><button type="button" data-action="favorite-shelf#close" aria-label="Close search">Close</button><label for="shelf-search">Search titles</label><input id="shelf-search" type="search" autofocus placeholder="Start typing a title…" autocomplete="off" data-favorite-shelf-target="query" data-action="input->favorite-shelf#search"><div data-favorite-shelf-target="results" aria-live="polite">Search across the catalog. No need to add it to your library first.</div></div></dialog>
     <% end %>
   <% end %>
   <section class="shelf-sharing" id="shelf-sharing" aria-labelledby="shelf-share-heading">
@@ -54,7 +55,7 @@
       <label for="shelf-companion">Companion</label><select id="shelf-companion" name="companion" data-action="favorite-shelf#customize"><%= options_for_select([['Match theme', 'auto'], ['None', 'none'], ['Telly', 'telly'], ['Facet', 'facet'], ['Facet in bat costume', 'bat']], @image_style['companion']) %></select>
       <p>Curated, readable defaults. Your layout, background and companion travel with copied shelf links.</p>
     </fieldset>
-    <% if current_user?(@user) %><div class="shelf-publish"><p>Publish a preview after saving favorites so social links show your current shelf image.</p><button type="button" class="shelf-copy" data-action="favorite-shelf#publishPreview">Publish share preview</button></div><% end %>
+    <% if current_user?(@user) %><div class="shelf-publish"><p>Publish a preview after saving selections so social links show your current shelf image.</p><button type="button" class="shelf-copy" data-action="favorite-shelf#publishPreview">Publish share preview</button></div><% end %>
     <div class="shelf-share-actions"><button type="button" class="shelf-copy shelf-download" data-action="favorite-shelf#download"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 15v6h16v-6"/></svg>Download share image</button><button type="button" class="shelf-primary" data-action="favorite-shelf#copyLink">Copy shelf link</button><button type="button" class="shelf-copy" data-action="favorite-shelf#copyAltText">Copy image alt text</button></div>
   </section>
   <details class="shelf-alt-text" data-favorite-shelf-target="altTextDetails"><summary>Image alt text</summary><label for="shelf-image-alt-text">Description of your share image</label><textarea id="shelf-image-alt-text" rows="8" readonly data-favorite-shelf-target="altText"></textarea></details>

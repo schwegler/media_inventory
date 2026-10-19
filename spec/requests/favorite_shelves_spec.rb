@@ -120,7 +120,7 @@ RSpec.describe 'Favorite shelves', type: :request do
         expect(page.at_css('textarea[data-favorite-shelf-target="altText"]')['readonly']).to be_present
         toolbar_links = page.css('.shelf-toolbar-links a')
         expected_links = ['View shelf overview']
-        expected_links << 'Edit favorites' if signed_in && category.nil?
+        expected_links << 'Edit selections' if signed_in && category.nil?
         expected_links << 'Customize profile' if signed_in
         expect(toolbar_links.map(&:text)).to eq(expected_links + ['View profile', 'Share'])
         overview = toolbar_links.find { |link| link.text == 'View shelf overview' }
@@ -232,12 +232,12 @@ RSpec.describe 'Favorite shelves', type: :request do
     query = Rack::Utils.parse_nested_query(URI.parse(overview['href']).query)
     expect(query).to include('theme' => 'electric', 'layout' => 'reading', 'texture' => 'stars', 'companion' => 'facet')
     expect(query).not_to have_key('category')
-    expect(doc.at_css('.shelf-view-state').text).to eq('Editing Overall favorites')
+    expect(doc.at_css('.shelf-view-state').text).to eq('Editing Overall selections')
     expect(doc.at_css('.shelf-heading > a')['href']).to eq(overview['href'])
     get overview['href']
     doc = Nokogiri::HTML(response.body)
     expect(doc.at_css('.shelf-view-state').text).to eq('Viewing shelf overview')
-    edit = doc.css('a').find { |link| link.text == 'Edit favorites' }
+    edit = doc.css('a').find { |link| link.text == 'Edit selections' }
     expect(edit['href']).to include('category=overall', 'theme=electric', 'layout=reading')
     expect(doc.at_css('.shelf-overview-link')['aria-current']).to eq('page')
   end
@@ -254,5 +254,22 @@ RSpec.describe 'Favorite shelves', type: :request do
     }
     expect(response).to have_http_status(:no_content)
     expect(user.shelf_previews.first.blob.metadata).to include('theme' => 'midnight_feature')
+  end
+  it 'keeps an escaped custom headline primary in category pages, metadata and published signatures' do
+    headline = "it's finally spooky szn 🦇 <script>no()</script>"
+    user.update!(shelf_headline: headline)
+    [nil, 'overall', 'Book'].each do |category|
+      get shelf_path(user.username, category: category, theme: 'halloween')
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css('h1').text).to include(headline)
+      expect(doc.at_css('.favorite-shelf')['data-favorite-shelf-headline-value']).to eq(headline)
+      expect(doc.at_css('meta[property="og:title"]')['content']).to include(headline)
+      expect(doc.at_css('meta[property="og:description"]')['content']).to include(headline)
+      expect(doc.css('.shelf-heading script')).to be_empty
+      expect(doc.text).not_to include('Five favorites.', 'My top five')
+    end
+    old_signature = controller.helpers.shelf_preview_signature(user, 'Book')
+    user.update!(shelf_headline: 'a different night')
+    expect(controller.helpers.shelf_preview_signature(user, 'Book')).not_to eq(old_signature)
   end
 end

@@ -1,6 +1,6 @@
 # Shelf refinements
 
-The showcase is `/@username/shelf` without a category. `category=overall` is an editable favorites category, not the showcase. The prominent View shelf overview action and heading now return to the showcase; Edit favorites returns to Overall. Viewing/Editing labels distinguish the two. Theme, portrait layout, texture and companion survive these links. View profile remains a separate destination.
+The showcase is `/@username/shelf` without a category. `category=overall` is an editable favorites category, not the showcase. The prominent View shelf overview action and heading now return to the showcase; Edit selections returns to Overall. Viewing/Editing labels distinguish the two. Theme, portrait layout, texture and companion survive these links. View profile remains a separate destination.
 
 Midnight Feature is a distinct optional shelf theme. Halloween is unchanged. Ink-black surfaces, red accents, static film grain, condensed uppercase poster headings and a scratched rule suggest a late screening without reducing cover/title legibility. Only display headings are distressed; ordinary labels and controls stay clear. The same palette and treatment render in landscape and every portrait layout, preview and downloaded PNG. Existing Telly/Facet PNGs are preserved from current master, including PR623’s updated Telly.
 
@@ -31,3 +31,10 @@ Saving settings through Turbo morph refreshes the live theme and header state. N
 The approved dark Halloween palette remains intact. The moon has a soft warm gradient/halo, fireflies move along the outer margins rather than over text, mist drifts farther, and tree/hill layers have clearer separation. Surface panels remain about 92% opaque and inputs about 95% opaque, preserving strong foreground contrast while allowing a trace of movement behind them. Motion remains CSS transform/opacity only, with no flashing or runtime animation loop.
 
 A genuine 24-frame browser recording on a clearly synthetic local book detail page measured changing moon/firefly/mist transforms over approximately 11.5 seconds. The mist moved about 58px and fireflies about 19px vertically during that sample. Pause and OS reduced motion both produced static computed animations. Desktop/mobile detail screenshots and the GIF are retained alongside the other review captures.
+
+
+## Shared headline identity
+
+A saved custom headline is primary on the showcase, every category page and every share-card layout. Category is secondary. Casing is preserved, including in Midnight Feature. Metadata/alt text use the same identity, and all shelf-facing copy describes selections or picks rather than claiming a top-five ranking. Existing pick storage/order and the saved headline remain unchanged.
+
+DOM and metadata values are escaped. Canvas titles wrap within bounded geometry, with grapheme-aware truncation for long Unicode text and a safe missing-headline fallback. The preview signature version changed so an obsolete card cannot masquerade as a current headline-aware card; owners can explicitly republish their social preview using the existing action. Preview, download and publish share the same renderer.

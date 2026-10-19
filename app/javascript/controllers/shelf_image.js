@@ -8,14 +8,18 @@ export const SHELF_THEMES = {
   electric: { bg: '#181235', text: '#fff4f6', muted: '#bcb0d7', accent: '#ff9ccf', surface: '#30234f', line: '#fff4f630' }
 }
 
+export function shelfImageHeading(headline) {
+  return typeof headline === "string" && headline.trim() ? headline.trim() : "The things I keep."
+}
+
 export function shelfImageAltText({ picks, shelves, overview, theme, format, handle, category, headline, layout = "exhibition", texture = "clean", companion = "auto" }) {
   const source = overview ? shelves : [{ label: category, picks }]
-  const heading = overview ? (headline || 'The things I keep.') : `My top five · ${category}`
+  const heading = shelfImageHeading(headline)
   const description = source.map(shelf => {
-    const titles = shelf.picks.slice(0, 5).map((pick, index) => `${index + 1}. ${pick.title}`)
-    return `${shelf.label}: ${titles.length ? titles.join('; ') : 'No favorites chosen yet'}.`
+    const titles = shelf.picks.slice(0, 5).map((pick, index) => `${index + 1}. ${pick.title || 'Untitled selection'}`)
+    return `${shelf.label}: ${titles.length ? titles.join('; ') : 'No selections yet'}.`
   }).join('\n')
-  return `${format === 'portrait' ? 'Portrait' : 'Landscape'} Trove share image for @${handle}’s Shelf in the ${SHELF_THEMES[theme]?.label || theme} theme. Heading: “${heading}”. ${layout} layout, ${texture} texture, ${companion} companion. Covers appear in favorite order.\n${description}`
+  return `${format === 'portrait' ? 'Portrait' : 'Landscape'} Trove share image for @${handle}’s Shelf in the ${SHELF_THEMES[theme]?.label || theme} theme. Heading: “${heading}”. ${overview ? "Shelf overview" : `Category: ${category || "Selections"}`}. ${layout} layout, ${texture} texture, ${companion} companion. Covers appear in selected order.\n${description}`
 }
 
 async function cover(pick) {
@@ -32,12 +36,13 @@ async function cover(pick) {
 
 function text(ctx, value, x, y, width, size, lines = 2, family = "sans-serif") {
   ctx.font = `${size}px ${family}`
-  const words = value.split(/\s+/)
+  const words = String(value ?? "").trim().split(/\s+/)
   for (let line = 0; line < lines && words.length; line++) {
     let result = words.shift()
     while (words.length && ctx.measureText(`${result} ${words[0]}`).width <= width) result += ` ${words.shift()}`
     if (line === lines - 1 && words.length) result += '…'
-    while (ctx.measureText(result).width > width && result.length > 1) result = `${result.slice(0, -2)}…`
+    const characters = typeof Intl.Segmenter === "function" ? Array.from(new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(result), part => part.segment) : Array.from(result)
+    while (ctx.measureText(result).width > width && characters.length > 1) { characters.pop(); result = `${characters.join("").replace(/…$/, "")}…` }
     ctx.fillText(result, x, y + line * size * 1.3)
   }
 }
@@ -116,10 +121,10 @@ export async function renderShelfImage(canvas, { picks = [], shelves = [], overv
   }
   ctx.fillStyle = theme.accent; ctx.font = `${portrait ? 28 : 20}px sans-serif`; ctx.fillText(horror ? "TROVE / MIDNIGHT FEATURE" : "TROVE / THE PERSONAL SHELF", edge, portrait ? 284 : 55)
   ctx.fillStyle = theme.text
-  const heading = overview ? (headline || "The things I keep.") : `My favorites · ${category}`
-  text(ctx, horror ? heading.toUpperCase() : heading, edge, portrait ? 350 : 118, portrait ? 780 : 1056, portrait ? 58 : 42, 2, horror ? 'Impact, "Arial Narrow", sans-serif' : "Georgia")
+  const heading = shelfImageHeading(headline)
+  text(ctx, heading, edge, portrait ? 350 : 110, portrait ? 780 : 936, portrait ? 58 : 36, 2, horror ? 'Impact, "Arial Narrow", sans-serif' : "Georgia")
   ctx.fillStyle = theme.muted
-  text(ctx, `@${handle}’s Shelf`, edge, portrait ? 496 : 165, portrait ? 780 : 1056, portrait ? 26 : 19, 1)
+  text(ctx, `@${handle}’s Shelf · ${overview ? "All selections" : category || "Selections"}`, edge, portrait ? 496 : 185, portrait ? 780 : 1056, portrait ? 26 : 19, 1)
   if (mascot) {
     const image = mascot.image, height = portrait ? 128 : 86, width = height * image.width / image.height
     ctx.drawImage(image, w - edge - width, portrait ? 270 : 20, width, height)
@@ -136,7 +141,7 @@ export async function renderShelfImage(canvas, { picks = [], shelves = [], overv
   } else if (portrait) {
     portraitShelfLayout(picks.length, layout).forEach((box, i) => {
       artwork(ctx, images[0][i], box.x, box.y, box.width, box.height, theme, i + 1, picks[i])
-      ctx.fillStyle = theme.text; text(ctx, `${String(i + 1).padStart(2, "0")} · ${picks[i].title}`, box.labelX, box.labelY, box.labelWidth, box.font, box.labelLines)
+      ctx.fillStyle = theme.text; text(ctx, `${String(i + 1).padStart(2, "0")} · ${picks[i].title || "Untitled selection"}`, box.labelX, box.labelY, box.labelWidth, box.font, box.labelLines)
     })
     if (!picks.length) { ctx.fillStyle = theme.text; text(ctx, "A shelf taking shape.", edge, 840, 936, 64, 2); ctx.fillStyle = theme.muted; text(ctx, "Room for your next favorite.", edge, 970, 936, 32, 2) }
   } else {
@@ -144,7 +149,7 @@ export async function renderShelfImage(canvas, { picks = [], shelves = [], overv
     for (let i = 0; i < n; i++) {
       const x = start + i * (width + gap)
       artwork(ctx, images[0][i], x, 210, width, 230, theme, i + 1, picks[i])
-      ctx.fillStyle = theme.text; text(ctx, `${i + 1}. ${picks[i].title}`, x, 474, width, 19, 2)
+      ctx.fillStyle = theme.text; text(ctx, `${i + 1}. ${picks[i].title || "Untitled selection"}`, x, 474, width, 19, 2)
     }
     if (!n) { ctx.fillStyle = theme.muted; text(ctx, "A shelf taking shape. Room for your next favorite.", edge, 320, 1056, 32, 2) }
   }

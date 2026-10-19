@@ -36,7 +36,7 @@ RSpec.describe 'Shelf Story customization', type: :system do
     user.update!(username: 'overview_navigation')
     visit shelf_path(user.username, category: 'overall', theme: 'electric', layout: 'reading',
                                     texture: 'stars', companion: 'facet')
-    expect(page).to have_text('Editing Overall favorites')
+    expect(page).to have_text('Editing Overall selections')
     capture_ui_screenshot('shelf-overview-navigation-desktop')
     resize_browser_viewport(390, 844)
     expect(page.evaluate_script('document.documentElement.scrollWidth <= innerWidth')).to be(true)
@@ -49,8 +49,8 @@ RSpec.describe 'Shelf Story customization', type: :system do
     expect(page).to have_css('.favorite-shelf[data-shelf-theme="electric"][data-shelf-texture="stars"]')
     expect(page).to have_select('Portrait layout', selected: 'Reading list')
     capture_ui_screenshot('shelf-overview-navigation-mobile')
-    click_link 'Edit favorites'
-    expect(page).to have_text('Editing Overall favorites')
+    click_link 'Edit selections'
+    expect(page).to have_text('Editing Overall selections')
   end
   it 'renders Midnight Feature in every export layout without changing Halloween' do
     user = create_and_login_user
@@ -72,5 +72,27 @@ RSpec.describe 'Shelf Story customization', type: :system do
     capture_ui_screenshot('midnight-feature-mobile')
     choose 'Halloween'
     expect(page).to have_css('.favorite-shelf[data-shelf-theme="halloween"]')
+  end
+  it 'carries the saved custom headline into category views and every share layout' do
+    user = create_and_login_user
+    user.update!(username: 'themed_selections', shelf_headline: "it's finally spooky szn 🦇")
+    visit shelf_path(user.username, category: 'Book', theme: 'halloween')
+    expect(page).to have_css('h1 .shelf-custom-title', text: user.shelf_headline)
+    expect(page).to have_css('h1 > span', text: 'Books · selections')
+    find('summary', text: 'Share image preview').click
+    expect(find('#shelf-image-alt-text', visible: :all).value).to include(user.shelf_headline, 'Category: Books')
+    find('input[name="shelf-format"][value="portrait"]').choose
+    ['Exhibition gallery', 'Reading list', 'Collector’s edition'].each do |layout|
+      select layout, from: 'Portrait layout'
+      expect(find('#shelf-image-alt-text', visible: :all).value).to include(user.shelf_headline)
+      expect(page).to have_css('.shelf-preview canvas[height="1920"]')
+    end
+    capture_ui_screenshot('custom-headline-category-desktop')
+    resize_browser_viewport(390, 844)
+    expect(page.evaluate_script('document.documentElement.scrollWidth <= innerWidth')).to be(true)
+    capture_ui_screenshot('custom-headline-category-mobile')
+    click_link 'View shelf overview'
+    expect(page).to have_css('h1', text: user.shelf_headline)
+    expect(user.reload.shelf_headline).to eq("it's finally spooky szn 🦇")
   end
 end

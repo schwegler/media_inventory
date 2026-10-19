@@ -23,7 +23,7 @@ module ShelvesHelper
   def shelf_preview_signature(user, category)
     shelves = user.favorite_shelves.order(:category)
     shelves = shelves.where(category: category) unless category == 'overview'
-    payload = ['shelf-image-v2', user.username, user.shelf_headline, shelves.pluck(:category, :picks)]
+    payload = ['shelf-image-v3-headline', user.username, user.shelf_headline, shelves.pluck(:category, :picks)]
     Digest::SHA256.hexdigest(payload.to_json)
   end
 

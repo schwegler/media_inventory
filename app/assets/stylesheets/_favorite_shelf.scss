@@ -149,8 +149,12 @@
   --shelf-bg: #0b090b; --shelf-text: #f5e9d8; --shelf-muted: #c5aba7; --shelf-accent: #ff5964; --shelf-line: #ff59644d; --shelf-surface: #211416;
   background-image: radial-gradient(ellipse at 100% 0, #63132335, transparent 45%), repeating-linear-gradient(113deg, #ffffff04 0 1px, transparent 1px 7px);
   .shelf-screening-note { display: block; margin: -24px 0 32px; color: var(--shelf-muted); font: 12px/1.5 monospace; letter-spacing: .08em; }
-  .shelf-heading h1 { font-family: Impact, 'Arial Narrow', sans-serif; text-transform: uppercase; letter-spacing: .015em; line-height: 1.02; text-shadow: 1px 1px #9b2534; }
+  .shelf-heading h1 { font-family: Impact, 'Arial Narrow', sans-serif; letter-spacing: .015em; line-height: 1.02; text-shadow: 1px 1px #9b2534; }
   .shelf-heading::after { content: ''; display: block; height: 2px; margin-top: 24px; background: repeating-linear-gradient(90deg, var(--shelf-accent) 0 27px, transparent 27px 31px); }
   .shelf-exhibit h2, .shelf-sharing h2 { font-family: Impact, 'Arial Narrow', sans-serif; text-transform: uppercase; letter-spacing: .035em; }
   .shelf-index { color: var(--shelf-accent); }
 }
+
+.favorite-shelf .shelf-heading h1 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+.favorite-shelf .shelf-detail-heading h1 { display: block; overflow: visible; }
+.favorite-shelf .shelf-detail-heading h1 > .shelf-custom-title { font: inherit; letter-spacing: inherit; color: inherit; margin: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
