@@ -58,7 +58,7 @@ export default class extends Controller {
       if (pick?.cover) { const img = new Image(); img.src = pick.cover; img.alt = pick.title; cover.replaceChildren(img) }
       else if (pick) cover.textContent = pick.title
       else if (!owner) cover.textContent = "Not picked yet"
-      const title = document.createElement("h3"); title.textContent = `${index + 1}. ${pick?.title || "Your next favorite"}`
+      const title = document.createElement("h3"); title.textContent = `${index + 1}. ${pick?.title || "Your next pick"}`
       if (pick?.url) {
         const link = document.createElement("a"); link.href = pick.url; link.textContent = title.textContent; title.replaceChildren(link)
       }

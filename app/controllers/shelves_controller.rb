@@ -36,7 +36,7 @@ class ShelvesController < ApplicationController
     shelf = @user.favorite_shelves.find_or_initialize_by(category: params[:category])
     input = params[:picks]
     unless input.is_a?(Array) && input.all? { |pick| pick.respond_to?(:permit) }
-      return render json: { error: 'Choose up to five favorites.' }, status: :unprocessable_content
+      return render json: { error: 'Choose up to five picks.' }, status: :unprocessable_content
     end
 
     shelf.picks = input.map { |pick| { 'type' => pick[:type], 'id' => pick[:id].to_i } }
