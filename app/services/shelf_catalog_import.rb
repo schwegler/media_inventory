@@ -11,6 +11,10 @@ class ShelfCatalogImport
     @klass = klass
     @attributes = attributes
     @field = attributes[:api_id].present? ? :api_id : :external_url
+    if klass == VideoGame && @field != :api_id
+      raise MetadataImport::Invalid, 'Games require a stable provider ID. Search and select another result.'
+    end
+
     @provider_id = attributes[@field].to_s.strip.presence
     @attributes[@field] = @provider_id
     raise MetadataImport::Invalid, 'This result has no stable provider identity. Search and select another result.' unless

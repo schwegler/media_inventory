@@ -22,6 +22,13 @@ RSpec.describe ShelfCatalogImport do
     expect(first.id).not_to eq(second.id)
   end
 
+  it 'rejects URL-only game imports before they can create duplicate records' do
+    data = { title: 'URL-only game', external_url: 'https://games.example/one' }.with_indifferent_access
+    expect do
+      expect { described_class.call(VideoGame, data) }.to raise_error(MetadataImport::Invalid, /stable provider ID/)
+    end.not_to change(VideoGame, :count)
+  end
+
   it 'rejects external results without a stable identity and reuses signed URL identities' do
     expect do
       described_class.call(Book, { title: 'No identity' }.with_indifferent_access)
