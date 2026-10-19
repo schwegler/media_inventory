@@ -79,6 +79,17 @@ RSpec.describe 'Shelf discovery and real exports', type: :system do
       expect(page.evaluate_script('document.documentElement.scrollWidth <= innerWidth')).to be(true)
       capture_ui_screenshot("visitor-collection-#{width}")
     end
+    page.execute_script("document.querySelector('.shelf-formats').scrollIntoView({block:'center'})")
+    point = page.evaluate_script(<<~JS)
+      (() => {
+      const label = document.querySelector('input[value="landscape"]').closest('label');
+      const box = label.getBoundingClientRect();
+      return {x: box.x + box.width / 2, y: box.y + box.height / 2};
+      })()
+    JS
+    page.driver.browser.execute_cdp('Input.dispatchTouchEvent', type: 'touchStart', touchPoints: [point])
+    page.driver.browser.execute_cdp('Input.dispatchTouchEvent', type: 'touchEnd', touchPoints: [])
+    expect(page).to have_css('.shelf-preview canvas[width="1200"][height="630"]')
   end
 
   def write_canvas(filename, dimensions)

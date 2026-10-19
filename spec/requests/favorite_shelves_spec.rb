@@ -188,11 +188,11 @@ RSpec.describe 'Favorite shelves', type: :request do
         expect(page.at_css('button[data-action="favorite-shelf#copyAltText"]').text).to eq('Copy image alt text')
         expect(page.at_css('textarea[data-favorite-shelf-target="altText"]')['readonly']).to be_present
         toolbar_links = page.css('.shelf-toolbar-links a')
-        expected_links = ['View shelf overview']
+        expected_links = [signed_in ? 'View shelf overview' : 'All shelves']
         expected_links << 'Edit selections' if signed_in && category.nil?
         expected_links += ['Customize profile', 'Preview as visitor'] if signed_in
         expect(toolbar_links.map(&:text)).to eq(expected_links + ['View profile', 'Share'])
-        overview = toolbar_links.find { |link| link.text == 'View shelf overview' }
+        overview = toolbar_links.find { |link| link.text == (signed_in ? 'View shelf overview' : 'All shelves') }
         expect(URI.parse(overview['href']).path).to eq(shelf_path(user.username))
         expect(Rack::Utils.parse_nested_query(URI.parse(overview['href']).query)).not_to have_key('category')
         if signed_in

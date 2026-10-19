@@ -232,3 +232,13 @@
     .shelf-slot:first-child, &[data-shelf-layout="collector"] .shelf-slot:first-child { grid-column: 1 / -1; grid-row: auto; }
   }
 }
+.favorite-shelf[data-favorite-shelf-owner-value="false"] {
+  .shelf-toolbar { margin-bottom: 28px; }
+  @media(max-width: 640px) { .shelf-heading h1 { font-size: clamp(36px, 10vw, 48px); } }
+}
+.favorite-shelf {
+  .shelf-controls button { min-width: 44px; min-height: 44px; }
+  .shelf-themes label { min-height: 44px; }
+  .shelf-toolbar-links a { display: inline-flex; align-items: center; min-height: 44px; }
+}
+.favorite-shelf[data-favorite-shelf-owner-value="false"] .shelf-toolbar-links .shelf-overview-link { color: var(--shelf-text); padding-inline: 0; }
