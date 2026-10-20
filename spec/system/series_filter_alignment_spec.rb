@@ -25,7 +25,10 @@ RSpec.describe 'Series filter alignment', type: :system do
       expect(boxes.map { |box| box['height'].round }.uniq).to eq([44])
       expect((boxes[3]['top'] - boxes[4]['top']).abs).to be < 1
       if width > 580
-        expect(boxes.map { |box| box['top'] }.max - boxes.map { |box| box['top'] }.min).to be < 1
+        fields = boxes.first(3).map { |box| box['top'] }
+        expect(fields.max - fields.min).to be < 1
+        expect(boxes[3]['top']).to be >= fields.first
+        expect((boxes[3]['top'] - fields.first).abs).to be < 1 if width >= 1024
       else
         expect(boxes[0]['bottom']).to be <= boxes[1]['top']
         expect(boxes[1]['bottom']).to be <= boxes[2]['top']
@@ -35,9 +38,11 @@ RSpec.describe 'Series filter alignment', type: :system do
       capture_ui_screenshot("series-filters-#{width}")
     end
 
+    page.refresh
+    expect(page).to have_select('Season', selected: 'Season 1')
     find('.series-filters > summary').send_keys(:enter)
     expect(page).to have_no_css('.series-filter-fields', visible: true)
-    expect(page).to have_select('Season', visible: true)
+    expect(page).to have_no_select('Season', visible: true)
     find('.series-filters > summary').send_keys(:enter)
     select 'Season 2', from: 'Season'
     expect(page).to have_css('#series-entries .series-entry-title', text: 'Second episode')
@@ -47,5 +52,12 @@ RSpec.describe 'Series filter alignment', type: :system do
     expect(page).to have_css('#series-entries .series-entry-title', text: 'First episode')
     expect(page).to have_field('Search episodes', with: '')
     expect(page).to have_select('Watch status', selected: 'All episodes')
+    click_button 'Apply'
+    expect(page).to have_css('#series-entries .series-entry-title', text: 'First episode')
+    expect(page).to have_current_path(tv_show_path(show), ignore_query: true)
+    javascript_errors = page.driver.browser.logs.get(:browser).select do |entry|
+      entry.level == 'SEVERE' && entry.message.match?(/Uncaught|Error:|javascript/)
+    end
+    expect(javascript_errors).to be_empty
   end
 end

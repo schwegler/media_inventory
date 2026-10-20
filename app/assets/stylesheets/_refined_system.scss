@@ -103,7 +103,6 @@
   .media-entries .consumption-pass-status strong { display: inline; }
   .media-entries .consumption-pass-panel { margin-bottom: .75rem; border-radius: 0; }
   .media-detail .media-entries h2 { font-size: 1.5rem; font-weight: 500; margin-bottom: 1rem; }
-  .media-entries .child-collection-toolbar > .series-season-filter { flex: 0 1 160px; min-width: 140px; margin-bottom: .5rem; }
   .companion-note > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--accent); }
   .companion-note > div { display: flex; align-items: center; gap: 1rem; max-width: 560px; padding: 1rem 0; }
   .companion-note .quiet-companion { flex: 0 0 56px; margin: 0; }
@@ -120,7 +119,6 @@
     .in-progress-form-actions { flex-direction: row; align-items: center; }
     .in-progress-rating-select { flex: 0 1 110px; width: 110px; padding-left: .5rem; }
     .in-progress-log-btn { width: auto; padding-inline: .75rem; }
-    .media-entries .child-collection-toolbar > .series-season-filter { flex-basis: 100%; margin-bottom: 0; }
     .series-filters { flex-basis: 100%; }
     .series-filter-fields > div { flex-basis: 100%; }
     .series-filter-fields > .series-filter-actions { flex-basis: 100%; }
