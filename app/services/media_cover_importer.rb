@@ -100,8 +100,7 @@ class MediaCoverImporter
     return uri.path if uri.relative? && !uri.host && uri.path.start_with?('/')
 
     configured = ENV.fetch('HOST', 'https://trove.schweg.xyz')
-    configured = "https://#{configured}" unless configured.include?('://')
-    origin = URI.parse(configured)
+    origin = URI.parse(configured.include?('://') ? configured : "https://#{configured}")
     return unless uri.is_a?(URI::HTTPS) && uri.userinfo.nil? &&
                   origin.is_a?(URI::HTTPS) && origin.userinfo.nil? &&
                   uri.host == origin.host && uri.port == origin.port

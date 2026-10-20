@@ -69,6 +69,16 @@ RSpec.describe MediaCoverImporter do
     expect(WebMock).not_to have_requested(:get, /trove\.schweg\.xyz/)
   end
 
+  it 'resolves local covers only against the configured origin' do
+    allow(ENV).to receive(:fetch).and_call_original
+    allow(ENV).to receive(:fetch).with('HOST', anything).and_return('catalog.example:8443')
+    original = Book.create!(title: 'Existing cover')
+    original.cover_image.attach(io: StringIO.new(png), filename: 'cover.png', content_type: 'image/png')
+    path = original.stored_cover_url
+    expect(described_class.local_blob("https://catalog.example:8443#{path}")).to eq(original.cover_image.blob)
+    expect(described_class.local_blob("https://trove.schweg.xyz#{path}")).to be_nil
+  end
+
   it 'does not treat lookalike hosts, credentials, ports or protocol-relative links as local' do
     original = Book.create!(title: 'Existing cover')
     original.cover_image.attach(io: StringIO.new(png), filename: 'cover.png', content_type: 'image/png')
@@ -135,7 +145,8 @@ RSpec.describe MediaCoverImporter do
   it 'repairs a missing locally selected search cover through its original source' do
     described_class.call(item, url)
     blob = item.reload.cover_image.blob
-    local_url = Rails.application.routes.url_helpers.rails_storage_proxy_path(blob, only_path: true)
+    path = Rails.application.routes.url_helpers.rails_storage_proxy_path(blob, only_path: true)
+    local_url = "https://trove.schweg.xyz#{path}"
     item.update!(thumbnail_url: local_url)
     blob.service.delete(blob.key)
     MediaSources::Registry::CACHE.clear
