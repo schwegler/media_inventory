@@ -28,6 +28,7 @@ RSpec.describe 'Title library action state', type: :system do
     [true, false, true, false].each do |liked|
       within("#like_button_Movie_#{movie.id}") do
         find('button').send_keys(:space)
+        expect(page).to have_css("form[data-optimistic-liked-value='#{!liked}']")
         expect(page).to have_css("button[aria-pressed='#{liked}'] .likes-count", text: liked ? '1' : '0', exact_text: true)
       end
       expect(user.liked?(movie)).to eq(liked)
