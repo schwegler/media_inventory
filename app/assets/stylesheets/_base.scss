@@ -604,3 +604,43 @@ turbo-frame {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
   }
 }
+
+// Shared issue and episode navigation, independent of the catalog pager.
+.series-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-block: 20px;
+  margin-top: 16px;
+  border-top: 1px solid $card-border;
+  font-size: 0.875rem;
+
+  .series-pagination-count { margin: 0; color: $text-muted; }
+  .series-pagination-controls { display: flex; align-items: center; gap: 12px; }
+  .series-pagination-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 8px 12px;
+    border: 1px solid $card-border;
+    border-radius: $radius-sm;
+    text-decoration: none;
+    color: $text-main;
+  }
+  a:hover { border-color: $accent-orange; color: $accent-orange; }
+  a:focus-visible { outline: 2px solid $accent-orange; outline-offset: 3px; }
+  [aria-disabled] { color: $text-dim; background: rgba(var(--rgb-inverse), 0.03); }
+  @media (max-width: 480px) {
+    justify-content: center;
+    .series-pagination-count { width: 100%; text-align: center; }
+    .series-pagination-controls { gap: 8px; }
+  }
+}
+
+.media-entries:focus {
+  outline: none;
+  > h2 { text-decoration: underline; text-decoration-color: $accent-orange; text-underline-offset: 0.3em; }
+}

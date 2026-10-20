@@ -1,7 +1,7 @@
 <% collection = @series_collection %>
 <% label = collection.tv? ? 'Episodes' : 'Issues' %>
 <%= turbo_frame_tag 'series-entries', data: { turbo_action: 'advance' } do %>
-  <section id="media-entries" class="media-section media-entries" aria-label="<%= label %>">
+  <section id="media-entries" class="media-section media-entries" tabindex="-1" aria-label="<%= label %>">
     <h2><%= label %> in this series</h2>
     <% if logged_in? %>
       <p class="media-progress"><strong data-child-collection-target="completed"><%= number_with_delimiter(collection.completed) %> of <%= number_with_delimiter(collection.total) %></strong> <%= label.downcase %> <%= collection.tv? ? 'watched' : 'read' %></p>
@@ -9,6 +9,7 @@
       <%= render 'shared/consumption_pass_panel', item: item, library_item: @series_library_item if @series_library_item %>
     <% end %>
     <%= form_with url: polymorphic_path(item, anchor: 'media-entries'), method: :get, class: 'child-collection-toolbar', data: { controller: 'series-navigation', action: 'submit->series-navigation#start' } do |form| %>
+      <%= hidden_field_tag :page, params[:page] if params[:page].present? %>
       <details class="series-filters" open>
         <summary>Search &amp; filter <%= label.downcase %></summary>
         <div class="series-filter-fields">
@@ -55,6 +56,6 @@
       <% end %>
     </div>
     <% if collection.records.empty? %><p class="child-collection-empty">No matching <%= label.downcase %>. Try another title, season, or progress filter.</p><% end %>
-    <%= paginate collection.records, param_name: :entries_page, params: collection.filters %>
+    <%= render 'shared/series_pagination', collection: collection, item: item, label: label %>
   </section>
 <% end %>
