@@ -74,20 +74,7 @@ class InventoryController < ApplicationController
 
     if logged_in?
       @library_item = LibraryItem.find_by(user: current_user, item: @resource)
-      if @library_item
-        @resource.is_collected = @library_item.is_collected
-        @resource.in_watchlist = @library_item.in_backlog
-        @resource.in_backlog = @library_item.in_backlog
-        @resource.rating = @library_item.rating
-        @resource.review = @library_item.review
-        @resource.consumed = @library_item.consumed
-        @resource.consumed_at = @library_item.consumed_at
-        @resource.is_public = @library_item.is_public
-        @resource.owned_physically = @library_item.owned_physically
-        @resource.owned_physically_format = @library_item.owned_physically_format
-        @resource.owned_digitally = @library_item.owned_digitally
-        @resource.owned_digitally_format = @library_item.owned_digitally_format
-      end
+      assign_library_attributes if @library_item
     end
     instance_variable_set("@#{resource_name}", @resource)
     prepare_child_display
@@ -125,9 +112,7 @@ class InventoryController < ApplicationController
                                            :rating, :review, :consumed,
                                            :consumed_at, :is_public, :owned_physically, :owned_physically_format,
                                            :owned_digitally, :owned_digitally_format)
-    library_params = resource_params.slice(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
-                                           :consumed_at, :is_public, :owned_physically, :owned_physically_format,
-                                           :owned_digitally, :owned_digitally_format)
+    library_params = personal_library_params
     library_params[:in_backlog] = library_params.delete(:in_watchlist) if library_params.key?(:in_watchlist)
 
     ActiveRecord::Base.transaction do
@@ -137,6 +122,7 @@ class InventoryController < ApplicationController
     end
 
     instance_variable_set("@#{resource_name}", @resource)
+    assign_library_attributes
     flash.now[:notice] = "#{resource_class.model_name.human} was successfully updated."
     respond_to do |format|
       format.html { redirect_to @resource, notice: "#{resource_class.model_name.human} was successfully updated." }
@@ -167,6 +153,16 @@ class InventoryController < ApplicationController
   end
 
   private
+
+  # Turbo renders the same personal controls as show; the catalog record's
+  # virtual form attributes must reflect the saved library entry first.
+  def assign_library_attributes
+    fields = %w[is_collected rating review consumed consumed_at is_public owned_physically
+                owned_physically_format owned_digitally owned_digitally_format]
+    @resource.assign_attributes(@library_item.attributes.slice(*fields))
+    @resource.in_watchlist = @library_item.in_backlog
+    @resource.in_backlog = @library_item.in_backlog
+  end
 
   def assign_logged_attributes(attributes)
     if @resource.persisted?

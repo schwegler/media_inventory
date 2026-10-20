@@ -76,6 +76,7 @@ jobs:
           spec/system/child_collection_performance_spec.rb
           spec/system/series_entries_system_spec.rb
           spec/system/series_filter_alignment_spec.rb
+          spec/system/library_action_state_system_spec.rb
           spec/system/quick_tracking_system_spec.rb
           spec/system/catalog_consistency_system_spec.rb
           spec/system/presentation_system_spec.rb
