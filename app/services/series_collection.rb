@@ -74,6 +74,7 @@ class SeriesCollection
     @records = scope.reorder(*order).with_attached_cover_image
                     .includes(tv? ? :tv_show : :comic, metadata_credits: :metadata_entity)
                     .page(page).per(PAGE_SIZE)
+    @records = @records.page([@records.total_pages, 1].max) if @records.current_page > [@records.total_pages, 1].max
     load_personal_state
   end
 
