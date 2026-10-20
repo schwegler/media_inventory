@@ -74,6 +74,11 @@ RSpec.describe 'Bounded series collections', type: :request do
     expect(query).to include('entries_page' => '1', 'page' => '3', 'child_q' => 'Chapter', 'child_status' => 'all')
     expect(previous['data-turbo']).to eq('false')
     expect(URI.parse(previous['href']).fragment).to eq('media-entries')
+    get previous['href']
+    first_page = Nokogiri::HTML(response.body)
+    expect(first_page.css('#series-entries .series-entry').size).to eq(30)
+    expect(first_page.at_css('.series-pagination [aria-disabled=true]').text).to include('Previous')
+    expect(first_page.at_css('input[name=page]')['value']).to eq('3')
     get comic_path(comic), params: { entries_page: 999 }
     expect(Nokogiri::HTML(response.body).css('#series-entries .series-entry').size).to eq(16)
   end

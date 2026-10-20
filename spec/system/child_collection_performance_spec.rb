@@ -18,7 +18,9 @@ RSpec.describe 'Large child collections', type: :system do
     page.execute_script(<<~JS)
       document.querySelector('.series-pagination').scrollIntoView({block: 'center', behavior: 'instant'})
     JS
-    page.execute_async_script('Promise.all(document.getAnimations().map(a => a.finished)).then(arguments[0])')
+    page.driver.browser.execute_async_script(
+      'Promise.all(document.getAnimations().map(a => a.finished)).then(arguments[0])'
+    )
     expect(page).to have_css('.series-pagination a[rel=prev]')
     capture_ui_screenshot('issue-pagination-desktop')
     page.go_back
@@ -31,7 +33,9 @@ RSpec.describe 'Large child collections', type: :system do
     page.execute_script(<<~JS)
       document.querySelector('.series-pagination').scrollIntoView({block: 'center', behavior: 'instant'})
     JS
-    page.execute_async_script('Promise.all(document.getAnimations().map(a => a.finished)).then(arguments[0])')
+    page.driver.browser.execute_async_script(
+      'Promise.all(document.getAnimations().map(a => a.finished)).then(arguments[0])'
+    )
     capture_ui_screenshot('issue-pagination-mobile')
     expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be true
     within('.series-pagination') { click_link 'Previous' }
@@ -54,8 +58,15 @@ RSpec.describe 'Large child collections', type: :system do
     expect(page).to have_text('60 matching episodes')
     select 'Season 2', from: 'Season'
     expect(page).to have_text('40 matching episodes')
-    find('#series-entries a[rel="next"]').click
+    # Interrupt an in-flight Turbo filter submission with a native page visit.
+    page.execute_script(<<~JS)
+      const form = document.querySelector('.child-collection-toolbar');
+      form.querySelector('[name=child_q]').value = 'no such episode';
+      form.requestSubmit();
+      document.querySelector('#series-entries a[rel=next]').click();
+    JS
     expect(page).to have_css('#series-entries .series-entry', count: 10)
+    expect(page).to have_field('Search episodes', with: '')
     page.refresh
     expect(page).to have_select('Season', selected: 'Season 2')
     expect(page).to have_css('#series-entries .series-entry', count: 10)

@@ -639,3 +639,8 @@ turbo-frame {
     .series-pagination-controls { gap: 8px; }
   }
 }
+
+.media-entries:focus {
+  outline: none;
+  > h2 { text-decoration: underline; text-decoration-color: $accent-orange; text-underline-offset: 0.3em; }
+}

@@ -9,6 +9,7 @@
       <%= render 'shared/consumption_pass_panel', item: item, library_item: @series_library_item if @series_library_item %>
     <% end %>
     <%= form_with url: polymorphic_path(item, anchor: 'media-entries'), method: :get, class: 'child-collection-toolbar', data: { controller: 'series-navigation', action: 'submit->series-navigation#start' } do |form| %>
+      <%= hidden_field_tag :page, params[:page] if params[:page].present? %>
       <details class="series-filters" open>
         <summary>Search &amp; filter <%= label.downcase %></summary>
         <div class="series-filter-fields">
