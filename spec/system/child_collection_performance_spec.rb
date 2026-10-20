@@ -8,11 +8,18 @@ RSpec.describe 'Large child collections', type: :system do
     ComicIssue.insert_all!(46.times.map { |i| { comic_id: comic.id, issue_number: i + 1, title: "Chapter #{i + 1}" } })
     visit comic_path(comic, child_status: 'all', page: 3)
     expect(page).to have_css('.series-pagination', text: '1–30 of 46 issues')
-    within('.series-pagination') { click_link 'Next' }
+    page.execute_script(<<~JS)
+      const next = document.querySelector('.series-pagination a[rel=next]'); next.click(); next.click()
+    JS
     expect(page).to have_css('.series-pagination', text: '31–46 of 46 issues')
     expect(page).to have_css('#series-entries .series-entry', count: 16)
     expect(URI.parse(page.current_url).fragment).to eq('media-entries')
     expect(page.evaluate_script('document.activeElement.id')).to eq('media-entries')
+    page.execute_script(<<~JS)
+      document.querySelector('.series-pagination').scrollIntoView({block: 'center', behavior: 'instant'})
+    JS
+    page.execute_async_script('Promise.all(document.getAnimations().map(a => a.finished)).then(arguments[0])')
+    expect(page).to have_css('.series-pagination a[rel=prev]')
     capture_ui_screenshot('issue-pagination-desktop')
     page.go_back
     expect(page).to have_css('.series-pagination', text: '1–30 of 46 issues')
@@ -21,7 +28,10 @@ RSpec.describe 'Large child collections', type: :system do
     page.refresh
     expect(page).to have_css('#series-entries .series-entry', count: 16)
     resize_browser_viewport(390, 844)
-    find('.series-pagination').scroll_to(:center)
+    page.execute_script(<<~JS)
+      document.querySelector('.series-pagination').scrollIntoView({block: 'center', behavior: 'instant'})
+    JS
+    page.execute_async_script('Promise.all(document.getAnimations().map(a => a.finished)).then(arguments[0])')
     capture_ui_screenshot('issue-pagination-mobile')
     expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be true
     within('.series-pagination') { click_link 'Previous' }

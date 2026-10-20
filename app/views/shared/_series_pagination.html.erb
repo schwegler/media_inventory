@@ -6,7 +6,7 @@
       <% [[records.prev_page, 'Previous', 'prev'], [records.next_page, 'Next', 'next']].each_with_index do |(page_number, text, relation), index| %>
         <% if index == 1 %><span aria-current="page">Page <%= records.current_page %> of <%= records.total_pages %></span><% end %>
         <% if page_number %>
-          <%= link_to text, polymorphic_path(item, request.query_parameters.merge(collection.filters.stringify_keys).merge('entries_page' => page_number, anchor: 'media-entries')), rel: relation, data: { turbo: false }, class: 'series-pagination-link' %>
+          <%= link_to text, polymorphic_path(item, request.query_parameters.merge(collection.filters.stringify_keys).symbolize_keys.merge(entries_page: page_number, anchor: 'media-entries')), rel: relation, data: { turbo: false }, class: 'series-pagination-link' %>
         <% else %>
           <span class="series-pagination-link" aria-disabled="true"><%= text %></span>
         <% end %>
