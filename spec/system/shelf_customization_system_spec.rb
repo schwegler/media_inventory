@@ -78,7 +78,9 @@ RSpec.describe 'Shelf Story customization', type: :system do
     visit shelf_path(user.username, category: 'Book', theme: 'halloween')
     expect(page).to have_css('h1 .shelf-custom-title', text: user.shelf_headline)
     expect(page).to have_css('h1 > span', text: 'Books · selections')
-    expect(page).to have_field('shelf-image-alt-text', with: /#{Regexp.escape(user.shelf_headline)}.*Category: Books/m, visible: :all)
+    expect(page).to have_field('shelf-image-alt-text',
+                               with: /#{Regexp.escape(user.shelf_headline)}.*Category: Books/m,
+                               visible: :all)
     find('input[name="shelf-format"][value="portrait"]').choose
     %w[Gallery Feature Mixtape].each do |layout|
       choose "#{layout} layout"
