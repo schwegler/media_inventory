@@ -28,9 +28,6 @@ class MetadataRefreshesController < ApplicationController
     return head :not_found unless klass
 
     @item = klass.find(params[:media_id])
-    return head :forbidden unless can_access?(@item)
-    return unless @item.is_a?(VideoGame) && !current_user.library_items.exists?(item: @item)
-
-    head :forbidden
+    head :forbidden unless can_access?(@item)
   end
 end
