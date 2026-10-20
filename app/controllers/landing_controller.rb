@@ -13,7 +13,7 @@ class LandingController < ApplicationController
       @popular_reviews = preload_social_feed(fetch_popular_reviews.to_a)
     else
       @activities = public_activity_feed
-      preload_social_feed(@activities.to_a)
+      # Attach review entries first before preloading social feed associations
       DashboardActivityQuery.attach_review_entries(@activities.to_a)
       preload_social_feed(@activities.to_a)
       @active_trackers = User.where.not(confirmed_at: nil).limit(5)
