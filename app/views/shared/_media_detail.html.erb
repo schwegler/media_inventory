@@ -49,7 +49,8 @@
       <div><strong><%= stats[:collectors].size %></strong><span>Collectors</span></div>
     </aside>
   </header>
-  <nav data-controller="media-sections" class="media-section-nav" aria-label="On this page">
+  <%# Fragment links belong to this document; Turbo visits can fetch/morph it without scrolling. %>
+  <nav data-controller="media-sections" data-turbo="false" class="media-section-nav" aria-label="On this page">
     <a href="#overview">Overview</a>
     <a href="#my-library">My Library</a>
     <% if media_metadata(item).any? || (item.is_a?(VideoGame) && (item.synopsis.present? || item.metadata_details.present?)) %>

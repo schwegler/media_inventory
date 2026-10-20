@@ -89,7 +89,7 @@
 .media-detail-body { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 2rem; align-items: start; }
 .media-detail-main, .media-detail-aside { min-width: 0; }
 .media-detail-main > * + * { margin-top: 2rem; }
-.media-detail :where(section[id], header[id]) { scroll-margin-top: 110px; }
+.media-detail :where(section[id], header[id], #my-library) { scroll-margin-top: 110px; }
 .media-detail .media-actions-container { border: 1px solid var(--border); border-radius: 8px; padding: clamp(1rem, 2vw, 1.5rem); background: var(--surface); box-shadow: none; display: block; margin: 0; }
 .media-detail h2, .media-detail .show-episodes-section h2 { font: 600 1.25rem/1.35 'Space Grotesk', sans-serif !important; text-transform: none !important; letter-spacing: -.025em !important; color: var(--text) !important; margin: 0 0 1.25rem; }
 .media-detail .actions-header { display: block; margin: 0; padding: 0; border: 0; }
