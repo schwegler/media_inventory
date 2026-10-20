@@ -20,7 +20,7 @@ RSpec.describe 'Shelf Story customization', type: :system do
     expect(find_link('View shelf overview')[:href]).to include('layout=reading', 'texture=stars', 'companion=telly')
     find('input[name="shelf-format"][value="portrait"]').choose
     expect(page).to have_css('.shelf-preview canvas[width="1080"][height="1920"]')
-    expect(find('#shelf-image-alt-text', visible: :all).value).to include('reading layout', 'stars texture')
+    expect(page).to have_field('shelf-image-alt-text', with: /reading layout.*stars texture/m, visible: :all)
     capture_ui_screenshot('shelf-telly-story-desktop')
     resize_browser_viewport(390, 844)
     expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
@@ -63,7 +63,7 @@ RSpec.describe 'Shelf Story customization', type: :system do
     %w[Gallery Feature Mixtape].each do |layout|
       choose "#{layout} layout"
       expect(page).to have_css('.shelf-preview canvas[width="1080"][height="1920"]')
-      expect(find('#shelf-image-alt-text', visible: :all).value).to include('Midnight Feature')
+      expect(page).to have_field('shelf-image-alt-text', with: /Midnight Feature/, visible: :all)
     end
     capture_ui_screenshot('midnight-feature-desktop')
     resize_browser_viewport(390, 844)
@@ -78,11 +78,13 @@ RSpec.describe 'Shelf Story customization', type: :system do
     visit shelf_path(user.username, category: 'Book', theme: 'halloween')
     expect(page).to have_css('h1 .shelf-custom-title', text: user.shelf_headline)
     expect(page).to have_css('h1 > span', text: 'Books · selections')
-    expect(find('#shelf-image-alt-text', visible: :all).value).to include(user.shelf_headline, 'Category: Books')
+    expect(page).to have_field('shelf-image-alt-text',
+                               with: /#{Regexp.escape(user.shelf_headline)}.*Category: Books/m,
+                               visible: :all)
     find('input[name="shelf-format"][value="portrait"]').choose
     %w[Gallery Feature Mixtape].each do |layout|
       choose "#{layout} layout"
-      expect(find('#shelf-image-alt-text', visible: :all).value).to include(user.shelf_headline)
+      expect(page).to have_field('shelf-image-alt-text', with: /#{Regexp.escape(user.shelf_headline)}/, visible: :all)
       expect(page).to have_css('.shelf-preview canvas[height="1920"]')
     end
     capture_ui_screenshot('custom-headline-category-desktop')

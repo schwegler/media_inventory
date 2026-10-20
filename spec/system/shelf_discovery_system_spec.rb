@@ -29,7 +29,7 @@ RSpec.describe 'Shelf discovery and real exports', type: :system do
     %w[exhibition collector mixtape].each do |layout|
       choose("#{{ 'exhibition' => 'Gallery', 'collector' => 'Feature', 'mixtape' => 'Mixtape' }.fetch(layout)} layout")
       expect(page).to have_css("canvas[data-rendered-layout='#{layout}'][aria-busy='false']", wait: 12)
-      expect(find('#shelf-image-alt-text', visible: :all).value).to include("#{layout} layout")
+      expect(page).to have_field('shelf-image-alt-text', with: /#{Regexp.escape(layout)} layout/, visible: :all)
       size = page.evaluate_script("document.querySelector('.shelf-preview canvas').toDataURL('image/png').length")
       expect(size).to be > 1000
       write_canvas("shelf-five-#{layout}-1080x1920.png", [1080, 1920])

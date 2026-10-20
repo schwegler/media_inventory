@@ -9,7 +9,8 @@ module DashboardActivityDeduplication
   def unique_dashboard_activities(scope, limit:, reviews_only: false)
     activities = DashboardActivityQuery.new(scope, viewer_id: current_user&.id)
                                        .latest(limit: limit, reviews_only: reviews_only).to_a
-    preload_social_feed(activities)
+    # Attach review entries first so trackables reflect resolved review entries,
+    # then perform a single batch preload pass for user, trackable, and card ratings.
     DashboardActivityQuery.attach_review_entries(activities, viewer_id: current_user&.id)
     preload_social_feed(activities)
   end
