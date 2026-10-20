@@ -21,4 +21,22 @@ RSpec.describe 'Metadata status feedback', type: :system do
     expect(page).to have_css('#metadata-health[data-refresh-state="success"][data-refresh-result="false"]', wait: 10)
     expect(page).to have_text('Metadata refreshed. Your library history and reviews are preserved.')
   end
+
+  it 'refreshes catalog-only Steam games through the redirect and status poll without ownership' do
+    user = create_and_login_user
+    game = VideoGame.create!(title: 'PowerWash Simulator QA', developer: 'FuturLab', release_year: 2022)
+    game.update_columns(api_id: 'steam_1290000')
+    allow_any_instance_of(MetadataRefresher).to receive(:enqueue) do
+      MetadataRefresh.find_by!(item: game).update!(state: 'refreshing', requested_at: Time.current)
+      'refreshing'
+    end
+    visit video_game_path(game)
+    find('#metadata-health > summary').send_keys(:enter)
+    click_button 'Refresh metadata'
+    expect(page).to have_css('#metadata-health[data-refresh-result="true"][data-refresh-state="refreshing"]')
+    expect(page).to have_no_text('Unable to connect')
+    MetadataRefresh.find_by!(item: game).update!(state: 'success', succeeded_at: Time.current)
+    expect(page).to have_css('#metadata-health[data-refresh-state="success"]', wait: 10)
+    expect(user.library_items.exists?(item: game)).to be false
+  end
 end

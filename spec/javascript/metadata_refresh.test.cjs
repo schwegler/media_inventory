@@ -61,3 +61,13 @@ test('authorization failure stops without navigation and disconnect aborts outst
   await active.controller.poll()
   assert.equal(active.calls(), before)
 })
+
+
+test('submit failures distinguish HTTP authorization, server failure and transport failure', () => {
+  for (const [fetchResponse, message] of [[{ statusCode: 403 }, /permission/], [{ statusCode: 500 }, /Unable to refresh/], [undefined, /Unable to connect/]]) {
+    const s = setup()
+    s.controller.finish({ detail: { success: false, fetchResponse } })
+    assert.match(s.status.textContent, message)
+    assert.equal(s.controller.pending, null)
+  }
+})

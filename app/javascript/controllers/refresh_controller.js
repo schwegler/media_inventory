@@ -99,7 +99,11 @@ export default class extends Controller {
     if (event.detail.success) this.schedule()
     else {
       this.clearPending()
-      if (this.status) this.status.textContent = "Unable to connect. Please try again."
+      const response = event.detail.fetchResponse
+      const message = response?.statusCode === 403
+        ? "You do not have permission to refresh this title."
+        : response ? "Unable to refresh metadata. Please try again." : "Unable to connect. Please try again."
+      if (this.status) this.status.textContent = message
     }
   }
 }

@@ -9,14 +9,18 @@ export default class extends Controller {
     this.pending = true
     this.button = event.detail.formSubmission.submitter || this.element.querySelector('button, input[type="submit"]')
     if (!this.button) return
-    this.snapshot = { html: this.button.innerHTML, liked: this.button.classList.contains("liked"), aria: this.button.getAttribute("aria-label"), value: this.button.value, selected: this.button.classList.contains("is-selected") }
+    this.snapshot = { pressed: this.button.getAttribute("aria-pressed"), html: this.button.innerHTML, liked: this.button.classList.contains("liked"), aria: this.button.getAttribute("aria-label"), value: this.button.value, selected: this.button.classList.contains("is-selected") }
     if (this.hasLabelValue) {
       if (this.button.tagName === "INPUT") this.button.value = this.labelValue
       else this.button.textContent = this.labelValue
     }
-    if (this.hasSelectedValue) this.button.classList.toggle("is-selected", this.selectedValue)
+    if (this.hasSelectedValue) {
+      this.button.classList.toggle("is-selected", this.selectedValue)
+      this.button.setAttribute("aria-pressed", String(this.selectedValue))
+    }
     if (this.hasLikedValue) {
       this.button.classList.toggle("liked", this.likedValue)
+      this.button.setAttribute("aria-pressed", String(this.likedValue))
       const heart = this.button.querySelector(".heart")
       heart?.classList.toggle("is-liked", this.likedValue)
       heart?.classList.toggle("is-unliked", !this.likedValue)
@@ -40,6 +44,8 @@ export default class extends Controller {
     if (event.detail.success) return
     if (this.snapshot && this.button) {
       this.button.innerHTML = this.snapshot.html
+      if (this.snapshot.pressed === null) this.button.removeAttribute("aria-pressed")
+      else this.button.setAttribute("aria-pressed", this.snapshot.pressed)
       this.button.classList.toggle("liked", this.snapshot.liked)
       if (this.snapshot.aria) this.button.setAttribute("aria-label", this.snapshot.aria)
       this.button.value = this.snapshot.value
