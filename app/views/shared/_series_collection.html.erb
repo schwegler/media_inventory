@@ -19,8 +19,10 @@
       <% if @series_library_item %>
         <div><%= form.label :child_status, collection.tv? ? 'Watch status' : 'Read status', for: 'child-status' %><%= form.select :child_status, [["All #{label.downcase}", 'all'], [collection.tv? ? 'Unwatched' : 'Unread', 'false'], [collection.tv? ? 'Watched' : 'Read', 'true']], { selected: collection.status }, { id: 'child-status', data: { action: 'change->series-navigation#submit' } } %></div>
       <% end %>
+      <div class="series-filter-actions">
       <%= form.button 'Apply', class: 'sleek-btn sleek-btn-secondary', data: { turbo_submits_with: 'Loading…' } %>
       <%= link_to 'Reset', polymorphic_path(item, anchor: 'media-entries') %>
+      </div>
         </div>
       </details>
       <p role="status" aria-live="polite"><%= collection.records.total_count %> matching <%= label.downcase %> · <%= collection.records.size %> shown</p>

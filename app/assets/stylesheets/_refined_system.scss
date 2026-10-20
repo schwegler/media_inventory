@@ -91,17 +91,19 @@
   .pass-options summary, .series-filters summary, .series-bulk summary { min-height: 44px; display: flex; align-items: center; gap: .5rem; cursor: pointer; font-size: .875rem; color: var(--accent); }
   .pass-options summary::before, .series-filters summary::before, .series-bulk summary::before { content: '+'; }
   .pass-options[open] summary::before, .series-filters[open] summary::before, .series-bulk[open] summary::before { content: '−'; }
-  .media-entries .child-collection-toolbar { display: flex; flex-wrap: wrap; align-items: start; gap: .75rem; padding-block: .75rem; }
+  .media-entries .child-collection-toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem; padding-block: .75rem; }
   .series-filters { flex: 1 1 300px; min-width: 0; }
   .series-filter-fields { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem; padding-block: .5rem; }
-  .series-filter-fields > div { flex: 1 1 150px; min-width: 0; }
+  .series-filter-fields > div { flex: 1 1 120px; min-width: 0; }
+  .series-filter-fields > .series-filter-actions { flex: 0 0 auto; display: flex; align-items: center; gap: .75rem; }
+  .media-entries .series-filter-actions :is(button, a) { display: inline-flex; align-items: center; justify-content: center; height: 44px; margin: 0; padding-block: 0; }
   .series-filter-fields :is(input, select) { width: 100%; }
   .series-bulk { margin-bottom: 1rem; }
   .media-entries .consumption-pass-status { width: auto; }
   .media-entries .consumption-pass-status strong { display: inline; }
   .media-entries .consumption-pass-panel { margin-bottom: .75rem; border-radius: 0; }
   .media-detail .media-entries h2 { font-size: 1.5rem; font-weight: 500; margin-bottom: 1rem; }
-  .media-entries .child-collection-toolbar > .series-season-filter { flex: 0 1 160px; min-width: 140px; }
+  .media-entries .child-collection-toolbar > .series-season-filter { flex: 0 1 160px; min-width: 140px; margin-bottom: .5rem; }
   .companion-note > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--accent); }
   .companion-note > div { display: flex; align-items: center; gap: 1rem; max-width: 560px; padding: 1rem 0; }
   .companion-note .quiet-companion { flex: 0 0 56px; margin: 0; }
@@ -118,7 +120,10 @@
     .in-progress-form-actions { flex-direction: row; align-items: center; }
     .in-progress-rating-select { flex: 0 1 110px; width: 110px; padding-left: .5rem; }
     .in-progress-log-btn { width: auto; padding-inline: .75rem; }
-    .child-collection-toolbar > div { min-width: 0; }
+    .media-entries .child-collection-toolbar > .series-season-filter { flex-basis: 100%; margin-bottom: 0; }
+    .series-filters { flex-basis: 100%; }
+    .series-filter-fields > div { flex-basis: 100%; }
+    .series-filter-fields > .series-filter-actions { flex-basis: 100%; }
   }
   .quiet-companion { display: block; width: 56px; height: 72px; object-fit: contain; margin: 0 auto 1rem; filter: none; }
   .home-empty-state { padding: 2rem; }
