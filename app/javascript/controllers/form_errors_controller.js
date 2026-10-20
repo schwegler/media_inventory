@@ -10,5 +10,6 @@ export default class extends Controller {
       input.setAttribute("aria-invalid", "true")
       input.setAttribute("aria-describedby", [input.getAttribute("aria-describedby"), summary.id].filter(Boolean).join(" "))
     })
+    summary.focus()
   }
 }
