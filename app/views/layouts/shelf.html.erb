@@ -32,7 +32,7 @@
   <%= csrf_meta_tags %>
   <%= csp_meta_tag %>
 </head>
-<body class="shelf-page" data-controller="<%= 'halloween' if season %>" data-halloween-config-value="<%= SeasonalHelper::SEASON_CONFIG.to_json if season %>" data-action="turbo:render@document->halloween#refresh turbo:before-cache@document->halloween#reset trove:base-appearance@document->halloween#baseChoice" data-seasonal-preferences-url="<%= settings_appearance_path if logged_in? %>" data-viewer-id="<%= logged_in? ? current_user.id : 'guest' %>" data-ui-preferences="<%= ui_preferences.to_json %>" <% if hotwire_native_app? %>data-native="true"<% end %>>
+<body data-public-analytics="<%= public_analytics_page.to_json %>" class="shelf-page" data-controller="<%= 'halloween' if season %>" data-halloween-config-value="<%= SeasonalHelper::SEASON_CONFIG.to_json if season %>" data-action="turbo:render@document->halloween#refresh turbo:before-cache@document->halloween#reset trove:base-appearance@document->halloween#baseChoice" data-seasonal-preferences-url="<%= settings_appearance_path if logged_in? %>" data-viewer-id="<%= logged_in? ? current_user.id : 'guest' %>" data-ui-preferences="<%= ui_preferences.to_json %>" <% if hotwire_native_app? %>data-native="true"<% end %>>
   <a class="skip-link" href="#main-content">Skip to shelves</a>
   <%= render 'shared/site_navigation' %>
   <%= render 'shared/halloween_invitation' %>

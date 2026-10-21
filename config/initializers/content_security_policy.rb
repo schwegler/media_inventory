@@ -12,7 +12,7 @@ Rails.application.configure do
     policy.font_src    :self, :https, :data
     policy.img_src     :self, :https, :data
     policy.object_src  :none
-    policy.script_src  :self
+    policy.script_src  :self, 'https://www.googletagmanager.com'
     policy.style_src   :self, :https, :unsafe_inline
     # Specify URI for violation reports
     # policy.report_uri "/csp-violation-report-endpoint"
@@ -20,7 +20,9 @@ Rails.application.configure do
     # Additional security directives
     policy.base_uri    :self
     policy.connect_src :self, 'https://itunes.apple.com', 'https://www.googleapis.com',
-                       'https://api.tvmaze.com', 'https://openlibrary.org', 'https://covers.openlibrary.org'
+                       'https://api.tvmaze.com', 'https://openlibrary.org', 'https://covers.openlibrary.org',
+                       'https://www.googletagmanager.com', 'https://www.google-analytics.com',
+                       'https://region1.google-analytics.com'
     policy.form_action :self, :https
   end
 
