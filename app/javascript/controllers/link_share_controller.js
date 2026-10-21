@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { trackPublicShare } from "analytics"
 
 export default class extends Controller {
   static values = { url: String, title: String }
@@ -18,6 +19,7 @@ export default class extends Controller {
     try {
       await navigator.share({ title: this.titleValue, url: this.urlValue })
       this.showStatus("Shared.")
+      trackPublicShare("native")
     } catch (error) {
       if (error.name !== "AbortError") await this.copy()
     }
@@ -30,6 +32,7 @@ export default class extends Controller {
       await navigator.clipboard.writeText(this.urlValue)
       if (this.hasFallbackTarget) this.fallbackTarget.hidden = true
       this.showStatus("Link copied.")
+      trackPublicShare("copy_link")
       if (button) this.flashButtonSuccess(button)
     } catch {
       if (this.hasFallbackTarget) {

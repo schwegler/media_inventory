@@ -47,7 +47,7 @@ jobs:
       - name: Run tests
         run: bin/rake
       - name: Check selective browser behavior
-        run: node --test spec/javascript/*.test.cjs
+        run: node --test spec/javascript/*.test.cjs spec/javascript/*.test.mjs
       - name: Install browser and matching driver
         id: chrome
         uses: browser-actions/setup-chrome@v2
