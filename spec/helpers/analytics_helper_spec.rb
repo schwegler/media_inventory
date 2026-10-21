@@ -6,10 +6,10 @@ RSpec.describe AnalyticsHelper, type: :helper do
   before do
     allow(Rails.env).to receive(:production?).and_return(true)
     allow(request).to receive_messages(get?: true, host: 'trove.schweg.xyz', ssl?: true,
-                                      query_parameters: {}, user_agent: 'Browser')
+                                       query_parameters: {}, user_agent: 'Browser')
     allow(request).to receive(:format).and_return(double(html?: true))
     allow(helper).to receive_messages(logged_in?: false, hotwire_native_app?: false,
-                                     controller_name: 'landing', action_name: 'index')
+                                      controller_name: 'landing', action_name: 'index')
   end
 
   it 'uses fixed public home metadata' do
@@ -19,7 +19,7 @@ RSpec.describe AnalyticsHelper, type: :helper do
   it 'aggregates public shelves without exposing their handles' do
     allow(helper).to receive_messages(controller_name: 'shelves', action_name: 'show')
     expect(helper.public_analytics_page).to eq(path: '/public_shelf', title: 'Public shelf',
-                                             type: 'public_shelf', group: 'public')
+                                               type: 'public_shelf', group: 'public')
   end
 
   it 'excludes authenticated users, native clients, queries and noncanonical hosts' do
@@ -52,6 +52,6 @@ RSpec.describe AnalyticsHelper, type: :helper do
   it 'describes catalog pages without item titles or IDs' do
     allow(helper).to receive_messages(controller_name: 'movies', action_name: 'show')
     expect(helper.public_analytics_page).to eq(path: '/movies/show', title: 'Trove movies',
-                                             type: 'catalog', group: 'movies')
+                                               type: 'catalog', group: 'movies')
   end
 end
