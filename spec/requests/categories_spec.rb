@@ -133,21 +133,20 @@ RSpec.describe 'Categories', type: :request do
   end
 
   describe 'Category links on media detail pages' do
-    it 'renders clickable category links on movie show page' do
+    it 'renders canonical contributor links and genre category links on movie show page' do
       get movie_path(movie1)
       expect(response).to have_http_status(:success)
-      expect(response.body).to include(category_item_path(category_type: 'directors', name: 'Christopher Nolan'))
-      expect(response.body).to include(category_item_path(category_type: 'writers', name: 'Christopher Nolan'))
-      expect(response.body).to include(category_item_path(category_type: 'actors', name: 'Leonardo DiCaprio'))
+      expect(response.body).to include(metadata_entity_path(MetadataEntity.find_by!(name: 'Christopher Nolan')))
+      expect(response.body).to include(metadata_entity_path(MetadataEntity.find_by!(name: 'Leonardo DiCaprio')))
       expect(response.body).to include(category_item_path(category_type: 'genres', name: 'Sci-Fi'))
     end
 
-    it 'renders clickable category links on tv show show page' do
+    it 'renders canonical contributor links and genre category links on tv show show page' do
       get tv_show_path(tv_show1)
       expect(response).to have_http_status(:success)
-      expect(response.body).to include(category_item_path(category_type: 'directors', name: 'Jonathan Nolan'))
-      expect(response.body).to include(category_item_path(category_type: 'writers', name: 'Lisa Joy'))
-      expect(response.body).to include(category_item_path(category_type: 'actors', name: 'Evan Rachel Wood'))
+      expect(response.body).to include(metadata_entity_path(MetadataEntity.find_by!(name: 'Jonathan Nolan')))
+      expect(response.body).to include(metadata_entity_path(MetadataEntity.find_by!(name: 'Lisa Joy')))
+      expect(response.body).to include(metadata_entity_path(MetadataEntity.find_by!(name: 'Evan Rachel Wood')))
       expect(response.body).to include(category_item_path(category_type: 'genres', name: 'Western'))
     end
   end

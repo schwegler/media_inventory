@@ -25,6 +25,13 @@ RSpec.describe MediaLayoutHelper, type: :helper do
     end
   end
 
+  it 'preserves the supplied order when linking multiple actors' do
+    movie = Movie.create!(title: 'An ensemble', actors: 'Zoe Actor, Amy Actor')
+    html = Nokogiri::HTML.fragment(helper.render_media_metadata_value(movie, :actors, movie.actors))
+
+    expect(html.css('a').map(&:text)).to eq(['Zoe Actor', 'Amy Actor'])
+  end
+
   it 'keeps comic creator fallback links out of music categories before backfill' do
     comic = Comic.new(title: 'Legacy comic', artist: 'Legacy Artist')
     html = helper.render_media_metadata_value(comic, :artist, comic.artist)
