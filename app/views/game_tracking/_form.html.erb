@@ -8,6 +8,9 @@
 
 <%= form_with url: submit_url, method: method, scope: kind.to_sym, namespace: namespace_id, class: 'standard-form game-form' do |f| %>
   <%= hidden_field_tag :kind, kind, id: nil %>
+  <% if params[:profile_tracking] == '1' %>
+    <% %i[profile_tracking profile_tab type sort page].each do |key| %><%= hidden_field_tag key, params[key], id: nil %><% end %>
+  <% end %>
 
   <% case kind %>
   <% when 'journal' %>

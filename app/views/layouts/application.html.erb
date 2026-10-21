@@ -9,6 +9,7 @@
   <title><%= full_title(yield(:title)) %></title>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="turbo-prefetch" content="true">
+  <% if content_for?(:turbo_no_cache) %><meta name="turbo-cache-control" content="no-cache"><% end %>
   <meta name="view-transition" content="same-origin">
   <meta name="turbo-refresh-method" content="morph">
   <meta name="turbo-refresh-scroll" content="preserve">
@@ -18,6 +19,7 @@
   <meta property="og:title" content="<%= full_title(yield(:title)) %>">
   <meta property="og:description" content="<%= yield(:meta_description).presence || "A home for every story, album, and game you're into. Log what you watch, read, play, and spin—without algorithmic clutter. Build your shelf across 6 media formats, track active series, and share honest takes on Trove." %>">
   <meta property="og:image" content="<%= public_preview_image_url(yield(:meta_image)) %>">
+  <% if content_for?(:robots) %><meta name="robots" content="<%= yield(:robots) %>"><% end %>
   <meta property="og:url" content="<%= yield(:canonical_url).presence || request.original_url %>">
   <% if content_for?(:canonical_url) %><link rel="canonical" href="<%= yield(:canonical_url) %>"><% end %>
   <meta property="og:type" content="<%= yield(:og_type).presence || "website" %>">

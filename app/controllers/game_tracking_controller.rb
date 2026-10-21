@@ -4,6 +4,8 @@
 # never rendered on public catalog pages or included in the activity feed.
 # rubocop:disable-next Metrics/ClassLength
 class GameTrackingController < ApplicationController
+  include ProfileProgressRendering
+
   before_action :logged_in_user
   before_action :load_library
 
@@ -78,6 +80,7 @@ class GameTrackingController < ApplicationController
   private
 
   def load_library
+    response.headers['Cache-Control'] = 'private, no-store'
     @library = current_user.library_items.where(item_type: 'VideoGame').find_by!(item_id: params[:video_game_id])
   end
 
@@ -106,6 +109,8 @@ class GameTrackingController < ApplicationController
   end
 
   def render_tracking_stream(notice)
+    return render_profile_tracking(close_modal: true) if params[:profile_tracking] == '1'
+
     @library.reload
     @library_item = @library
     respond_to do |format|

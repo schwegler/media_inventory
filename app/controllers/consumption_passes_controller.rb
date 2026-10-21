@@ -2,6 +2,8 @@
 
 # Start, dismiss and resume watch/read-throughs of a TV show or comic.
 class ConsumptionPassesController < ApplicationController
+  include ProfileProgressRendering
+
   before_action :logged_in_user
   before_action :set_pass, only: %i[dismiss resume]
 
@@ -16,6 +18,8 @@ class ConsumptionPassesController < ApplicationController
 
   def dismiss
     ConsumptionPasses.dismiss(@pass)
+    return render_profile_tracking if params[:profile_tracking] == '1'
+
     respond_to do |format|
       format.turbo_stream do
         render turbo_stream: turbo_stream.remove("in_progress_#{@series.class.name.underscore}_#{@series.id}")
