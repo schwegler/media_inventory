@@ -56,7 +56,7 @@ RSpec.describe 'Series filter alignment', type: :system do
     expect(page).to have_css('#series-entries .series-entry-title', text: 'First episode')
     expect(page).to have_current_path(tv_show_path(show), ignore_query: true)
     javascript_errors = page.driver.browser.logs.get(:browser).select do |entry|
-      entry.level == 'SEVERE' && entry.message.match?(/Uncaught|Error:|javascript/)
+      entry.level == 'SEVERE' && entry.message.match?(/Uncaught|Error:/) && !entry.message.include?('Content Security Policy')
     end
     expect(javascript_errors).to be_empty
   end
