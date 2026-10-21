@@ -1,5 +1,5 @@
 <% if items.any? %>
-  <div class="profile-media-grid">
+  <div class="profile-media-grid<%= ' profile-media-row' if local_assigns[:compact] %>"<% if local_assigns[:compact] %> role="region" aria-label="Recently collected titles" tabindex="0"<% end %>>
     <% items.each do |entry| %>
       <% item = entry.item; next unless item %>
       <article class="profile-media-entry">

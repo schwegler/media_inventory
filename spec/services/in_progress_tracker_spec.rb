@@ -211,3 +211,61 @@ RSpec.describe InProgressTracker do
     end
   end
 end
+
+RSpec.describe 'Progress activity ordering' do
+  include ActiveSupport::Testing::TimeHelpers
+
+  let!(:user) { User.create!(name: 'Activity tester', password: 'password123') }
+
+  def start_show(title)
+    show = TvShow.create!(title: title)
+    library = user.library_items.create!(item: show, is_public: true)
+    2.times { |i| show.tv_episodes.create!(name: "Episode #{i}", season: 1, episode: i + 1) }
+    ConsumptionPasses.start(library)
+  end
+
+  it 'uses immutable start time for untouched passes and stable library IDs for equal activity times' do
+    travel_to(Time.current.change(usec: 0)) do
+      first = start_show('First')
+      second = start_show('Second')
+      first.touch(time: 1.year.from_now)
+      expect(InProgressTracker.items_for(user, limit: 2).map(&:pass)).to eq([second, first])
+      expect(InProgressTracker.items_for(user).last.last_consumed_at).to eq(first.created_at)
+    end
+  end
+
+  it 'applies the limit after skipping empty or already-complete active passes' do
+    valid = start_show('Valid')
+    empty = start_show('No children')
+    empty.library_item.item.tv_episodes.destroy_all
+    completed = start_show('Already complete')
+    completed.library_item.item.tv_episodes.each do |episode|
+      completed.entries.create!(item: episode, consumed_at: Time.current)
+    end
+    expect(InProgressTracker.items_for(user, limit: 2).map(&:pass)).to eq([valid])
+  end
+
+  it 'ranks private owner games by session end time across media, never edits, with one run per title' do
+    pass = start_show('Active show')
+    pass.entries.create!(item: pass.library_item.item.tv_episodes.first, consumed_at: 1.day.ago)
+    game = VideoGame.create!(title: 'Active game')
+    library = user.library_items.create!(item: game)
+    run = library.game_playthroughs.create!(status: 'currently_playing')
+    run.game_sessions.create!(started_at: 3.days.ago, ended_at: 3.days.ago + 1.hour)
+    run.touch(time: 1.year.from_now)
+    expect(InProgressTracker.items_for(user, include_games: true).map(&:media_type)).to eq(%w[TvShow VideoGame])
+    run.game_sessions.create!(started_at: 1.hour.ago, ended_at: Time.current)
+    expect(InProgressTracker.items_for(user, limit: 1, include_games: true).first.playthrough).to eq(run)
+    expect(InProgressTracker.items_for(user, public_only: true, include_games: true).map(&:media_type)).to eq(['TvShow'])
+    library.game_playthroughs.create!(status: 'completed')
+    expect(InProgressTracker.items_for(user, include_games: true).map(&:media_type)).to eq(['TvShow'])
+  end
+  it 'builds next-entry candidates only for the visible slice, with accurate totals' do
+    15.times { |index| start_show("Paged series #{index}") }
+    tracker = InProgressTracker.new(user)
+    expect(NextSeriesEntry).to receive(:new).exactly(2).times.and_call_original
+    items = tracker.items(limit: 2, offset: 12, sort: 'title')
+    expect(items.size).to eq(2)
+    expect(tracker.total_count).to eq(15)
+  end
+end

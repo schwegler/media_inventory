@@ -1,0 +1,10 @@
+<section class="profile-section" id="in_progress_section" aria-labelledby="in-progress-heading" data-controller="profile-progress" data-action="turbo:submit-start->profile-progress#start turbo:submit-end->profile-progress#finish turbo:fetch-request-error->profile-progress#error">
+  <p role="status" class="profile-progress-status profile-section-note" data-profile-progress-target="status"><%= local_assigns[:tracking_notice] %></p>
+  <p role="alert" class="profile-tracking-error" hidden data-profile-progress-target="error"></p>
+  <div class="profile-section-heading"><h2 id="in-progress-heading">In progress</h2><%= link_to 'Open dashboard', profile_tab_path('progress'), aria: { label: 'Open In progress dashboard' } %></div>
+  <% if local_assigns[:tracking_error].present? %><p role="alert" class="profile-tracking-error"><%= tracking_error %></p><% end %>
+  <% if @in_progress_items.any? %>
+    <p class="profile-section-note"><%= @profile_owner ? 'Your two most recently active titles.' : 'Most recent public tracking activity.' %></p>
+    <div class="in-progress-grid profile-progress-preview"><% @in_progress_items.each do |item| %><%= render(item.game? ? 'users/profile_game_progress' : 'shared/in_progress_card', in_progress: item, profile_owner: @profile_owner) %><% end %></div>
+  <% else %><p class="profile-section-note">No <%= 'public ' unless @profile_owner %>titles in progress.</p><% end %>
+</section>

@@ -78,7 +78,7 @@
         <summary aria-label="Tracking options for <%= series_title %>" title="Tracking options"><%= ui_icon("more-horizontal") %><span class="tracking-options-label">Tracking</span></summary>
         <div class="tracking-options-menu">
           <p>Your progress is kept when you dismiss a series.</p>
-          <%= button_to "Dismiss", dismiss_consumption_pass_path(in_progress.pass), method: :patch, class: "in-progress-dismiss", form_class: "in-progress-dismiss-form", aria: { label: "Dismiss #{series_title} from In progress" } %>
+          <%= button_to "Dismiss", dismiss_consumption_pass_path(in_progress.pass), method: :patch, class: "in-progress-dismiss", form_class: "in-progress-dismiss-form", params: (@profile_tab.present? ? { profile_tracking: '1', profile_tab: @profile_tab, type: params[:type], sort: params[:sort], page: params[:page] } : {}), aria: { label: "Dismiss #{series_title} from In progress" } %>
         </div>
       </details>
     <% end %>
@@ -120,6 +120,11 @@
             <%= f.hidden_field "#{param_key}[consumed]", value: true, id: nil %>
             <%= f.hidden_field "#{param_key}[consumed_at]", value: Date.current, id: nil %>
             <%= hidden_field_tag :in_progress, true, id: nil %>
+            <% if @profile_tab.present? %>
+              <%= hidden_field_tag :profile_tracking, '1', id: nil %>
+              <%= hidden_field_tag :profile_tab, @profile_tab, id: nil %>
+              <% %i[type sort page].each do |key| %><%= hidden_field_tag key, params[key], id: nil %><% end %>
+            <% end %>
 
             <div class="in-progress-form-actions">
               <%= f.select "#{param_key}[rating]", [
@@ -136,7 +141,7 @@
                 ["★★★★★", "5.0"]
               ], {}, { id: "#{in_progress.dom_id}_rating", class: 'in-progress-rating-select', aria: { label: "Rating for #{series_title} · #{next_label} · #{next_title}" } } %>
 
-              <%= f.button type: :submit, class: 'sleek-btn sleek-btn-primary in-progress-log-btn', data: { tracking_primary: true }, aria: { label: "#{action_verb} #{series_title} · #{next_label} · #{next_title}" } do %>
+              <%= f.button type: :submit, class: 'sleek-btn sleek-btn-primary in-progress-log-btn', data: { tracking_primary: true, turbo_submits_with: 'Saving…' }, aria: { label: "#{action_verb} #{series_title} · #{next_label} · #{next_title}" } do %>
                 <%= is_tv ? "Mark watched" : "Mark read" %>
               <% end %>
             </div>

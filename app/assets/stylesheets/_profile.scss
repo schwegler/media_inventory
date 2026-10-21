@@ -102,3 +102,43 @@
 @media (max-width: 700px) { .library-profile .profile-cover-title { font-size: 14px; padding: 8px; overflow-wrap: normal; hyphens: auto; } }
 
 }
+
+@mixin compact-overview {
+  .library-profile[data-profile-tab='progress'] {
+    .library-profile-banner, .library-profile-bio, .library-profile-member, .library-profile-sidebar { display: none; }
+    .library-profile-heading { margin-block: 16px 24px; }
+    .library-profile-layout { grid-template-columns: minmax(0, 1fr); }
+    .profile-progress-filter { max-width: 760px; }
+  }
+  .library-profile .profile-section-heading h2 { scroll-margin-top: 110px; }
+  // Horizontal overflow belongs to this shelf, never the page.
+  .library-profile .profile-media-row { display: grid; grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: clamp(104px, 14vw, 138px); gap: 16px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; padding: 4px 4px 14px; scrollbar-width: thin; }
+  .profile-media-row .profile-media-entry { scroll-snap-align: start; }
+  .profile-media-row .profile-entry-type { margin-bottom: 4px; }
+  .profile-media-row h3 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .library-profile :is(a, button, select, input, summary, [tabindex]):focus-visible { outline: 2px solid var(--primary-color); outline-offset: 3px; }
+  .library-profile .profile-section-heading > a { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; }
+  .library-profile .profile-section-heading { margin-bottom: 10px; }
+  .profile-section-note { color: var(--text-muted); font-size: 14px; line-height: 1.55; margin: 0 0 14px; }
+  .profile-progress-filter { display: flex; flex-wrap: wrap; align-items: end; gap: 16px; padding-block: 10px; }
+  .profile-progress-filter > div { display: grid; gap: 8px; flex: 1 1 170px; min-width: 0; }
+  .profile-progress-filter select { width: 100%; }
+  .profile-progress-filter button { min-height: 44px; }
+  .profile-progress-results p { margin: 0; color: var(--text-muted); font-size: 14px; }
+  .profile-game-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .profile-game-actions a { min-height: 44px; }
+  .library-profile .profile-share { display: flex; flex-wrap: wrap; gap: 8px; max-width: 100%; }
+  .profile-share [role=status], .profile-share input { flex-basis: 100%; }
+  .profile-share [role=status]:empty { display: none; }
+  @media (min-width: 701px) { .library-profile .profile-progress-preview { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 700px) {
+    .library-profile .profile-media-row { grid-auto-columns: 112px; gap: 12px; }
+    .library-profile .profile-share { grid-column: 1 / -1; }
+    .profile-share button { flex: 1 1 140px; }
+    .library-profile .library-profile-identity { flex-basis: calc(100% - 100px); }
+    .library-profile .library-profile-actions { align-items: start; }
+  }
+}
+
+.profile-progress-status:empty { display: none; }
+.profile-tracking-error { color: var(--text-main); padding: 12px; border-left: 3px solid var(--primary-color); background: var(--bg-surface); }
