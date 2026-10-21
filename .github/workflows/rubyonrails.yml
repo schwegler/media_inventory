@@ -80,6 +80,7 @@ jobs:
           spec/system/library_action_state_system_spec.rb
           spec/system/quick_tracking_system_spec.rb
           spec/system/profile_progress_system_spec.rb
+          spec/system/profile_card_polish_system_spec.rb
           spec/system/catalog_consistency_system_spec.rb
           spec/system/presentation_system_spec.rb
           spec/system/header_spacing_system_spec.rb

@@ -15,7 +15,7 @@
   <div class="profile-section-heading profile-progress-results"><p><%= pluralize(@in_progress_items.total_count, 'active title') %></p><% if @progress_type.present? || @progress_sort != 'recent' %><%= link_to 'Reset filters', profile_tab_path('progress') %><% end %></div>
   <% if @in_progress_items.any? %>
     <div class="in-progress-grid"><% @in_progress_items.each do |item| %><%= render(item.game? ? 'users/profile_game_progress' : 'shared/in_progress_card', in_progress: item, profile_owner: @profile_owner) %><% end %></div>
-    <%= paginate @in_progress_items %>
+    <div class="pagination-wrapper"><%= paginate @in_progress_items %></div>
   <% else %>
     <div class="profile-empty"><h3><%= @progress_type.present? ? 'No matching titles.' : 'Nothing in progress yet.' %></h3>
       <p><%= @progress_type.present? ? 'Try All tracking to see your other titles.' : (@profile_owner ? 'Log an episode or issue, start a watch-through or read-through, or begin a game playthrough to see it here.' : 'No public tracking activity to show.') %></p>
