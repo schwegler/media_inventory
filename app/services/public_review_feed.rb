@@ -18,9 +18,11 @@ class PublicReviewFeed
     # Batches also handle whitespace/HTML-only legacy bodies without underfilling the limit.
     offset = 0
     loop do
-      batch = scope.offset(offset).limit(100).preload(:user, item: { cover_image_attachment: :blob }).to_a
-      ActiveRecord::Associations::Preloader.new(records: batch.map(&:item).grep(TvEpisode), associations: :tv_show).call
-      ActiveRecord::Associations::Preloader.new(records: batch.map(&:item).grep(ComicIssue), associations: :comic).call
+      batch = scope.offset(offset).limit(100).preload(:user, :item).to_a
+      items = batch.map(&:item).compact
+      ActiveRecord::Associations::Preloader.new(records: items.grep(TvEpisode), associations: :tv_show).call
+      ActiveRecord::Associations::Preloader.new(records: items.grep(ComicIssue), associations: :comic).call
+      preload_item_cover_attachments(items)
       batch.each do |entry|
         result << entry unless self.class.plain_text(entry.review).blank?
         return result if result.size == @limit
@@ -33,6 +35,28 @@ class PublicReviewFeed
   end
 
   private
+
+  def preload_item_cover_attachments(items)
+    return if items.blank?
+
+    media = items.flat_map do |item|
+      case item
+      when TvEpisode then [item, item.tv_show]
+      when ComicIssue then [item, item.comic]
+      else [item]
+      end
+    end.compact.uniq
+
+    # Group by class to avoid AssociationNotFoundError and batch Active Storage blob preloading
+    media.group_by(&:class).each do |klass, grouped_records|
+      next unless klass.respond_to?(:reflect_on_association) && klass.reflect_on_association(:cover_image_attachment)
+
+      ActiveRecord::Associations::Preloader.new(
+        records: grouped_records,
+        associations: { cover_image_attachment: :blob }
+      ).call
+    end
+  end
 
   def media_existence_sql
     existence = ReviewsController::REVIEWABLE_MODELS.map do |type, model|
