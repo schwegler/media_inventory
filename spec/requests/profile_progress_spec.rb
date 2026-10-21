@@ -94,6 +94,7 @@ RSpec.describe 'Compact profile and progress dashboard', type: :request do
     get handle_profile_path(user.username), params: { tab: 'progress' }
     expect(document.css('.in-progress-card').size).to eq(12)
     expect(response.body).to include('13 active titles')
+    expect(document.at_css('.pagination-wrapper nav.pagination')).to be_present
     get handle_profile_path(user.username), params: { tab: 'progress', page: 2 }
     expect(document.css('.in-progress-card').size).to eq(1)
   end
