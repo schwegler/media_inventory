@@ -24,7 +24,7 @@ gem 'image_processing', '~> 2.2'
 gem 'psych', '5.0.1'
 gem 'rdoc', '>= 6.5.1.1'
 
-gem 'sqlite3', '~> 2.9', '>= 2.9.6'
+gem 'sqlite3', '~> 2.10'
 
 group :development, :test do
   gem 'brakeman'
