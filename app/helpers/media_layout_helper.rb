@@ -47,10 +47,10 @@ module MediaLayoutHelper
   end
 
   def render_media_metadata_value(item, attribute, value)
-    if %i[artist author publisher developer network].include?(attribute&.to_sym)
-      role = MetadataEntitySync::FIELDS.fetch(item.class.name, {})[attribute.to_sym]
+    role = MetadataEntitySync::FIELDS.fetch(item.class.name, {})[attribute&.to_sym]
+    if role && !%w[Genre Platform].include?(role)
       credits = item.metadata_credits.select { |credit| credit.role == role }
-      return entity_credit_links(credits) if credits.any?
+      return entity_credit_links(credits.sort_by { |credit| [credit.position, credit.id] }) if credits.any?
     end
     category_type = category_type_for(item, attribute)
     return ERB::Util.html_escape(value) unless category_type
