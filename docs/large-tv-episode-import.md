@@ -8,7 +8,7 @@ The [TVMaze episode response](https://api.tvmaze.com/shows/793/episodes) downloa
 
 The source has 42 seasons numbered 1985 through 2026. Those are valid source season numbers, not array indices to renumber from 1. The [season API](https://www.tvmaze.com/api#show-seasons) splits the list into much smaller responses; the downloaded 2026 season was 124,528 bytes. An offline replay grouping the downloaded episode rows by the source season IDs returned all 7,333 original provider IDs, without production writes or further provider requests. The largest season in that replay was 162,437 bytes.
 
-**Production evidence boundary:** the public page does not expose the stored `api_id` or last metadata-refresh state, and this executor has no installed production shell/log client. The oversized TVMaze path is a confirmed code defect and reproduces with the matching show's real provider data. To confirm this record's exact failing path, an authorized production reader must inspect TvShow 145's source ID and refresh state. A blank/incorrect ID, disabled source or a `tmdb_` mapping requires its own diagnosis; this change does not guess or rewrite identities. TMDB's separate season limit is unchanged.
+**Production read-only verification:** TvShow 145 stores TVMaze `api_id: 793` and has zero episodes. MetadataRefresh 226 uses TVMaze and is `partial`, requested at `2026-10-22 19:40:40.812119 UTC` and completed at `19:40:45.530971 UTC`. Its `succeeded_at` marks parent refresh completion, not successful episode import. There is no persisted error field. Available Fly logs cover only 20:08–20:09, so the exact historical exception is not observable. The verified identity, deployed full-list path, partial state and real-response reproduction strongly support the size limit as this record's cause; they do not establish a logged historical exception. No identity is rewritten. TMDB's separate season limit is unchanged.
 
 ## Fix and limits
 
@@ -20,10 +20,28 @@ Ended-season responses reuse the existing seven-day bounded cache, while new/ope
 
 The existing reconciler preserves child identities, custom titles, reviews, comments and personal tracking. Its existing policy for a library entry marked fully watched is unchanged. The tests cover both entry paths, repeat refresh, partial provider failure, byte guards, all 42 seasons, year-numbered season filtering, bounded page instantiation and browser pagination/Back.
 
-## Repair scope before production execution
+## Bounded episode-only recovery (not executed in production)
 
-Do not run a blanket metadata backfill as part of deployment. First obtain the read-only source ID, episode count and MetadataRefresh state/provider for TvShow 145. Also assess whether any library entries mark the whole show watched, since the existing completion policy applies to newly imported children.
+Do not run a blanket backfill or normal single-show refresh for this repair. A normal offline reconciliation of all 7,333 downloaded rows took approximately 31 seconds and queued 7,432 enrichment/artwork jobs in the test adapter (none executed). Normal reconciliation also propagates whole-show watched flags. This local measurement is not a production capacity guarantee.
 
-A safe offline test imported the 7,333 downloaded rows into a separate SQLite test database in approximately 31 seconds, with a total process peak RSS of 241,748 KiB. It queued 7,432 follow-up jobs (episode enrichment plus artwork) in the test adapter, executing none; no provider network requests or production writes occurred. This is a local measurement, not a production capacity guarantee. Production queue limits and enrichment capacity must be assessed before requesting the single show's repair. Basic episode import and all follow-up enrichment are separate outcomes.
+`TvmazeEpisodeRecovery` is an operator-only, create-only alternative with no route or automatic job. It defaults to a read-only preview, validates the saved show against an explicit expected TVMaze ID and the source activation setting, and fetches only the season index and the selected season. Existing HTTP byte limits and a shared 15-second deadline apply. Each batch is capped at 250 regular episodes, with an explicit episode-number cursor. An apply requires the exact preview digest; changed source data aborts before writes. Existing episode rows are skipped entirely. A transaction locks the show and rechecks its identity before creating missing rows.
 
-After code review and a separately authorized deployment, use a controlled single-show refresh under the existing cooldowns, monitor episode counts/partial state and queue capacity, and repeat only as necessary. This PR does not change production records or settings, and does not perform that repair.
+Recovery omits artwork assignment, episode enrichment jobs and whole-show completion propagation. It does not edit library items, consumption passes/entries, activity, reviews, ratings, private notes or existing episodes. It leaves historical MetadataRefresh 226 unchanged; catalog repair does not turn a past partial refresh into a success. Normal sync behavior remains unchanged. An offline replay of all 7,333 downloaded episodes through 42 bounded recovery batches took 28.06 seconds, preserved every provider ID, queued zero jobs and created zero cover imports or library items. It used a separate local database with provider networking disabled. This validates the job-free path, not production capacity or authorization.
+
+After review and a separately authorized deployment, an authorized operator can inspect one current-season batch in a Rails console:
+
+```ruby
+show = TvShow.find(145)
+repair = TvmazeEpisodeRecovery.new(show, expected_api_id: '793', season: 2026, batch_size: 50)
+preview = repair.call # read-only; review counts, source identity, cursor and digest
+```
+
+Stop after this preview until the specific production write is authorized. On authorization, apply only the reviewed batch:
+
+```ruby
+result = repair.call(dry_run: false, expected_digest: preview.fetch(:digest))
+```
+
+Verify created episode count and provider IDs, skipped-existing count, unchanged personal records and no added follow-up jobs. Decide the next season/cursor explicitly from `next_after_number`; do not automatically loop through 42 seasons. A source failure or changed digest means stop and inspect a fresh preview, not bypass validation. Start with 50 rows; the maximum of 250 is a hard ceiling, not a recommendation to import the entire show. Artwork/enrichment and any future full watched-state reconciliation require separate assessment and authorization. Parent production read-only investigation reference: `01a16539-ff87-7266-a0dc-5da404adf0e9`.
+
+This PR performs no merge, deployment, production refresh or production write.
