@@ -49,6 +49,8 @@ export default class extends Controller {
     frame.prepend(backdrop)
   }
   fallback(img) {
+    // The dialog owns its loading/error message and full-size recovery link.
+    if (img.closest(".artwork-lightbox")) return
     if (img.classList.contains("artwork-backdrop")) { img.remove(); return }
     if (img.dataset.failed || img.dataset.controller?.includes("avatar")) return
     img.parentElement?.classList.remove("artwork-pending")

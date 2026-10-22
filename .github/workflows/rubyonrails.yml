@@ -67,6 +67,7 @@ jobs:
           spec/system/import_confirmation_system_spec.rb
           spec/system/metadata_entities_system_spec.rb
           spec/system/comic_cover_layout_system_spec.rb
+          spec/system/artwork_lightbox_system_spec.rb
           spec/system/metadata_detail_layout_system_spec.rb
           spec/system/tv_episodes_system_spec.rb
           spec/system/media_sections_system_spec.rb
