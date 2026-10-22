@@ -33,11 +33,21 @@ class SearchController < ApplicationController
 
     scope = MetadataSearch.call(klass.all, @query)
     scope = scope.with_attached_cover_image if klass.respond_to?(:with_attached_cover_image)
-    results = scope.order(:title, :id).page(@filter_type ? params[:page] : 1).per(20)
-    @result_counts[result_key] = results.total_count
+    page_num = @filter_type ? params[:page] : 1
+    per_page = 20
+    results = scope.order(:title, :id).page(page_num).per(per_page)
+
+    # OPTIMIZATION: Load records array first to determine total count without executing a separate COUNT(*) SQL query
+    # when the number of returned records is less than the page limit.
+    records = results.to_a
+    @result_counts[result_key] = if records.size < per_page && page_num.to_i <= 1
+                                   records.size
+                                 else
+                                   results.total_count
+                                 end
     @results[result_key] = results
-    preload_card_ratings(results.to_a)
-    @match_context[klass.name] = MetadataMatchContext.call(results.to_a, @query)
+    preload_card_ratings(records)
+    @match_context[klass.name] = MetadataMatchContext.call(records, @query)
   end
 
   def load_entities
