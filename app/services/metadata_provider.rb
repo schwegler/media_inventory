@@ -98,7 +98,18 @@ class MetadataProvider
                actors: cast,
                genre: Array(data['genres']).join(', ').presence,
                release_year: year(data['premiered']) }
-    [fields, children { json("https://api.tvmaze.com/shows/#{id}/episodes") }]
+    [fields, children { tvmaze_episode_rows(id) }]
+  end
+
+  def tvmaze_episode_rows(id)
+    list = TvmazeEpisodeList.new(id, deadline: @deadline, revalidate: @revalidate)
+    rows = list.call
+    @partial ||= list.partial
+    rows
+  rescue MediaSources::Http::Error => e
+    raise RateLimited if e.message == 'HTTP 429'
+
+    raise Unavailable
   end
 
   def television_details(data)

@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 # Reconcile in place: never delete children or touch personal/social attributes.
+# Explicit episode-only recovery omits artwork, enrichment and completion propagation.
 class MetadataChildren
-  def self.episodes(show, rows)
+  def self.episodes(show, rows, episode_only: false)
     changed = 0
     show.with_lock do
       rows.each do |row|
@@ -11,17 +12,19 @@ class MetadataChildren
         episode = show.tv_episodes.find_or_initialize_by(season: row['season'], episode: row['number'])
         episode.name = row['name'] if episode.name.blank?
         assign_episode_details(episode, row, show)
-        image = MetadataProvider.image(row.dig('image', 'original') || row.dig('image', 'medium'))
+        image = MetadataProvider.image(row.dig('image', 'original') || row.dig('image', 'medium')) unless episode_only
         episode.assign_attributes({ air_date: row['airdate'], summary: row['summary'],
                                     thumbnail_url: image }.compact_blank)
         if episode.changed?
           episode.save!
           changed += 1
         end
-        enqueue_episode_details(episode, show)
+        enqueue_episode_details(episode, show) unless episode_only
       end
     end
-    LibraryItem.where(item: show, consumed: true).find_each(&:mark_all_episodes_watched) if changed.positive?
+    if changed.positive? && !episode_only
+      LibraryItem.where(item: show, consumed: true).find_each(&:mark_all_episodes_watched)
+    end
     changed
   end
 
