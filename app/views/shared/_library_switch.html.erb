@@ -1,6 +1,6 @@
 <% if logged_in? %>
   <nav class="library-switch" aria-label="<%= media_catalog(klass).first %> collection">
-    <%= link_to 'Browse catalog', polymorphic_path(klass), aria: { current: @personal_library ? nil : 'page' } %>
-    <%= link_to 'My library', polymorphic_path(klass, library: 'mine'), aria: { current: @personal_library ? 'page' : nil } %>
+    <%= link_to 'Browse catalog', library_mode_path(klass, personal: false), aria: { current: @personal_library ? nil : 'page' } %>
+    <%= link_to 'My library', library_mode_path(klass, personal: true), aria: { current: @personal_library ? 'page' : nil } %>
   </nav>
 <% end %>

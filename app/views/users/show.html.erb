@@ -72,6 +72,13 @@
       <% elsif %w[collection backlog].include?(@profile_tab) %>
         <section class="profile-section">
           <div class="profile-section-heading"><h2><%= @profile_tab.capitalize %></h2><span><%= @profile_owner ? 'Your library, including private reviews' : 'Private reviews are hidden' %></span></div>
+          <% if @profile_owner %>
+            <aside class="owner-library-tools" aria-labelledby="owner-library-tools-title">
+              <h3 id="owner-library-tools-title">Manage by format</h3>
+              <p>Search, filter and update all your titles in the same My library workspace used from Browse.</p>
+              <%= render 'shared/library_formats', selected: nil %>
+            </aside>
+          <% end %>
           <%= form_with url: user_path(@user), method: :get, class: 'profile-filter' do |f| %>
             <%= hidden_field_tag :tab, @profile_tab %>
             <%= hidden_field_tag :preview, 'public' if params[:preview] == 'public' %>

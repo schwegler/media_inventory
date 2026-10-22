@@ -23,7 +23,7 @@ The existing model treats `LibraryItem.is_public` as **review/rating visibility*
 
 The TV tracker previously reused the review/rating `is_public` flag. TV progress is now generally public on profile overview and In progress pages, including anonymous visitors and the owner's Public preview. A private or unset review flag continues to hide the review and rating, but does not hide the current TV progress summary. Review text, ratings, completion dates, previous passes and game/session notes are not added to the public tracker. Dismissed, completed and empty trackers remain excluded. Comics and game visibility are unchanged.
 
-This is a code-only change: no data migration, live settings update, merge or deployment is part of the draft PR. If released, **existing active TV trackers currently omitted solely because `is_public` is false or unset will become readable on profiles**. Review that exact scope before deployment. There is no separate TV-progress privacy preference or private-profile flag in the current schema; this change does not reinterpret review privacy as permission to publish reviews or full histories. Public media detail pages still show only the visitor's own tracking/editing state, not another person's history.
+The merged TV-summary refinement includes existing active trackers whose review flag is false or unset; it does not migrate or change those review flags. There is no separate TV-progress privacy preference or private-profile flag in the current schema; this change does not reinterpret review privacy as permission to publish reviews or full histories. Public media detail pages still show only the visitor's own tracking/editing state, not another person's history.
 
 ## UI evidence and regression coverage
 
@@ -31,6 +31,10 @@ Screenshots in `docs/screenshots/profile-progress` use synthetic local fixtures 
 
 Regression coverage includes real activity order, immutable fallback/timezone handling, deterministic ties, completion/empty exclusion, two-item selection, bounded visible-page candidate building, pagination, filters/sorting, private/public-preview behavior, cache/SEO metadata, single-row geometry, Turbo refill/counts, keyboard focus, clipboard fallback, loading/error/retry states and existing game tracking actions.
 
-## Backlog (separate work)
+## Owner library navigation
 
-Review the owner's library-management workflow and whether to unify it with the main section browser's My Library toggle. The user explicitly deferred this; it is outside this PR.
+The previously deferred [owner-library task](https://app.notion.com/p/401a99cf980e81a7a347ea376111eb47) was selected during backlog grooming. Owner Collection and Backlog pages now link into the existing category My Library workspaces through one shared format navigator. The same navigator connects all six personal workspaces, including the game workspace. Desktop, mobile and native My Library links use the owner collection overview, and the active state also recognizes personal category workspaces.
+
+Profile shelves and their media filters remain available, including public preview. Management navigation is owner-only. Search, sort, shelves, edition/ownership filters, status, ratings, display modes, pagination, game saved views and quick tracking continue using their existing implementations; no duplicate editor or bulk operation is added to profiles. Browse/My Library switches retain compatible search/sort (and the existing catalog shelf predicate for non-game formats). Switching formats retains search and compatible title/rating/recent sort and grid/list settings, resets pagination and format-specific filters, and preserves the complete URL when choosing the current format. Browser Back restores the previous workspace URL and its filters.
+
+No schema, authentication, review privacy, public-progress or social behavior changes are part of this navigation work. Draft PR delivery and merge/deployment remain separate outcomes.

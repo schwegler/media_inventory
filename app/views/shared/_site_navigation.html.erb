@@ -16,14 +16,14 @@
             <summary>Browse</summary>
             <div class="browse-navigation-links">
               <% MediaLayoutHelper::CATALOGS.each do |type, (label, _singular, _icon)| %>
-                <% active = [type.underscore.pluralize, { 'TvShow' => 'tv_episodes', 'Comic' => 'comic_issues' }[type]].include?(controller_name) %>
+                <% active = !@personal_library && [type.underscore.pluralize, { 'TvShow' => 'tv_episodes', 'Comic' => 'comic_issues' }[type]].include?(controller_name) %>
                 <%= link_to label, polymorphic_path(type.constantize), aria: { current: active ? 'page' : nil } %>
               <% end %>
               <%= link_to 'People & Metadata', metadata_entities_path %>
             </div>
           </details>
           <% if logged_in? %>
-            <%= link_to 'My library', user_path(current_user, tab: 'collection'), aria: { current: current_user?(@user) && params[:tab] == 'collection' ? 'page' : nil } %>
+            <%= link_to 'My library', owner_library_path, aria: { current: owner_library_current? ? 'page' : nil } %>
           <% end %>
           <%= link_to 'Community', users_path, aria: { current: controller_name == 'users' && action_name == 'index' ? 'page' : nil } %>
           <% if logged_in? %><%= link_to 'Profile', current_user, aria: { current: current_user?(@user) && params[:tab].blank? && controller_name == 'users' ? 'page' : nil } %><% end %>
@@ -104,12 +104,12 @@
     </nav>
     <nav class="library-nav desktop-nav" aria-label="Library">
       <ul class="nav-links">
-        <li><%= link_to "Movies", movies_path, aria: { current: controller_name == "movies" ? "page" : nil } %></li>
-        <li><%= link_to "Albums", albums_path, aria: { current: controller_name == "albums" ? "page" : nil } %></li>
-        <li><%= link_to "Comics", comics_path, aria: { current: %w[comics comic_issues].include?(controller_name) ? "page" : nil } %></li>
-        <li><%= link_to "TV shows", tv_shows_path, aria: { current: %w[tv_shows tv_episodes].include?(controller_name) ? "page" : nil } %></li>
-        <li><%= link_to "Games", video_games_path, aria: { current: controller_name == "video_games" ? "page" : nil } %></li>
-        <li><%= link_to "Books", books_path, aria: { current: controller_name == "books" ? "page" : nil } %></li>
+        <li><%= link_to "Movies", movies_path, aria: { current: !@personal_library && controller_name == "movies" ? "page" : nil } %></li>
+        <li><%= link_to "Albums", albums_path, aria: { current: !@personal_library && controller_name == "albums" ? "page" : nil } %></li>
+        <li><%= link_to "Comics", comics_path, aria: { current: !@personal_library && %w[comics comic_issues].include?(controller_name) ? "page" : nil } %></li>
+        <li><%= link_to "TV shows", tv_shows_path, aria: { current: !@personal_library && %w[tv_shows tv_episodes].include?(controller_name) ? "page" : nil } %></li>
+        <li><%= link_to "Games", video_games_path, aria: { current: !@personal_library && controller_name == "video_games" ? "page" : nil } %></li>
+        <li><%= link_to "Books", books_path, aria: { current: !@personal_library && controller_name == "books" ? "page" : nil } %></li>
         <% if logged_in? %>
           <li><%= link_to "Members", users_path, aria: { current: controller_name == "users" ? "page" : nil } %></li>
         <% end %>
@@ -141,14 +141,14 @@
       </div>
       <ul class="mobile-nav-links">
         <li><%= link_to "Home", root_path %></li>
-        <% if logged_in? %><li><%= link_to "My library", user_path(current_user, tab: "collection") %></li><% end %>
+        <% if logged_in? %><li><%= link_to "My library", owner_library_path, aria: { current: owner_library_current? ? "page" : nil } %></li><% end %>
         <li><%= link_to "People & Metadata", metadata_entities_path %></li>
-        <li><%= link_to "Movies", movies_path, aria: { current: controller_name == "movies" ? "page" : nil } %></li>
-        <li><%= link_to "Albums", albums_path, aria: { current: controller_name == "albums" ? "page" : nil } %></li>
-        <li><%= link_to "Comics", comics_path, aria: { current: %w[comics comic_issues].include?(controller_name) ? "page" : nil } %></li>
-        <li><%= link_to "TV shows", tv_shows_path, aria: { current: %w[tv_shows tv_episodes].include?(controller_name) ? "page" : nil } %></li>
-        <li><%= link_to "Games", video_games_path, aria: { current: controller_name == "video_games" ? "page" : nil } %></li>
-        <li><%= link_to "Books", books_path, aria: { current: controller_name == "books" ? "page" : nil } %></li>
+        <li><%= link_to "Movies", movies_path, aria: { current: !@personal_library && controller_name == "movies" ? "page" : nil } %></li>
+        <li><%= link_to "Albums", albums_path, aria: { current: !@personal_library && controller_name == "albums" ? "page" : nil } %></li>
+        <li><%= link_to "Comics", comics_path, aria: { current: !@personal_library && %w[comics comic_issues].include?(controller_name) ? "page" : nil } %></li>
+        <li><%= link_to "TV shows", tv_shows_path, aria: { current: !@personal_library && %w[tv_shows tv_episodes].include?(controller_name) ? "page" : nil } %></li>
+        <li><%= link_to "Games", video_games_path, aria: { current: !@personal_library && controller_name == "video_games" ? "page" : nil } %></li>
+        <li><%= link_to "Books", books_path, aria: { current: !@personal_library && controller_name == "books" ? "page" : nil } %></li>
         <% if logged_in? %>
           <li><%= link_to "Members", users_path, aria: { current: controller_name == "users" ? "page" : nil } %></li>
         <% end %>
@@ -203,7 +203,7 @@
     <%= link_to 'Search', search_path %>
     <%= link_to 'Browse', movies_path %>
     <% if logged_in? %>
-      <%= link_to 'My library', current_user %>
+      <%= link_to 'My library', owner_library_path, aria: { current: owner_library_current? ? 'page' : nil } %>
       <%= link_to 'Settings', settings_path %>
     <% end %>
     <details><summary>Categories</summary><div class="native-categories">

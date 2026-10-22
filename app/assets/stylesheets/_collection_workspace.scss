@@ -1,4 +1,14 @@
 @mixin styles {
+.library-format-navigation { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0 0 var(--space-5); }
+.library-format-navigation a { display: inline-flex; align-items: center; min-height: 44px; padding: .5rem .75rem; box-sizing: border-box; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-secondary); background: var(--surface); font-size: .875rem; text-decoration: none; }
+.library-format-navigation a[aria-current='page'] { color: var(--accent); background: var(--accent-subtle); border-color: var(--accent); font-weight: 600; }
+.library-format-navigation a:hover { color: var(--accent); border-color: var(--accent); }
+.library-format-navigation a:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; }
+.owner-library-tools { padding: var(--space-4); margin-bottom: var(--space-5); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); }
+.owner-library-tools h3 { margin: 0 0 var(--space-2); font-size: 1.125rem; }
+.owner-library-tools p { margin: 0 0 var(--space-3); font-size: .875rem; color: var(--text-secondary); }
+.owner-library-tools .library-format-navigation { margin-bottom: 0; }
+
 // Collection chrome shares the site's palette in both themes.
 .library-description { margin: .5rem 0 0; color: var(--text-secondary); font-size: .9375rem; line-height: 1.5; }
 .media-workspace .library-switch { display: inline-flex; padding: .25rem; gap: .25rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); margin: .25rem 0 1.5rem; }
