@@ -5,6 +5,7 @@ require 'rails_helper'
 RSpec.describe 'Public watch progress UI', type: :system do
   it 'separates readable TV summaries from owner tracking in light and dark on mobile and desktop' do
     owner = create_and_login_user(name: 'Progress Owner')
+    page.driver.browser.logs.get(:browser) # Isolate this scenario from earlier deliberate browser errors.
     owner.update!(username: 'public_watch')
     show = TvShow.create!(title: 'A series with a private review')
     library = owner.library_items.create!(item: show, is_public: false, review: 'Hidden review sentinel', rating: 5)
