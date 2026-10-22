@@ -35,6 +35,7 @@ RSpec.describe 'Homepage card continuity', type: :system do
 
   it 'keeps compact surfaces, repeated actions and navigation across themes and widths' do
     user = create_and_login_user
+    page.driver.browser.logs.get(:browser) # Ignore expected errors from earlier browser scenarios.
     seed_home(user)
     %w[light dark].each do |theme|
       user.update!(theme: theme)
