@@ -97,11 +97,7 @@ class TvShow < ApplicationRecord
   end
 
   def fetch_episodes_from_api
-    require 'net/http'
-    require 'json'
-    url = URI("https://api.tvmaze.com/shows/#{api_id}/episodes")
-    response = MediaSources::Http.cached_get(url)
-    JSON.parse(response)
+    TvmazeEpisodeList.new(api_id).call
   rescue StandardError => e
     Rails.logger.error "Failed to sync TV show episodes: #{e.class}"
     nil
