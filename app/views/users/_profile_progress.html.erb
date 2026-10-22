@@ -4,6 +4,7 @@
   <div class="profile-section-heading"><h2 id="progress-heading">In progress</h2><%= link_to 'Back to overview', profile_tab_path('overview') %></div>
   <% if local_assigns[:tracking_error].present? %><p role="alert" class="profile-tracking-error"><%= tracking_error %></p><% end %>
   <p class="profile-section-note"><%= @profile_owner ? 'Pick up where you left off. Recent activity uses your latest watch, read or play session.' : 'Explore the latest public watch and read activity in this library.' %> Editing a title does not move it up.</p>
+  <p class="profile-section-note">TV watch progress is public. Private reviews and ratings stay hidden; only the owner can change progress.</p>
   <% if @profile_owner %><p class="profile-section-note">Games use your active playthroughs and stay private. For books, use <%= link_to 'your book library', books_path(library: 'mine') %> to log a finished read.</p><% end %>
   <%= form_with url: user_path(@user), method: :get, class: 'profile-filter profile-progress-filter' do |f| %>
     <%= hidden_field_tag :tab, 'progress' %>

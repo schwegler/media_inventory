@@ -145,8 +145,8 @@ RSpec.describe InProgressTracker do
         expect(described_class.items_for(user, public_only: false).size).to eq(1)
       end
 
-      it 'excludes private items when public_only is true' do
-        expect(described_class.items_for(user, public_only: true)).to be_empty
+      it 'includes TV progress independently of private review visibility' do
+        expect(described_class.items_for(user, public_only: true).map(&:series)).to eq([tv_show])
       end
     end
   end
