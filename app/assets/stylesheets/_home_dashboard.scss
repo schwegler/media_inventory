@@ -1,0 +1,29 @@
+@mixin styles {
+  .home-dashboard {
+    .tracking-section-heading { border: 0; }
+    .dashboard-social-layout { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); }
+    .dashboard-circle-feed, .popular-reviews-layout { display: grid; gap: var(--space-3); }
+    .dashboard-circle-entry, .popular-review-row {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      gap: var(--space-3);
+      min-width: 0;
+    }
+    .dashboard-circle-entry > div, .review-body-col { min-width: 0; overflow-wrap: anywhere; }
+    .dashboard-circle-entry p a { font-weight: 600; }
+    .dashboard-circle-review { color: var(--text-secondary); }
+    .popular-review-row { flex-direction: row; }
+    .review-poster-col { width: 70px; }
+    .review-content-text p { margin-bottom: 0; }
+    .review-like-action { margin-top: var(--space-2); }
+    @media (max-width: 800px) {
+      .dashboard-social-layout { grid-template-columns: minmax(0, 1fr); gap: 0; }
+    }
+    @media (max-width: 420px) {
+      .dashboard-circle-entry, .popular-review-row { padding: var(--space-3); }
+      .review-poster-col { width: 56px; }
+    }
+  }
+}

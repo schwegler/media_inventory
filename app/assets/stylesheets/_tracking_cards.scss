@@ -1,0 +1,20 @@
+@mixin styles {
+  // Contain each tracking task without sacrificing next-entry details or actions.
+  :is(.library-profile, .home-dashboard) .in-progress-grid { gap: var(--space-4); }
+  :is(.library-profile, .home-dashboard) .in-progress-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    column-gap: var(--space-4);
+  }
+  :is(.library-profile, .home-dashboard) .tracking-options { top: var(--space-4); right: var(--space-4); }
+  :is(.library-profile, .home-dashboard) .in-progress-series-info { min-width: 0; }
+  :is(.library-profile, .home-dashboard) .in-progress-series-title,
+  :is(.library-profile, .home-dashboard) .in-progress-next-link { overflow-wrap: anywhere; }
+  @media (max-width: 420px) {
+    :is(.library-profile, .home-dashboard) .in-progress-card { padding: var(--space-3); grid-template-columns: 72px minmax(0, 1fr); gap: var(--space-3); }
+    :is(.library-profile, .home-dashboard) .in-progress-cover { width: 72px; height: 108px; }
+    :is(.library-profile, .home-dashboard) .tracking-options { top: var(--space-3); right: var(--space-3); }
+  }
+}

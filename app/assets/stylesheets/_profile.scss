@@ -111,26 +111,8 @@
     .profile-progress-filter { max-width: 760px; }
   }
   .library-profile .profile-section-heading h2 { scroll-margin-top: 110px; }
-  // Contain each tracking task without sacrificing next-entry details or actions.
-  .library-profile .in-progress-grid { gap: var(--space-4); }
-  .library-profile .in-progress-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: var(--space-4);
-    column-gap: var(--space-4);
-  }
-  .library-profile .tracking-options { top: var(--space-4); right: var(--space-4); }
-  .library-profile .in-progress-series-info { min-width: 0; }
-  .library-profile .in-progress-series-title,
-  .library-profile .in-progress-next-link { overflow-wrap: anywhere; }
   @media (min-width: 701px) and (max-width: 1050px) {
     .library-profile .profile-progress-preview { grid-template-columns: minmax(0, 1fr); }
-  }
-  @media (max-width: 420px) {
-    .library-profile .in-progress-card { padding: var(--space-3); grid-template-columns: 72px minmax(0, 1fr); gap: var(--space-3); }
-    .library-profile .in-progress-cover { width: 72px; height: 108px; }
-    .library-profile .tracking-options { top: var(--space-3); right: var(--space-3); }
   }
   // Horizontal overflow belongs to this shelf, never the page.
   .library-profile .profile-media-row { display: grid; grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: clamp(104px, 14vw, 138px); gap: 16px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; padding: 4px 4px 14px; scrollbar-width: thin; }
