@@ -36,11 +36,12 @@ RSpec.describe 'Owner library navigation', type: :request do
         expect(document.at_css('.workspace-primary-nav > a[aria-current="page"]').text).to eq('My library')
       end
     end
+    get movies_path, params: { library: 'mine' }
+    expect(document.css('.mobile-nav-links a[aria-current="page"]').map(&:text)).to eq(['My library'])
     get movies_path, params: { library: 'mine' }, headers: { 'User-Agent' => 'Hotwire Native iOS' }
     native = document.at_css('.native-tools a[aria-current="page"]')
     expect(native.text).to eq('My library')
     expect(native['href']).to eq(user_path(owner, tab: 'collection'))
-    expect(document.css('.mobile-nav-links a[aria-current="page"]').map(&:text)).to eq(['My library'])
     get handle_profile_path(owner.username), params: { tab: 'collection', preview: 'public' }
     expect(document.css('.owner-library-tools')).to be_empty
     expect(response.body).not_to include('Private review sentinel')
