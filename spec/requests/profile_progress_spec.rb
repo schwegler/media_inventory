@@ -62,8 +62,10 @@ RSpec.describe 'Compact profile and progress dashboard', type: :request do
     expect(response.body).to include('No matching titles.')
   end
 
-  it 'keeps private series progress and all game histories out of public preview and guests' do
-    track('Private series', public_item: false)
+  it 'publishes TV summaries independently of reviews while keeping games and private comics hidden' do
+    _, private_review = track('Private review series', public_item: false)
+    private_review.update!(review: 'Secret review text', rating: 5)
+    track('Private comic', type: 'Comic', public_item: false)
     track('Public series')
     game = VideoGame.create!(title: 'Private run game')
     library = LibraryItem.create!(user: user, item: game, is_public: true, game_activity_public: true)
@@ -71,15 +73,16 @@ RSpec.describe 'Compact profile and progress dashboard', type: :request do
     run.game_sessions.create!(started_at: 1.hour.ago, ended_at: Time.current, notes: 'Private session notes')
     sign_in
     get handle_profile_path(user.username), params: { tab: 'progress' }
-    expect(response.body).to include('Private run game', '42%', 'Log session', 'Update progress', 'Private series')
+    expect(response.body).to include('Private run game', '42%', 'Log session', 'Update progress', 'Private review series')
     expect(response.body).not_to include('Private run notes', 'Private session notes')
     get handle_profile_path(user.username), params: { tab: 'progress', preview: 'public' }
-    expect(response.body).to include('1 active title', 'Public series')
-    expect(response.body).not_to include('Private series', 'Private run game', '42%', 'Log session')
+    expect(response.body).to include('2 active titles', 'Public series', 'Private review series')
+    expect(response.body).not_to include('Secret review text', 'Private comic', 'Private run game', '42%', 'Log session')
     expect(document.at_css('meta[name=robots]')['content']).to eq('noindex, follow')
     delete logout_path
     get handle_profile_path(user.username), params: { tab: 'progress' }
-    expect(response.body).not_to include('Private series', 'Private run game', 'Private run notes')
+    expect(response.body).to include('Private review series')
+    expect(response.body).not_to include('Secret review text', 'Private comic', 'Private run game', 'Private run notes')
   end
 
   it 'paginates the full dashboard and keeps the single-row class scoped to the overview' do

@@ -62,7 +62,7 @@
     <div class="in-progress-series-info">
       <div class="in-progress-tag-row">
         <span class="in-progress-series-tag"><%= tag_label %></span>
-        <% if in_progress.pass&.rewatch? %>
+        <% if profile_owner && in_progress.pass&.rewatch? %>
           <span class="in-progress-pass-badge"><%= is_tv ? "Re-watch" : "Re-read" %> #<%= in_progress.pass.number - 1 %></span>
         <% end %>
 

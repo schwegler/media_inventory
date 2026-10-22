@@ -136,7 +136,9 @@ class InProgressTracker
 
   def active_passes
     scope = @user.library_items.where(item_type: ConsumptionPass::SERIES_TYPES)
-    scope = scope.where(is_public: true) if @public_only
+    # TV watch progress is public independently of review/rating visibility.
+    # Comics retain their existing opt-in visibility; games stay owner-only.
+    scope = scope.where(item_type: 'TvShow').or(scope.where(is_public: true)) if @public_only
     activity = 'COALESCE((SELECT MAX(consumed_at) FROM consumption_pass_entries ' \
                'WHERE consumption_pass_id = consumption_passes.id), consumption_passes.created_at) AS tracker_activity_at'
     ConsumptionPass.active.where(library_item_id: scope.select(:id))

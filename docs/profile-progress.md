@@ -15,9 +15,15 @@ Counts are aggregated by media type. Only visible titles build next-entry candid
 
 ## Privacy and sharing
 
-Private game tracking remains owner-only, including games explicitly selected for the separate public game shelf. Public profile previews do not expose playthrough/session notes, percentages or counts. Visitor progress is restricted to public series library entries. All profile/tracker responses are `private, no-store`, and profile pages disable Turbo DOM snapshot caching; owner/public-preview pages have `noindex, follow`. Canonical and OpenGraph URLs consistently point at the public profile without preview, pagination or filter parameters. Share/copy use that public URL; native sharing, status announcements and a selectable fallback link remain available.
+Private game tracking remains owner-only, including games explicitly selected for the separate public game shelf. Public profile previews do not expose playthrough/session notes, percentages or counts. Visitor TV progress is independent of review/rating visibility. Comics retain their existing public-entry rule. Visitors see the current active summary (series, completed/total, progress bar and next catalog entry), without rewatch numbers, editing controls or full watch history. All profile/tracker responses are `private, no-store`, and profile pages disable Turbo DOM snapshot caching; owner/public-preview pages have `noindex, follow`. Canonical and OpenGraph URLs consistently point at the public profile without preview, pagination or filter parameters. Share/copy use that public URL; native sharing, status announcements and a selectable fallback link remain available.
 
 The existing model treats `LibraryItem.is_public` as **review/rating visibility** on collection pages. This PR preserves that product contract (and existing privacy tests); it does not turn private reviews into hidden collection membership or change permissions. There is no private-profile/hidden-collection flag to change. Existing explicit shelf selections, profile customization, follows and social features remain intact.
+
+## Watch-progress visibility refinement
+
+The TV tracker previously reused the review/rating `is_public` flag. TV progress is now generally public on profile overview and In progress pages, including anonymous visitors and the owner's Public preview. A private or unset review flag continues to hide the review and rating, but does not hide the current TV progress summary. Review text, ratings, completion dates, previous passes and game/session notes are not added to the public tracker. Dismissed, completed and empty trackers remain excluded. Comics and game visibility are unchanged.
+
+This is a code-only change: no data migration, live settings update, merge or deployment is part of the draft PR. If released, **existing active TV trackers currently omitted solely because `is_public` is false or unset will become readable on profiles**. Review that exact scope before deployment. There is no separate TV-progress privacy preference or private-profile flag in the current schema; this change does not reinterpret review privacy as permission to publish reviews or full histories. Public media detail pages still show only the visitor's own tracking/editing state, not another person's history.
 
 ## UI evidence and regression coverage
 
