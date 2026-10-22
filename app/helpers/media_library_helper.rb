@@ -36,6 +36,45 @@ module MediaLibraryHelper
     polymorphic_path(klass, filters.merge('library' => 'mine').merge(changes.stringify_keys).compact_blank)
   end
 
+  def owner_library_path
+    user_path(current_user, tab: 'collection')
+  end
+
+  def owner_library_current?
+    @personal_library || (current_user?(@user) && params[:preview] != 'public' &&
+      %w[collection backlog].include?(params[:tab]))
+  end
+
+  def library_mode_path(klass, personal:)
+    return library_link(klass) if personal
+
+    filters = library_navigation_state.slice('q', 'sort')
+    sorts = klass == VideoGame ? GameLibraryQuery::SORTS.keys : %w[newest title oldest]
+    filters.delete('sort') unless sorts.include?(filters['sort'])
+    filters['status'] = params[:status] if klass != VideoGame && %w[collection backlog finished].include?(params[:status])
+    polymorphic_path(klass, filters.compact_blank)
+  end
+
+  # Only search, compatible sort and display settings cross format boundaries.
+  # Shelf, edition and metadata filters describe the current format only.
+  def library_format_path(klass)
+    return request.fullpath if @personal_library && controller_name == klass.model_name.route_key
+
+    filters = library_navigation_state.slice('q', 'layout')
+    filters.delete('layout') unless %w[grid list].include?(filters['layout'])
+    sort = library_navigation_state['sort'].to_s
+    sort = 'newest' if sort == 'added'
+    filters['sort'] = sort if %w[newest title rating].include?(sort)
+    filters['sort'] = 'added' if klass == VideoGame && filters['sort'] == 'newest'
+    polymorphic_path(klass, filters.merge(library: 'mine').compact_blank)
+  end
+
+  def library_navigation_state
+    return @filters.slice('q', 'sort', 'layout') if controller_name == 'video_games' && @filters
+
+    params.permit(:q, :sort, :layout).to_h
+  end
+
   def library_shelves(klass)
     config = library_config(klass)
     [['All titles', ''], [config[:progress], 'progress'], [config[:queue], 'backlog'],

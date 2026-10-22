@@ -7,6 +7,7 @@
   <% end %>
 </div>
 <%= render 'shared/library_switch', klass: VideoGame %>
+<%= render "shared/library_formats", selected: 'VideoGame' if @personal_library %>
 <% if @personal_library %>
   <section class="library-overview" aria-label="Your library at a glance">
     <% [['Games', :unique_games, {}], ['Playing', :currently_playing, { play_status: 'playing' }], ['Backlog', :backlog, { play_status: 'backlog' }], ['Completed', :completed, { play_status: 'completed' }]].each do |label, key, filters| %>
