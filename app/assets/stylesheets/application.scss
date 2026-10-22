@@ -1,3 +1,5 @@
+@use "tracking_cards";
+@use "home_dashboard";
 @use "appearance_menu";
 @use "halloween";
 @use "halloween_invitation";
@@ -105,3 +107,6 @@
 @include appearance_menu.styles;
 
 @include profile.compact-overview;
+
+@include tracking_cards.styles;
+@include home_dashboard.styles;
