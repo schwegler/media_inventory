@@ -90,7 +90,7 @@ jobs:
 
       - name: Retain responsive UI evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: trove-responsive-ui
           path: /tmp/trove-ui-qa
