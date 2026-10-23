@@ -70,4 +70,14 @@ Browser captures use synthetic accounts and titles. CI runs the request suite on
 PostgreSQL and the existing metadata browser suite, including the recovery test.
 See the PR for final check results and responsive evidence.
 
-No schema/security changes, production writes, bulk imports, merge or deployment.
+## Separate dependency-audit repair
+
+The first CI run stopped on unchanged `crass 1.0.7`. The maintainer advisory
+[GHSA-pq4g-8rxf-4g29](https://github.com/rgrove/crass/security/advisories/GHSA-pq4g-8rxf-4g29)
+identifies a CSS tokenization issue and fixes it in 1.0.8. A separately authorized,
+conservative update changes only the crass version in Gemfile.lock, from 1.0.7 to
+1.0.8. No other dependency versions, constraints, permissions, sanitization policy
+or audit settings change. A fresh advisory database reports no vulnerabilities.
+This records a CI dependency finding, not a claim of deployed exploitability.
+
+No schema or security-policy changes, production writes, bulk imports, merge or deployment.
