@@ -137,9 +137,10 @@ class UsersController < ApplicationController
     @profile_tab = %w[overview progress collection backlog posts likes].include?(params[:tab]) ? params[:tab] : 'overview'
     # `is_public` controls review/rating visibility only; every library entry is visible on the profile.
     @visible_library = @user.library_items
-    @collection_count = @visible_library.where(is_collected: true).count
-    @backlog_count = @visible_library.where(in_backlog: true).count
     @library_mix = @visible_library.where(is_collected: true).group(:item_type).count
+    # Sum mix counts in memory to calculate collection count without a redundant SQL query
+    @collection_count = @library_mix.values.sum
+    @backlog_count = @visible_library.where(in_backlog: true).count
   end
 
   def profile_favorites
