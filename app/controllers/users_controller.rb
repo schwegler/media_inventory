@@ -138,7 +138,7 @@ class UsersController < ApplicationController
     # `is_public` controls review/rating visibility only; every library entry is visible on the profile.
     @visible_library = @user.library_items
     @library_mix = @visible_library.where(is_collected: true).group(:item_type).count
-    # OPTIMIZATION: Calculate collection_count by summing the grouped mix counts in memory, eliminating 1 redundant COUNT(*) SQL query.
+    # Sum mix counts in memory to calculate collection count without a redundant SQL query
     @collection_count = @library_mix.values.sum
     @backlog_count = @visible_library.where(in_backlog: true).count
   end
