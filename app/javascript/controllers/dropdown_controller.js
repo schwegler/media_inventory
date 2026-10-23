@@ -6,11 +6,15 @@ export default class extends Controller {
   connect() {
     this.clickOutsideHandler = this.clickOutside.bind(this)
     this.keydownHandler = this.keydown.bind(this)
+    this.menuClickHandler = this.menuClick.bind(this)
+    this.beforeCacheHandler = () => this.hide()
+
     document.addEventListener("click", this.clickOutsideHandler)
     document.addEventListener("keydown", this.keydownHandler)
+    document.addEventListener("turbo:before-cache", this.beforeCacheHandler)
 
-    // Ensure dropdown is hidden on connection
     if (this.hasMenuTarget) {
+      this.menuTarget.addEventListener("click", this.menuClickHandler)
       this.hide()
     }
     this.element.dataset.connected = "true"
@@ -19,6 +23,16 @@ export default class extends Controller {
   disconnect() {
     document.removeEventListener("click", this.clickOutsideHandler)
     document.removeEventListener("keydown", this.keydownHandler)
+    document.removeEventListener("turbo:before-cache", this.beforeCacheHandler)
+    if (this.hasMenuTarget) {
+      this.menuTarget.removeEventListener("click", this.menuClickHandler)
+    }
+  }
+
+  menuClick(event) {
+    if (event.target.closest('[role="menuitem"], .dropdown-item, a, button')) {
+      this.hide()
+    }
   }
 
   toggle(event) {
@@ -62,8 +76,11 @@ export default class extends Controller {
       return
     }
     if (visible && event.key === "Tab") {
+      const isInsideMenu = this.hasMenuTarget && this.menuTarget.contains(document.activeElement)
       this.hide()
-      this.buttonTarget.focus()
+      if (isInsideMenu && this.hasButtonTarget) {
+        this.buttonTarget.focus()
+      }
       return
     }
     if (this.menuTarget.style.display === "block" && ["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
