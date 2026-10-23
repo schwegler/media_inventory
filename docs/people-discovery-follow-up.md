@@ -11,9 +11,9 @@ of `/entities/1962-olivia-wilde` as a guest showed 14 distinct catalog works:
 *The Invite* (Actor and Director) and 13 *The O.C.* episodes (Guest star).
 Thus movie associations and rendering already work for the imported movie.
 The screenshot's personal-library filter is material: it does not request an
-actor's complete filmography. The authenticated account's current ownership and
-historical imports were not queried, so this does not prove that every expected
-movie is imported or that every older catalog credit is populated.
+actor's complete filmography. This public inspection does not prove that every
+expected movie is imported or that every older catalog credit is populated.
+Account-specific production findings are excluded from this public audit.
 
 Synthetic request/browser fixtures reproduce the empty personal movie scope
 while the same movie is available in All Trove. They validate recovery without
