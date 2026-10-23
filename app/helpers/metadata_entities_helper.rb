@@ -37,8 +37,8 @@ module MetadataEntitiesHelper
 
   def entity_credit_links(credits)
     safe_join(credits.map do |credit|
-      link_to(credit.metadata_entity.name, metadata_entity_path(credit.metadata_entity), class: 'media-category-link',
-                                                                                         data: { turbo_frame: '_top' })
+      link_to(credit.metadata_entity.display_name, metadata_entity_path(credit.metadata_entity),
+              class: 'media-category-link', data: { turbo_frame: '_top' })
     end.uniq, ', ')
   end
 
@@ -63,7 +63,7 @@ module MetadataEntitiesHelper
   def linked_child_credit_groups(linked)
     linked.group_by(&:role).transform_values do |credits|
       safe_join(credits.map do |credit|
-        child_credit_label(credit.metadata_entity.name, credit.metadata_entity, credit.details['character'])
+        child_credit_label(credit.metadata_entity.display_name, credit.metadata_entity, credit.details['character'])
       end.uniq, ', ')
     end
   end

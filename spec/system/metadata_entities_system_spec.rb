@@ -38,3 +38,28 @@ RSpec.describe 'Metadata navigation and mobile layout', type: :system do
     expect(page).to have_no_link('Comic discovery #2: Second')
   end
 end
+
+RSpec.describe 'Personal People credit recovery', type: :system do
+  it 'opens catalog movie credits from an empty personal filter at desktop and mobile widths' do
+    movie = Movie.create!(title: 'Synthetic catalog movie', actors: 'Olivia Wilde', director: 'Olivia Wilde')
+    person = movie.metadata_entities.find_by!(kind: 'person')
+    create_and_login_user
+    [1400, 390].each do |width|
+      resize_browser_viewport(width, 844)
+      visit metadata_entity_path(person, library: 'mine', media_type: 'Movie', role: 'Actor')
+      expect(page).to have_content('No matching works in your library')
+      expect(page).to have_select('Role', selected: 'Actor')
+      expect(page).to have_no_link(movie.title)
+      capture_ui_screenshot("people-empty-movies-#{width}")
+      click_link 'View matching works in All Trove'
+      expect(page).to have_link(movie.title)
+      expect(page).to have_select('Media type', selected: 'Movie')
+      expect(page).to have_select('Role', selected: 'Actor')
+      expect(page).to have_select('Library', selected: 'All Trove')
+      expect(page).to have_css('.entity-work-row', count: 1)
+      expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be true
+      capture_ui_screenshot("people-catalog-movies-#{width}")
+    end
+    expect(LibraryItem.count).to eq(0)
+  end
+end
