@@ -1,5 +1,5 @@
 <% content_for(:media_workspace, 'true') %>
-<% content_for(:title, "#{@entity.name} — Trove") %>
+<% content_for(:title, "#{@entity.display_name} — Trove") %>
 <section class="catalog-page entity-page" data-entity-kind="<%= @entity.kind %>" aria-labelledby="entity-heading">
   <%= link_to '← People & Metadata', metadata_entities_path(library: @library), class: 'media-back-link' %>
   <header class="entity-hero">
@@ -14,7 +14,7 @@
         <details class="entity-photo-credit"><summary>Photo credit</summary><small><%= @entity.portrait_metadata.values_at('credit', 'license').compact_blank.join(' · ') %></small></details>
       <% end %>
     </div>
-    <div class="entity-profile"><p class="entity-eyebrow"><%= @entity.kind.titleize %></p><h1 id="entity-heading"><%= @entity.name %></h1>
+    <div class="entity-profile"><p class="entity-eyebrow"><%= @entity.kind.titleize %></p><h1 id="entity-heading"><%= @entity.display_name %></h1>
       <p class="entity-credit-summary"><%= @roles.keys.join(' · ') %><% if @roles.any? %> · <% end %><%= pluralize(@work_count, 'credited work') %><span> in <%= @library == 'mine' ? 'your library' : 'Trove' %></span></p>
     </div>
     <% if @entity.description.present? || @entity.aliases.present? %>
@@ -29,7 +29,7 @@
     <% end %>
   </header>
   <%= form_with url: metadata_entity_path(@entity), method: :get, class: 'catalog-toolbar entity-filters' do |f| %>
-    <div><%= f.label :role, 'Role' %><%= f.select :role, [['All roles', '']] + @roles.keys.map { |role| [role, role] }, selected: params[:role] %></div>
+    <div><%= f.label :role, 'Role' %><%= f.select :role, [['All roles', '']] + @role_options.map { |role| [role, role] }, selected: params[:role] %></div>
     <div><%= f.label :media_type, 'Media type' %><%= f.select :media_type, [['All media', '']] + (MetadataEntitySync::FIELDS.keys + %w[ComicIssue TvEpisode AlbumTrack]).map { |type| [type.underscore.humanize, type] }, selected: params[:media_type] %></div>
     <% if logged_in? %><div><%= f.label :library, 'Library' %><%= f.select :library, [['All Trove', 'all'], ['My library', 'mine']], selected: @library %></div><% else %><%= f.hidden_field :library, value: 'all' %><% end %>
     <%= f.submit 'Apply filters', class: 'sleek-btn sleek-btn-secondary' %>
@@ -51,6 +51,16 @@
       <% end %></ul>
     </section>
   <% end %>
-  <% if @groups.empty? %><div class="home-empty-state"><h2>No matching works</h2><p>Try another role, media type or library.</p></div><% end %>
+  <% if @groups.empty? %>
+    <div class="home-empty-state">
+      <h2><%= @library == 'mine' ? 'No matching works in your library' : 'No matching works' %></h2>
+      <% if @catalog_matches %>
+        <p>Matching credits are available in the Trove catalog.</p>
+        <%= link_to 'View matching works in All Trove', metadata_entity_path(@entity, library: 'all', role: params[:role], media_type: params[:media_type]), class: 'sleek-btn sleek-btn-secondary' %>
+      <% else %>
+        <p>Try another role or media type. Credits appear for titles added to Trove; this is not a complete list of credits.</p>
+      <% end %>
+    </div>
+  <% end %>
   <div class="pagination-wrapper"><%= paginate @work_pages %></div>
 </section>
