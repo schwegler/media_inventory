@@ -14,7 +14,7 @@
   <div class="entity-grid">
     <% @entities.each do |entity| %>
       <%= link_to metadata_entity_path(entity, library: @library), class: 'entity-tile' do %>
-        <% if entity.stored_cover_url %><%= image_tag entity.stored_cover_url, alt: "", class: "entity-monogram", loading: "lazy" %><% else %><span class="entity-monogram" aria-hidden="true"><%= entity.name.first %></span><% end %>
+        <% if entity.stored_cover_url %><%= image_tag entity.stored_cover_url, alt: "", class: "entity-monogram", loading: "lazy" %><% else %><span class="entity-monogram" aria-hidden="true"><%= entity.display_name.first %></span><% end %>
         <span><strong><%= entity.display_name %></strong><small><%= entity.kind.titleize %> · <%= pluralize(@counts[entity.id].to_i, 'credit') %></small></span>
       <% end %>
     <% end %>

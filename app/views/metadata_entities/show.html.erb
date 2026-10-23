@@ -5,9 +5,9 @@
   <header class="entity-hero">
     <div class="entity-photo">
       <% if @entity.stored_cover_url %>
-        <%= image_tag @entity.stored_cover_url, alt: @entity.name, class: 'entity-portrait' %>
+        <%= image_tag @entity.stored_cover_url, alt: @entity.display_name, class: 'entity-portrait' %>
       <% else %>
-        <div class="entity-portrait entity-monogram" aria-label="No image available"><%= @entity.name.first %></div>
+        <div class="entity-portrait entity-monogram" aria-label="No image available"><%= @entity.display_name.first %></div>
       <% end %>
       <% if @entity.portrait_metadata['source_url'].present? %>
         <%= link_to 'Photo source ↗', @entity.portrait_metadata['source_url'], class: 'entity-photo-source', rel: 'noopener noreferrer', target: '_blank' %>

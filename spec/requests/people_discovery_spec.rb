@@ -81,6 +81,7 @@ RSpec.describe 'People discovery scope', type: :request do
     entity = MetadataEntity.find_by!(name: '“Atlantis Attacks”')
     get metadata_entity_path(entity, library: 'all')
     expect(Nokogiri::HTML(response.body).at_css('h1').text).to eq('Atlantis Attacks')
+    expect(Nokogiri::HTML(response.body).at_css('.entity-monogram').text).to eq('A')
     expect(entity.reload.name).to eq('“Atlantis Attacks”')
     expect(entity.normalized_name).to eq('“atlantis attacks”')
     get metadata_entities_path(kind: 'collection', library: 'all', q: 'Avengers Acts')
