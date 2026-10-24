@@ -29,9 +29,13 @@ RSpec.describe 'Cover-led public homepage', type: :system do
       expect(find_button('Search').rect.height).to be >= 44
       capture_ui_screenshot("public-home-refined-#{width}")
     end
-    page.execute_script('document.documentElement.style.zoom = "2"')
+    resize_browser_viewport(1440, 1000)
+    page.driver.browser.execute_cdp('Emulation.setDeviceMetricsOverride',
+                                    width: 720, height: 500, deviceScaleFactor: 2, mobile: false)
+    expect(page.evaluate_script('window.innerWidth')).to eq(720)
+    expect(page.evaluate_script('window.devicePixelRatio')).to eq(2)
     expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be true
-    page.execute_script('document.documentElement.style.zoom = "1"')
+    capture_ui_screenshot('public-home-refined-zoom-200')
     resize_browser_viewport(1440, 1000)
     find('summary[aria-label="Appearance"]').click
     within('.appearance-panel') { choose 'Dark' }
