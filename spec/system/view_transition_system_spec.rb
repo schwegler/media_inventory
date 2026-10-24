@@ -18,9 +18,11 @@ RSpec.describe 'View transition navigation', type: :system do
   def watch_transitions
     page.execute_script(<<~JS)
       window.transitionDocument = true;
+      document.documentElement.dataset.transitionStarted = '0';
       document.documentElement.dataset.transitionFinished = '0';
       window.originalStartViewTransition ||= document.startViewTransition.bind(document);
       document.startViewTransition = (...args) => {
+        document.documentElement.dataset.transitionStarted = String(Number(document.documentElement.dataset.transitionStarted) + 1);
         const transition = window.originalStartViewTransition(...args);
         transition.finished.then(() => {
           document.documentElement.dataset.transitionFinished = String(Number(document.documentElement.dataset.transitionFinished) + 1);
@@ -75,7 +77,7 @@ RSpec.describe 'View transition navigation', type: :system do
     watch_transitions
     expect(page.evaluate_script("matchMedia('(prefers-reduced-motion: reduce)').matches")).to be true
     turbo_visit(second)
-    expect(page).to have_css("html[data-transition-finished='0']")
+    expect(page).to have_css("html[data-transition-started='0'][data-transition-finished='0']")
   end
 
   it 'navigates when the View Transition API is unavailable' do
