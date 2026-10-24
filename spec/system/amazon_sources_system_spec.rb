@@ -11,6 +11,12 @@ RSpec.describe 'Amazon title searches', type: :system do
     Rails.configuration.x.amazon_associates_tag = previous
   end
 
+  before do
+    # Earlier security examples deliberately trigger CSP violations in this browser.
+    page.driver.browser.navigate.to('about:blank')
+    page.driver.browser.logs.get(:browser)
+  end
+
   it 'keeps original guidance and disclosure visible next to accessible paid links' do
     book = Book.create!(title: 'Dracula', author: 'Bram Stoker')
     [[1440, 1000, 'desktop'], [390, 844, 'mobile']].each do |width, height, size|
