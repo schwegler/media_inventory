@@ -100,10 +100,17 @@
 
 @include artwork_lightbox.styles;
 
-// Keep original reading guidance and disclosures visible beside affiliate searches.
-.amazon-reading p, .amazon-disclosure {
+// Original reading notes stay in the main prose column; sources stay concise.
+.amazon-reading p {
   font-size: 1rem;
   line-height: 1.6;
+  max-width: 68ch;
+}
+.app-footer .footer-affiliate-disclosure {
+  margin: 0 0 1rem;
+  max-width: 70ch;
+  font-size: .875rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
   overflow-wrap: anywhere;
 }
-.amazon-disclosure { font-weight: 600; }
