@@ -6,17 +6,26 @@ module MediaSourcesHelper
     'VideoGame' => 'View on Apple Arcade'
   }.freeze
 
-  def media_source_links(item)
+  def media_source_links(item, amazon_eligible: false)
     title = CGI.escape(item.title)
     links = []
     links << external_media_source(item) if item.external_url.present?
     links.concat(media_search_sources(item, title))
     links << media_source_link('Google Search Options', "https://www.google.com/search?q=stream+or+buy+#{title}", 'search')
-    links << media_source_link('Buy on Amazon', "https://www.amazon.com/s?k=#{title}", 'shopping-bag')
+    links << amazon_search_source(item, eligible: amazon_eligible)
     links
   end
 
   private
+
+  def amazon_search_source(item, eligible:)
+    tag = Rails.configuration.x.amazon_associates_tag.to_s.strip
+    paid = eligible && tag == 'schweg-20'
+    query = { k: item.title }
+    query[:tag] = tag if paid
+    media_source_link(paid ? 'Search Amazon (paid link)' : 'Search Amazon',
+                      "https://www.amazon.com/s?#{URI.encode_www_form(query)}", 'shopping-bag').merge(paid: paid)
+  end
 
   def media_source_link(label, url, icon, kind: 'search')
     { label: label, url: url, icon: icon, kind: kind }

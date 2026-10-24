@@ -125,3 +125,10 @@
 .discovery-local-card > .card-2026 { flex: 1; }
 
 @include public_home.styles;
+// Keep original reading guidance and disclosures visible beside affiliate searches.
+.amazon-reading p, .amazon-disclosure {
+  font-size: 1rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.amazon-disclosure { font-weight: 600; }

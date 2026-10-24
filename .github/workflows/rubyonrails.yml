@@ -68,6 +68,7 @@ jobs:
           bundle exec rspec
           spec/system/public_home_system_spec.rb
           spec/system/discovery_system_spec.rb
+          spec/system/amazon_sources_system_spec.rb
           spec/system/remembered_sign_in_system_spec.rb
           spec/system/import_confirmation_system_spec.rb
           spec/system/metadata_entities_system_spec.rb
