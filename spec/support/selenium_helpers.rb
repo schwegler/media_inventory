@@ -27,6 +27,7 @@ RSpec.configure do |config|
     else
       driven_by :selenium_chrome_headless_custom
       page.driver.browser.execute_cdp('Emulation.clearDeviceMetricsOverride')
+      page.driver.browser.execute_cdp('Emulation.setEmulatedMedia', features: [])
       page.current_window.resize_to(1400, 900)
     end
   end
