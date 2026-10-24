@@ -688,3 +688,33 @@
     .media-overview-stats { grid-area: stats; align-self: start; }
   }
 }
+
+// Prose belongs beside the title, ahead of detailed credits and identifiers.
+.media-synopsis {
+  margin: 0 0 1.25rem;
+  max-width: 72ch;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  > h2 { margin: 0 0 .5rem; padding: 0; border: 0; font-size: .875rem; }
+  .child-description, .game-description { margin: 0; padding: 0; border: 0; background: transparent; }
+  .child-description-disclosure summary { min-height: 44px; align-content: center; }
+  &:has(> .child-description-disclosure:not([open])) {
+    display: flex;
+    flex-direction: column;
+    > h2 { order: 0; }
+    > .child-description-preview { order: 1; }
+    > .child-description-disclosure { order: 2; }
+  }
+}
+.media-tracking-jump { display: inline-flex; align-items: center; min-height: 44px; margin-bottom: .5rem; font-size: .875rem; }
+.media-child-detail .child-detail-content { grid-template-columns: minmax(0, 1fr); }
+.media-child-detail .child-detail-facts { border-left: 0; padding-left: 0; }
+@media (max-width: 580px) {
+  // Keep the cover beside the title, but give prose the full reading width.
+  .media-overview .media-identity:has(.media-synopsis) {
+    display: contents;
+    > * { grid-column: 1 / -1; }
+    > h1 { grid-column: 2; align-self: center; margin-bottom: 0; }
+    > .media-synopsis { margin-bottom: 0; }
+  }
+}

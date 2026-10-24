@@ -1,0 +1,19 @@
+<% synopsis = media_synopsis(item) %>
+<% if synopsis.present? %>
+  <section class="media-synopsis" aria-label="<%= item.is_a?(VideoGame) ? 'Description' : 'Synopsis' %>">
+    <% if item.is_a?(VideoGame) %>
+      <%= render 'video_games/description', synopsis: synopsis %>
+    <% else %>
+      <h2>Synopsis</h2>
+      <% if strip_tags(synopsis).length > 420 %>
+        <details class="child-description-disclosure">
+          <summary><span class="child-description-more">Read full synopsis</span><span class="child-description-less">Show less</span></summary>
+          <div class="child-description-prose"><%= child_description(synopsis) %></div>
+        </details>
+        <p class="child-description-preview"><%= truncate(strip_tags(synopsis.gsub(/<\/(?:p|li|blockquote|h[2-4])>|<br\s*\/?\s*>/i, ' ')).squish, length: 420, separator: ' ') %></p>
+      <% else %>
+        <div class="child-description-prose"><%= child_description(synopsis) %></div>
+      <% end %>
+    <% end %>
+  </section>
+<% end %>

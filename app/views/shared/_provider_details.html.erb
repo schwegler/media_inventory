@@ -1,4 +1,7 @@
 <% details = provider_display_details(item) %>
+<% if local_assigns[:exclude_synopsis] %>
+  <% details = details.reject { |label, value| %w[Synopsis Description].include?(label) && strip_tags(value.to_s).squish == strip_tags(media_synopsis(item).to_s).squish } %>
+<% end %>
 <% if details.any? %>
   <section class="media-description" aria-label="Additional title details"><h2>More about this title</h2>
     <dl class="media-description-facts"><% details.each do |label, value| %><div class="media-description-row<%= ' media-description-row-wide' if local_assigns[:readable_prose] && %w[Description Synopsis].include?(label) %>"><dt><%= label %></dt><dd><%= value.is_a?(Array) ? value.join(', ') : value %></dd></div><% end %></dl>
