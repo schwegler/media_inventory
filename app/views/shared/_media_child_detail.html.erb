@@ -33,6 +33,7 @@
     <aside class="child-detail-facts" aria-label="Title details"><%= render 'shared/child_metadata', item: item, show_credits: false %></aside>
   </div>
   <%= render 'shared/child_credits', item: item %>
+  <%= render 'shared/editorial_articles', item: item %>
   <section class="child-detail-community">
     <div class="child-community-heading"><h2>Community Activity</h2><%= render 'likes/like_button', item: item %></div>
     <%= render 'shared/comments_box', matching_item: item %>

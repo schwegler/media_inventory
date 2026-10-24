@@ -612,3 +612,28 @@
   .media-description-row { grid-template-columns: minmax(0, 1fr); gap: .4rem; }
   .media-description-prose { font-size: .9375rem; line-height: 1.75; }
 }
+
+// Cached companion stories have their own editorial space, outside community reviews.
+.editorial-articles-heading {
+  margin-bottom: 1.25rem;
+  h2 { margin: .35rem 0 .5rem; }
+  p { margin: 0; color: var(--text-secondary); }
+}
+.editorial-eyebrow { font-size: .7rem; text-transform: uppercase; letter-spacing: .14em; color: var(--text-secondary); }
+.editorial-article-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
+.editorial-article-card {
+  min-width: 0; overflow: hidden; border: 1px solid var(--border-color); border-radius: 14px;
+  background: var(--surface);
+}
+.editorial-article-image { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: var(--inset); }
+.editorial-article-placeholder { display: grid; place-items: center; font-family: 'Space Grotesk', sans-serif; color: var(--text-secondary); }
+.editorial-article-copy {
+  padding: 1.25rem;
+  time { color: var(--text-secondary); font-size: .75rem; }
+  h3 { margin: .6rem 0; font-size: 1.15rem; line-height: 1.4; overflow-wrap: anywhere; }
+  h3 a { color: var(--text); text-decoration: none; }
+  h3 a:hover { text-decoration: underline; }
+  p { font-size: .875rem; line-height: 1.65; color: var(--text-secondary); overflow-wrap: anywhere; }
+}
+.editorial-article-source { display: block; margin-top: 1rem; font-size: .75rem; color: var(--text-secondary); }
+@media (max-width: 640px) { .editorial-article-grid { grid-template-columns: minmax(0, 1fr); } }
