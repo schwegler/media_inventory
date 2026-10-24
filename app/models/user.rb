@@ -5,6 +5,8 @@ class User < ApplicationRecord
   has_many :favorite_shelves, dependent: :destroy
   has_many :shelf_collections, dependent: :destroy
   has_many :game_library_views, dependent: :destroy
+  has_many :remembered_devices, dependent: :delete_all
+  before_update :revoke_sign_ins, if: :will_save_change_to_password_digest?
   has_secure_password
 
   before_validation { self.email = nil if email.blank? }
@@ -131,6 +133,14 @@ class User < ApplicationRecord
   end
 
   private
+
+  def revoke_sign_ins
+    # Increment in the database so concurrent password changes on stale instances
+    # cannot reuse a generation and accidentally keep an intermediate session alive.
+    self.class.update_counters(id, session_generation: 1)
+    self.session_generation = self.class.where(id: id).pick(:session_generation)
+    remembered_devices.delete_all
+  end
 
   def generate_activitypub_keys
     require 'openssl'

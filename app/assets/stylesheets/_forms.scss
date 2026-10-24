@@ -160,3 +160,15 @@ form.standard-form .details-modal-layout:has(.import-confirmation) .thumbnail-pr
   overflow-wrap: anywhere;
   &::after { display: none; }
 }
+
+// A native checkbox with a wrapping label and an explicit, accessible explanation.
+.auth-page .remember-device {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: .25rem .65rem;
+  align-items: center;
+  margin-block: 1rem;
+  input[type='checkbox'] { margin: 0; }
+  label { margin: 0; padding-block: .5rem; text-transform: none; letter-spacing: normal; cursor: pointer; }
+  p { grid-column: 2; margin: 0; font-size: .875rem; color: var(--text-muted); }
+}

@@ -74,6 +74,7 @@ RSpec.describe SessionsHelper, type: :helper do
     end
 
     it 'logs out the current user' do
+      expect(helper).to receive(:reset_session) { session.clear }
       helper.log_out
       expect(session[:user_id]).to be_nil
       expect(helper.instance_variable_get(:@current_user)).to be_nil

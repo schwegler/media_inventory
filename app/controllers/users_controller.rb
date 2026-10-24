@@ -66,7 +66,7 @@ class UsersController < ApplicationController
     @user = User.new(adjusted_params)
     @user.confirmed_at = Time.current # Automatically confirmed via password signup
     if @user.save
-      reset_session
+      forget_device
       log_in @user
       flash[:success] = 'Welcome to Trove!'
       redirect_to @user

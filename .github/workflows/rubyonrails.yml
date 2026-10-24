@@ -28,6 +28,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Install artwork decoder
         run: |
           sudo apt-get update
@@ -64,6 +66,7 @@ jobs:
           SE_AVOID_STATS: 'true'
         run: >-
           bundle exec rspec
+          spec/system/remembered_sign_in_system_spec.rb
           spec/system/import_confirmation_system_spec.rb
           spec/system/metadata_entities_system_spec.rb
           spec/system/comic_cover_layout_system_spec.rb
@@ -110,6 +113,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Install Ruby and gems
         uses: ruby/setup-ruby@v1
         with:

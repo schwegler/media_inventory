@@ -41,3 +41,12 @@ end
 
 OmniAuth.config.allowed_request_methods = %i[post get]
 OmniAuth.config.silence_get_warning = true
+
+# Capture opt-in only on the CSRF-validated POST initiation, never on callbacks or linking.
+OmniAuth.config.before_request_phase = lambda do |env|
+  request = Rack::Request.new(env)
+  env['rack.session'][:remember_device_oauth] = {
+    'provider' => env['omniauth.strategy'].name,
+    'remember' => request.post? && request.params['remember_device'] == '1' && env['rack.session'][:user_id].nil?
+  }
+end

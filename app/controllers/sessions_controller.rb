@@ -28,8 +28,9 @@ class SessionsController < ApplicationController
   end
 
   def login_success(user, message)
-    reset_session
+    forget_device
     log_in user
+    remember_device(user) if params.dig(:session, :remember_device) == '1'
     flash[:success] = message
     redirect_to user
   end
