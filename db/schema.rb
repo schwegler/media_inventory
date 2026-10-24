@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_19_183000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_24_040000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -250,6 +250,31 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_183000) do
     t.datetime "updated_at", null: false
     t.index ["user_id", "category"], name: "index_favorite_shelves_on_user_id_and_category", unique: true
     t.index ["user_id"], name: "index_favorite_shelves_on_user_id"
+  end
+
+  create_table "editorial_article_titles", force: :cascade do |t|
+    t.integer "editorial_article_id", null: false
+    t.string "item_type", null: false
+    t.integer "item_id", null: false
+    t.index ["editorial_article_id", "item_type", "item_id"], name: "index_editorial_article_titles_unique", unique: true
+    t.index ["editorial_article_id"], name: "index_editorial_article_titles_on_editorial_article_id"
+    t.index ["item_type", "item_id"], name: "index_editorial_article_titles_on_item"
+  end
+
+  create_table "editorial_articles", force: :cascade do |t|
+    t.bigint "wordpress_id", null: false
+    t.string "title", null: false
+    t.text "excerpt"
+    t.string "canonical_url", null: false
+    t.string "image_url"
+    t.datetime "published_at"
+    t.datetime "source_modified_at", null: false
+    t.datetime "checked_at", null: false
+    t.boolean "published", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["checked_at"], name: "index_editorial_articles_on_checked_at"
+    t.index ["wordpress_id"], name: "index_editorial_articles_on_wordpress_id", unique: true
   end
 
   create_table "game_artwork_batches", force: :cascade do |t|
@@ -729,6 +754,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_183000) do
   add_foreign_key "consumption_passes", "library_items"
   add_foreign_key "edit_suggestions", "users"
   add_foreign_key "favorite_shelves", "users"
+  add_foreign_key "editorial_article_titles", "editorial_articles"
   add_foreign_key "game_artwork_batches", "video_games"
   add_foreign_key "game_artworks", "library_items"
   add_foreign_key "game_artworks", "video_games"
