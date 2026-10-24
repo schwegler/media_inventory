@@ -3,7 +3,9 @@
 module SessionsHelper
   # Logs in the given user.
   def log_in(user)
+    discovery = session[:discovery_intent] unless session[:user_id]
     reset_session
+    session[:discovery_intent] = discovery if DiscoveryIntent.read(discovery)
     session[:user_id] = user.id
     session[:session_generation] = user.session_generation
     @current_user = user

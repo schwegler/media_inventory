@@ -1,4 +1,6 @@
+<% content_for :turbo_no_cache, true %>
 <div class="auth-page">
+  <%= render "shared/discovery_auth" %>
   <div class="auth-header">
     <div class="auth-mascot" aria-hidden="true">
       <%= image_tag 'brand/facet_pose_01_bookworm.png', class: 'mascot-sticker mascot-slot-auth', width: 90, height: 158, alt: '' %>

@@ -138,6 +138,8 @@ SampleApp::Application.routes.draw do
   get '/categories/:category_type', to: 'categories#type_index', as: 'category_type'
   get '/categories/:category_type/*name', to: 'categories#show', as: 'category_item', format: false
   get '/search', to: 'search#index', as: 'search'
+  post '/discovery/selection', to: 'discovery#create', as: 'discovery_selection'
+  get '/discovery/resume', to: 'discovery#resume', as: 'resume_discovery'
   get '/collections/:user_id', to: 'collections#show', as: 'collection'
   get    '/login',   to: 'sessions#new'
   post   '/login',   to: 'sessions#create'
