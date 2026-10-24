@@ -11,6 +11,13 @@ RSpec.describe 'Title reading hierarchy', type: :system do
                                        'Overview' => ('A long synopsis about the series. ' * 60) })
   end
 
+  before do
+    # Chrome can retain errors from earlier broken-artwork examples. Keep this
+    # page's console assertion strict, without inheriting their log buffer.
+    page.driver.browser.navigate.to('about:blank')
+    page.driver.browser.logs.get(:browser)
+  end
+
   def add_articles(item, count: 1)
     count.times do |index|
       title = "A different perspective on this title — story #{index + 1}"
