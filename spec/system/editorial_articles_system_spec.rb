@@ -6,6 +6,9 @@ RSpec.describe 'Editorial related reading', type: :system do
   let!(:movie) { Movie.create!(title: 'The art of paying attention', release_year: 2026, director: 'A. Filmmaker') }
 
   before do
+    # Scope console checks to this fixture, not earlier intentional network failures.
+    page.driver.browser.navigate.to('about:blank')
+    page.driver.browser.logs.get(:browser)
     2.times do |index|
       title = index.zero? ? 'When a small story leaves a lasting impression' : 'A few more things worth noticing'
       image = 'https://tacobout.online/wp-content/uploads/2026/10/fixture.png' if index.zero?

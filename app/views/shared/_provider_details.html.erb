@@ -1,6 +1,6 @@
 <% details = provider_display_details(item) %>
 <% if details.any? %>
   <section class="media-description" aria-label="Additional title details"><h2>More about this title</h2>
-    <dl class="media-description-facts"><% details.each do |label, value| %><div class="media-description-row"><dt><%= label %></dt><dd><%= value.is_a?(Array) ? value.join(', ') : value %></dd></div><% end %></dl>
+    <dl class="media-description-facts"><% details.each do |label, value| %><div class="media-description-row<%= ' media-description-row-wide' if local_assigns[:readable_prose] && %w[Description Synopsis].include?(label) %>"><dt><%= label %></dt><dd><%= value.is_a?(Array) ? value.join(', ') : value %></dd></div><% end %></dl>
   </section>
 <% end %>
