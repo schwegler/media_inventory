@@ -12,6 +12,7 @@ RSpec.describe 'OAuth remembered sign-in', type: :request do
   end
 
   before do
+    allow(BlueskyPublicProfile).to receive(:fetch).and_return({})
     OmniAuth.config.test_mode = true
     OmniAuth.config.mock_auth[:mastodon] = OmniAuth::AuthHash.new(
       provider: 'mastodon', uid: 'synthetic-remembered', info: { nickname: 'Synthetic OAuth' },

@@ -4,6 +4,7 @@ require 'rails_helper'
 
 RSpec.describe 'OmniAuth Logins', type: :system do
   before do
+    allow(BlueskyPublicProfile).to receive(:fetch).and_return({})
     OmniAuth.config.test_mode = true
 
     # Mock Mastodon
