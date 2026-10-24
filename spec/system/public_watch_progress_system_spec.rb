@@ -33,6 +33,9 @@ RSpec.describe 'Public watch progress UI', type: :system do
         click_button 'Apply filters'
         expect(page).to have_css('.in-progress-card', count: 1)
         expect(page).to have_current_path(/preview=public/)
+        # The old page already has preview=public and the same card. Wait for
+        # the filter response before following a link it would otherwise replace.
+        expect(page).to have_current_path(/type=TvShow/)
         click_link 'Chapter 2'
         expect(page).to have_current_path(tv_episode_path(episodes.second))
       end
