@@ -3,7 +3,7 @@
 <% if articles.any? %>
   <section id="from-tacobout" class="media-section editorial-articles<%= ' editorial-articles--compact' if compact %>" aria-labelledby="editorial-articles-heading">
     <div class="editorial-articles-heading">
-      <span class="editorial-eyebrow">Related reading</span>
+      <% unless compact %><span class="editorial-eyebrow">Related reading</span><% end %>
       <h2 id="editorial-articles-heading">from taco ’bout it</h2>
       <% unless compact %><p>Stories, essays, and a different perspective on this title.</p><% end %>
     </div>

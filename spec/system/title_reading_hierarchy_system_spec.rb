@@ -30,7 +30,7 @@ RSpec.describe 'Title reading hierarchy', type: :system do
       .and_return(ActionController::Base.helpers.asset_path('brand/trove_logo_dark_card.png'))
   end
 
-  def check_priority_layout(width)
+  def check_priority_layout(_width)
     geometry = page.evaluate_script(<<~JS)
       (() => {
       const rect = selector => document.querySelector(selector).getBoundingClientRect();
@@ -43,16 +43,12 @@ RSpec.describe 'Title reading hierarchy', type: :system do
     JS
     expect(geometry['overflow']).to be false
     expect(geometry['readingBottom']).to be < [geometry['detailsTop'], geometry['entriesTop']].min
-    if width > 800
-      expect((geometry['readingTop'] - geometry['libraryTop']).abs).to be < 2
-      expect(geometry['readingLeft']).to be > geometry['libraryRight']
-    else
-      expect(geometry['readingTop']).to be >= geometry['libraryBottom']
-    end
+    expect(geometry['readingTop']).to be >= geometry['libraryBottom']
+    expect(geometry['readingLeft']).to be < geometry['libraryRight']
     expect(geometry['readingBottom'] - geometry['readingTop']).to be < 360
   end
 
-  it 'puts a compact reading rail ahead of long metadata and episode lists for visitors' do
+  it 'puts a readable reading strip ahead of long metadata and episode lists for visitors' do
     70.times { |n| show.tv_episodes.create!(name: "Episode #{n + 1}", season: 1, episode: n + 1) }
     add_articles(show, count: 6)
     [[1440, 1000], [390, 844]].each do |width, height|

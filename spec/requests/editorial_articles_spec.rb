@@ -49,7 +49,8 @@ RSpec.describe 'Cached editorial title cards', type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('id="from-tacobout"')
       document = Nokogiri::HTML(response.body)
-      priority = document.at_css('.media-priority')
+      priority = document.at_css(%w[TvEpisode
+                                    ComicIssue].include?(item.class.name) ? '.media-priority' : '.media-detail-main')
       expect(priority.at_css('#from-tacobout')).to be_present
       expect(document.css('#from-tacobout').size).to eq(1)
       expect(document.css('#my-library').size).to eq(1) unless %w[TvEpisode ComicIssue].include?(item.class.name)

@@ -74,18 +74,20 @@
     <a href="#community">Community</a>
     <a href="#comments">Comments</a>
   </nav>
-  <% if articles.any? %>
-    <div class="media-priority">
-      <div id="my-library"><%= render 'shared/media_actions_and_stream', item: item, show_sources: false %></div>
-      <%= render 'shared/editorial_articles', item: item, articles: articles, compact: true %>
-    </div>
-  <% end %>
   <div class="media-detail-body">
     <div class="media-detail-main">
-      <% if articles.empty? %><div id="my-library"><%= render 'shared/media_actions_and_stream', item: item, show_sources: false %></div><% end %>
-      <%= render 'shared/media_description', item: item %>
-      <%= render 'shared/entity_credits', item: item %>
-      <%= render 'shared/provider_details', item: item %>
+      <div id="my-library"><%= render 'shared/media_actions_and_stream', item: item, show_sources: false %></div>
+      <%= render 'shared/editorial_articles', item: item, articles: articles, compact: true if articles.any? %>
+      <% information = capture do %>
+        <%= render 'shared/media_description', item: item %>
+        <%= render 'shared/entity_credits', item: item %>
+        <%= render 'shared/provider_details', item: item, readable_prose: articles.any? %>
+      <% end %>
+      <% if articles.any? && information.present? %>
+        <div class="media-information"><%= information %></div>
+      <% else %>
+        <%= information %>
+      <% end %>
       <%= render 'albums/tracks', item: item if item.is_a?(Album) %>
       <% if item.is_a?(VideoGame) %>
         <% if @library_item %>
