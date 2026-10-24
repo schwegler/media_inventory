@@ -32,6 +32,7 @@ RSpec.describe 'Editorial related reading', type: :system do
       resize_browser_viewport(width, height)
       visit movie_path(movie)
       expect(page.title).to include(movie.title)
+      capture_ui_screenshot("editorial-#{name}-overview")
       find('.media-section-nav a[href="#from-tacobout"]').click
       expect(page).to have_css('#from-tacobout h2', text: 'from taco ’bout it')
       expect(page).to have_css('.editorial-article-card', count: 2)
@@ -44,6 +45,8 @@ RSpec.describe 'Editorial related reading', type: :system do
       expect(columns).to eq(width > 640 ? 2 : 1)
       expect(page.driver.browser.logs.get(:browser).select { |log| log.level == 'SEVERE' }).to be_empty
       capture_ui_screenshot("editorial-#{name}")
+      page.execute_script("document.documentElement.dataset.theme = 'dark'")
+      capture_ui_screenshot("editorial-#{name}-dark")
     end
   end
 end

@@ -49,13 +49,17 @@ module Editorial
 
     def hidden?(post)
       (post['status'].is_a?(String) && post['status'] != 'publish') ||
-        post.dig('content', 'protected') == true || post.dig('excerpt', 'protected') == true ||
+        protected?(post['content']) || protected?(post['excerpt']) ||
         (post['password'].is_a?(String) && post['password'].present?)
+    end
+
+    def protected?(field)
+      field.is_a?(Hash) && field['protected'] == true
     end
 
     def attributes_for(post)
       unless post['status'] == 'publish' && post.dig('content', 'protected') == false &&
-             post.dig('excerpt', 'protected') == false && post.dig('content', 'rendered').is_a?(String)
+             post.dig('content', 'rendered').is_a?(String)
         raise Invalid, 'Missing publication metadata'
       end
 
@@ -63,7 +67,8 @@ module Editorial
       canonical_url = Urls.article(post['link'])
       raise Invalid, 'Invalid title or canonical URL' if title.blank? || canonical_url.nil?
 
-      { title: title, canonical_url: canonical_url, excerpt: self.class.plain_text(post.dig('excerpt', 'rendered'), 600),
+      excerpt = post['excerpt'].is_a?(Hash) ? post['excerpt']['rendered'] : nil
+      { title: title, canonical_url: canonical_url, excerpt: self.class.plain_text(excerpt, 600),
         published_at: timestamp(post['date_gmt']), source_modified_at: timestamp(post['modified_gmt']),
         image_url: featured_image(post) }
     end

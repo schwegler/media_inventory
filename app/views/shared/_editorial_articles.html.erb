@@ -1,11 +1,11 @@
 <% articles = local_assigns.fetch(:articles) { EditorialArticle.for_title(item).to_a } %>
 <% if articles.any? %>
   <section id="from-tacobout" class="media-section editorial-articles" aria-labelledby="editorial-articles-heading">
-    <header class="editorial-articles-heading">
+    <div class="editorial-articles-heading">
       <span class="editorial-eyebrow">Related reading</span>
       <h2 id="editorial-articles-heading">from taco ’bout it</h2>
       <p>Stories, essays, and a different perspective on this title.</p>
-    </header>
+    </div>
     <div class="editorial-article-grid">
       <% articles.each do |article| %>
         <% next unless Editorial::Urls.article(article.canonical_url) %>

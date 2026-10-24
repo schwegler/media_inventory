@@ -19,7 +19,7 @@ module Editorial
       max_pages.times do
         posts = @client.fetch(params: window.merge(page: page, per_page: per_page, status: 'publish',
                                                    context: 'view', orderby: 'modified', order: 'asc'))
-        raise Client::Unavailable, 'Expected a post list' unless posts.is_a?(Array)
+        raise Client::Unavailable, 'Invalid or oversized post list' unless posts.is_a?(Array) && posts.size <= per_page
 
         posts.each { |post| import_post(post, report) }
         page += 1

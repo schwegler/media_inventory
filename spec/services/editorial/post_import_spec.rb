@@ -88,7 +88,8 @@ RSpec.describe Editorial::PostImport do
       expect(article.reload.published).to be true
       expect(article.editorial_article_titles.count).to eq(1)
     end
-    importer.call(post.merge('_embedded' => ['malformed']))
+    importer.call(post.merge('_embedded' => ['malformed'], 'excerpt' => nil))
+    expect(article.reload.excerpt).to eq('')
     expect(article.reload.image_url).to be_nil
   end
 
