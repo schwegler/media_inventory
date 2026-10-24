@@ -1,4 +1,6 @@
-@view-transition { navigation: auto; }
+// Turbo opts into same-document transitions through the layout meta tag.
+// Native cross-document transitions can reject before an incoming document
+// opts in (for example, a non-layout response or a late stylesheet).
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 160ms; }
 
 /* Move a pseudo-element so skeleton animation does not repaint the gradient. */
