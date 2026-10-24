@@ -1,8 +1,20 @@
+<% reading = HalloweenReading.for_title(item) %>
+<% sources = media_source_links(item, amazon_eligible: reading.present?) %>
 <div class="streaming-links-box">
   <h3 class="streaming-links-title">Find this title</h3>
+  <% if reading %>
+    <section class="amazon-reading" aria-label="Halloween reading guide">
+      <h4>A Halloween reading idea</h4>
+      <p><%= reading %></p>
+      <p>Check the edition, format, and seller before choosing a copy. Your library may also have a copy to borrow.</p>
+    </section>
+  <% end %>
+  <% if sources.any? { |source| source[:paid] } %>
+    <p class="amazon-disclosure">As an Amazon Associate I earn from qualifying purchases.</p>
+  <% end %>
   <div class="streaming-buttons-row">
-    <% media_source_links(item).each do |source| %>
-      <%= link_to source[:url], target: '_blank', rel: 'noopener noreferrer', class: "btn btn-stream-#{source[:kind]}" do %>
+    <% sources.each do |source| %>
+      <%= link_to source[:url], target: '_blank', rel: source[:paid] ? 'sponsored noopener noreferrer' : 'noopener noreferrer', class: "btn btn-stream-#{source[:kind]}" do %>
         <span class="media-source-icon" aria-hidden="true"><%= ui_icon(source[:icon]) %></span>
         <span class="media-source-label"><%= source[:label] %></span>
       <% end %>

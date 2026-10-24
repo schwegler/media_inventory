@@ -99,3 +99,11 @@
 @include home_dashboard.styles;
 
 @include artwork_lightbox.styles;
+
+// Keep original reading guidance and disclosures visible beside affiliate searches.
+.amazon-reading p, .amazon-disclosure {
+  font-size: 1rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.amazon-disclosure { font-weight: 600; }
