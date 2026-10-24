@@ -1,6 +1,7 @@
 @use "artwork_lightbox";
 @use "tracking_cards";
 @use "home_dashboard";
+@use "public_home";
 @use "appearance_menu";
 @use "halloween";
 @use "halloween_invitation";
@@ -122,3 +123,5 @@
 .home-discovery-search input[type="search"] { width: 100%; max-width: 100%; }
 .discovery-local-card { min-width: 0; display: flex; flex-direction: column; }
 .discovery-local-card > .card-2026 { flex: 1; }
+
+@include public_home.styles;

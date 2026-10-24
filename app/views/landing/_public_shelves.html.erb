@@ -1,17 +1,21 @@
 <% if @public_shelves.any? %>
   <section class="home-public-shelves" aria-labelledby="public-shelves-title">
-    <h2 id="public-shelves-title">Explore public shelves</h2>
-    <p>Explore members’ real public shelf picks.</p>
-    <div class="discovery-results">
-      <% @public_shelves.each do |shelf| %>
-        <article class="discovery-result">
-          <h3><%= link_to "#{shelf.user.name}’s #{shelf.category.downcase == 'overall' ? 'favorites' : shelf.category.downcase}", shelf_path(shelf.user.username, category: shelf.category) %></h3>
-          <div class="discovery-shelf-covers" aria-hidden="true">
-            <% shelf.items.first(3).each do |item| %>
-              <% if item.stored_cover_url.present? %><%= image_tag item.stored_cover_url, alt: '', loading: 'lazy', width: 64, height: 88 %><% end %>
+    <div class="home-shelves-heading"><h2 id="public-shelves-title">A little shelf inspiration</h2><span>Real picks, made public.</span></div>
+    <div class="home-shelf-gallery">
+      <% @public_shelves.each do |entry| %>
+        <% shelf, items = entry.values_at(:shelf, :items) %>
+        <% title = "#{shelf.user.name}’s #{shelf.category == 'overall' ? 'favorites' : FavoriteShelf::CATEGORIES[shelf.category].downcase}" %>
+        <article class="home-shelf-example">
+          <%= link_to shelf_path(shelf.user.username, category: shelf.category), class: 'home-shelf-preview', aria: { label: "View #{title}" } do %>
+            <% items.each do |item| %>
+              <% if item.stored_cover_url.present? %>
+                <%= image_tag item.stored_cover_url, alt: item.title, loading: 'lazy', width: 96, height: 144 %>
+              <% else %>
+                <span class="home-shelf-title-only"><%= item.title %></span>
+              <% end %>
             <% end %>
-          </div>
-          <p><%= shelf.items.map(&:title).join(' · ') %></p>
+          <% end %>
+          <h3><%= link_to title, shelf_path(shelf.user.username, category: shelf.category) %></h3>
         </article>
       <% end %>
     </div>

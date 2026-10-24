@@ -1,0 +1,56 @@
+[
+  {
+    "type": "Album",
+    "title": "True Blue",
+    "creator": "Madonna",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/ab/f6/3d/abf63d25-a582-a1ef-dcc1-65dcda1ecbcb/mzi.klximtlq.jpg/500x500bb.jpg",
+    "source_url": "https://music.apple.com/us/album/true-blue/80815611?uo=4",
+    "api_id": "itunes_80815611",
+    "file": "cover-1.jpg"
+  },
+  {
+    "type": "Album",
+    "title": "how i'm feeling now",
+    "creator": "Charli xcx",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/1a/5c/e9/1a5ce93c-aef4-6667-b7d1-7162203e1c39/190295229993.jpg/500x500bb.jpg",
+    "source_url": "https://music.apple.com/us/album/how-im-feeling-now/1513162098?uo=4",
+    "api_id": "itunes_1513162098",
+    "file": "cover-2.jpg"
+  },
+  {
+    "type": "Album",
+    "title": "Electric Tears",
+    "creator": "Buckethead",
+    "image_url": "https://is1-ssl.mzstatic.com/image/thumb/Music/bc/f5/a0/mzi.feaspvif.tif/500x500bb.jpg",
+    "source_url": "https://music.apple.com/us/album/electric-tears/271314390?uo=4",
+    "api_id": "itunes_271314390",
+    "file": "cover-3.jpg"
+  },
+  {
+    "type": "TvShow",
+    "title": "Twin Peaks",
+    "creator": "",
+    "image_url": "https://static.tvmaze.com/uploads/images/original_untouched/397/992910.jpg",
+    "source_url": "https://www.tvmaze.com/shows/156/twin-peaks",
+    "api_id": "156",
+    "file": "cover-4.jpg"
+  },
+  {
+    "type": "Book",
+    "title": "Frankenstein; or, The Modern Prometheus",
+    "creator": "Mary Shelley",
+    "image_url": "https://covers.openlibrary.org/b/id/12356249-L.jpg",
+    "source_url": "https://openlibrary.org/works/OL450063W",
+    "api_id": "openlibrary_/works/OL450063W",
+    "file": "cover-5.jpg"
+  },
+  {
+    "type": "VideoGame",
+    "title": "Portal 2",
+    "creator": "Valve",
+    "image_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/620/faffc0f560786e2f05104a8d2fac837c6969bf13/header.jpg?t=1790187113",
+    "source_url": "https://store.steampowered.com/app/620/",
+    "api_id": "steam_620",
+    "file": "cover-6.jpg"
+  }
+]

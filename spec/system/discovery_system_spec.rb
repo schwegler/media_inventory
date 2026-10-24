@@ -27,7 +27,7 @@ RSpec.describe 'Public catalog discovery', type: :system do
 
   it 'lets a guest discover, refine, sign in and review the selected album without restarting' do
     visit root_path
-    expect(page).to have_text('Search without an account')
+    expect(page).to have_text('Search first. Sign in to collect.')
     capture_ui_screenshot('discovery-synthetic-home-desktop')
     fill_in 'Find something you love', with: 'Charli xcx'
     within '.home-discovery-search' do

@@ -22,9 +22,11 @@ RSpec.describe 'Public discovery and sign-in continuation', type: :request do
 
   it 'offers public search and explains the six formats and catalog boundary' do
     get root_path
-    expect(response.body).to include('Track games, music, books, movies, TV and comics', 'home-discovery-query',
-                                     'Coverage varies', 'Search without an account')
-    expect(response.body).not_to include('Explore public shelves')
+    expect(response.body).to include(
+      'Collect, track and share games, music, books, movies, TV and comics', 'home-discovery-query',
+      'Coverage varies', 'Search first. Sign in to collect.'
+    )
+    expect(response.body).not_to include('A little shelf inspiration')
     get search_path(q: 'Madonna')
     expect(response.body).to include('In Trove', 'Available to import', 'Search music (albums)', 'Find more matches')
     expect(response.body).not_to include('data-controller="discovery-search"')
@@ -159,16 +161,16 @@ RSpec.describe 'Public discovery and sign-in continuation', type: :request do
     album = Album.create!(title: 'A real fixture pick')
     user.favorite_shelves.create!(category: 'Album', picks: [{ 'type' => 'Album', 'id' => album.id }])
     get root_path
-    expect(response.body).not_to include('Explore public shelves')
+    expect(response.body).not_to include('A little shelf inspiration')
     user.shelf_previews.attach(io: File.open(Rails.root.join('spec/fixtures/files/valid-cover.png')),
                                filename: 'synthetic-preview.png', content_type: 'image/png')
     get root_path
-    expect(response.body).to include('Explore public shelves', 'A real fixture pick',
+    expect(response.body).to include('A little shelf inspiration', 'A real fixture pick',
                                      shelf_path(user.username, category: 'Album'))
     expect(response.body).not_to include('Private opinion')
     user.update!(confirmed_at: nil)
     get root_path
-    expect(response.body).not_to include('Explore public shelves')
+    expect(response.body).not_to include('A little shelf inspiration')
   end
 
   it 'keeps the existing array autocomplete API while exposing provider outcomes in discovery' do
