@@ -109,6 +109,30 @@ RSpec.describe 'Public discovery and sign-in continuation', type: :request do
     expect(response.body).not_to include('Your selection is saved')
   end
 
+  it 'keeps signed URL-only identities distinct even when the titles match' do
+    login
+    2.times do |i|
+      token = MetadataImport.sign('book', title: 'Same synthetic title', external_url: "https://openlibrary.org/works/#{i}")
+      post books_path, params: { book: { import_selection: token, is_collected: '1' } }
+      expect(response).to have_http_status(:redirect)
+    end
+    expect(Book.where(title: 'Same synthetic title').count).to eq(2)
+    expect(user.library_items.where(item_type: 'Book').count).to eq(2)
+  end
+
+  it 'labels only the signed-in member’s library and prevents caching personalized search HTML' do
+    album = Album.create!(title: 'Synthetic membership album', artist: 'Buckethead')
+    user.library_items.create!(item: album, is_collected: true, is_public: false, review: 'Private opinion')
+    login
+    get search_path(q: 'Buckethead', type: 'albums')
+    expect(response.headers['Cache-Control']).to include('private', 'no-store')
+    expect(response.body).to include('In Trove · In your library', 'turbo-cache-control')
+    expect(response.body).not_to include('Private opinion')
+    delete logout_path
+    get search_path(q: 'Buckethead', type: 'albums')
+    expect(response.body).not_to include('In your library', 'Private opinion')
+  end
+
   it 'does not acquire an import identity or create catalog records before authentication' do
     post albums_path, params: { album: { import_selection: selection } }
     expect(response).to redirect_to(login_url)

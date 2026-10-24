@@ -236,6 +236,9 @@ class InventoryController < ApplicationController
     end
     resource = if @imported && @imported[:is_local] && @imported[:catalog_id]
                  resource_class.find(@imported[:catalog_id])
+               elsif @imported
+                 key = attributes[:api_id].present? ? :api_id : :external_url
+                 resource_class.where(key => attributes[key]).order(:id).first_or_initialize
                else
                  resolve_catalog_resource(attributes)
                end
