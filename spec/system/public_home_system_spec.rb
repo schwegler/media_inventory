@@ -33,8 +33,14 @@ RSpec.describe 'Cover-led public homepage', type: :system do
     expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be true
     page.execute_script('document.documentElement.style.zoom = "1"')
     resize_browser_viewport(1440, 1000)
-    page.execute_script('document.documentElement.dataset.theme = "dark"')
+    find('summary[aria-label="Appearance"]').click
+    within('.appearance-panel') { choose 'Dark' }
+    find('summary[aria-label="Appearance"]').send_keys(:escape)
+    expect(page).to have_css('.home-actions a', style: { color: /239,\s*237,\s*244/ })
     capture_ui_screenshot('public-home-refined-dark')
+    find('summary[aria-label="Appearance"]').click
+    within('.appearance-panel') { choose 'System' }
+    find('summary[aria-label="Appearance"]').send_keys(:escape)
     expect(page.driver.browser.logs.get(:browser).select { |entry| entry.level == 'SEVERE' }).to be_empty
     expect(LibraryItem.count).to eq(0)
   end
