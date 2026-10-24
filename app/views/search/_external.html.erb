@@ -1,0 +1,29 @@
+<section class="discovery-panel" aria-labelledby="external-title">
+  <h2 id="external-title" tabindex="-1">Available to import</h2>
+  <p>Find metadata from supported catalogs to add to your library. This does not provide music, video or other media to play.</p>
+  <% if @filter_type %>
+    <div data-controller="discovery-search" data-discovery-search-query-value="<%= @query %>" data-discovery-search-type-value="<%= SearchController::MAPPINGS[@filter_type][1].name.underscore %>" data-discovery-search-signed-in-value="<%= logged_in? %>" data-discovery-search-selection-url-value="<%= discovery_selection_path %>">
+      <p role="status" aria-live="polite" data-discovery-search-target="status">Searching supported catalogs…</p>
+      <button type="button" class="sleek-btn sleek-btn-secondary" data-discovery-search-target="retry" data-action="discovery-search#search" hidden>Retry catalog search</button>
+      <div class="discovery-results" data-discovery-search-target="results"></div>
+    </div>
+    <noscript><p>External catalog discovery needs JavaScript. You can still browse and search titles already in Trove.</p></noscript>
+  <% else %>
+    <p>Choose a media type to search its supported catalogs. Music discovery searches albums.</p>
+    <div class="discovery-types">
+      <% SearchController::MAPPINGS.each do |key, (_result, klass)| %>
+        <%= link_to(key == 'albums' ? 'Search music (albums)' : "Search #{klass.model_name.human.pluralize.downcase}", search_path(q: @query, type: key), class: 'sleek-btn sleek-btn-secondary') %>
+      <% end %>
+    </div>
+  <% end %>
+  <p class="discovery-coverage">Results are limited selections, not complete catalogs or discographies. Availability varies by provider and region.</p>
+  <details class="discovery-refine"><summary>Find more matches</summary>
+    <p>Try a specific title, or an artist and album name. Each search returns a limited set of matches; changing your query can find different results.</p>
+    <%= form_with url: search_path, method: :get, class: 'discovery-query' do |f| %>
+      <%= f.hidden_field :type, value: @filter_type if @filter_type %>
+      <%= f.label :q, 'Refine your search', for: 'discovery-refine-query' %>
+      <%= f.search_field :q, value: @query, id: 'discovery-refine-query', maxlength: 200, required: true %>
+      <%= f.submit 'Search again', class: 'sleek-btn sleek-btn-primary' %>
+    <% end %>
+  </details>
+</section>

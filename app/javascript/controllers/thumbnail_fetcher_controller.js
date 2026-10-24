@@ -23,7 +23,7 @@ export default class extends Controller {
     "season", "episode", "issueNumber", "apiId", "catalogSelection", "externalUrl", "manualFormSection", "developer", "platform",
     "searchStage", "detailsStage", "backBtn", "modalTitle", "selectedTitleDisplay", "gameType", "author", "searchYear", "submitButton"
   ]
-  static values = { mediaType: String }
+  static values = { mediaType: String, selection: Object }
 
   connect() {
     this.debouncedFetch = debounce(() => this.fetchThumbnails(), 300)
@@ -58,6 +58,7 @@ export default class extends Controller {
     this.formElement?.addEventListener("keydown", this.searchKeydownHandler)
     this.formElement?.addEventListener("submit", this.searchSubmitHandler, true)
     this.element.dataset.connected = "true"
+    if (!hasErrors && this.hasSelectionValue) this.selectOption(this.selectionValue, true)
   }
 
   disconnect() {

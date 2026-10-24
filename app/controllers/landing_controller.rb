@@ -12,6 +12,7 @@ class LandingController < ApplicationController
       @popular_items = fetch_popular_items
       @popular_reviews = preload_social_feed(fetch_popular_reviews.to_a)
     else
+      @public_shelves = published_public_shelves
       @activities = public_activity_feed
       # Attach review entries first before preloading social feed associations
       DashboardActivityQuery.attach_review_entries(@activities.to_a)
@@ -36,6 +37,13 @@ class LandingController < ApplicationController
 
   def dashboard_activity_scope
     Activity.where(activity_type: %w[added consumed reviewed]).order(created_at: :desc, id: :desc)
+  end
+
+  def published_public_shelves
+    users = User.where.not(confirmed_at: nil).where.not(username: [nil, ''])
+                .joins(:shelf_previews_attachments).select(:id)
+    FavoriteShelf.where(user_id: users).includes(:user).order(updated_at: :desc, id: :desc)
+                 .limit(12).select { |shelf| shelf.items.any? }.first(3)
   end
 
   def public_activity_feed

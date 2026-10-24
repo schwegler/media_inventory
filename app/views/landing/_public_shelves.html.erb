@@ -1,0 +1,19 @@
+<% if @public_shelves.any? %>
+  <section class="home-public-shelves" aria-labelledby="public-shelves-title">
+    <h2 id="public-shelves-title">Explore public shelves</h2>
+    <p>Real picks from shelves their owners have published for sharing.</p>
+    <div class="discovery-results">
+      <% @public_shelves.each do |shelf| %>
+        <article class="discovery-result">
+          <h3><%= link_to "#{shelf.user.name}’s #{shelf.category.downcase == 'overall' ? 'favorites' : shelf.category.downcase}", shelf_path(shelf.user.username, category: shelf.category) %></h3>
+          <div class="discovery-shelf-covers" aria-hidden="true">
+            <% shelf.items.first(3).each do |item| %>
+              <% if item.stored_cover_url.present? %><%= image_tag item.stored_cover_url, alt: '', loading: 'lazy', width: 64, height: 88 %><% end %>
+            <% end %>
+          </div>
+          <p><%= shelf.items.map(&:title).join(' · ') %></p>
+        </article>
+      <% end %>
+    </div>
+  </section>
+<% end %>

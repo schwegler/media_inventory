@@ -6,6 +6,16 @@ require 'json'
 # rubocop:disable-next Metrics/ClassLength
 class MediaSearchService
   REQUEST_LOCK = Mutex.new
+
+  def self.source_states(query, type)
+    MediaSources::Registry::CACHE.read(source_state_key(query, type)) || []
+  end
+
+  def self.source_state_key(query, type)
+    ['discovery-sources-v1', type, query.to_s.strip.first(200).downcase,
+     ApiConfiguration.order(:id).pluck(:source_name, :media_type, :is_active, :updated_at)]
+  end
+
   def self.call(query, type, &)
     new(query, type).call(&)
   end
@@ -44,7 +54,7 @@ class MediaSearchService
     started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     @deadline = started_at + 12
     MediaSources::Registry::CACHE.fetch(
-      ['media-search-v8', @type, @query.downcase.strip,
+      ['media-search-v9', @type, @query.downcase.strip,
        ApiConfiguration.order(:id).pluck(:source_name, :media_type, :is_active, :updated_at)], expires_in: 15.minutes
     ) do
       results = search_sources(&progress)
@@ -81,12 +91,17 @@ class MediaSearchService
       priorities = ENV.fetch('GAME_METADATA_PROVIDER_PRIORITY', 'Steam,RAWG,Wikipedia').split(',')
       sources = sources.sort_by { |source, _method| priorities.index(source) || 99 }
     end
+    @source_state_key = self.class.source_state_key(@query, @type)
+    @state_lock = Mutex.new
+    @source_states = []
     configurations = ApiConfiguration.order(:id).to_a
     sources = MediaSources::Registry.with_snapshot(configurations) do
       (sources + [['InternetArchive', :fetch_internet_archive]]).select do |source, _method|
         MediaSources::Registry.enabled?(source, @type.camelize)
       end
     end
+    @source_states = sources.map { |source, _| { source: source, state: 'pending' } }
+    store_source_states
     collect_sources(sources, configurations) { |results| yield results if block_given? }
   end
 
@@ -115,14 +130,29 @@ class MediaSearchService
     Thread.new do
       Rails.application.executor.wrap do
         results = MediaSources::Registry.with_snapshot(configurations) do
-          send(method, @query).map { |result| result.merge(source: source) }
+          Thread.current[:media_search_failure] = false
+          results = send(method, @query).map { |result| result.merge(source: source) }
+          record_source_state(source, Thread.current[:media_search_failure] ? 'unavailable' : 'ready')
+          results
         end
         completed << [index, results]
       end
     rescue StandardError => e
       Rails.logger.warn("#{source} search failed: #{e.class}")
+      record_source_state(source, 'unavailable')
       completed << [index, []]
     end
+  end
+
+  def record_source_state(source, state)
+    @state_lock.synchronize do
+      @source_states.find { |entry| entry[:source] == source }[:state] = state
+      store_source_states
+    end
+  end
+
+  def store_source_states
+    MediaSources::Registry::CACHE.write(@source_state_key, @source_states, expires_in: 15.minutes)
   end
 
   def rank_results(results)
@@ -151,7 +181,8 @@ class MediaSearchService
     all_results.select do |item|
       next false if item[:title].blank?
 
-      key = "#{item[:title].to_s.downcase.strip}_#{item[:release_year]}"
+      key = [item[:title].to_s.downcase.strip, item[:release_year].to_s, item[:artist].to_s.downcase.strip,
+             item[:author].to_s.downcase.strip]
 
       if seen[key]
         item.except(:api_id, :external_url, :source).each do |field, value|
@@ -166,9 +197,14 @@ class MediaSearchService
 
   # --- Movies ---
 
+  def source_unavailable
+    Thread.current[:media_search_failure] = true
+    []
+  end
+
   def fetch_tmdb_movies(query)
     api_key = MediaSources::Registry.token('TMDB', @type.camelize)
-    return [] if api_key.blank?
+    return source_unavailable if api_key.blank?
 
     url = URI("https://api.themoviedb.org/3/search/movie?api_key=#{api_key}&query=#{CGI.escape(query)}")
     response = MediaSources::Http.cached_get(url, expires_in: 15.minutes, deadline: @deadline)
@@ -189,6 +225,7 @@ class MediaSearchService
       }
     end
   rescue StandardError => e
+    Thread.current[:media_search_failure] = true
     Rails.logger.error "TMDB Movie search failed: #{e.class}"
     []
   end
@@ -213,6 +250,7 @@ class MediaSearchService
       }
     end
   rescue StandardError => e
+    Thread.current[:media_search_failure] = true
     Rails.logger.error "iTunes Movie search failed: #{e.class}"
     []
   end
@@ -239,6 +277,7 @@ class MediaSearchService
       }
     end
   rescue StandardError => e
+    Thread.current[:media_search_failure] = true
     Rails.logger.error "iTunes Album search failed: #{e.class}"
     []
   end
@@ -264,6 +303,7 @@ class MediaSearchService
       }
     end
   rescue StandardError => e
+    Thread.current[:media_search_failure] = true
     Rails.logger.error "MusicBrainz Album search failed: #{e.class}"
     []
   end
@@ -271,7 +311,7 @@ class MediaSearchService
 
   def fetch_comicvine_comics(query)
     api_key = MediaSources::Registry.token('ComicVine', 'Comic')
-    return [] if api_key.blank?
+    return source_unavailable if api_key.blank?
 
     search = ComicSearchQuery.new(query)
     results = []
@@ -290,6 +330,7 @@ class MediaSearchService
     end
     results
   rescue StandardError => e
+    Thread.current[:media_search_failure] = true
     Rails.logger.error "ComicVine search failed: #{e.class}"
     results || []
   end
@@ -332,7 +373,7 @@ class MediaSearchService
 
   def fetch_tmdb_tv_shows(query)
     api_key = MediaSources::Registry.token('TMDB', @type.camelize)
-    return [] if api_key.blank?
+    return source_unavailable if api_key.blank?
 
     url = URI("https://api.themoviedb.org/3/search/tv?api_key=#{api_key}&query=#{CGI.escape(query)}")
     response = MediaSources::Http.cached_get(url, expires_in: 15.minutes, deadline: @deadline)
@@ -352,6 +393,7 @@ class MediaSearchService
       }
     end
   rescue StandardError => e
+    Thread.current[:media_search_failure] = true
     Rails.logger.error "TMDB TV search failed: #{e.class}"
     []
   end
@@ -365,6 +407,7 @@ class MediaSearchService
       map_tvmaze_show(item['show'])
     end
   rescue StandardError => e
+    Thread.current[:media_search_failure] = true
     Rails.logger.error "TVMaze search failed: #{e.class}"
     []
   end
@@ -393,13 +436,13 @@ class MediaSearchService
   def fetch_steam_video_games(query)
     GameProviders::Steam.new(deadline: @deadline).search(query)
   rescue GameProviders::Base::Unavailable
-    []
+    source_unavailable
   end
 
   def fetch_rawg_video_games(query)
     GameProviders::Rawg.new(deadline: @deadline).search(query)
   rescue GameProviders::Base::Unavailable
-    []
+    source_unavailable
   end
 
   def fetch_wikipedia(query)
@@ -418,6 +461,7 @@ class MediaSearchService
         api_id: "wiki_#{page['pageid']}", external_url: page['fullurl'], is_local: false }
     end
   rescue StandardError => e
+    Thread.current[:media_search_failure] = true
     Rails.logger.warn "Wikipedia search failed: #{e.class}"
     []
   end
@@ -444,6 +488,7 @@ class MediaSearchService
       archive_result(record, id)
     end
   rescue StandardError => e
+    Thread.current[:media_search_failure] = true
     Rails.logger.warn "Internet Archive search failed: #{e.class}"
     []
   end
@@ -479,6 +524,7 @@ class MediaSearchService
         external_url: "https://openlibrary.org#{book['key']}", is_local: false }
     end
   rescue StandardError => e
+    Thread.current[:media_search_failure] = true
     Rails.logger.warn "Open Library search failed: #{e.class}"
     []
   end
@@ -495,6 +541,7 @@ class MediaSearchService
         external_url: show['collectionViewUrl'], is_local: false }
     end
   rescue StandardError => e
+    Thread.current[:media_search_failure] = true
     Rails.logger.warn "iTunes TV search failed: #{e.class}"
     []
   end
@@ -521,6 +568,7 @@ class MediaSearchService
       }
     end
   rescue StandardError => e
+    Thread.current[:media_search_failure] = true
     Rails.logger.error "iTunes Books search failed: #{e.class}"
     []
   end

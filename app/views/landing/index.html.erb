@@ -154,8 +154,9 @@
   <section class="home-intro" aria-labelledby="home-title">
     <div class="home-intro-main">
       <div class="home-hero-copy">
-        <h1 id="home-title">A home for every story, album, and game you’re into.</h1>
-        <p>Log what you watch, read, play, and spin—without algorithmic clutter. Build your shelf across 6 media formats, track active series, and share honest takes.</p>
+        <h1 id="home-title">Track games, music, books, movies, TV and comics in one place.</h1>
+        <p>Build your collection, plan what’s next, track active series, and share your shelves.</p>
+        <%= render "public_search" %>
         <div class="home-actions">
           <%= link_to "Create your library", signup_path, class: "sleek-btn sleek-btn-primary" %>
           <%= link_to movies_path, class: "blog-link" do %>
@@ -178,6 +179,7 @@
     </aside>
   </section>
 
+  <%= render "public_shelves" %>
   <div class="dashboard-layout">
     <section class="activity-feed-section" aria-labelledby="community-title">
       <h2 id="community-title">Community Activity</h2>

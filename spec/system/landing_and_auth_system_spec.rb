@@ -102,6 +102,8 @@ RSpec.describe 'Landing and Authentication', type: :system do
       confirmed_at: Time.current
     )
 
+    user.follow(friend)
+
     # Create TV Show and Episode
     tv_show = TvShow.find_or_create_by!(title: '30 Rock')
     episode = tv_show.tv_episodes.create!(
@@ -114,7 +116,8 @@ RSpec.describe 'Landing and Authentication', type: :system do
       item: episode,
       consumed: true,
       rating: '4.5',
-      review: 'Hilarious episode'
+      review: 'Hilarious episode',
+      is_public: true
     )
 
     # Create activity for the episode
@@ -138,7 +141,7 @@ RSpec.describe 'Landing and Authentication', type: :system do
     expect(page).to have_text('Continue your story')
     expect(page).to have_text('New from friends')
     expect(page).to have_text('Popular with friends')
-    expect(page).to have_text('Popular reviews with friends')
+    expect(page).to have_text('Recent reviews from friends')
     expect(page).to have_text('Hilarious episode')
   end
 end

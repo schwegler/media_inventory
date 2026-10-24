@@ -1,0 +1,9 @@
+<div class="home-discovery-search">
+  <%= form_with url: search_path, method: :get, class: 'discovery-query' do |f| %>
+    <%= f.label :q, 'Find something you love', for: 'home-discovery-query' %>
+    <%= f.search_field :q, id: 'home-discovery-query', placeholder: 'An album, artist, book, film or game…', maxlength: 200, required: true %>
+    <%= f.submit 'Search', class: 'sleek-btn sleek-btn-primary' %>
+  <% end %>
+  <p>Search without an account. Sign in when you’re ready to add something.</p>
+  <p class="discovery-coverage">Browse titles already in Trove or find metadata from supported catalogs to import. Coverage varies by provider and region. Music discovery searches albums.</p>
+</div>

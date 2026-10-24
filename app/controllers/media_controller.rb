@@ -56,8 +56,8 @@ class MediaController < ApplicationController
               else []
               end
 
-    results = sign_import_results(results, type)
-    render json: results, status: @search_pending ? :accepted : :ok
+    results = sign_import_results(discovery_results(results, type), type)
+    render json: autocomplete_payload(results, q, type), status: @search_pending ? :accepted : :ok
   end
 
   def import_preview
@@ -71,6 +71,19 @@ class MediaController < ApplicationController
   end
 
   private
+
+  def discovery_results(results, type)
+    return results unless params[:discovery] == '1'
+
+    response.headers['Cache-Control'] = 'private, no-store'
+    DiscoveryResults.call(results, type, user: current_user)
+  end
+
+  def autocomplete_payload(results, query, type)
+    return results unless params[:discovery] == '1'
+
+    { results: results, sources: MediaSearchService.source_states(query, type) }
+  end
 
   def sign_import_results(results, type)
     return results unless MetadataImport::TYPES.include?(type)
@@ -256,7 +269,8 @@ class MediaController < ApplicationController
   def filter_unique_results(all_results)
     seen = {}
     all_results.select do |item|
-      key = "#{item[:title].to_s.downcase.strip}_#{item[:release_year]}"
+      key = [item[:title].to_s.downcase.strip, item[:release_year].to_s, item[:artist].to_s.downcase.strip,
+             item[:author].to_s.downcase.strip]
 
       if seen[key]
         false

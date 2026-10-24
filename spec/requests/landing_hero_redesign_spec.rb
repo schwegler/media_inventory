@@ -20,9 +20,9 @@ RSpec.describe 'Landing page hero and companion bridge redesign', type: :request
       page = Nokogiri::HTML(response.body)
 
       # Hero headline & copy
-      expect(page.at_css('#home-title').text).to include('A home for every story, album, and game you’re into.')
+      expect(page.at_css('#home-title').text).to include('Track games, music, books, movies, TV and comics in one place.')
       expect(page.at_css('.home-intro-main p').text)
-        .to include('Build your shelf across 6 media formats, track active series')
+        .to include('Build your collection, plan what’s next, track active series')
 
       # CTAs
       signup_btn = page.at_css('.home-actions a.sleek-btn-primary')

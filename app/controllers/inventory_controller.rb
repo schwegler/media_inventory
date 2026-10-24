@@ -8,6 +8,7 @@ class InventoryController < ApplicationController
   CATALOG_PAGE_SIZE = 24
   # Centralize authentication filter for all mutating inventory actions
   before_action :logged_in_user, only: %i[new create edit update destroy]
+  around_action :serialize_signed_import, only: :create
 
   def index
     @personal_library = params[:library] == 'mine'
@@ -30,6 +31,7 @@ class InventoryController < ApplicationController
 
   def new
     @resource = resource_class.new
+    prepare_discovery_selection if params[:discovery] == '1'
     instance_variable_set("@#{resource_name}", @resource)
   end
 
@@ -49,6 +51,7 @@ class InventoryController < ApplicationController
     saved = save_logged_resource(library_params)
 
     if saved
+      session.delete(:discovery_intent) if @imported
       record_import_baseline
       enqueue_initial_metadata
       respond_to do |format|
@@ -192,6 +195,27 @@ class InventoryController < ApplicationController
     resource_params.slice(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed, :consumed_at,
                           :is_public, :owned_physically, :owned_physically_format,
                           :owned_digitally, :owned_digitally_format)
+  end
+
+  def serialize_signed_import(&)
+    token = params.dig(resource_name, :import_selection)
+    data = MetadataImport.read(token, resource_name) if token.present?
+  rescue MetadataImport::Invalid
+    yield # create renders the established validation error
+  else
+    data ? ShelfCatalogImport.synchronize(resource_class, data, &) : yield
+  end
+
+  def prepare_discovery_selection
+    intent = discovery_intent
+    return unless intent && intent[:type] == resource_name
+
+    @discovery_selection = MetadataImport.read(intent[:selection], resource_name)
+    @discovery_selection[:import_selection] = intent[:selection]
+    @discovery_query = intent[:query]
+    response.headers['Cache-Control'] = 'private, no-store'
+  rescue MetadataImport::Invalid => e
+    redirect_to discovery_search_path, alert: e.message
   end
 
   def imported_attributes(attributes)

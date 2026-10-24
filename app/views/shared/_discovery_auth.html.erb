@@ -1,0 +1,6 @@
+<% if (intent = discovery_intent) %>
+  <aside class="discovery-notice" aria-label="Continue your discovery">
+    <p>Your selection is saved while you sign in. You’ll review it before adding anything.</p>
+    <%= link_to "Back to results for #{intent[:query]}", discovery_search_path(intent) %>
+  </aside>
+<% end %>
