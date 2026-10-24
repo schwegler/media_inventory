@@ -46,6 +46,15 @@ module MediaLayoutHelper
     end
   end
 
+  # Imported prose lives in different fields across providers. Prefer the
+  # dedicated synopsis, falling back to the displayed provider descriptions.
+  def media_synopsis(item)
+    candidates = [item.synopsis] if item.respond_to?(:synopsis)
+    candidates = Array(candidates)
+    candidates += item.metadata_details.values_at('Overview', 'description') if item.respond_to?(:metadata_details)
+    candidates.find { |value| value.is_a?(String) && strip_tags(value).squish.present? }
+  end
+
   def render_media_metadata_value(item, attribute, value)
     role = MetadataEntitySync::FIELDS.fetch(item.class.name, {})[attribute&.to_sym]
     if role && !%w[Genre Platform].include?(role)

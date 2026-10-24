@@ -20,6 +20,10 @@
     <div class="media-identity">
       <h1><%= title %></h1>
       <p class="media-child-subtitle"><%= description %> of <%= link_to parent.title, parent %><% if date.present? %> · <%= date.respond_to?(:strftime) ? date.strftime('%b %-d, %Y') : date %><% end %></p>
+      <%= link_to 'Track this title', "##{item.model_name.param_key}_tracking_#{item.id}", class: 'media-tracking-jump', data: { turbo: false } if logged_in? %>
+      <% if strip_tags(item.summary.to_s).squish.present? %>
+        <div class="media-synopsis"><%= render 'shared/child_description', item: item %></div>
+      <% end %>
       <details class="media-share"><summary>Share this title</summary><%= render 'shared/item_sharing', item: item %></details>
     </div>
     <aside class="media-overview-stats" aria-label="Community summary">
@@ -33,7 +37,6 @@
     <%= render 'shared/editorial_articles', item: item, articles: articles, compact: true if articles.any? %>
   </div>
   <div class="child-detail-content">
-    <section class="child-detail-synopsis" aria-label="Synopsis"><%= render 'shared/child_description', item: item %></section>
     <aside class="child-detail-facts" aria-label="Title details"><%= render 'shared/child_metadata', item: item, show_credits: false %></aside>
   </div>
   <%= render 'shared/child_credits', item: item %>

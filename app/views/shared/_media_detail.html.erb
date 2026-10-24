@@ -32,6 +32,9 @@
     </div>
     <div class="media-identity">
       <h1><%= item.title %></h1>
+      <%= link_to 'Track this title', '#my-library', class: 'media-tracking-jump', data: { turbo: false } if logged_in? %>
+      <%= render "shared/next_series_entry", item: item, entry: @next_series_entry if entries && @next_series_entry %>
+      <%= render 'shared/media_synopsis', item: item %>
       <dl class="media-facts">
         <% overview_facts.each do |label, value, attribute| %>
           <div><dt><%= label %></dt><dd><%= render_media_metadata_value(item, attribute, value) %></dd></div>
@@ -42,7 +45,6 @@
           <p class="media-personal-rating"><span>Your rating</span> <%= render_stars(@library_item.rating) %></p>
         <% end %>
       </div>
-      <%= render "shared/next_series_entry", item: item, entry: @next_series_entry if entries && @next_series_entry %>
       <details class="media-share" id="share-title-<%= item.id %>"><summary>Share this title</summary><%= render 'shared/item_sharing', item: item %></details>
     </div>
     <aside class="media-overview-stats" aria-label="Community summary">
@@ -56,7 +58,7 @@
     <a href="#overview">Overview</a>
     <a href="#my-library">My Library</a>
     <% if articles.any? %><a href="#from-tacobout">Related reading</a><% end %>
-    <% if media_metadata(item).any? || (item.is_a?(VideoGame) && (item.synopsis.present? || item.metadata_details.present?)) %>
+    <% if media_metadata(item).any? || (item.is_a?(VideoGame) && item.metadata_details.present?) %>
       <a href="#title-details">Details</a>
     <% end %>
     <% if entries %><a href="#media-entries"><%= entries_label %> <span><%= @series_collection.total %></span></a><% end %>
@@ -83,7 +85,7 @@
       <% information = capture do %>
         <%= render 'shared/media_description', item: item %>
         <%= render 'shared/entity_credits', item: item %>
-        <%= render 'shared/provider_details', item: item, readable_prose: articles.any? %>
+        <%= render 'shared/provider_details', item: item, readable_prose: articles.any?, exclude_synopsis: true %>
       <% end %>
       <% if articles.any? && information.present? %>
         <div class="media-information"><%= information %></div>
