@@ -12,6 +12,7 @@
         <% if @discovery_selection %><p><%= link_to "Back to discovery results", discovery_search_path, data: { turbo_frame: "_top" } %></p><% end %>
         <div>
           <%= form_with model: @movie, class: "standard-form", data: { turbo_frame: "_top" } do |f| %>
+            <%= hidden_field_tag :discovery, '1' if @discovery_selection || params[:discovery] == '1' %>
             <% if @movie.errors.any? %>
               <div id="error_explanation">
                 <h2><%= pluralize(@movie.errors.count, "error") %> prohibited this movie from being saved:</h2>

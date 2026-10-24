@@ -45,15 +45,15 @@ class InventoryController < ApplicationController
     global_params = imported_attributes(global_params)
     library_params[:in_backlog] = library_params.delete(:in_watchlist) if library_params.key?(:in_watchlist)
     @resource = selected_import_resource(global_params)
+    return redirect_existing_discovery if already_saved_discovery?
+
     assign_logged_attributes(global_params)
     instance_variable_set("@#{resource_name}", @resource)
 
     saved = save_logged_resource(library_params)
 
     if saved
-      session.delete(:discovery_intent) if @imported
-      record_import_baseline
-      enqueue_initial_metadata
+      finish_logged_resource
       respond_to do |format|
         format.html { redirect_to @resource, notice: "#{resource_class.model_name.human} was successfully logged." }
       end
@@ -206,13 +206,29 @@ class InventoryController < ApplicationController
     data ? ShelfCatalogImport.synchronize(resource_class, data, &) : yield
   end
 
+  def finish_logged_resource
+    session.delete(:discovery_intent) if @imported
+    record_import_baseline
+    enqueue_initial_metadata
+  end
+
+  def already_saved_discovery?
+    params[:discovery] == '1' && @imported && @resource.persisted? &&
+      current_user.library_items.exists?(item: @resource)
+  end
+
+  def redirect_existing_discovery
+    session.delete(:discovery_intent)
+    redirect_to @resource, notice: 'This title is already in your library.'
+  end
+
   def prepare_discovery_selection
     intent = discovery_intent
     return unless intent && intent[:type] == resource_name
 
-    @discovery_selection = MetadataImport.read(intent[:selection], resource_name)
-    @discovery_selection[:import_selection] = intent[:selection]
-    @discovery_query = intent[:query]
+    data = MetadataImport.read(intent[:selection], resource_name)
+    @discovery_selection = DiscoveryResults.call([data], resource_name, user: current_user).first
+    @discovery_selection[:import_selection] = MetadataImport.sign(resource_name, @discovery_selection)
     response.headers['Cache-Control'] = 'private, no-store'
   rescue MetadataImport::Invalid => e
     redirect_to discovery_search_path, alert: e.message

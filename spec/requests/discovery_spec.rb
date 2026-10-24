@@ -100,13 +100,27 @@ RSpec.describe 'Public discovery and sign-in continuation', type: :request do
     select_album
     login
     2.times do
-      post albums_path, params: { album: { import_selection: selection, is_collected: '1' } }
+      post albums_path, params: { discovery: '1', album: { import_selection: selection, is_collected: '1' } }
       expect(response).to redirect_to(Album.last)
     end
     expect(Album.where(api_id: 'itunes_777').count).to eq(1)
     expect(user.library_items.where(item: Album.last).count).to eq(1)
     get login_path
     expect(response.body).not_to include('Your selection is saved')
+  end
+
+  it 'does not overwrite personal tracking when another discovery confirmation already added the title' do
+    album = Album.create!(title: 'Synthetic album', api_id: 'itunes_777')
+    library = user.library_items.create!(item: album, is_collected: true, consumed: true, rating: '4.5',
+                                         is_public: false, review: 'Keep my review')
+    select_album
+    login
+    post albums_path,
+         params: { discovery: '1', album: { import_selection: selection, review: '', rating: '', consumed: '0' } }
+    expect(response).to redirect_to(album)
+    expect(flash[:notice]).to eq('This title is already in your library.')
+    expect(library.reload).to have_attributes(consumed: true, rating: '4.5', review: 'Keep my review', is_public: false)
+    expect(user.library_items.count).to eq(1)
   end
 
   it 'keeps signed URL-only identities distinct even when the titles match' do
