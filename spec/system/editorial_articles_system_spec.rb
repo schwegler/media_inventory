@@ -45,7 +45,10 @@ RSpec.describe 'Editorial related reading', type: :system do
       expect(columns).to eq(width > 640 ? 2 : 1)
       expect(page.driver.browser.logs.get(:browser).select { |log| log.level == 'SEVERE' }).to be_empty
       capture_ui_screenshot("editorial-#{name}")
+      page.execute_script("document.head.insertAdjacentHTML('beforeend', '<style>* {transition:none !important}</style>')")
       page.execute_script("document.documentElement.dataset.theme = 'dark'")
+      expect(page.evaluate_script("getComputedStyle(document.querySelector('.editorial-article-copy h3 a')).color"))
+        .to eq('rgb(239, 237, 244)')
       capture_ui_screenshot("editorial-#{name}-dark")
     end
   end
