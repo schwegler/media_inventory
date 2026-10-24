@@ -1,4 +1,12 @@
-<% credits = item.metadata_credits.sort_by { |credit| [credit.position, credit.id] } %>
+<%
+  fields = MetadataEntitySync::FIELDS.fetch(item.class.name, {})
+  displayed_roles = media_metadata(item).filter_map do |_, _, attribute|
+    role = fields[attribute]
+    role unless %w[Genre Platform].include?(role)
+  end
+  credits = item.metadata_credits.reject { |credit| displayed_roles.include?(credit.role) }
+                .sort_by { |credit| [credit.position, credit.id] }
+%>
 <% if credits.any? %>
   <section class="media-description entity-credits" aria-label="Linked credits">
     <h2>People &amp; Metadata</h2>

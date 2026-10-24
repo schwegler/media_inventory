@@ -1,0 +1,14 @@
+<% image = Editorial::Urls.image(article.image_url) %>
+<article class="editorial-article-card">
+  <% if image %>
+    <%= image_tag image, alt: '', loading: 'lazy', decoding: 'async', class: 'editorial-article-image', referrerpolicy: 'no-referrer' %>
+  <% else %>
+    <div class="editorial-article-image editorial-article-placeholder" aria-hidden="true">taco ’bout it</div>
+  <% end %>
+  <div class="editorial-article-copy">
+    <% if article.published_at %><time datetime="<%= article.published_at.iso8601 %>"><%= article.published_at.strftime('%B %-d, %Y') %></time><% end %>
+    <h3><%= link_to article.title, article.canonical_url, rel: 'external noopener noreferrer', data: { turbo: false } %></h3>
+    <% if article.excerpt.present? %><p><%= article.excerpt %></p><% end %>
+    <span class="editorial-article-source" aria-hidden="true">Read on taco ’bout it ↗</span>
+  </div>
+</article>

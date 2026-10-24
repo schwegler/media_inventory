@@ -12,7 +12,7 @@
 <% content_for(:title, item.title) %>
 <% content_for(:meta_description, ([item.title] + media_metadata(item).map(&:last)).join(' • ')) %>
 <% content_for(:item_detail, 'true') %>
-<article class="media-detail" data-media-kind="<%= item.class.name %>">
+<article class="media-detail<%= ' media-detail--with-reading' if articles.any? %>" data-media-kind="<%= item.class.name %>">
   <%= link_to "← Back to #{title}", polymorphic_path(item.class), class: 'media-back-link' %>
   <header id="overview" class="media-overview">
     <div class="media-cover">
@@ -54,6 +54,7 @@
   <nav data-controller="media-sections" data-turbo="false" class="media-section-nav" aria-label="On this page">
     <a href="#overview">Overview</a>
     <a href="#my-library">My Library</a>
+    <% if articles.any? %><a href="#from-tacobout">Related reading</a><% end %>
     <% if media_metadata(item).any? || (item.is_a?(VideoGame) && (item.synopsis.present? || item.metadata_details.present?)) %>
       <a href="#title-details">Details</a>
     <% end %>
@@ -70,13 +71,18 @@
         <a href="#game-tools">Export &amp; tools</a>
       <% end %>
     <% end %>
-    <% if articles.any? %><a href="#from-tacobout">Related reading</a><% end %>
     <a href="#community">Community</a>
     <a href="#comments">Comments</a>
   </nav>
+  <% if articles.any? %>
+    <div class="media-priority">
+      <div id="my-library"><%= render 'shared/media_actions_and_stream', item: item, show_sources: false %></div>
+      <%= render 'shared/editorial_articles', item: item, articles: articles, compact: true %>
+    </div>
+  <% end %>
   <div class="media-detail-body">
     <div class="media-detail-main">
-      <div id="my-library"><%= render 'shared/media_actions_and_stream', item: item, show_sources: false %></div>
+      <% if articles.empty? %><div id="my-library"><%= render 'shared/media_actions_and_stream', item: item, show_sources: false %></div><% end %>
       <%= render 'shared/media_description', item: item %>
       <%= render 'shared/entity_credits', item: item %>
       <%= render 'shared/provider_details', item: item %>
@@ -101,7 +107,6 @@
         <% end %>
       </div>
       <%= render 'shared/series_collection', item: item if entries %>
-      <%= render 'shared/editorial_articles', item: item, articles: articles %>
       <%= render 'shared/media_community', item: item, stats: stats %>
     </div>
     <aside class="media-detail-aside" aria-label="Sources and title tools">

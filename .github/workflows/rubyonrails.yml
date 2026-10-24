@@ -71,6 +71,7 @@ jobs:
           spec/system/metadata_detail_layout_system_spec.rb
           spec/system/tv_episodes_system_spec.rb
           spec/system/editorial_articles_system_spec.rb
+          spec/system/title_reading_hierarchy_system_spec.rb
           spec/system/media_sections_system_spec.rb
           spec/system/tv_shows_system_spec.rb
           spec/system/shelf_discovery_system_spec.rb

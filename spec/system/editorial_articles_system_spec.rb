@@ -14,7 +14,7 @@ RSpec.describe 'Editorial related reading', type: :system do
                                          title: title,
                                          excerpt: excerpt,
                                          canonical_url: "https://tacobout.online/reading-#{index}/",
-                                         published_at: Time.utc(2026, 10, 20 + index),
+                                         published_at: Time.utc(2026, 10, 21 - index),
                                          source_modified_at: Time.current, checked_at: Time.current,
                                          image_url: image)
       article.editorial_article_titles.create!(item: movie)
@@ -35,6 +35,8 @@ RSpec.describe 'Editorial related reading', type: :system do
       capture_ui_screenshot("editorial-#{name}-overview")
       find('.media-section-nav a[href="#from-tacobout"]').click
       expect(page).to have_css('#from-tacobout h2', text: 'from taco ’bout it')
+      expect(page).to have_css('.editorial-article-card', count: 1)
+      find('.editorial-more summary').send_keys(:enter)
       expect(page).to have_css('.editorial-article-card', count: 2)
       expect(page).to have_css('.editorial-article-placeholder', count: 1)
       expect(page).to have_link('When a small story leaves a lasting impression', href: 'https://tacobout.online/reading-0/')
@@ -42,7 +44,7 @@ RSpec.describe 'Editorial related reading', type: :system do
       columns = page.evaluate_script(<<~JS)
         getComputedStyle(document.querySelector('.editorial-article-grid')).gridTemplateColumns.split(' ').length
       JS
-      expect(columns).to eq(width > 640 ? 2 : 1)
+      expect(columns).to eq(1)
       expect(page.driver.browser.logs.get(:browser).select { |log| log.level == 'SEVERE' }).to be_empty
       capture_ui_screenshot("editorial-#{name}")
       page.execute_script("document.head.insertAdjacentHTML('beforeend', '<style>* {transition:none !important}</style>')")
