@@ -665,6 +665,7 @@
   summary { min-height: 44px; align-content: center; cursor: pointer; font-size: .875rem; color: var(--link); }
 }
 @media (max-width: 800px) {
+  .media-detail.media-detail--with-reading .media-detail-main > * + * { margin-top: 0; }
   .media-detail .editorial-articles--compact .editorial-article-card { grid-template-columns: 136px minmax(0, 1fr); gap: 1.25rem; }
   .media-detail .editorial-articles--compact .editorial-article-copy h3 { font-size: 1.125rem; }
 }
