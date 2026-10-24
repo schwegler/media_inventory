@@ -1,28 +1,28 @@
 <% articles = local_assigns.fetch(:articles) { EditorialArticle.for_title(item).to_a } %>
+<% compact = local_assigns.fetch(:compact, false) %>
 <% if articles.any? %>
-  <section id="from-tacobout" class="media-section editorial-articles" aria-labelledby="editorial-articles-heading">
+  <section id="from-tacobout" class="media-section editorial-articles<%= ' editorial-articles--compact' if compact %>" aria-labelledby="editorial-articles-heading">
     <div class="editorial-articles-heading">
       <span class="editorial-eyebrow">Related reading</span>
       <h2 id="editorial-articles-heading">from taco ’bout it</h2>
-      <p>Stories, essays, and a different perspective on this title.</p>
+      <% unless compact %><p>Stories, essays, and a different perspective on this title.</p><% end %>
     </div>
     <div class="editorial-article-grid">
-      <% articles.each do |article| %>
+      <% (compact ? articles.first(1) : articles).each do |article| %>
         <% next unless Editorial::Urls.article(article.canonical_url) %>
-        <article class="editorial-article-card">
-          <% if (image = Editorial::Urls.image(article.image_url)) %>
-            <%= image_tag image, alt: '', loading: 'lazy', decoding: 'async', class: 'editorial-article-image', referrerpolicy: 'no-referrer' %>
-          <% else %>
-            <div class="editorial-article-image editorial-article-placeholder" aria-hidden="true">taco ’bout it</div>
-          <% end %>
-          <div class="editorial-article-copy">
-            <% if article.published_at %><time datetime="<%= article.published_at.iso8601 %>"><%= article.published_at.strftime('%B %-d, %Y') %></time><% end %>
-            <h3><%= link_to article.title, article.canonical_url, rel: 'external noopener noreferrer', data: { turbo: false } %></h3>
-            <% if article.excerpt.present? %><p><%= article.excerpt %></p><% end %>
-            <span class="editorial-article-source" aria-hidden="true">Read on taco ’bout it ↗</span>
-          </div>
-        </article>
+        <%= render 'shared/editorial_article_card', article: article %>
       <% end %>
     </div>
+    <% if compact && articles.size > 1 %>
+      <details class="editorial-more">
+        <summary><%= articles.size - 1 %> more <%= 'story'.pluralize(articles.size - 1) %> about this title</summary>
+        <div class="editorial-article-grid">
+          <% articles.drop(1).each do |article| %>
+            <% next unless Editorial::Urls.article(article.canonical_url) %>
+            <%= render 'shared/editorial_article_card', article: article %>
+          <% end %>
+        </div>
+      </details>
+    <% end %>
   </section>
 <% end %>

@@ -29,7 +29,8 @@ RSpec.describe 'Cached editorial title cards', type: :request do
 
   it 'omits the section and navigation for unrelated or suppressed titles' do
     get movie_path(movie)
-    expect(response.body).not_to include('id="from-tacobout"', 'href="#from-tacobout"')
+    expect(response.body).not_to include('id="from-tacobout"', 'href="#from-tacobout"', 'class="media-priority"')
+    expect(Nokogiri::HTML(response.body).at_css('.media-detail-main #my-library')).to be_present
     article.editorial_article_titles.create!(item: movie)
     article.update!(published: false)
     get movie_path(movie)
@@ -47,6 +48,14 @@ RSpec.describe 'Cached editorial title cards', type: :request do
       get polymorphic_path(item)
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('id="from-tacobout"')
+      document = Nokogiri::HTML(response.body)
+      priority = document.at_css('.media-priority')
+      expect(priority.at_css('#from-tacobout')).to be_present
+      expect(document.css('#from-tacobout').size).to eq(1)
+      expect(document.css('#my-library').size).to eq(1) unless %w[TvEpisode ComicIssue].include?(item.class.name)
+      if %w[TvEpisode ComicIssue].include?(item.class.name)
+        expect(priority.children.select(&:element?).first['id']).to eq("#{item.model_name.param_key}_tracking_#{item.id}")
+      end
     end
   end
 end
