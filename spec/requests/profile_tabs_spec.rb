@@ -42,5 +42,33 @@ RSpec.describe 'Profile Tabs', type: :request do
       get user_path(user, tab: 'likes')
       expect(response).to have_http_status(:ok)
     end
+
+    it 'calculates library mix and backlog counts using a single aggregated SQL query on library_items' do
+      movie = Movie.create!(title: 'Collected Movie')
+      book = Book.create!(title: 'Backlog Book')
+      game = VideoGame.create!(title: 'Collected and Backlog Game')
+
+      LibraryItem.create!(user: user, item: movie, is_collected: true, is_public: true)
+      LibraryItem.create!(user: user, item: book, in_backlog: true, is_public: true)
+      LibraryItem.create!(user: user, item: game, is_collected: true, in_backlog: true, is_public: true)
+
+      queries = []
+      subscriber = lambda do |*, payload|
+        queries << payload[:sql] if payload[:sql].include?('is_collected') && payload[:sql].include?('in_backlog')
+      end
+
+      ActiveSupport::Notifications.subscribed(subscriber, 'sql.active_record') do
+        get user_path(user)
+      end
+
+      expect(response).to have_http_status(:ok)
+      # Exactly 1 GROUP BY query on library_items for preparing profile library statistics
+      expect(queries.size).to eq(1)
+
+      controller = @controller
+      expect(controller.instance_variable_get(:@library_mix)).to eq({ 'Movie' => 1, 'VideoGame' => 1 })
+      expect(controller.instance_variable_get(:@backlog_count)).to eq(2)
+      expect(controller.instance_variable_get(:@collection_count)).to eq(2)
+    end
   end
 end
