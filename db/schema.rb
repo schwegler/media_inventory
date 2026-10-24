@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_24_040000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_24_080000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -665,7 +665,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_040000) do
     t.index ["release_year"], name: "index_tv_shows_on_release_year"
   end
 
+  create_table "remembered_devices", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "session_generation", null: false
+    t.string "token_digest", null: false
+    t.string "previous_token_digest"
+    t.datetime "rotated_at"
+    t.datetime "expires_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_remembered_devices_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
+    t.integer "session_generation", default: 0, null: false
     t.string "name"
     t.string "email"
     t.boolean "admin", default: false
@@ -777,4 +790,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_040000) do
   add_foreign_key "shelf_collections", "users", on_delete: :cascade
   add_foreign_key "steam_library_syncs", "users"
   add_foreign_key "tv_episodes", "tv_shows", on_delete: :cascade
+  add_foreign_key "remembered_devices", "users"
 end

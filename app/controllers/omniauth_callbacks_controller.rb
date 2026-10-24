@@ -34,11 +34,10 @@ class OmniAuthCallbacksController < ApplicationController
     end
     user.save!
 
-    session[:user_id] = user.id unless current_user
+    finish_oauth_login(user, 'mastodon')
     redirect_to root_path, notice: 'Successfully connected to Mastodon!'
   end
 
-  # rubocop:disable-next Metrics/AbcSize
   def atproto
     auth = request.env['omniauth.auth']
 
@@ -59,7 +58,7 @@ class OmniAuthCallbacksController < ApplicationController
     end
     user.save!
 
-    session[:user_id] = user.id unless current_user
+    finish_oauth_login(user, 'atproto')
     redirect_to root_path, notice: 'Successfully connected to Bluesky!'
   end
 

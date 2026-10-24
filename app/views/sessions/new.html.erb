@@ -28,6 +28,7 @@
               <%= f.label :password %>
               <%= f.password_field :password, class: 'form-control', required: true %>
             </div>
+            <%= render 'remember_device', name: 'session[remember_device]', id: 'email_remember_device' %>
             <div class="submit-group">
               <%= f.submit "Log in", class: "sleek-btn sleek-btn-primary auth-submit" %>
             </div>
@@ -43,6 +44,7 @@
               <%= label_tag :bsky_handle, "Bluesky Handle" %>
               <%= text_field_tag :bsky_handle, nil, class: 'form-control', placeholder: 'e.g. alice.bsky.social', required: true %>
             </div>
+            <%= render 'remember_device', name: 'remember_device', id: 'bsky_remember_device' %>
             <%= submit_tag "Log in via Bluesky", class: "sleek-btn sleek-btn-secondary bsky-btn" %>
           <% end %>
         </div>
@@ -56,6 +58,7 @@
               <%= label_tag :mastodon_server, "Mastodon Server URL" %>
               <%= text_field_tag :mastodon_server, nil, class: 'form-control', placeholder: 'e.g. mastodon.social', required: true %>
             </div>
+            <%= render 'remember_device', name: 'remember_device', id: 'mastodon_remember_device' %>
             <%= submit_tag "Log in via Mastodon", class: "sleek-btn sleek-btn-secondary mastodon-btn" %>
           <% end %>
         </div>
