@@ -36,7 +36,8 @@ RSpec.describe 'Presentation and keyboard access', type: :system do
     click_button 'Search Trove and supported catalogs'
     expect(page.evaluate_script('document.activeElement.classList.contains("global-search-input")')).to be true
     page.driver.browser.action.send_keys(:escape).perform
-    expect(page.evaluate_script('document.activeElement.getAttribute("aria-label")')).to eq('Search Trove and supported catalogs')
+    expect(page.evaluate_script('document.activeElement.getAttribute("aria-label")'))
+      .to eq('Search Trove and supported catalogs')
   end
 
   it 'supports narrow navigation, restores menu focus, and previews and persists profile themes' do
