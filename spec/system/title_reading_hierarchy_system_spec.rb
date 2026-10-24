@@ -13,8 +13,10 @@ RSpec.describe 'Title reading hierarchy', type: :system do
 
   def add_articles(item, count: 1)
     count.times do |index|
+      title = "A different perspective on this title — story #{index + 1}"
+      title += ' and the details that stay with us' * 6 if index.zero?
       article = EditorialArticle.create!(wordpress_id: 500 + index,
-                                         title: "A different perspective on this title — story #{index + 1}",
+                                         title: title,
                                          excerpt: 'A closer look at the story, and what to notice next.',
                                          canonical_url: "https://tacobout.online/story-#{index}/",
                                          published_at: Time.utc(2026, 10, 23) - index.days,

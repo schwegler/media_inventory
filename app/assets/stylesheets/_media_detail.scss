@@ -656,6 +656,7 @@
   .editorial-article-copy { padding: 0; }
   .editorial-article-copy time { font-size: .6875rem; }
   .editorial-article-copy h3 { font-size: .9375rem; line-height: 1.4; margin: .3rem 0; text-wrap: pretty; }
+  .editorial-article-copy h3 a { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
   .editorial-article-copy p { font-size: .8125rem; margin: .4rem 0 0; line-height: 1.5; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
   .editorial-article-source { margin-top: .6rem; font-size: .6875rem; }
 }
