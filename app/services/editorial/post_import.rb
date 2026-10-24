@@ -13,7 +13,8 @@ module Editorial
     end
 
     def call(post)
-      raise Invalid, 'Invalid post ID' unless post.is_a?(Hash) && post['id'].is_a?(Integer) && post['id'].positive?
+      valid_id = post.is_a?(Hash) && post['id'].is_a?(Integer) && post['id'].between?(1, (2**63) - 1)
+      raise Invalid, 'Invalid post ID' unless valid_id
 
       article = EditorialArticle.find_or_initialize_by(wordpress_id: post['id'])
       if hidden?(post)
@@ -48,7 +49,7 @@ module Editorial
     private
 
     def hidden?(post)
-      (post['status'].is_a?(String) && post['status'] != 'publish') ||
+      %w[draft pending private trash future auto-draft inherit].include?(post['status']) ||
         protected?(post['content']) || protected?(post['excerpt']) ||
         (post['password'].is_a?(String) && post['password'].present?)
     end

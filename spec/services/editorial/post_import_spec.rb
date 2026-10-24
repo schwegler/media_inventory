@@ -82,7 +82,8 @@ RSpec.describe Editorial::PostImport do
   it 'does not create protected posts and preserves cache for malformed metadata' do
     expect(importer.call(post.deep_merge('excerpt' => { 'protected' => true }))).to be_nil
     article = importer.call(post)
-    [post.merge('content' => []), post.merge('status' => nil), post.merge('date_gmt' => 'oops'),
+    [post.merge('content' => []), post.merge('status' => nil), post.merge('status' => 'malformed'),
+     post.merge('date_gmt' => 'oops'),
      post.deep_merge('content' => { 'protected' => nil })].each do |invalid|
       expect { importer.call(invalid) }.to raise_error(described_class::Invalid)
       expect(article.reload.published).to be true
@@ -91,6 +92,15 @@ RSpec.describe Editorial::PostImport do
     importer.call(post.merge('_embedded' => ['malformed'], 'excerpt' => nil))
     expect(article.reload.excerpt).to eq('')
     expect(article.reload.image_url).to be_nil
+  end
+
+  it 'rejects out-of-range source IDs and image path traversal' do
+    expect { importer.call(post.merge('id' => 2**63)) }.to raise_error(described_class::Invalid)
+    %w[https://tacobout.online/wp-content/uploads/../../admin.jpg
+       https://i0.wp.com/tacobout.online/wp-content/uploads/%2e%2e/private.jpg
+       javascript:alert(1) https://127.0.0.1/wp-content/uploads/image.jpg].each do |url|
+      expect(Editorial::Urls.image(url)).to be_nil
+    end
   end
 
   it 'does not overwrite a more recently modified cached post with an older response' do

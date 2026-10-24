@@ -31,6 +31,8 @@ module Editorial
              elsif %w[i0.wp.com i1.wp.com i2.wp.com].include?(uri.host)
                uri.path.delete_prefix('/tacobout.online') if uri.path.start_with?('/tacobout.online/')
              end
+      return if path && URI::DEFAULT_PARSER.unescape(path).split('/').intersect?(%w[. ..])
+
       uri.to_s if path&.match?(%r{\A/wp-content/uploads/[a-zA-Z0-9_./%-]+\.(?:jpe?g|png|webp|gif)\z}i)
     end
 
