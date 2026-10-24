@@ -4,6 +4,28 @@ require 'rails_helper'
 require 'base64'
 
 RSpec.describe 'Shelf discovery and real exports', type: :system do
+  after do |example|
+    next unless example.exception && ENV['UI_QA_DIR']
+
+    state = page.evaluate_script(<<~JS)
+      (() => {
+        const shelf = document.querySelector('.favorite-shelf');
+        const controller = shelf && window.Stimulus?.getControllerForElementAndIdentifier(shelf, 'favorite-shelf');
+        return { url: location.href, checkedLayout: document.querySelector('input[name="layout"]:checked')?.value,
+          appliedLayout: shelf?.dataset.shelfLayout, controllerLayout: controller?.imageStyle?.layout,
+          renderVersion: controller?.version, connected: shelf?.isConnected, controllerConnected: Boolean(controller),
+          previewOpen: document.querySelector('.shelf-preview')?.open,
+          canvas: document.querySelector('.shelf-preview canvas')?.outerHTML,
+          status: document.querySelector('[data-favorite-shelf-target="status"]')?.textContent,
+          fonts: { status: document.fonts.status, instrumentSansReady: document.fonts.check('700 48px "Instrument Sans"') } };
+      })()
+    JS
+    state['console'] = page.driver.browser.logs.get(:browser).map(&:to_s)
+    FileUtils.mkdir_p(ENV.fetch('UI_QA_DIR'))
+    File.write(File.join(ENV.fetch('UI_QA_DIR'), 'shelf-export-failure.json'), JSON.pretty_generate(state))
+    capture_ui_screenshot('shelf-export-failure')
+  end
+
   it 'renders mixed covers, downloads both formats and keeps visitor presentation read-only' do
     user = create_and_login_user
     user.update!(username: 'export_check')
@@ -28,6 +50,10 @@ RSpec.describe 'Shelf discovery and real exports', type: :system do
     expect(page).to have_css('.shelf-preview canvas[width="1080"][height="1920"]')
     %w[exhibition collector mixtape].each do |layout|
       choose("#{{ 'exhibition' => 'Gallery', 'collector' => 'Feature', 'mixtape' => 'Mixtape' }.fetch(layout)} layout")
+      expect(page).to have_checked_field({ 'exhibition' => 'Gallery layout', 'collector' => 'Feature layout',
+                                           'mixtape' => 'Mixtape layout' }.fetch(layout))
+      expect(page).to have_css(".favorite-shelf[data-shelf-layout='#{layout}']")
+      expect(page).to have_css('.shelf-preview[open]')
       expect(page).to have_css("canvas[data-rendered-layout='#{layout}'][aria-busy='false']", wait: 12)
       expect(page).to have_field('shelf-image-alt-text', with: /#{Regexp.escape(layout)} layout/, visible: :all)
       size = page.evaluate_script("document.querySelector('.shelf-preview canvas').toDataURL('image/png').length")
