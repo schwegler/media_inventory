@@ -32,8 +32,8 @@ RSpec.describe 'Amazon title searches', type: :system do
       end
       expect(page.evaluate_script('document.documentElement.scrollWidth <= innerWidth')).to be true
       expect(page).to have_css('.media-detail-main > .amazon-reading h2', text: 'A Halloween reading idea')
-      expect(page).to have_css('.app-footer .footer-affiliate-disclosure', count: 1,
-                                                                           text: 'As an Amazon Associate I earn from qualifying purchases.')
+      statement = 'As an Amazon Associate I earn from qualifying purchases.'
+      expect(page).to have_css('.app-footer .footer-affiliate-disclosure', count: 1, text: statement)
       expect(page).to have_css('.footer-affiliate-disclosure', count: 1)
       expect(page.evaluate_script("getComputedStyle(document.querySelector('.footer-affiliate-disclosure')).fontSize"))
         .to eq('14px')
