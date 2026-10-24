@@ -3,6 +3,7 @@
   title, _, icon = media_catalog(item)
   articles = EditorialArticle.for_title(item).to_a
   stats = community_stats_for(item)
+  amazon_reading = HalloweenReading.for_title(item)
   overview_facts = media_metadata(item).reject do |_, _, attribute|
     %w[Movie TvShow].include?(item.class.name) && %i[actors writer].include?(attribute)
   end
@@ -78,6 +79,7 @@
     <div class="media-detail-main">
       <div id="my-library"><%= render 'shared/media_actions_and_stream', item: item, show_sources: false %></div>
       <%= render 'shared/editorial_articles', item: item, articles: articles, compact: true if articles.any? %>
+      <%= render 'shared/amazon_reading', reading: amazon_reading if amazon_reading %>
       <% information = capture do %>
         <%= render 'shared/media_description', item: item %>
         <%= render 'shared/entity_credits', item: item %>
@@ -112,7 +114,7 @@
       <%= render 'shared/media_community', item: item, stats: stats %>
     </div>
     <aside class="media-detail-aside" aria-label="Sources and title tools">
-      <%= render 'shared/media_sources', item: item %>
+      <%= render 'shared/media_sources', item: item, amazon_eligible: amazon_reading.present? %>
       <%= render 'shared/metadata_refresh', item: item %>
       <% if logged_in? %>
         <%= link_to 'Suggest an edit', new_polymorphic_path([item, :edit_suggestion]), class: 'media-tool-link' %>
