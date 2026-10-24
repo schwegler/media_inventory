@@ -35,7 +35,7 @@ class OmniAuthCallbacksController < ApplicationController
     user.save!
 
     finish_oauth_login(user, 'mastodon')
-    redirect_to root_path, notice: 'Successfully connected to Mastodon!'
+    redirect_to discovery_destination(root_path), notice: 'Successfully connected to Mastodon!'
   end
 
   def atproto
@@ -59,7 +59,7 @@ class OmniAuthCallbacksController < ApplicationController
     user.save!
 
     finish_oauth_login(user, 'atproto')
-    redirect_to root_path, notice: 'Successfully connected to Bluesky!'
+    redirect_to discovery_destination(root_path), notice: 'Successfully connected to Bluesky!'
   end
 
   def failure

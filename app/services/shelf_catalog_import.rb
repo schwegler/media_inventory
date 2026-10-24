@@ -1,6 +1,22 @@
 # frozen_string_literal: true
 
 class ShelfCatalogImport
+  def self.synchronize(klass, data, &)
+    return klass.find(data[:catalog_id]).with_lock(&) if data[:is_local]
+
+    new(klass, MetadataImport.attributes(data, klass)).synchronize(&)
+  end
+
+  def synchronize(&)
+    attempts ||= 0
+    identity.with_lock(&)
+  rescue ActiveRecord::StatementInvalid => e
+    raise unless e.cause&.class&.name == 'SQLite3::BusyException' && (attempts += 1) <= 3
+
+    sleep(0.05 * attempts)
+    retry
+  end
+
   def self.call(klass, data)
     return klass.find(data[:catalog_id]) if data[:is_local]
 

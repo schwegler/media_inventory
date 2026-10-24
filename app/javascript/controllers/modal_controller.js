@@ -2,6 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = ["overlay"]
+  static values = { returnUrl: String }
   connect() {
     this.opener = window.troveModalOpener || document.activeElement
     this.dialog = this.element.querySelector(".modal-container")
@@ -35,6 +36,7 @@ export default class extends Controller {
   }
   close(event) {
     event.preventDefault()
+    if (this.hasReturnUrlValue) { window.Turbo.visit(this.returnUrlValue); return }
     const frame = document.querySelector("turbo-frame#modal")
     if (frame) { frame.innerHTML = ""; frame.removeAttribute("src") }
     document.body.style.overflow = ""

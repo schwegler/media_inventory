@@ -1,6 +1,7 @@
 @use "artwork_lightbox";
 @use "tracking_cards";
 @use "home_dashboard";
+@use "public_home";
 @use "appearance_menu";
 @use "halloween";
 @use "halloween_invitation";
@@ -100,6 +101,30 @@
 
 @include artwork_lightbox.styles;
 
+// Search remains useful without an account; provider discovery is a separate scope.
+.discovery-panel, .discovery-notice { border: 1px solid var(--border); border-radius: 16px; padding: clamp(1rem, 3vw, 1.75rem); margin-block: 1.5rem; background: var(--surface); }
+.discovery-panel h2, .discovery-result h3 { margin-top: 0; }
+.discovery-results { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 1rem; margin-block: 1rem; }
+.discovery-result { min-width: 0; padding: 1rem; border: 1px solid var(--border); border-radius: 12px; overflow-wrap: anywhere; }
+.discovery-result .sleek-btn { white-space: normal; min-height: 44px; }
+.discovery-provenance { font-weight: 600; color: var(--text-secondary); font-size: .875rem; }
+.discovery-types, .discovery-query { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem; }
+.discovery-query label { flex-basis: 100%; }
+.discovery-query input[type="search"] { min-width: 0; flex: 1 1 15rem; padding: .75rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font: inherit; }
+.discovery-query .sleek-btn { min-height: 44px; }
+.discovery-coverage { color: var(--text-secondary); font-size: .875rem; }
+.discovery-refine summary { cursor: pointer; padding-block: .75rem; text-decoration: underline; }
+.home-discovery-search { margin-block: 1.25rem; }
+.home-public-shelves { margin-block: 2rem; }
+.discovery-shelf-covers { display: flex; gap: .5rem; margin-block: 1rem; }
+.discovery-shelf-covers img { width: 64px; height: 88px; object-fit: contain; }
+.discovery-panel [hidden] { display: none; }
+.home-intro-main, .home-hero-copy, .home-discovery-search { min-width: 0; }
+.home-discovery-search input[type="search"] { width: 100%; max-width: 100%; }
+.discovery-local-card { min-width: 0; display: flex; flex-direction: column; }
+.discovery-local-card > .card-2026 { flex: 1; }
+
+@include public_home.styles;
 // Original reading notes stay in the main prose column; sources stay concise.
 .amazon-reading p {
   font-size: 1rem;

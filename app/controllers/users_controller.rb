@@ -69,7 +69,7 @@ class UsersController < ApplicationController
       forget_device
       log_in @user
       flash[:success] = 'Welcome to Trove!'
-      redirect_to @user
+      redirect_to discovery_destination(@user)
     else
       render 'new', status: :unprocessable_content
     end

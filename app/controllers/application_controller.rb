@@ -6,6 +6,9 @@ class ApplicationController < ActionController::Base
   protect_from_forgery with: :exception
   include SessionsHelper
   include CanonicalUrls
+  include DiscoveryHelper
+
+  helper DiscoveryHelper
 
   before_action :auto_login_native_app
 

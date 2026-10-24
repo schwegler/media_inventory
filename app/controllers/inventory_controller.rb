@@ -8,6 +8,7 @@ class InventoryController < ApplicationController
   CATALOG_PAGE_SIZE = 24
   # Centralize authentication filter for all mutating inventory actions
   before_action :logged_in_user, only: %i[new create edit update destroy]
+  around_action :serialize_signed_import, only: :create
 
   def index
     @personal_library = params[:library] == 'mine'
@@ -30,6 +31,7 @@ class InventoryController < ApplicationController
 
   def new
     @resource = resource_class.new
+    prepare_discovery_selection if params[:discovery] == '1'
     instance_variable_set("@#{resource_name}", @resource)
   end
 
@@ -43,14 +45,15 @@ class InventoryController < ApplicationController
     global_params = imported_attributes(global_params)
     library_params[:in_backlog] = library_params.delete(:in_watchlist) if library_params.key?(:in_watchlist)
     @resource = selected_import_resource(global_params)
+    return redirect_existing_discovery if already_saved_discovery?
+
     assign_logged_attributes(global_params)
     instance_variable_set("@#{resource_name}", @resource)
 
     saved = save_logged_resource(library_params)
 
     if saved
-      record_import_baseline
-      enqueue_initial_metadata
+      finish_logged_resource
       respond_to do |format|
         format.html { redirect_to @resource, notice: "#{resource_class.model_name.human} was successfully logged." }
       end
@@ -194,6 +197,43 @@ class InventoryController < ApplicationController
                           :owned_digitally, :owned_digitally_format)
   end
 
+  def serialize_signed_import(&)
+    token = params.dig(resource_name, :import_selection)
+    data = MetadataImport.read(token, resource_name) if token.present?
+  rescue MetadataImport::Invalid
+    yield # create renders the established validation error
+  else
+    data ? ShelfCatalogImport.synchronize(resource_class, data, &) : yield
+  end
+
+  def finish_logged_resource
+    session.delete(:discovery_intent) if @imported
+    record_import_baseline
+    enqueue_initial_metadata
+  end
+
+  def already_saved_discovery?
+    params[:discovery] == '1' && @imported && @resource.persisted? &&
+      current_user.library_items.exists?(item: @resource)
+  end
+
+  def redirect_existing_discovery
+    session.delete(:discovery_intent)
+    redirect_to @resource, notice: 'This title is already in your library.'
+  end
+
+  def prepare_discovery_selection
+    intent = discovery_intent
+    return unless intent && intent[:type] == resource_name
+
+    data = MetadataImport.read(intent[:selection], resource_name)
+    @discovery_selection = DiscoveryResults.call([data], resource_name, user: current_user).first
+    @discovery_selection[:import_selection] = MetadataImport.sign(resource_name, @discovery_selection)
+    response.headers['Cache-Control'] = 'private, no-store'
+  rescue MetadataImport::Invalid => e
+    redirect_to discovery_search_path, alert: e.message
+  end
+
   def imported_attributes(attributes)
     token = attributes.delete(:import_selection)
     @imported = MetadataImport.read(token, resource_name) if token.present?
@@ -212,6 +252,9 @@ class InventoryController < ApplicationController
     end
     resource = if @imported && @imported[:is_local] && @imported[:catalog_id]
                  resource_class.find(@imported[:catalog_id])
+               elsif @imported
+                 key = attributes[:api_id].present? ? :api_id : :external_url
+                 resource_class.where(key => attributes[key]).order(:id).first_or_initialize
                else
                  resolve_catalog_resource(attributes)
                end

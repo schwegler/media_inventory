@@ -13,6 +13,8 @@ class SearchController < ApplicationController
   }.freeze
 
   def index
+    response.headers['Cache-Control'] = 'private, no-store' if logged_in?
+    @library_membership = {}
     @query = params[:q]
     @filter_type = params[:type].presence if MAPPINGS.key?(params[:type])
     @results = {}
@@ -46,6 +48,10 @@ class SearchController < ApplicationController
                                    results.total_count
                                  end
     @results[result_key] = results
+    if logged_in?
+      @library_membership[klass.name] = current_user.library_items.where(item_type: klass.name, item_id: records.map(&:id))
+                                                    .pluck(:item_id)
+    end
     preload_card_ratings(records)
     @match_context[klass.name] = MetadataMatchContext.call(records, @query)
   end

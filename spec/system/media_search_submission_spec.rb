@@ -60,7 +60,7 @@ RSpec.describe 'Media search submission', type: :system do
     expect(LibraryItem.count).to eq(0)
 
     find('.thumbnail-option-card', text: book.title).click
-    click_button 'Create Book'
+    click_button 'Confirm and save'
     expect(page).to have_text('Book was successfully logged.')
     expect(LibraryItem.last.item).to eq(book)
     expect(Book.count).to eq(1)

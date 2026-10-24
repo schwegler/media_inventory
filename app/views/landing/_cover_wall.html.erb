@@ -1,0 +1,15 @@
+<figure class="home-hero-visual <%= 'home-hero-visual-empty' if @home_cover_items.empty? %>">
+  <% if @home_cover_items.any? %>
+    <div class="home-cover-wall">
+      <% @home_cover_items.each do |item| %>
+        <%= link_to item, class: "home-cover home-cover-#{item.class.name.underscore}", aria: { label: "#{item.title} — in Trove" } do %>
+          <%= image_tag item.stored_cover_url, alt: item.title, width: 180, height: 240, decoding: 'async' %>
+        <% end %>
+      <% end %>
+    </div>
+    <figcaption>Already in Trove</figcaption>
+  <% end %>
+  <div class="home-hero-mascot" aria-hidden="true">
+    <%= image_tag 'brand/facet_pose_01_bookworm.png', class: 'mascot-sticker', width: 140, height: 248, alt: '' %>
+  </div>
+</figure>
