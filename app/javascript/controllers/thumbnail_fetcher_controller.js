@@ -59,6 +59,9 @@ export default class extends Controller {
     this.formElement?.addEventListener("submit", this.searchSubmitHandler, true)
     this.element.dataset.connected = "true"
     if (!hasErrors && this.hasSelectionValue) this.selectOption(this.selectionValue, true)
+    // Input can arrive while the controller module is still loading. Resume
+    // that query after initialization instead of requiring another keystroke.
+    else if (!hasErrors && this.titleInputTarget.value.trim()) this.search()
   }
 
   disconnect() {

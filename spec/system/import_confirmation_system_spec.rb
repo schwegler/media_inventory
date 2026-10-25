@@ -15,9 +15,34 @@ RSpec.describe 'Import confirmation', type: :system do
     }.to_json)
   end
 
+  it 'searches a title entered before the import controller connects' do
+    script = page.driver.browser.execute_cdp('Page.addScriptToEvaluateOnNewDocument', source: <<~JS)
+      const observer = new MutationObserver(() => {
+        const title = document.querySelector('[data-thumbnail-fetcher-target~="titleInput"]');
+        if (!title) return;
+        const form = title.closest('[data-controller~="thumbnail-fetcher"]');
+        window.enteredBeforeImportConnected = form?.dataset.connected !== 'true';
+        title.value = 'The imported book';
+        title.dispatchEvent(new Event('input', { bubbles: true }));
+        observer.disconnect();
+      });
+      observer.observe(document, { childList: true, subtree: true });
+    JS
+    visit new_book_path
+    expect(page).to have_css('[data-controller~="thumbnail-fetcher"][data-connected="true"]')
+    expect(page.evaluate_script('window.enteredBeforeImportConnected')).to be true
+    expect(page).to have_field('Title', with: 'The imported book')
+    find('[role="button"][aria-label="Select The imported book"]').click
+    expect(page).to have_text('Source details loaded')
+    expect(page).to have_text('Detail author')
+    capture_ui_screenshot('import-early-input-recovered')
+  ensure
+    page.driver.browser.execute_cdp('Page.removeScriptToEvaluateOnNewDocument', identifier: script['identifier']) if script
+  end
+
   it 'confirms imported metadata, keeps personal fields editable and offers manual correction at desktop and mobile' do
     visit new_book_path
-    expect(page).to have_css('[data-connected="true"]')
+    expect(page).to have_css('[data-controller~="thumbnail-fetcher"][data-connected="true"]')
     fill_in 'Title', with: 'The imported book'
     find('[role="button"][aria-label="Select The imported book"]').click
     expect(page).to have_text('Source details loaded')
@@ -64,7 +89,7 @@ RSpec.describe 'Import confirmation', type: :system do
         state: 'ready', results: [{ title: 'A selected title', api_id: 'wiki_42', source: 'Wikipedia' }]
       )
       visit public_send("new_#{type}_path")
-      expect(page).to have_css('[data-connected="true"]')
+      expect(page).to have_css('[data-controller~="thumbnail-fetcher"][data-connected="true"]')
       fill_in 'Title', with: 'A selected title'
       find('[role="button"][aria-label="Select A selected title"]').click
       expect(page).to have_text('Search summary only')
