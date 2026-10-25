@@ -66,8 +66,16 @@ class ShelvesController < ApplicationController
 
   def load_collection_context
     @collection = @user.shelf_collections.find_by!(slug: params[:collection]) if params[:collection].present?
-    @collections = @user.shelf_collections.order(:created_at)
+    @collections = @user.shelf_collections.order(:created_at).to_a
+    preload_collection_items(@collections)
     @collections = @collections.select { |collection| collection.items.any? } unless @shelf_owner
+  end
+
+  def preload_collection_items(collections)
+    records_by_type = fetch_records_by_type(collections)
+    collections.each do |collection|
+      collection.items = resolve_shelf_items(collection, records_by_type)
+    end
   end
 
   def load_presentation
