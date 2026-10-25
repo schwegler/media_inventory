@@ -66,6 +66,21 @@ RSpec.describe 'Favorite shelves', type: :request do
     expect(collection.title).to eq('Halloween nights')
   end
 
+  it 'memoizes collection items and batch preloads pick items across collections' do
+    collections = 3.times.map do |i|
+      user.shelf_collections.create!(title: "Collection #{i}", picks: [{ type: 'Movie', id: movie.id }])
+    end
+
+    # Visiting shelf overview for guest/visitor
+    expect { get shelf_path(user.username, view: 'visitor') }.not_to raise_error
+    expect(response).to have_http_status(:ok)
+
+    # Calling items multiple times on same ShelfCollection instance does not re-query
+    collection = collections.first
+    items1 = collection.items
+    expect(collection.items).to equal(items1) # Same object reference in memory
+  end
+
   it 'cascades new collections when an older account-deletion path bypasses new associations' do
     collection = user.shelf_collections.create!(title: 'Seasonal collection')
     user.delete

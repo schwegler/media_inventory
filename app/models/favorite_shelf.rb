@@ -4,16 +4,26 @@ class FavoriteShelf < ApplicationRecord
   CATEGORIES = { 'overall' => 'Overall', 'Movie' => 'Movies', 'TvShow' => 'TV shows',
                  'Album' => 'Albums', 'Comic' => 'Comics', 'Book' => 'Books', 'VideoGame' => 'Games' }.freeze
   belongs_to :user
+  attr_writer :items
+
   validates :category, inclusion: { in: CATEGORIES.keys }, uniqueness: { scope: :user_id }
   validate :valid_picks
 
+  def picks=(value)
+    @items = nil
+    super
+  end
+
+  # Memoize resolved pick items to avoid redundant database queries when accessed multiple times per request
   def items
-    valid = Array(picks).select { |pick| CATEGORIES.key?(pick['type']) && pick['type'] != 'overall' }
-    records = valid.group_by { |pick| pick['type'] }.transform_values do |group|
-      group.first['type'].constantize.where(id: group.map { |pick| pick['id'] })
-           .with_attached_cover_image.index_by(&:id)
+    @items ||= begin
+      valid = Array(picks).select { |pick| CATEGORIES.key?(pick['type']) && pick['type'] != 'overall' }
+      records = valid.group_by { |pick| pick['type'] }.transform_values do |group|
+        group.first['type'].constantize.where(id: group.map { |pick| pick['id'] })
+             .with_attached_cover_image.index_by(&:id)
+      end
+      valid.filter_map { |pick| records[pick['type']][pick['id'].to_i] }
     end
-    valid.filter_map { |pick| records[pick['type']][pick['id'].to_i] }
   end
 
   private
