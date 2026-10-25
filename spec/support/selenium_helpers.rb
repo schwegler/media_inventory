@@ -29,6 +29,10 @@ RSpec.configure do |config|
       page.driver.browser.execute_cdp('Emulation.clearDeviceMetricsOverride')
       page.driver.browser.execute_cdp('Emulation.setEmulatedMedia', features: [])
       page.current_window.resize_to(1400, 900)
+      if ENV.fetch('UI_QA_DIR', nil)
+        @browser_failure_trace_browser = page.driver.browser
+        @browser_failure_trace_id = BrowserInputTrace.install(@browser_failure_trace_browser)
+      end
     end
   end
 
@@ -40,7 +44,9 @@ RSpec.configure do |config|
     page.driver.browser.save_screenshot(File.join(directory, 'page.png'))
     File.write(File.join(directory, 'page.html'), page.html)
     state = page.evaluate_script(<<~JS)
-      ({ url: location.href, viewport: [innerWidth, innerHeight],
+      ({ url: location.href, referrer: document.referrer, viewport: [innerWidth, innerHeight],
+         focused: document.hasFocus(), visibility: document.visibilityState, readyState: document.readyState,
+         inputEvents: window.troveBrowserFailureEvents || [],
          reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
          activeElement: document.activeElement?.outerHTML,
          controllers: (window.Stimulus?.controllers || []).map(controller => ({
@@ -57,6 +63,8 @@ RSpec.configure do |config|
     File.write(File.join(directory, 'browser.log'), page.driver.browser.logs.get(:browser).join("\n"))
   rescue StandardError => e
     warn "Browser failure diagnostics could not be saved: #{e.class}: #{e.message}"
+  ensure
+    BrowserInputTrace.remove(@browser_failure_trace_browser, @browser_failure_trace_id)
   end
 end
 
