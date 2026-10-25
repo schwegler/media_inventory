@@ -72,3 +72,40 @@ test('selected detail transport uses a CSRF-protected POST body rather than a lo
   assert.equal(request.options.headers['X-CSRF-Token'], 'csrf-token')
   assert.equal(JSON.parse(request.options.body).selection, selection)
 })
+
+function connectWithTitle({ title = '', selection = false, errors = false } = {}) {
+  const { controller } = setup()
+  const calls = []
+  const form = { addEventListener() {} }
+  controller.element = { dataset: {}, querySelector: selector => selector === 'form' ? form : errors ? {} : null }
+  controller.titleInputTarget = { value: title, closest: () => ({ parentElement: {} }) }
+  controller.thumbnailUrlTarget = { value: '' }
+  controller.releaseYearTargets = []
+  controller.hasImportSelectionTarget = false
+  controller.hasSelectionValue = selection
+  controller.selectionValue = { import_selection: 'signed-selection' }
+  controller.goToSearch = () => { calls.push('search stage') }
+  controller.showDetailsStage = () => { calls.push('details stage') }
+  controller.search = () => { calls.push('resume query') }
+  controller.selectOption = (option, explicit) => { calls.push([option.import_selection, explicit]) }
+  controller.connect()
+  assert.equal(controller.element.dataset.connected, 'true')
+  return calls
+}
+
+test('connection resumes a title entered before the search controller was ready', () => {
+  assert.deepEqual(connectWithTitle({ title: 'An early query' }), ['search stage', 'resume query'])
+})
+
+test('connection leaves an empty query idle', () => {
+  assert.deepEqual(connectWithTitle({ title: '   ' }), ['search stage'])
+})
+
+test('connection honors a signed selection without starting a competing title search', () => {
+  assert.deepEqual(connectWithTitle({ title: 'Selected title', selection: true }),
+    ['search stage', ['signed-selection', true]])
+})
+
+test('connection preserves validation errors instead of restarting provider search', () => {
+  assert.deepEqual(connectWithTitle({ title: 'Retained edits', errors: true }), ['details stage'])
+})

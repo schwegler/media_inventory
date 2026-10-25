@@ -29,7 +29,51 @@ RSpec.configure do |config|
       page.driver.browser.execute_cdp('Emulation.clearDeviceMetricsOverride')
       page.driver.browser.execute_cdp('Emulation.setEmulatedMedia', features: [])
       page.current_window.resize_to(1400, 900)
+      if ENV.fetch('UI_QA_DIR', nil)
+        @browser_failure_trace_browser = page.driver.browser
+        @browser_failure_trace_id = BrowserInputTrace.install(@browser_failure_trace_browser)
+      end
     end
+  end
+
+  config.after(:each, type: :system) do |example|
+    next unless example.exception && ENV.fetch('UI_QA_DIR', nil) && ENV['ANTIGRAVITY_AGENT'] != '1'
+
+    directory = File.join(ENV.fetch('UI_QA_DIR'), 'failures', example.id.gsub(/[^a-zA-Z0-9_-]/, '_'))
+    FileUtils.mkdir_p(directory)
+    File.write(File.join(directory, 'failure.txt'),
+               ["#{example.exception.class}: #{example.exception.message}", *example.exception.backtrace].join("\n"))
+    # Capybara's browser getter starts a new session after quit. Keep a failed
+    # exit/relaunch test closed rather than replacing its state with a new tab.
+    browser = page.driver.instance_variable_get(:@browser)
+    unless browser
+      File.write(File.join(directory, 'browser.log'), 'Browser already closed; diagnostics did not start a new session.')
+      next
+    end
+    browser.save_screenshot(File.join(directory, 'page.png'))
+    File.write(File.join(directory, 'page.html'), page.html)
+    state = page.evaluate_script(<<~JS)
+      ({ url: location.href, referrer: document.referrer, viewport: [innerWidth, innerHeight],
+         focused: document.hasFocus(), visibility: document.visibilityState, readyState: document.readyState,
+         inputEvents: window.troveBrowserFailureEvents || [],
+         reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
+         activeElement: document.activeElement?.outerHTML,
+         controllers: (window.Stimulus?.controllers || []).map(controller => ({
+           identifier: controller.identifier, connected: controller.element.isConnected,
+           state: Object.fromEntries(['searchStageActive', 'currentQuery', 'version', 'presentationSaving',
+             'presentationDirty', 'picksSaving', 'imageStyle', 'imageTheme'].filter(key => controller[key] !== undefined)
+             .map(key => [key, controller[key]]))
+         })),
+         resources: performance.getEntriesByType('resource').slice(-30).map(entry => ({
+           name: entry.name, duration: entry.duration, responseEnd: entry.responseEnd, type: entry.initiatorType
+         })) })
+    JS
+    File.write(File.join(directory, 'state.json'), JSON.pretty_generate(state))
+    File.write(File.join(directory, 'browser.log'), browser.logs.get(:browser).join("\n"))
+  rescue StandardError => e
+    warn "Browser failure diagnostics could not be saved: #{e.class}: #{e.message}"
+  ensure
+    BrowserInputTrace.remove(@browser_failure_trace_browser, @browser_failure_trace_id)
   end
 end
 
