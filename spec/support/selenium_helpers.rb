@@ -31,6 +31,33 @@ RSpec.configure do |config|
       page.current_window.resize_to(1400, 900)
     end
   end
+
+  config.after(:each, type: :system) do |example|
+    next unless example.exception && ENV.fetch('UI_QA_DIR', nil) && ENV['ANTIGRAVITY_AGENT'] != '1'
+
+    directory = File.join(ENV.fetch('UI_QA_DIR'), 'failures', example.id.gsub(/[^a-zA-Z0-9_-]/, '_'))
+    FileUtils.mkdir_p(directory)
+    page.driver.browser.save_screenshot(File.join(directory, 'page.png'))
+    File.write(File.join(directory, 'page.html'), page.html)
+    state = page.evaluate_script(<<~JS)
+      ({ url: location.href, viewport: [innerWidth, innerHeight],
+         reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
+         activeElement: document.activeElement?.outerHTML,
+         controllers: (window.Stimulus?.controllers || []).map(controller => ({
+           identifier: controller.identifier, connected: controller.element.isConnected,
+           state: Object.fromEntries(['searchStageActive', 'currentQuery', 'version', 'presentationSaving',
+             'presentationDirty', 'picksSaving', 'imageStyle', 'imageTheme'].filter(key => controller[key] !== undefined)
+             .map(key => [key, controller[key]]))
+         })),
+         resources: performance.getEntriesByType('resource').slice(-30).map(entry => ({
+           name: entry.name, duration: entry.duration, responseEnd: entry.responseEnd, type: entry.initiatorType
+         })) })
+    JS
+    File.write(File.join(directory, 'state.json'), JSON.pretty_generate(state))
+    File.write(File.join(directory, 'browser.log'), page.driver.browser.logs.get(:browser).join("\n"))
+  rescue StandardError => e
+    warn "Browser failure diagnostics could not be saved: #{e.class}: #{e.message}"
+  end
 end
 
 # Shared helper methods for system specs
