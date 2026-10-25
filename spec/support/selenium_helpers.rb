@@ -41,7 +41,16 @@ RSpec.configure do |config|
 
     directory = File.join(ENV.fetch('UI_QA_DIR'), 'failures', example.id.gsub(/[^a-zA-Z0-9_-]/, '_'))
     FileUtils.mkdir_p(directory)
-    page.driver.browser.save_screenshot(File.join(directory, 'page.png'))
+    File.write(File.join(directory, 'failure.txt'),
+               ["#{example.exception.class}: #{example.exception.message}", *example.exception.backtrace].join("\n"))
+    # Capybara's browser getter starts a new session after quit. Keep a failed
+    # exit/relaunch test closed rather than replacing its state with a new tab.
+    browser = page.driver.instance_variable_get(:@browser)
+    unless browser
+      File.write(File.join(directory, 'browser.log'), 'Browser already closed; diagnostics did not start a new session.')
+      next
+    end
+    browser.save_screenshot(File.join(directory, 'page.png'))
     File.write(File.join(directory, 'page.html'), page.html)
     state = page.evaluate_script(<<~JS)
       ({ url: location.href, referrer: document.referrer, viewport: [innerWidth, innerHeight],
@@ -60,7 +69,7 @@ RSpec.configure do |config|
          })) })
     JS
     File.write(File.join(directory, 'state.json'), JSON.pretty_generate(state))
-    File.write(File.join(directory, 'browser.log'), page.driver.browser.logs.get(:browser).join("\n"))
+    File.write(File.join(directory, 'browser.log'), browser.logs.get(:browser).join("\n"))
   rescue StandardError => e
     warn "Browser failure diagnostics could not be saved: #{e.class}: #{e.message}"
   ensure

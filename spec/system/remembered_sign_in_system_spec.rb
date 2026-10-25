@@ -71,10 +71,14 @@ RSpec.describe 'Remembered sign-in browser behavior', type: :system do
       # before exit so this test specifically proves persisted remember restoration.
       page.driver.browser.manage.delete_cookie('_sample_app_session')
       page.driver.quit
-      visit edit_user_path(user)
-      expect(page).to have_field('Email', with: user.email)
-      expect(page.driver.browser.manage.cookie_named('remembered_device')[:value]).not_to eq(original)
-      page.driver.quit
+      # A new Capybara session creates a new driver and HTTP client after exit;
+      # the registered driver still opens the same persisted Chrome profile.
+      Capybara.using_session("remembered-relaunch-#{File.basename(profile)}") do
+        visit edit_user_path(user)
+        expect(page).to have_field('Email', with: user.email)
+        expect(page.driver.browser.manage.cookie_named('remembered_device')[:value]).not_to eq(original)
+        page.driver.quit
+      end
     end
   end
 end
