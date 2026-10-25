@@ -10,14 +10,13 @@ export default class extends Controller {
     this.onKeydown = (event) => {
       if (event.key === "Escape" && this.isOpen) {
         this.close()
-        this.opener?.focus()
       }
     }
     this.onClick = (event) => {
       if (this.isOpen && !this.element.contains(event.target)) this.close()
     }
-    this.onBeforeCache = () => this.close()
-    this.onResize = () => { if (window.innerWidth >= 1100) this.close() }
+    this.onBeforeCache = () => this.close({ restoreFocus: false })
+    this.onResize = () => { if (window.innerWidth >= 1100) this.close({ restoreFocus: false }) }
     window.addEventListener("resize", this.onResize)
     document.addEventListener("keydown", this.onKeydown)
     document.addEventListener("click", this.onClick)
@@ -32,25 +31,35 @@ export default class extends Controller {
   }
 
   toggle(event) {
-    this.opener = event.currentTarget
-    this.isOpen = !this.isOpen
-    this.render()
+    if (event?.currentTarget) this.opener = event.currentTarget
+    if (this.isOpen) {
+      this.close()
+    } else {
+      this.isOpen = true
+      this.render()
+    }
   }
 
   openSearch(event) {
-    this.opener = event.currentTarget
+    if (event?.currentTarget) this.opener = event.currentTarget
     this.isOpen = true
     this.render()
     this.menuTarget.querySelector("input")?.focus()
   }
 
   navigate(event) {
-    if (event.target.closest("a")) this.close()
+    if (event.target.closest("a")) this.close({ restoreFocus: false })
   }
 
-  close() {
+  close(options = {}) {
+    const wasOpen = this.isOpen
     this.isOpen = false
     this.render()
+    if (wasOpen && options.restoreFocus !== false) {
+      const opener = this.opener || (this.hasButtonTarget ? this.buttonTarget : null)
+      opener?.focus()
+    }
+    this.opener = null
   }
 
   render() {
