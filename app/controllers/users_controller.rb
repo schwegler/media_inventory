@@ -159,6 +159,7 @@ class UsersController < ApplicationController
 
     items = (@user.favorite_shelves.find_by(category: 'overall')&.items || []).first(3)
     preload_records_attachments(items)
+    items
   end
 
   def load_shared_items
