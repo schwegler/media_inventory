@@ -1,0 +1,73 @@
+<% public_review = @entry.is_public? %>
+<% author = @entry.user %>
+<% author_name = author.name.presence || author.display_handle %>
+<% title = item_share_title(@item) %>
+<% artwork = review_artwork_item(@item) %>
+<% content_for :title, public_review ? review_share_title(@entry) : 'Private review' %>
+<% content_for :meta_description, public_review ? review_share_description(@entry) : 'This review is private.' %>
+<% content_for :canonical_url, public_review ? canonical_review_url(@entry) : root_url %>
+<% content_for :meta_image, item_preview_image_url(@item) if public_review %>
+<% content_for :robots, 'noindex, nofollow' unless public_review %>
+<% content_for :og_type, 'article' if public_review %>
+
+<article class="review-page" aria-labelledby="review-title">
+  <nav class="review-page-back" aria-label="Review navigation"><%= link_to "Back to #{title}", @item %></nav>
+  <div class="review-page-layout">
+    <aside class="review-page-artwork" aria-label="Media artwork">
+      <%= link_to @item do %>
+        <% if artwork.respond_to?(:stored_cover_url) && artwork.stored_cover_url.present? %>
+          <%= media_cover_image artwork, alt: "#{title} cover", loading: 'eager' %>
+        <% else %>
+          <span class="review-page-no-art"><%= ui_icon('archive') %><span>No cover available</span></span>
+        <% end %>
+      <% end %>
+    </aside>
+
+      <header class="review-page-header">
+        <div class="review-page-author">
+          <%= user_avatar_tag(author, size: 40) %>
+          <div>Review by <%= link_to author_name, author %><span><%= @item.class.model_name.human %></span></div>
+        </div>
+        <h1 id="review-title"><%= link_to title, @item %><% if @item.respond_to?(:release_year) && @item.release_year.present? %> <span class="review-page-year"><%= @item.release_year %></span><% end %></h1>
+        <% if @entry.rating.present? %><div class="review-page-rating"><%= render_stars(@entry.rating) %><span><%= @entry.rating %> / 5</span></div><% end %>
+        <div class="review-page-dates">
+          <% if @entry.consumed? && @entry.consumed_at.present? %>
+            <span><%= MediaLanguage.for(@item)[:past].capitalize %> <time datetime="<%= @entry.consumed_at.iso8601 %>"><%= @entry.consumed_at.strftime('%-d %B %Y') %></time></span>
+          <% end %>
+          <% if public_review && @entry.review_published_at.present? %>
+            <span>Review published <time datetime="<%= @entry.review_published_at.iso8601 %>"><%= @entry.review_published_at.strftime('%-d %B %Y') %></time></span>
+          <% end %>
+        </div>
+        <% unless public_review %><p class="review-page-private">Private review · Only you can see this page.</p><% end %>
+      </header>
+
+    <aside class="review-page-sidebar" aria-label="Review actions">
+      <% if public_review %>
+        <section class="review-page-share" data-controller="link-share" data-link-share-url-value="<%= canonical_review_url(@entry) %>" data-link-share-title-value="<%= review_share_title(@entry) %>" data-action="keydown.esc->link-share#dismissFallback">
+          <h2>Share this review</h2>
+          <p>Pass along <%= author_name %>’s take.</p>
+          <button type="button" class="sleek-btn sleek-btn-primary" data-action="link-share#copy" data-link-share-target="copy">Copy review link</button>
+          <button type="button" class="sleek-btn sleek-btn-secondary" data-link-share-target="native" data-action="link-share#share" hidden>Share review…</button>
+          <span role="status" aria-live="polite" data-link-share-target="status"></span>
+          <input type="url" value="<%= canonical_review_url(@entry) %>" readonly hidden aria-label="Public review link" data-link-share-target="fallback">
+        </section>
+      <% end %>
+      <div class="review-page-author-links">
+        <%= link_to "View #{author_name}’s profile", author %>
+        <%= link_to "Explore #{title}", @item %>
+        <% if current_user == author %><%= link_to 'Manage your review', polymorphic_path(@item, anchor: 'my-library'), class: 'review-page-manage' %><% end %>
+      </div>
+    </aside>
+
+      <div class="review-page-prose"><%= simple_format(@entry.review) %></div>
+
+      <section class="review-page-conversation" aria-labelledby="review-conversation-title">
+        <div class="review-page-reactions"><%= render 'likes/like_button', item: @entry %></div>
+        <h2 id="review-conversation-title">Conversation</h2>
+        <%= render 'shared/comments_box', matching_item: @entry %>
+        <% unless logged_in? %><p><%= link_to 'Log in', login_path %> to like or join the conversation.</p><% end %>
+      </section>
+
+
+  </div>
+</article>

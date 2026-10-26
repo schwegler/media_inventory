@@ -205,6 +205,7 @@ SampleApp::Application.routes.draw do
   post '/likes/toggle', to: 'likes#toggle', as: 'toggle_like'
 
   resources :comments, only: :create
+  get '/reviews/:id', to: 'review_pages#show', as: :public_review
   resource :review, only: %i[edit update]
 
   resources :consumption_passes, only: :create do

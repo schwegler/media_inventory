@@ -3,7 +3,7 @@ import { trackPublicShare } from "analytics"
 
 export default class extends Controller {
   static values = { url: String, title: String }
-  static targets = ["status", "fallback", "native"]
+  static targets = ["status", "fallback", "native", "copy"]
 
   connect() {
     this.element.dataset.connected = "true"
@@ -42,6 +42,13 @@ export default class extends Controller {
       }
       this.showStatus("Select and copy this link.", false)
     }
+  }
+
+  dismissFallback() {
+    if (!this.hasFallbackTarget || this.fallbackTarget.hidden) return
+    this.fallbackTarget.hidden = true
+    if (this.hasCopyTarget) this.copyTarget.focus()
+    this.showStatus("")
   }
 
   flashButtonSuccess(button) {
