@@ -74,14 +74,15 @@ list in `MetadataProvider#musicbrainz_includes`. The single verification used
 Album create/API-ID commit callbacks now perform the full bounded metadata lookup
 for manual, signed, shelf, admin and service imports. Album explicit refresh also
 runs directly after claiming its existing lease. This removes album tracks from
-the volatile queue and avoids the user's cross-item cooldown during initial
-creation. No durable queue, scheduler, migration or production maintenance command
-is introduced. Failed/partial imports remain visible and need an explicit retry;
+the volatile queue. Mandatory initial hydration has no requesting-user cooldown,
+while per-item cooldowns and leases still apply. Explicit refresh still checks
+both the existing per-user and per-item cooldowns. No durable queue, scheduler,
+migration or production maintenance command is introduced. Failed/partial imports remain visible and need an explicit retry;
 there is no promise of automatic eventual completion after process termination.
 
-The tradeoff is provider latency in the request: the existing 45-second metadata
-budget still applies, with shorter per-HTTP timeouts. A process interrupted after
-commit can leave a stale refreshing lease; the existing status and retry path
+The tradeoff is provider latency in the request: a 12-second album metadata
+budget applies to both the HTTP deadline and the outer provider timeout, with
+shorter per-HTTP timeouts. A process interrupted after commit can leave a stale refreshing lease; the existing status and retry path
 recovers it. Background cover jobs remain unchanged.
 
 Album search excludes MusicBrainz Singles. Group imports choose a deterministic
@@ -127,3 +128,67 @@ states rather than initiating a bulk retry storm.
    edits, reviews and history afterwards. Roll back only newly introduced rows or
    specifically approved field changes from the snapshot; never delete personal
    activity as a rollback strategy.
+
+## Supported post-deploy dry-run command
+
+After the fix is actually deployed, the first live operation is **read-only**:
+
+```sh
+DRY_RUN=1 IDS=4,5,17 LIMIT=3 AFTER_ID=0 bundle exec rake metadata:audit_album_tracks > album-track-audit.jsonl
+```
+
+This is a proposed initial **audit scope**, not an approved write scope. The command
+requires explicit positive IDs, defaults to dry-run, accepts limits 1..50 (default
+10), and refuses `DRY_RUN=0`. It cannot apply changes. It has not been executed
+against production. Run only one audit process, using the existing deployment's
+normal environment; no additional credentials or grants are required.
+
+Each JSONL row contains the existing source/track snapshot, its SHA-256 digest,
+provider rows and their digest, the pinned release ID, classification, source
+completeness, safe additive candidates and a checkpoint. It does not export
+personal library reviews or history. Classifications distinguish `missing`,
+`partial`, `already_complete`, `wrong_edition`, `user_modified_or_unverified` and
+unsupported/unknown records. Without historical per-track field provenance, a
+provider difference cannot prove a manual edit; it is conservatively excluded
+from proposed repairs. Source Singles and conflicting identities require review,
+never automatic title matching. The report's candidates are **not approval**.
+
+Calls run serially with 1.1 seconds between albums, plus the existing MusicBrainz
+group/release spacing. Each provider operation has a 12-second budget. A partial,
+unavailable, throttled or failed source stops the run without advancing that ID's
+checkpoint. Resume the same explicit list with the last `checkpoint_after_id`
+after provider backoff (at least five minutes for a busy source); do not loop on
+failures. If a provider stays unavailable, record that target as deferred and
+review a reduced explicit audit list. Repeated audits change no catalog or
+library rows and produce comparable evidence digests.
+
+After reviewing the report, approve exact IDs, unchanged source identities and
+expected additions. Recheck snapshot/source digests immediately before any write;
+stop and regenerate the report if either changed. The existing supported
+single-record repair path is the conservative metadata refresher, for example:
+
+```sh
+TYPE=Album ID=5 LIMIT=1 USER_ID=<approved-existing-operator-id> FORCE=1 INTERVAL=21 bundle exec rake metadata:enrich
+```
+
+This example is a **future write operation**, not permission to execute it.
+Use it only for an approved missing/partial target after taking a database backup
+and row-level before snapshots. It retains normal user/item cooldowns, does not
+change source identity, preserves populated track fields, and is idempotent under
+repeated reconciliation. Do not use it for Geese or any wrong-edition/unverified
+candidate. The current approved write target set is empty.
+
+Keep the dry-run report, source payload evidence, approval, backup reference,
+operator/time, exact command, refresh result and post-run audit together. Compare
+track IDs and all associated library/activity rows before and after. For rollback,
+restore only fields that the approved repair filled or rows it added, and only
+when their post-repair snapshots are still unchanged and there are no new
+personal references. Otherwise stop for review. Never restore a whole old album
+over later user edits or delete personal activity. Wrong-edition corrections need
+a separate externally verified source/edition/track mapping and explicit approval.
+
+Unrelated validation debt: `RememberedDevice`'s absolute-expiry spec fails across
+the local system DST boundary on unchanged master `227624c5` (one-hour difference)
+and passes all six examples with `TZ=UTC`. No remembered-device code or tests are
+changed here. UTC validation matches the CI host timezone; the default-local
+baseline failure remains reported rather than hidden or excluded.
