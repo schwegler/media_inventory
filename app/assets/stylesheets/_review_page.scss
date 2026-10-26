@@ -79,3 +79,14 @@
   .review-page .review-page-author-links { padding-top: .5rem; }
   .review-page .review-page-author-links a:not(.review-page-manage) { display: none; }
 }
+
+// Summary text is bounded in HTML; CSS only handles readable wrapping.
+.review-excerpt { min-width: 0; overflow-wrap: anywhere; word-break: normal; }
+.review-excerpt-text { font-size: inherit; line-height: 1.7; }
+.review-excerpt-text p { margin: 0 0 .75em; }
+.review-excerpt-text :is(ul, ol) { padding-left: 1.5em; margin-block: .5em; }
+.review-excerpt-text a, .review-excerpt-link { position: relative; z-index: 2; text-decoration: underline; text-underline-offset: .15em; }
+.review-excerpt-link { display: inline-block; font-size: .875rem; margin-top: .25rem; }
+.review-excerpt :is(a):focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.review-excerpt .review-excerpt-text p { margin: 0; }
+.review-excerpt .review-excerpt-text p + p { margin-top: .75em; }

@@ -4,8 +4,7 @@
   <%= user_avatar_tag(activity.user, size: 32) %>
   <div>
     <p><%= link_to activity.user.name, activity.user %> <%= verb %> <%= link_to media_item.title, media_item %><% if personal_visible && lib_item.respond_to?(:rating) && lib_item.rating.present? %> · <%= lib_item.rating %> ★<% end %></p>
-    <% if personal_visible && lib_item.respond_to?(:review) && lib_item.review.present? %><p class="dashboard-circle-review"><%= truncate(strip_tags(lib_item.review), length: 220) %></p><% end %>
-    <% if personal_visible && lib_item.is_a?(LibraryItem) && lib_item.review.present? %><%= link_to "Read review", public_review_path(lib_item) %><% end %>
+    <% if personal_visible && lib_item.respond_to?(:review) && lib_item.review.present? %><div class="dashboard-circle-review"><%= review_summary(lib_item, item: media_item, author: activity.user, compact: true, permalink: activity.activity_type == 'reviewed') %></div><% end %>
     <time datetime="<%= activity.created_at.iso8601 %>"><%= time_ago_in_words(activity.created_at) %> ago</time>
   </div>
 </article>

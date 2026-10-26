@@ -104,7 +104,11 @@
           <% @likes.each do |like| %>
             <% target = like.likeable; next unless target %>
             <div class="profile-like-row">Liked a <%= like.likeable_type.titleize %>
-              <% if target.respond_to?(:title) %><%= link_to target.title, target.is_a?(LibraryItem) ? target.item : target %><% end %>
+              <% if review_page_linkable?(target) %>
+                <%= link_to "Review of #{target.title}", public_review_path(target) %>
+              <% elsif target.respond_to?(:title) %>
+                <%= link_to target.title, target.is_a?(LibraryItem) ? target.item : target %>
+              <% end %>
             </div>
           <% end %>
           <% if @likes.empty? %><div class="profile-empty"><h3>No likes to show yet.</h3><p><%= @profile_owner ? 'Your liked items will appear here.' : 'Public library likes will appear here.' %></p></div><% end %>
