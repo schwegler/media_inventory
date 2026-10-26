@@ -114,6 +114,101 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  test_sqlite:
+    runs-on: ubuntu-24.04
+    env:
+      RAILS_ENV: test
+      TZ: UTC
+      DATABASE_URL: "sqlite3:db/ci_sqlite.sqlite3"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Install artwork decoder
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y imagemagick
+          convert -version
+          convert -list format | grep -E 'WEBP.*rw'
+      - name: Install Ruby and gems
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4.12'
+          bundler-cache: true
+      # Add or replace database setup steps here
+      - name: Set up database schema
+        run: bin/rails db:schema:load
+      - name: Build assets
+        run: bin/rails dartsass:build
+      # Add or replace test runners here
+      - name: Run tests
+        run: bin/rake
+      - name: Check selective browser behavior
+        run: node --test spec/javascript/*.test.cjs spec/javascript/*.test.mjs
+      - name: Install browser and matching driver
+        id: chrome
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: stable
+          install-chromedriver: true
+          install-dependencies: true
+      - name: Run metadata and series browser regressions
+        env:
+          RUN_BROWSER_SPECS: '1'
+          UI_QA_DIR: /tmp/trove-sqlite-ui-qa
+          SE_CHROME_PATH: ${{ steps.chrome.outputs['chrome-path'] }}
+          SE_CHROMEDRIVER: ${{ steps.chrome.outputs['chromedriver-path'] }}
+          SE_AVOID_STATS: 'true'
+        run: >-
+          bundle exec rspec
+          spec/system/public_home_system_spec.rb
+          spec/system/discovery_system_spec.rb
+          spec/system/amazon_sources_system_spec.rb
+          spec/system/remembered_sign_in_system_spec.rb
+          spec/system/import_confirmation_system_spec.rb
+          spec/system/metadata_entities_system_spec.rb
+          spec/system/comic_cover_layout_system_spec.rb
+          spec/system/artwork_lightbox_system_spec.rb
+          spec/system/metadata_detail_layout_system_spec.rb
+          spec/system/tv_episodes_system_spec.rb
+          spec/system/editorial_articles_system_spec.rb
+          spec/system/title_reading_hierarchy_system_spec.rb
+          spec/system/title_synopsis_system_spec.rb
+          spec/system/reading_strip_layout_system_spec.rb
+          spec/system/media_sections_system_spec.rb
+          spec/system/tv_shows_system_spec.rb
+          spec/system/shelf_discovery_system_spec.rb
+          spec/system/shelf_preview_system_spec.rb
+          spec/system/shelf_customization_system_spec.rb
+          spec/system/child_collection_performance_spec.rb
+          spec/system/calendar_year_episodes_system_spec.rb
+          spec/system/series_entries_system_spec.rb
+          spec/system/series_filter_alignment_spec.rb
+          spec/system/view_transition_system_spec.rb
+          spec/system/library_action_state_system_spec.rb
+          spec/system/quick_tracking_system_spec.rb
+          spec/system/profile_progress_system_spec.rb
+          spec/system/profile_card_polish_system_spec.rb
+          spec/system/owner_library_navigation_system_spec.rb
+          spec/system/homepage_cards_system_spec.rb
+          spec/system/public_watch_progress_system_spec.rb
+          spec/system/catalog_consistency_system_spec.rb
+          spec/system/presentation_system_spec.rb
+          spec/system/header_spacing_system_spec.rb
+          spec/system/halloween_system_spec.rb
+          spec/system/metadata_status_system_spec.rb
+          spec/system/landing_and_auth_system_spec.rb:16
+
+      - name: Retain responsive UI evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: trove-responsive-ui-sqlite
+          path: /tmp/trove-sqlite-ui-qa
+          if-no-files-found: ignore
+          retention-days: 7
+
   lint:
     runs-on: ubuntu-24.04
     steps:
@@ -135,3 +230,18 @@ jobs:
         run: bin/brakeman -q -w2
       - name: Lint Ruby files
         run: bin/rubocop --parallel
+
+  production_image:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact code
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Build production image
+        run: docker build --pull --tag trove-runtime-check .
+      - name: Check image runtime and native dependencies
+        run: >-
+          docker run --rm --entrypoint bundle trove-runtime-check exec ruby -e
+          'abort "Unexpected Ruby #{RUBY_VERSION}" unless RUBY_VERSION == "3.4.12";
+          %w[sqlite3 pg openssl psych nokogiri csv].each { |library| require library }'
