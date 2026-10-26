@@ -15,10 +15,15 @@ export default class extends Controller {
     this.element.addEventListener("keydown", this.onKeydown)
     this.background = [...document.body.children].filter(el => !el.inert && !el.contains(this.element) && !["SCRIPT", "LINK"].includes(el.tagName))
     this.background.forEach(el => { el.inert = true; el.dataset.modalInert = "true" })
-    requestAnimationFrame(() => this.focusables()[0]?.focus())
+    this.focusFrame = requestAnimationFrame(() => {
+      this.focusFrame = null
+      // Input or a nested controller may have focused a field before this frame.
+      if (this.element.isConnected && !this.dialog.contains(document.activeElement)) this.focusables()[0]?.focus()
+    })
     this.element.dataset.connected = "true"
   }
   disconnect() {
+    if (this.focusFrame) cancelAnimationFrame(this.focusFrame)
     document.body.style.overflow = ""
     this.element.removeEventListener("keydown", this.onKeydown)
     this.background?.forEach(el => { el.inert = false; delete el.dataset.modalInert })
