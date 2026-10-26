@@ -153,10 +153,12 @@ class UsersController < ApplicationController
     @collection_count = @library_mix.values.sum
   end
 
+  # Batch preloads attachments and card ratings for profile favorite cards on profile overview
   def profile_favorites
     return [] unless @profile_tab == 'overview'
 
-    (@user.favorite_shelves.find_by(category: 'overall')&.items || []).first(3)
+    items = (@user.favorite_shelves.find_by(category: 'overall')&.items || []).first(3)
+    preload_records_attachments(items)
   end
 
   def load_shared_items
