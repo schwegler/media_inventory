@@ -57,4 +57,29 @@ RSpec.describe PublicShelfMembership do
     owner.update!(confirmed_at: nil)
     expect(described_class.call(movie)).to eq([])
   end
+
+  it 'uses fixed query batches without loading preview objects for six favorite shelves' do
+    movie = Movie.create!(title: 'Batch sample')
+    6.times do |index|
+      owner = User.create!(confirmed_at: Time.current, name: "Batch #{index}", username: "batch_#{index}",
+                           email: "batch#{index}@example.com", password: 'password')
+      owner.favorite_shelves.create!(category: 'Movie', picks: [{ type: 'Movie', id: movie.id }])
+      owner.shelf_previews.attach(io: File.open(Rails.root.join('spec/fixtures/files/comic-portrait.png')),
+                                  filename: 'preview.png', content_type: 'image/png')
+    end
+    queries = []
+    subscriber = lambda do |*, payload|
+      queries << payload[:sql] unless payload[:name] == 'SCHEMA' || payload[:cached]
+    end
+    results = nil
+    ApplicationRecord.uncached do
+      ActiveSupport::Notifications.subscribed(subscriber, 'sql.active_record') do
+        results = described_class.call(movie, limit: 6)
+      end
+    end
+    expect(results.size).to eq(6)
+    expect(queries.size).to be <= 7
+    expect(queries.grep(/SELECT "active_storage_blobs"\.\*/)).to be_empty
+    warn "Shelf membership SQL count for six same-type favorites: #{queries.size}"
+  end
 end

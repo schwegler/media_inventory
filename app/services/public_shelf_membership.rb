@@ -20,9 +20,10 @@ class PublicShelfMembership
     candidates = recent_candidates
     records = { 'favorite' => FavoriteShelf, 'collection' => ShelfCollection }.flat_map do |kind, model|
       ids = candidates.select { |row| row['shelf_kind'] == kind }.map { |row| row['id'] }
-      containing(model.where(id: ids)).includes(user: { shelf_previews_attachments: :blob }).to_a
+      containing(model.where(id: ids)).includes(:user).to_a
     end
     records = records.sort_by { |record| [record.updated_at, record.id, record.class.name] }.reverse
+    @publications = ShelfPublicationLookup.call(records.grep(ShelfCollection))
     records = records.select { |record| current_publication?(record) }.first(@limit)
     resolve_previews(records)
     records.map { |record| entry(record) }
@@ -36,11 +37,15 @@ class PublicShelfMembership
     queries = { 'favorite' => FavoriteShelf, 'collection' => ShelfCollection }.map do |kind, model|
       scope = publicly_addressable(model)
       scope = named_publications(scope) if kind == 'collection'
-      scope.select(Arel.sql("'#{kind}' AS shelf_kind"), :id, :updated_at).distinct.to_sql
+      scope.select(Arel.sql("'#{kind}' AS shelf_kind"), :id, :updated_at).distinct.arel.ast
     end
-    sql = "SELECT * FROM (#{queries.join(' UNION ALL ')}) AS recent_shelves " \
-          "ORDER BY updated_at DESC, id DESC, shelf_kind ASC LIMIT #{CANDIDATE_LIMIT}"
-    ApplicationRecord.connection.select_all(sql).to_a
+    union = Arel::Nodes::UnionAll.new(queries[0], queries[1])
+    recent = Arel::Table.new(:recent_shelves)
+    query = Arel::SelectManager.new.from(Arel::Nodes::TableAlias.new(union, :recent_shelves))
+                               .project(recent[Arel.star])
+                               .order(recent[:updated_at].desc, recent[:id].desc, recent[:shelf_kind].asc)
+                               .take(CANDIDATE_LIMIT)
+    ApplicationRecord.connection.select_all(query).to_a
   end
 
   def publicly_addressable(model)
@@ -51,21 +56,13 @@ class PublicShelfMembership
 
   def named_publications(scope)
     scope = scope.joins(user: { shelf_previews_attachments: :blob })
-    category = if scope.connection.adapter_name == 'PostgreSQL'
-                 "active_storage_blobs.metadata::jsonb->>'category'"
-               else
-                 "json_extract(active_storage_blobs.metadata, '$.category')"
-               end
-    scope.where("#{category} = ('collection:' || shelf_collections.slug)")
+    scope.where("#{ShelfPublicationLookup.metadata_sql('category')} = ('collection:' || shelf_collections.slug)")
   end
 
   def current_publication?(record)
     return true unless record.is_a?(ShelfCollection)
 
-    expected = ShelfCollectionPreviewSignature.call(record)
-    record.user.shelf_previews_attachments.any? do |attachment|
-      attachment.blob.metadata.values_at('category', 'signature') == ["collection:#{record.slug}", expected]
-    end
+    @publications.include?([record.user_id, "collection:#{record.slug}", ShelfCollectionPreviewSignature.call(record)])
   end
 
   def containing(scope)
