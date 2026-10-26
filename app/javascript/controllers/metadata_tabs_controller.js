@@ -1,5 +1,8 @@
 import { Controller } from "@hotwired/stimulus"
 
+// Transient presentation only; bound memory across Turbo visits without storing catalog content or tracking data.
+const presentations = new Map()
+
 // Only this metadata island is tabbed. The page's document navigation stays intact.
 export default class extends Controller {
   static targets = ["list", "tab", "panel", "expand"]
@@ -8,33 +11,54 @@ export default class extends Controller {
     // Keep native find-in-page available. Unsupported browsers get the full document.
     if (this.tabTargets.length < 2 || !("onbeforematch" in document.documentElement)) return
     this.enhanced = true
-    this.expanded = false
     this.expandTarget.hidden = false
-    this.onHash = () => {
-      const index = this.fragmentIndex()
-      if (!this.expanded) this.select(index >= 0 ? index : (this.selectedIndex || 0))
-    }
+    this.onHash = () => this.applyLocation()
+    window.addEventListener("hashchange", this.onHash)
     this.onCache = () => {
-      this.restore()
-      // Turbo can cache on a same-document fragment visit without disconnecting.
-      // Its cloned snapshot is expanded; restore the still-live island afterwards.
-      this.cacheFrame = requestAnimationFrame(() => {
-        if (!this.element.isConnected) return
-        this.expandTarget.hidden = false
-        this.expandTarget.textContent = this.expanded ? "Show tabs" : "Show all"
-        if (!this.expanded) this.select(this.selectedIndex || 0)
+      delete this.element.dataset.metadataTabsConnected
+      this.readyFrame = requestAnimationFrame(() => {
+        if (this.element.isConnected) this.element.dataset.metadataTabsConnected = "true"
       })
     }
-    window.addEventListener("hashchange", this.onHash)
     document.addEventListener("turbo:before-cache", this.onCache)
-    this.select(Math.max(0, this.fragmentIndex()))
+    // Finish a fresh island before resolving an existing downstream fragment.
+    // A lazily loaded controller can arrive after the browser's first anchor scroll.
+    const saved = history.state?.troveMetadata?.path === location.pathname || presentations.has(location.pathname)
+    const target = document.getElementById(location.hash.slice(1))
+    const height = this.element.getBoundingClientRect().height
+    this.applyLocation()
+    if (!saved && target && height !== this.element.getBoundingClientRect().height &&
+        (this.element.contains(target) || (this.element.compareDocumentPosition(target) & Node.DOCUMENT_POSITION_FOLLOWING))) {
+      target.scrollIntoView({ block: "start", behavior: "instant" })
+    }
+    this.element.dataset.metadataTabsConnected = "true"
+  }
+
+  applyLocation() {
+    const saved = history.state?.troveMetadata
+    const state = saved?.path === location.pathname ? saved : presentations.get(location.pathname)
+    this.expanded = state ? state.expanded : this.element.dataset.metadataExpanded === "true"
+    this.element.dataset.metadataExpanded = String(this.expanded)
+    this.expandTarget.textContent = this.expanded ? "Show tabs" : "Show all"
+    const index = this.fragmentIndex()
+    if (this.expanded) this.reveal()
+    else this.select(index >= 0 ? index : (state?.index ?? Number(this.element.dataset.metadataSelected || 0)))
+  }
+
+  remember() {
+    // Preserve Turbo's restoration identifier rather than replacing history state.
+    const state = { path: location.pathname, expanded: this.expanded, index: this.selectedIndex || 0 }
+    presentations.delete(location.pathname)
+    presentations.set(location.pathname, state)
+    if (presentations.size > 20) presentations.delete(presentations.keys().next().value)
+    history.replaceState({ ...history.state, troveMetadata: state }, "", location.href)
   }
 
   disconnect() {
     window.removeEventListener("hashchange", this.onHash)
     document.removeEventListener("turbo:before-cache", this.onCache)
-    if (this.cacheFrame) cancelAnimationFrame(this.cacheFrame)
-    this.restore()
+    if (this.readyFrame) cancelAnimationFrame(this.readyFrame)
+    delete this.element.dataset.metadataTabsConnected
   }
 
   fragmentIndex() {
@@ -47,8 +71,8 @@ export default class extends Controller {
     if (!this.enhanced || this.expanded || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
     event.preventDefault()
     const index = this.tabTargets.indexOf(event.currentTarget)
+    if (location.hash !== event.currentTarget.hash) history.pushState(history.state, "", event.currentTarget.hash)
     this.select(index)
-    if (location.hash !== event.currentTarget.hash) history.pushState(null, "", event.currentTarget.hash)
   }
 
   navigate(event) {
@@ -60,12 +84,14 @@ export default class extends Controller {
     event.preventDefault()
     this.tabTargets[index].focus({ preventScroll: true })
     this.tabTargets[index].scrollIntoView({ block: "nearest", inline: "nearest" })
+    history.replaceState(history.state, "", this.tabTargets[index].hash)
     this.select(index)
-    history.replaceState(null, "", this.tabTargets[index].hash)
   }
 
   select(index) {
+    if (!Number.isInteger(index) || index < 0 || index >= this.panelTargets.length) index = 0
     this.selectedIndex = index
+    this.element.dataset.metadataSelected = String(index)
     this.expandTarget.hidden = false
     this.listTarget.setAttribute("role", "tablist")
     this.tabTargets.forEach((tab, i) => {
@@ -82,6 +108,7 @@ export default class extends Controller {
       else panel.setAttribute("hidden", "until-found")
     })
     this.element.dataset.tabbed = "true"
+    this.remember()
   }
 
   found(event) {
@@ -91,9 +118,11 @@ export default class extends Controller {
 
   expand() {
     this.expanded = !this.expanded
+    this.element.dataset.metadataExpanded = String(this.expanded)
     this.expandTarget.textContent = this.expanded ? "Show tabs" : "Show all"
     if (this.expanded) this.reveal()
     else this.select(Math.max(0, this.fragmentIndex()))
+    this.remember()
   }
 
   reveal() {
@@ -106,12 +135,5 @@ export default class extends Controller {
       for (const name of ["hidden", "role", "tabindex"]) panel.removeAttribute(name)
       panel.setAttribute("aria-labelledby", `${panel.id}-heading`)
     })
-  }
-
-  restore() {
-    if (!this.enhanced) return
-    this.reveal()
-    this.expandTarget.hidden = true
-    this.expandTarget.textContent = "Show all"
   }
 }

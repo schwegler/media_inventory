@@ -29,8 +29,10 @@ RSpec.describe 'Metadata tabs', type: :system do
     find('#metadata-taxonomy-tab').click
     expect(page).to have_text('Drama')
     page.go_back
+    expect(page).to have_css('#title-details[data-metadata-tabs-connected="true"]')
     expect(page).to have_css('#metadata-creators-tab[aria-selected="true"]')
     page.go_forward
+    expect(page).to have_css('#title-details[data-metadata-tabs-connected="true"]')
     expect(page).to have_css('#metadata-taxonomy-tab[aria-selected="true"]')
     page.execute_script("document.querySelector('#metadata-cast').dispatchEvent(new Event('beforematch'))")
     expect(page).to have_css('#metadata-cast-tab[aria-selected="true"]')
@@ -41,6 +43,37 @@ RSpec.describe 'Metadata tabs', type: :system do
     expect(page).to have_css('#title-details .media-metadata-panel:not([hidden])', count: 4)
     click_button 'Show tabs'
     expect(page).to have_css('[role="tabpanel"]', count: 1)
+  end
+
+  it 'aligns a direct document fragment after enhancing long metadata and after reload' do
+    visit movie_path(movie, anchor: 'community')
+    expect(page).to have_css('#metadata-details-tab[aria-selected="true"]')
+    expect(page.evaluate_script("document.querySelector('#community').getBoundingClientRect().top")).to be >= 90
+    page.refresh
+    expect(page).to have_css('#metadata-details-tab[aria-selected="true"]')
+    expect(page.evaluate_script("document.querySelector('#community').getBoundingClientRect().top")).to be >= 90
+  end
+
+  it 'keeps cached metadata layout stable and restores the expanded choice through Turbo back' do
+    visit movie_path(movie, anchor: 'metadata-creators')
+    expect(page).to have_css('#metadata-creators-tab[aria-selected="true"]')
+    geometry = page.evaluate_script(<<~JS)
+      (() => {
+        const island = document.querySelector('#title-details');
+        const before = island.getBoundingClientRect().height;
+        document.dispatchEvent(new Event('turbo:before-cache'));
+        return { before, after: island.getBoundingClientRect().height };
+      })()
+    JS
+    expect(geometry['after']).to eq(geometry['before'])
+    click_button 'Show all'
+    find('.media-back-link').click
+    expect(page).to have_current_path(movies_path)
+    page.go_back
+    expect(page).to have_button('Show tabs')
+    expect(page).to have_css('#title-details .media-metadata-panel:not([hidden])', count: 4)
+    click_button 'Show tabs'
+    expect(page).to have_css('#metadata-creators-tab[aria-selected="true"]')
   end
 
   it 'reflows long metadata in light and dark themes on desktop, mobile and 200 percent equivalent width' do
@@ -106,6 +139,29 @@ RSpec.describe 'Metadata tabs', type: :system do
       shelf.send_keys(:enter)
       expect(page).to have_current_path(shelf_path(owner.username, category: 'Movie'))
     end
+  end
+
+  it 'opens an explicitly published named shelf and removes stale previews from discovery' do
+    owner = User.create!(name: 'Named curator fixture', username: 'named_curator', email: 'named@example.com',
+                         password: 'password123', confirmed_at: Time.current)
+    collection = owner.shelf_collections.create!(title: 'Named shelf fixture',
+                                                 picks: [{ type: 'Movie', id: movie.id }])
+    category = "collection:#{collection.slug}"
+    signature = ApplicationController.helpers.shelf_preview_signature(owner, category)
+    owner.shelf_previews.attach(io: File.open(Rails.root.join('spec/fixtures/files/comic-portrait.png')),
+                                filename: 'collection-preview.png', content_type: 'image/png',
+                                metadata: { category: category, signature: signature })
+    resize_browser_viewport(390, 844)
+    visit movie_path(movie)
+    page.execute_script("document.querySelector('.media-public-shelves').scrollIntoView({block: 'center'})")
+    expect(page).to have_link('Named shelf fixture', href: shelf_path(owner.username, collection: collection.slug),
+                                                     exact_text: false)
+    capture_ui_screenshot('metadata-named-shelf-mobile')
+    find('.media-public-shelf').send_keys(:enter)
+    expect(page).to have_current_path(shelf_path(owner.username, collection: collection.slug))
+    collection.update!(description: 'Changed after publishing')
+    visit movie_path(movie)
+    expect(page).to have_no_css('.media-public-shelves')
   end
 
   it 'shows every metadata category without JavaScript' do
