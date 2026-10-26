@@ -258,7 +258,7 @@ RSpec.describe 'Favorite shelves', type: :request do
     patch shelf_path(user.username), params: { shelf_headline: '   ' }
     expect(user.reload.shelf_headline).to be_nil
     get shelf_path(user.username)
-    expect(Nokogiri::HTML(response.body).at_css('h1').text).to eq('The thingsI keep.')
+    expect(Nokogiri::HTML(response.body).at_css('h1').text).to eq('The things I keep.')
   end
 
   it 'rejects oversized headlines and changes from other users' do
