@@ -35,7 +35,7 @@ export default class extends Controller {
     }
 
     if (button) {
-      if (!button.dataset.originalAriaLabel) {
+      if (button.dataset.originalAriaLabel === undefined) {
         button.dataset.originalAriaLabel = button.getAttribute("aria-label") || ""
       }
       button.setAttribute("aria-label", "Copied!")

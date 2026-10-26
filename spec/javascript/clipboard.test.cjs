@@ -54,7 +54,7 @@ function createMockController() {
 }
 
 function createMockButton(initialAriaLabel = 'Copy text') {
-  const attributes = { 'aria-label': initialAriaLabel }
+  const attributes = initialAriaLabel !== null ? { 'aria-label': initialAriaLabel } : {}
   const dataset = {}
 
   return {
@@ -91,6 +91,23 @@ test('clipboard_controller copy writes text and updates aria-label and icons', a
   assert.equal(copyIcon.hidden, true)
   assert.equal(checkIcon.hidden, false)
   assert.notEqual(instance.copyTimeout, null)
+})
+
+test('clipboard_controller preserves empty originalAriaLabel on rapid consecutive clicks', async () => {
+  const { instance } = createMockController()
+  instance.connect()
+  const button = createMockButton(null)
+
+  const event = { preventDefault() {}, currentTarget: button }
+
+  await instance.copy(event)
+  assert.equal(button.dataset.originalAriaLabel, '')
+  assert.equal(button.getAttribute('aria-label'), 'Copied!')
+
+  // Second click while aria-label is "Copied!"
+  await instance.copy(event)
+  assert.equal(button.dataset.originalAriaLabel, '')
+  assert.equal(button.getAttribute('aria-label'), 'Copied!')
 })
 
 test('clipboard_controller disconnect cleans up active timeout', async () => {
