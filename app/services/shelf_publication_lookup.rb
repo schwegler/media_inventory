@@ -2,6 +2,8 @@
 
 # Narrow current-publication tuples; never instantiates a curator’s preview history.
 class ShelfPublicationLookup
+  CANDIDATE_LIMIT = 500
+
   def self.metadata_sql(key)
     raise ArgumentError, 'Unsupported preview field' unless %w[category signature].include?(key)
 
@@ -25,8 +27,10 @@ class ShelfPublicationLookup
     end
     # DISTINCT exact pairs cap returned metadata at the number of named candidates.
     # Never instantiate every attachment/blob owned by a matched curator.
-    rows = ActiveStorage::Attachment.where(record_type: 'User', name: 'shelf_previews',
-                                           record_id: records.map(&:user_id)).joins(:blob)
+    candidates = ActiveStorage::Attachment.where(record_type: 'User', name: 'shelf_previews',
+                                                 record_id: records.map(&:user_id)).order(id: :desc)
+                                          .limit(CANDIDATE_LIMIT).select(:id)
+    rows = ActiveStorage::Attachment.where(id: candidates).joins(:blob)
                                     .where(pairs.join(' OR ')).distinct
                                     .pluck(:record_id, Arel.sql(category_sql), Arel.sql(signature_sql))
     rows.to_set
