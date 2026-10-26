@@ -20,11 +20,12 @@ FavoriteShelf::CATEGORIES.each_key do |category|
   selected = category == 'overall' ? picks.first(5) : picks.select { |pick| pick['type'] == category }
   owner.favorite_shelves.create!(category: category, picks: selected)
 end
+presentation = { theme: 'halloween', layout: 'reading', texture: 'stars', companion: 'bat' }
 [0, 1, 5, 6].each do |count|
   ShelfCollection.insert_all!([{ user_id: owner.id, slug: "existing-#{count}", title: "Existing shelf #{count}",
-                                description: 'Existing context', picks: picks.first(count),
-                                presentation: { theme: 'halloween', layout: 'reading', texture: 'stars', companion: 'bat' },
-                                created_at: 1.year.ago, updated_at: 1.month.ago }])
+                                 description: 'Existing context', picks: picks.first(count),
+                                 presentation: presentation,
+                                 created_at: 1.year.ago, updated_at: 1.month.ago }])
 end
 before = ShelfCollection.order(:id).map(&:attributes)
 favorites = FavoriteShelf.order(:id).map(&:attributes)
@@ -32,9 +33,12 @@ favorites = FavoriteShelf.order(:id).map(&:attributes)
   migration.migrate(:up)
   ShelfCollection.reset_column_information
   actual = ShelfCollection.order(:id).map(&:attributes)
-  raise 'Existing shelf data changed' unless actual.map { |row| row.except('allowed_media_types', 'preview_length') } == before
-  raise 'Incorrect migration defaults' unless actual.all? { |row| row['allowed_media_types'] == [] && row['preview_length'] == 5 }
+  legacy_rows = actual.map { |row| row.except('allowed_media_types', 'preview_length') }
+  defaults_valid = actual.all? { |row| row['allowed_media_types'] == [] && row['preview_length'] == 5 }
+  raise 'Existing shelf data changed' unless legacy_rows == before
+  raise 'Incorrect migration defaults' unless defaults_valid
   raise 'Favorites changed' unless FavoriteShelf.order(:id).map(&:attributes) == favorites
+
   migration.migrate(:down)
   ShelfCollection.reset_column_information
 end
@@ -46,4 +50,6 @@ large = owner.shelf_collections.create!(title: 'At operational capacity', picks:
 raise 'Capacity lost picks' unless large.reload.picks.size == 1_000 && large.items.size == 1_000
 raise 'Over-capacity accepted' if large.update(picks: large_picks + [picks.first])
 raise 'Rejected update changed stored picks' unless large.reload.picks.size == 1_000
-puts 'PASS: existing 0/1/5/6-title shelves, stable IDs/slugs/context/presentation/timestamps, all seven favorites, defaults, two down/up roundtrips, 1,000-title capacity.'
+
+puts 'PASS: existing 0/1/5/6-title shelves; stable IDs/slugs/context/presentation/timestamps; ' \
+     'seven favorites; defaults; two down/up roundtrips; 1,000-title capacity.'

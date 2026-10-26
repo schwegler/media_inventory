@@ -24,6 +24,7 @@ class ShelvesController < ApplicationController
     @shelves = @shelves.select { |shelf| shelf[:items].any? } unless @shelf_owner
     @preview_category = preview_category
     @preview_signature = helpers.shelf_preview_signature(@user, @preview_category)
+    @shelf_edit_version = helpers.shelf_edit_version(@user, @preview_category)
     @preview_image = helpers.shelf_preview_image(@user, @preview_category, @theme, style: @image_style)
     render layout: 'shelf'
   end
@@ -41,7 +42,7 @@ class ShelvesController < ApplicationController
 
     @collection = @user.shelf_collections.find_by!(slug: params[:collection]) if params[:collection].present?
     category = @collection ? "collection:#{@collection.slug}" : params[:category].presence || 'overview'
-    if params[:shelf_version].present? && params[:shelf_version] != helpers.shelf_preview_signature(@user, category)
+    if params[:shelf_version].present? && params[:shelf_version] != helpers.shelf_edit_version(@user, category)
       message = 'This shelf changed in another window. Reload before saving; your changes have not been applied.'
       return render json: { error: message }, status: :conflict
     end
@@ -117,7 +118,7 @@ class ShelvesController < ApplicationController
 
     shelf.picks = input.map { |pick| { 'type' => pick[:type], 'id' => pick[:id].to_i } }
     if shelf.save
-      render json: { saved: true, preview_signature: helpers.shelf_preview_signature(@user, shelf.category) }
+      render json: saved_shelf_payload(shelf.category)
     else
       render json: { error: shelf.errors.full_messages.to_sentence }, status: :unprocessable_content
     end
@@ -151,8 +152,7 @@ class ShelvesController < ApplicationController
       @collection.picks = input.map { |pick| { 'type' => pick[:type], 'id' => pick[:id].to_i } }
     end
     if @collection.save
-      render json: { saved: true,
-                     preview_signature: helpers.shelf_preview_signature(@user, "collection:#{@collection.slug}") }
+      render json: saved_shelf_payload("collection:#{@collection.slug}")
     else
       render json: { error: @collection.errors.full_messages.to_sentence }, status: :unprocessable_content
     end
@@ -179,7 +179,12 @@ class ShelvesController < ApplicationController
 
     @user.update!(shelf_presentation: helpers.shelf_image_style(input).merge('theme' => input[:theme]))
     category = params[:category].presence || 'overview'
-    render json: { saved: true, preview_signature: helpers.shelf_preview_signature(@user, category) }
+    render json: saved_shelf_payload(category)
+  end
+
+  def saved_shelf_payload(category)
+    { saved: true, preview_signature: helpers.shelf_preview_signature(@user, category),
+      shelf_version: helpers.shelf_edit_version(@user, category) }
   end
 
   def update_preview

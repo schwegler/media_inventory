@@ -29,6 +29,7 @@ RSpec.describe 'Flexible custom shelves', type: :request do
     previews = Nokogiri::HTML(response.body).css('.shelf-collection-covers img, .shelf-missing-cover')
     expect(previews.size).to eq(2)
     expect(response.body).to include('8 selections')
+    expect(Nokogiri::HTML(response.body).at_css('h1').text.squish).to eq('The things I keep.')
   end
 
   it 'preserves selections, slug and presentation when restricting future additions' do
@@ -72,6 +73,18 @@ RSpec.describe 'Flexible custom shelves', type: :request do
           params: { presentation: { theme: 'electric' }, shelf_version: version }, as: :json
     expect(response).to have_http_status(:conflict)
     expect(collection.reload.presentation['theme']).to eq('gallery')
+  end
+
+  it 'protects overview appearance edits without invalidating existing favorite image signatures' do
+    login
+    signature = ApplicationController.helpers.shelf_preview_signature(owner, 'overview')
+    version = ApplicationController.helpers.shelf_edit_version(owner, 'overview')
+    patch shelf_path(owner.username), params: { presentation: { theme: 'gallery' }, shelf_version: version }, as: :json
+    expect(response).to have_http_status(:ok)
+    expect(response.parsed_body['shelf_version']).not_to eq(version)
+    expect(ApplicationController.helpers.shelf_preview_signature(owner.reload, 'overview')).to eq(signature)
+    patch shelf_path(owner.username), params: { presentation: { theme: 'electric' }, shelf_version: version }, as: :json
+    expect(response).to have_http_status(:conflict)
   end
 
   it 'rejects visitor and anonymous mutations and leaks no private library fields' do

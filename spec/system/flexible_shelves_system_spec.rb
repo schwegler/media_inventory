@@ -23,7 +23,7 @@ RSpec.describe 'Flexible shelf workspace', type: :system do
     expect(collection.picks[1]['type']).to eq('Book')
     find('summary', text: 'Shelf settings', exact_text: true).click
     fill_in 'Overview cover count', with: 2
-    click_button 'Save collection details'
+    click_button 'Save shelf settings'
     expect(page).to have_css('.shelf-slot', count: 12)
     expect(collection.reload.preview_length).to eq(2)
     capture_ui_screenshot('flexible-owner-desktop')
@@ -39,6 +39,7 @@ RSpec.describe 'Flexible shelf workspace', type: :system do
     click_button 'Save appearance'
     expect(page).to have_text('Appearance saved.')
     expect(collection.reload.presentation['theme']).to eq('gallery')
+    find('summary', text: 'More shelf actions').click
     click_link 'Preview as visitor'
     expect(page).to have_no_button('Save shelf')
     expect(page).to have_no_css('.shelf-settings')
@@ -48,5 +49,25 @@ RSpec.describe 'Flexible shelf workspace', type: :system do
     resize_browser_viewport(640, 450)
     expect(page.evaluate_script('document.documentElement.scrollWidth <= innerWidth')).to be(true)
     capture_ui_screenshot('flexible-200-percent-reflow')
+  end
+
+  it 'returns keyboard focus to Add after removing the final title and saves an empty shelf' do
+    user = create_and_login_user
+    user.update!(username: 'empty_shelf_browser')
+    book = Book.create!(title: 'The final title')
+    shelf = user.shelf_collections.create!(title: 'A shelf taking shape', picks: [{ type: 'Book', id: book.id }])
+    visit shelf_path(user.username, collection: shelf.slug)
+    expect(page).to have_css('.shelf-slot', count: 1)
+    find_button('Remove The final title from shelf').send_keys(:enter)
+    expect(page).to have_no_css('.shelf-slot')
+    expect(find_button('+ Add a title', exact: true)).to match_css(':focus')
+    click_button 'Save shelf'
+    expect(page).to have_text('Shelf saved.')
+    expect(shelf.reload.picks).to eq([])
+    find('summary', text: 'More shelf actions').click
+    click_link 'Preview as visitor'
+    expect(page).to have_text('A shelf taking shape.')
+    expect(page).to have_no_button('Save shelf')
+    expect(page).to have_no_button('Add a title')
   end
 end

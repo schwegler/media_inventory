@@ -3,7 +3,7 @@ import { renderShelfImage, shelfImageAltText, SHELF_THEMES, SHELF_STYLES } from 
 
 export default class extends Controller {
   static targets = ["slots", "dialog", "query", "results", "status", "canvas", "altText", "altTextDetails", "companion", "searchType"]
-  static values = { style: Object, assets: Object, picks: Array, publicUrl: String, url: String, search: String, handle: String, category: String, shelves: Array, overview: Boolean, headline: String, owner: Boolean, previewCategory: String, previewSignature: String, capacity: Number, flexible: Boolean, allowedTypes: Array, previewStored: Boolean, previewTheme: String }
+  static values = { style: Object, assets: Object, picks: Array, publicUrl: String, url: String, search: String, handle: String, category: String, shelves: Array, overview: Boolean, headline: String, owner: Boolean, previewCategory: String, previewSignature: String, editVersion: String, capacity: Number, flexible: Boolean, allowedTypes: Array, previewStored: Boolean, previewTheme: String }
 
   connect() {
     this.picks = this.picksValue; this.dirty = false; this.imageFormat = this.element.querySelector('[name="shelf-format"]:checked')?.value || "portrait"
@@ -75,12 +75,15 @@ export default class extends Controller {
     }
     const empty = this.element.querySelector(".shelf-empty-state"); if (empty) empty.hidden = this.picks.length > 0
     const count = this.element.querySelector('[data-shelf-count]')
-    if (count) count.textContent = `${this.picks.length} selections`
+    if (count) count.textContent = `${this.picks.length} ${this.picks.length === 1 ? "selection" : "selections"}`
     this.schedulePreview()
   }
   changed() { this.dirty = true; this.statusTarget.textContent = "Unsaved changes"; this.render() }
   move(index, direction) { [this.picks[index], this.picks[index + direction]] = [this.picks[index + direction], this.picks[index]]; this.changed(); this.focusItem(index + direction) }
-  focusItem(index) { this.slotsTarget.querySelectorAll(".shelf-slot")[Math.max(0, index)]?.querySelector("button, a")?.focus() }
+  focusItem(index) {
+    const target = this.slotsTarget.querySelectorAll(".shelf-slot")[Math.max(0, index)]?.querySelector("button, a") || this.slotsTarget.querySelector(".shelf-add-title")
+    target?.focus()
+  }
   add(event) { this.open(this.picks.length, event) }
   open(index, event) { if (this.flexibleValue && index >= this.picks.length && this.picks.length >= this.capacityValue) { this.statusTarget.textContent = `This shelf holds up to ${this.capacityValue} titles. Remove a title before adding another.`; return }; clearTimeout(this.timer); this.abort?.abort(); this.dialogGeneration = (this.dialogGeneration || 0) + 1; this.slot = Math.min(index, this.picks.length); this.opener = event?.currentTarget || document.activeElement; this.dialogTarget.showModal(); this.queryTarget.value = ""; this.resultsTarget.textContent = "Type at least two characters to search."; requestAnimationFrame(() => this.queryTarget.focus()) }
   close() { this.dialogGeneration = (this.dialogGeneration || 0) + 1; this.dialogTarget.close() }
@@ -137,11 +140,12 @@ export default class extends Controller {
     this.picksSaving = true
     this.statusTarget.textContent = "Saving…"
     try {
-      const response = await fetch(this.urlValue, { method: "PATCH", headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" }, body: JSON.stringify({ picks, shelf_version: this.previewSignatureValue }) })
-      const result = await response.json()
-      if (!response.ok) throw new Error(result.error || "Save failed")
+      const response = await fetch(this.urlValue, { method: "PATCH", headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" }, body: JSON.stringify({ picks, shelf_version: this.editVersionValue || this.previewSignatureValue }) })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(result.error || "Could not save your shelf. Your changes are preserved; retry saving.")
       this.previewSignatureValue = result.preview_signature
-      this.element.querySelectorAll('input[name="shelf_version"]').forEach(input => { input.value = result.preview_signature })
+      this.editVersionValue = result.shelf_version || result.preview_signature
+      this.element.querySelectorAll('input[name="shelf_version"]').forEach(input => { input.value = this.editVersionValue })
       if (snapshot !== JSON.stringify(this.picks.map(({ id, type }) => ({ id, type })))) {
         this.dirty = true; this.statusTarget.textContent = "Your picks changed during saving. Save again before sharing."; return false
       }
@@ -195,12 +199,13 @@ export default class extends Controller {
     const snapshot = JSON.stringify(presentation)
     this.presentationSaving = true
     try {
-      const response = await fetch(this.urlValue, { method: "PATCH", headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" }, body: JSON.stringify({ presentation, shelf_version: this.previewSignatureValue }) })
+      const response = await fetch(this.urlValue, { method: "PATCH", headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" }, body: JSON.stringify({ presentation, shelf_version: this.editVersionValue || this.previewSignatureValue }) })
       if (!response.ok) throw new Error("Appearance save failed. Reload if this shelf changed in another window.")
       const result = await response.json?.()
       if (result?.preview_signature) {
         this.previewSignatureValue = result.preview_signature
-        this.element.querySelectorAll('input[name="shelf_version"]').forEach(input => { input.value = result.preview_signature })
+        this.editVersionValue = result.shelf_version || result.preview_signature
+        this.element.querySelectorAll('input[name="shelf_version"]').forEach(input => { input.value = this.editVersionValue })
       }
       if (snapshot !== this.presentationSnapshot()) {
         this.presentationDirty = true

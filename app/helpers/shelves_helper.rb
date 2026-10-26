@@ -28,9 +28,15 @@ module ShelvesHelper
 
     shelves = user.favorite_shelves.order(:category)
     shelves = shelves.where(category: category) unless category == 'overview'
-    payload = ['shelf-image-v6-workspace', user.username, user.shelf_headline, user.shelf_presentation,
-               shelves.pluck(:category, :picks)]
+    payload = ['shelf-image-v5-campaign', user.username, user.shelf_headline, shelves.pluck(:category, :picks)]
     Digest::SHA256.hexdigest(payload.to_json)
+  end
+
+  def shelf_edit_version(user, category)
+    signature = shelf_preview_signature(user, category)
+    return signature if category.start_with?('collection:')
+
+    Digest::SHA256.hexdigest([signature, user.shelf_presentation].to_json)
   end
 
   def shelf_preview_image(user, category, theme, style: shelf_image_style({}))
