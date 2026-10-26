@@ -6,6 +6,7 @@
       <div><%= form.label :description, 'A little context' %><%= form.text_area :description, value: collection.description, maxlength: 240, rows: 2 %></div>
       <div><%= form.label :preview_length, 'Overview cover count' %><%= form.number_field :preview_length, value: collection.preview_length, min: 1, max: 12, required: true %><p>Show 1–12 covers in the overview. All titles stay on your full shelf.</p></div>
     </div>
+    <p>Custom shelves support up to <%= number_with_delimiter(collection.operational_capacity) %> titles. The overview and share image show a smaller preview.</p>
     <fieldset class="shelf-media-choices"><legend>Allowed media types for new selections</legend>
       <%= hidden_field_tag 'collection_details[allowed_media_types][]', '' %>
       <% FavoriteShelf::CATEGORIES.except('overall').each do |type, label| %><label><%= check_box_tag 'collection_details[allowed_media_types][]', type, collection.media_types.include?(type) %><%= label %></label><% end %>

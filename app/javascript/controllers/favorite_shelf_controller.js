@@ -3,7 +3,7 @@ import { renderShelfImage, shelfImageAltText, SHELF_THEMES, SHELF_STYLES } from 
 
 export default class extends Controller {
   static targets = ["slots", "dialog", "query", "results", "status", "canvas", "altText", "altTextDetails", "companion", "searchType"]
-  static values = { style: Object, assets: Object, picks: Array, publicUrl: String, url: String, search: String, handle: String, category: String, shelves: Array, overview: Boolean, headline: String, owner: Boolean, previewCategory: String, previewSignature: String, flexible: Boolean, allowedTypes: Array, previewStored: Boolean, previewTheme: String }
+  static values = { style: Object, assets: Object, picks: Array, publicUrl: String, url: String, search: String, handle: String, category: String, shelves: Array, overview: Boolean, headline: String, owner: Boolean, previewCategory: String, previewSignature: String, capacity: Number, flexible: Boolean, allowedTypes: Array, previewStored: Boolean, previewTheme: String }
 
   connect() {
     this.picks = this.picksValue; this.dirty = false; this.imageFormat = this.element.querySelector('[name="shelf-format"]:checked')?.value || "portrait"
@@ -70,7 +70,8 @@ export default class extends Controller {
     }
     if (owner && this.flexibleValue) {
       const add = this.button("+ Add a title", event => this.open(this.picks.length, event))
-      add.className = "shelf-add-title"; this.slotsTarget.append(add)
+      add.className = "shelf-add-title"; add.disabled = this.picks.length >= this.capacityValue; this.slotsTarget.append(add)
+      this.element.querySelectorAll('[data-action="favorite-shelf#add"]').forEach(button => { button.disabled = this.picks.length >= this.capacityValue })
     }
     const empty = this.element.querySelector(".shelf-empty-state"); if (empty) empty.hidden = this.picks.length > 0
     const count = this.element.querySelector('[data-shelf-count]')
@@ -81,7 +82,7 @@ export default class extends Controller {
   move(index, direction) { [this.picks[index], this.picks[index + direction]] = [this.picks[index + direction], this.picks[index]]; this.changed(); this.focusItem(index + direction) }
   focusItem(index) { this.slotsTarget.querySelectorAll(".shelf-slot")[Math.max(0, index)]?.querySelector("button, a")?.focus() }
   add(event) { this.open(this.picks.length, event) }
-  open(index, event) { clearTimeout(this.timer); this.abort?.abort(); this.dialogGeneration = (this.dialogGeneration || 0) + 1; this.slot = Math.min(index, this.picks.length); this.opener = event?.currentTarget || document.activeElement; this.dialogTarget.showModal(); this.queryTarget.value = ""; this.resultsTarget.textContent = "Type at least two characters to search."; requestAnimationFrame(() => this.queryTarget.focus()) }
+  open(index, event) { if (this.flexibleValue && index >= this.picks.length && this.picks.length >= this.capacityValue) { this.statusTarget.textContent = `This shelf holds up to ${this.capacityValue} titles. Remove a title before adding another.`; return }; clearTimeout(this.timer); this.abort?.abort(); this.dialogGeneration = (this.dialogGeneration || 0) + 1; this.slot = Math.min(index, this.picks.length); this.opener = event?.currentTarget || document.activeElement; this.dialogTarget.showModal(); this.queryTarget.value = ""; this.resultsTarget.textContent = "Type at least two characters to search."; requestAnimationFrame(() => this.queryTarget.focus()) }
   close() { this.dialogGeneration = (this.dialogGeneration || 0) + 1; this.dialogTarget.close() }
   localSource() { this.searchSource = "local"; this.updateSourceButtons(); this.search() }
   externalSource() { this.searchSource = "external"; this.updateSourceButtons(); this.search() }

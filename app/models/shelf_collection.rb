@@ -2,6 +2,7 @@
 
 # Independent seasonal/anytime selections; legacy category shelves are untouched.
 class ShelfCollection < ApplicationRecord
+  MAX_PICKS = 1_000
   belongs_to :user
   attr_writer :items
 
@@ -12,6 +13,11 @@ class ShelfCollection < ApplicationRecord
   validate :valid_picks
   validate :valid_media_types
   validates :preview_length, inclusion: { in: 1..12 }
+
+  # Existing oversized records remain editable; a display change never drops content.
+  def operational_capacity
+    [MAX_PICKS, Array(picks_in_database).size].max
+  end
 
   def media_types
     allowed_media_types.presence || FavoriteShelf::CATEGORIES.keys.excluding('overall')
@@ -40,6 +46,10 @@ class ShelfCollection < ApplicationRecord
   def valid_picks
     unless picks.is_a?(Array) && picks.all? { |pick| valid_identity?(pick) }
       errors.add(:picks, 'must contain existing media selections')
+      return
+    end
+    if picks.size > operational_capacity
+      errors.add(:picks, "may contain up to #{operational_capacity} titles; remove a selection before adding another")
       return
     end
     identities = picks.map { |pick| [pick['type'], pick['id'].to_s] }

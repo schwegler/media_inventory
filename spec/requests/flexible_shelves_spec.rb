@@ -106,6 +106,20 @@ RSpec.describe 'Flexible custom shelves', type: :request do
     expect(Nokogiri::HTML(response.body).css('.favorite-shelf-slots .shelf-slot').size).to eq(72)
   end
 
+  it 'enforces operational capacity without truncating existing oversized records' do
+    stub_const('ShelfCollection::MAX_PICKS', 5)
+    original = picks.first(5)
+    capped = owner.shelf_collections.create!(title: 'At capacity', picks: original)
+    expect(capped.update(picks: picks.first(6))).to be(false)
+    expect(capped.errors[:picks].join).to include('up to 5 titles')
+    expect(capped.reload.picks).to eq(original)
+    # Representative pre-existing oversized record: changing settings must preserve it.
+    capped.update_columns(picks: picks)
+    expect(capped.reload.operational_capacity).to eq(8)
+    expect(capped.update(preview_length: 1)).to be(true)
+    expect(capped.reload.picks).to eq(picks)
+  end
+
   it 'rejects malformed identities, duplicates and unknown media types' do
     expect(owner.shelf_collections.new(title: 'Invalid', picks: [{ type: 'User', id: owner.id }])).not_to be_valid
     expect(owner.shelf_collections.new(title: 'Invalid', picks: [picks.first, picks.first])).not_to be_valid

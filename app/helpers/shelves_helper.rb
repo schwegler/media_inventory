@@ -23,9 +23,7 @@ module ShelvesHelper
   def shelf_preview_signature(user, category)
     if category.start_with?('collection:')
       collection = user.shelf_collections.find_by!(slug: category.delete_prefix('collection:'))
-      return Digest::SHA256.hexdigest(['collection-v3-full-shelf', user.username, collection.title, collection.description,
-                                       collection.picks, collection.allowed_media_types, collection.preview_length,
-                                       collection.presentation].to_json)
+      return ShelfCollectionPreviewSignature.call(collection, username: user.username)
     end
 
     shelves = user.favorite_shelves.order(:category)
@@ -41,6 +39,11 @@ module ShelvesHelper
       image.blob.metadata.values_at('category', 'theme', 'signature') == [category, theme, signature] &&
         shelf_image_style(image.blob.metadata.fetch('style', {})) == style
     end
+  end
+
+  def shelf_media_mix(items)
+    types = items.map { |item| item.class.name }.uniq
+    types.size == 1 ? FavoriteShelf::CATEGORIES[types.first] : 'Mixed media'
   end
 
   def shelf_pick_data(items)
