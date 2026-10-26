@@ -11,6 +11,12 @@ RSpec.describe 'Metadata tabs', type: :system do
                                       'Languages' => ['English'] })
   end
 
+  def expect_metadata_connected
+    expect(page).to have_css('#title-details') do |element|
+      element.evaluate_script("!!window.Stimulus?.getControllerForElementAndIdentifier(this, 'metadata-tabs')")
+    end
+  end
+
   it 'supports keyboard, history, searchable panels and expanded document presentation' do
     visit movie_path(movie, anchor: 'metadata-cast')
     expect(page).to have_css('#metadata-cast-tab[aria-selected="true"]')
@@ -29,15 +35,16 @@ RSpec.describe 'Metadata tabs', type: :system do
     find('#metadata-taxonomy-tab').click
     expect(page).to have_text('Drama')
     page.go_back
-    expect(page).to have_css('#title-details[data-metadata-tabs-connected="true"]')
+    expect_metadata_connected
     expect(page).to have_css('#metadata-creators-tab[aria-selected="true"]')
     page.go_forward
-    expect(page).to have_css('#title-details[data-metadata-tabs-connected="true"]')
+    expect_metadata_connected
     expect(page).to have_css('#metadata-taxonomy-tab[aria-selected="true"]')
     expect(page.evaluate_script("getComputedStyle(document.querySelector('#metadata-cast')).display")).to eq('block')
     expect(page.evaluate_script("getComputedStyle(document.querySelector('#metadata-cast')).contentVisibility"))
       .to eq('hidden')
     page.execute_script("document.querySelector('#metadata-cast').dispatchEvent(new Event('beforematch'))")
+    expect(page).to have_current_path(movie_path(movie)) { |uri| uri.fragment == 'metadata-cast' }
     expect(page).to have_css('#metadata-cast-tab[aria-selected="true"]')
     click_button 'Show all'
     expect(page).to have_text('Actor fixture 30')
@@ -50,7 +57,7 @@ RSpec.describe 'Metadata tabs', type: :system do
 
   it 'keeps inactive metadata searchable to the browser text-search algorithm' do
     visit movie_path(movie)
-    expect(page).to have_css('#title-details[data-metadata-tabs-connected="true"]')
+    expect_metadata_connected
     expect(page).to have_css('#metadata-details-tab[aria-selected="true"]')
     expect(page.evaluate_script("window.find('Actor fixture 30', false, false, true)")).to be true
   end

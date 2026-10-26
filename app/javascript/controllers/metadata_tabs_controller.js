@@ -14,13 +14,6 @@ export default class extends Controller {
     this.expandTarget.hidden = false
     this.onHash = () => this.applyLocation()
     window.addEventListener("hashchange", this.onHash)
-    this.onCache = () => {
-      delete this.element.dataset.metadataTabsConnected
-      this.readyFrame = requestAnimationFrame(() => {
-        if (this.element.isConnected) this.element.dataset.metadataTabsConnected = "true"
-      })
-    }
-    document.addEventListener("turbo:before-cache", this.onCache)
     // Finish a fresh island before resolving an existing downstream fragment.
     // A lazily loaded controller can arrive after the browser's first anchor scroll.
     const saved = history.state?.troveMetadata?.path === location.pathname || presentations.has(location.pathname)
@@ -31,7 +24,6 @@ export default class extends Controller {
         (this.element.contains(target) || (this.element.compareDocumentPosition(target) & Node.DOCUMENT_POSITION_FOLLOWING))) {
       target.scrollIntoView({ block: "start", behavior: "instant" })
     }
-    this.element.dataset.metadataTabsConnected = "true"
   }
 
   applyLocation() {
@@ -56,9 +48,6 @@ export default class extends Controller {
 
   disconnect() {
     window.removeEventListener("hashchange", this.onHash)
-    document.removeEventListener("turbo:before-cache", this.onCache)
-    if (this.readyFrame) cancelAnimationFrame(this.readyFrame)
-    delete this.element.dataset.metadataTabsConnected
   }
 
   fragmentIndex() {
@@ -113,7 +102,11 @@ export default class extends Controller {
 
   found(event) {
     if (!this.enhanced || this.expanded) return
-    this.select(this.panelTargets.indexOf(event.currentTarget))
+    const index = this.panelTargets.indexOf(event.currentTarget)
+    if (index < 0) return
+    // Keep a found panel selected if a pending Turbo restore reconnects the island.
+    history.replaceState(history.state, "", this.tabTargets[index].hash)
+    this.select(index)
   }
 
   expand() {
