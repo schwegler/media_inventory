@@ -1,6 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Transient presentation only; bound memory across Turbo visits without storing catalog content or tracking data.
+// Turbo replaces custom history state on restoration. Retain presentation by
+// history entry, never by URL: a new visit to the same title starts compact.
 const presentations = new Map()
 
 // Only this metadata island is tabbed. The page's document navigation stays intact.
@@ -16,7 +17,7 @@ export default class extends Controller {
     window.addEventListener("hashchange", this.onHash)
     // Finish a fresh island before resolving an existing downstream fragment.
     // A lazily loaded controller can arrive after the browser's first anchor scroll.
-    const saved = history.state?.troveMetadata?.path === location.pathname || presentations.has(location.pathname)
+    const saved = this.presentation()
     const target = document.getElementById(location.hash.slice(1))
     const height = this.element.getBoundingClientRect().height
     this.applyLocation()
@@ -27,22 +28,32 @@ export default class extends Controller {
   }
 
   applyLocation() {
-    const saved = history.state?.troveMetadata
-    const state = saved?.path === location.pathname ? saved : presentations.get(location.pathname)
-    this.expanded = state ? state.expanded : this.element.dataset.metadataExpanded === "true"
+    const state = this.presentation()
+    // Cached DOM may still carry an earlier visit's expanded attributes.
+    this.expanded = state?.expanded === true
     this.element.dataset.metadataExpanded = String(this.expanded)
     this.expandTarget.textContent = this.expanded ? "Show tabs" : "Show all"
     const index = this.fragmentIndex()
     if (this.expanded) this.reveal()
-    else this.select(index >= 0 ? index : (state?.index ?? Number(this.element.dataset.metadataSelected || 0)))
+    else this.select(index >= 0 ? index : (state?.index ?? 0))
+  }
+
+  presentation() {
+    const entry = history.state?.turbo?.restorationIdentifier
+    const saved = history.state?.troveMetadata
+    const state = saved?.entry === entry ? saved : presentations.get(entry)
+    return state?.path === location.pathname + location.search ? state : undefined
   }
 
   remember() {
     // Preserve Turbo's restoration identifier rather than replacing history state.
-    const state = { path: location.pathname, expanded: this.expanded, index: this.selectedIndex || 0 }
-    presentations.delete(location.pathname)
-    presentations.set(location.pathname, state)
-    if (presentations.size > 20) presentations.delete(presentations.keys().next().value)
+    const entry = history.state?.turbo?.restorationIdentifier
+    const state = { path: location.pathname + location.search, entry, expanded: this.expanded, index: this.selectedIndex || 0 }
+    if (entry) {
+      presentations.delete(entry)
+      presentations.set(entry, state)
+      if (presentations.size > 20) presentations.delete(presentations.keys().next().value)
+    }
     history.replaceState({ ...history.state, troveMetadata: state }, "", location.href)
   }
 
