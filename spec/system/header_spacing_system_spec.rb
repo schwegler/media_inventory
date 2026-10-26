@@ -3,10 +3,10 @@
 require 'rails_helper'
 
 RSpec.describe 'Header spacing', type: :system do
-  def expect_search_anchored
+  def expect_search_anchored(paint: true)
     # Headless Chrome can defer CDP-emulated resize notifications until paint.
     # Measure the rendered viewport, using the same frame as screenshot QA.
-    page.driver.browser.screenshot_as(:png)
+    page.driver.browser.screenshot_as(:png) if paint
     page.document.synchronize(5, errors: [RSpec::Expectations::ExpectationNotMetError]) do
       bounds = page.evaluate_script(<<~JS)
         (() => {
@@ -23,6 +23,20 @@ RSpec.describe 'Header spacing', type: :system do
       expect(bounds['right']).to be <= bounds['viewport'] - 11
       expect(bounds['overflow']).to be false
     end
+  end
+
+  it 'keeps search attached during native window resizing before any screenshot is captured' do
+    create_and_login_user
+    visit movies_path
+    expect(page).to have_css('[data-controller~="header-search"][data-connected="true"]')
+    page.driver.browser.execute_cdp('Emulation.clearDeviceMetricsOverride')
+    page.current_window.resize_to(2048, 1000)
+    click_button 'Search Trove and supported catalogs'
+    [2048, 1100, 1440, 1100, 2048].each do |width|
+      page.current_window.resize_to(width, 1000)
+      expect_search_anchored(paint: false)
+    end
+    capture_ui_screenshot('search-native-resize-before-screenshot-verified')
   end
 
   it 'anchors search to its button across desktop, floating, narrow and zoomed layouts' do

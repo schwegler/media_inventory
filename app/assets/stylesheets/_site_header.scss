@@ -15,6 +15,7 @@
   .header-shell .app-header .global-search-btn { display: inline-flex; align-items: center; justify-content: center; height: 42px; min-height: 42px; min-width: 24px; }
   .header-shell .app-header .mobile-menu-btn, .header-shell .app-header .combined-search-toggle { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 44px; height: 44px; min-height: 44px; min-width: 44px; padding: .5rem; margin: 0; }
   .header-shell .app-header .combined-search-toggle { display: none; }
+  .header-shell .app-header .header-search-anchor { display: contents; }
   .header-shell .app-header.combined-header { top: 12px; left: 12px; right: 12px; width: auto; margin-inline: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); box-shadow: 0 4px 16px rgba(var(--rgb-inverse), .08); }
   .header-shell .app-header.combined-header::before { display: none; }
   .header-shell .app-header.combined-header .app-nav { width: 100%; min-height: 68px; padding: 12px; }
@@ -39,6 +40,9 @@
   // Category navigation remains on catalog pages; the header has one universal composition.
   .media-workspace .catalog-navigation { display: flex; }
   @media (min-width: 1100px) {
+    // A real containing block follows the trigger through header reflow before
+    // resize callbacks run. Inline search keeps its existing flex layout.
+    body:not(.public-landing) .header-shell .app-header .header-search-anchor { display: block; position: relative; flex: 0 0 44px; height: 44px; }
     .header-shell .app-header .workspace-primary-nav { display: flex; flex: 1; min-width: 0; align-items: center; justify-content: center; gap: clamp(.75rem, 1.5vw, 1.5rem); }
     .header-shell .workspace-primary-nav a { color: var(--text-secondary); font-size: .8125rem; white-space: nowrap; text-decoration: none; border: 0; padding: .75rem 0; }
     .header-shell .workspace-primary-nav a[aria-current] { color: var(--accent); border: 0; }
