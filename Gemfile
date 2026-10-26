@@ -1,9 +1,12 @@
 # frozen_string_literal: true
 
 source 'https://rubygems.org'
-ruby '~> 3.2.0'
+ruby '3.4.12'
 
 gem 'rails', '~> 8.1.4'
+
+# CSV is a bundled gem in Ruby 3.4 and is required by import/export services.
+gem 'csv', '~> 3.3'
 
 # Use the Puma web server [https://github.com/puma/puma]
 gem 'puma', '>= 5.0'

@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-ARG RUBY_VERSION=3.2.3
+ARG RUBY_VERSION=3.4.12
 FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 
 WORKDIR /rails
