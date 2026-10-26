@@ -95,6 +95,39 @@ RSpec.describe 'Metadata tabs', type: :system do
     expect(page).to have_css('#metadata-creators-tab[aria-selected="true"]')
   end
 
+  it 'starts each new Turbo visit compact while restoring each history entry independently' do
+    visit movie_path(movie)
+    expect(page).to have_css('#metadata-details-tab[aria-selected="true"]')
+    click_button 'Show all'
+    find('.media-back-link').click
+    expect(page).to have_current_path(movies_path)
+    find(".card-2026-title a[href='#{movie_path(movie)}']").click
+    expect_metadata_connected
+    expect(page).to have_button('Show all')
+    expect(page).to have_css('[role="tabpanel"]:not([hidden])', count: 1)
+    page.execute_script("document.querySelector('#title-details').scrollIntoView({block: 'center'})")
+    capture_ui_screenshot('metadata-default-fresh-turbo')
+
+    page.go_back
+    expect(page).to have_current_path(movies_path)
+    page.go_back
+    expect_metadata_connected
+    expect(page).to have_button('Show tabs')
+    expect(page).to have_css('#title-details .media-metadata-panel:not([hidden])', count: 4)
+    page.go_forward
+    expect(page).to have_current_path(movies_path)
+    page.go_forward
+    expect_metadata_connected
+    expect(page).to have_button('Show all')
+    expect(page).to have_css('[role="tabpanel"]:not([hidden])', count: 1)
+
+    # A reload starts a new document with the compact default, not cached DOM state.
+    click_button 'Show all'
+    page.refresh
+    expect(page).to have_css('#metadata-details-tab[aria-selected="true"]')
+    expect(page).to have_button('Show all')
+  end
+
   it 'reflows long metadata in light and dark themes on desktop, mobile and 200 percent equivalent width' do
     [[1440, 1000], [390, 844], [320, 900]].each do |width, height|
       resize_browser_viewport(width, height)
@@ -123,6 +156,8 @@ RSpec.describe 'Metadata tabs', type: :system do
     [book, album, comic, show, game].each do |item|
       visit polymorphic_path(item)
       expect(page).to have_css('#title-details [role="tablist"]')
+      expect(page).to have_button('Show all')
+      expect(page).to have_css('[role="tabpanel"]:not([hidden])', count: 1)
       expect(page).to have_no_css('#metadata-cast') unless item.is_a?(TvShow)
       click_button 'Show all'
       expect(page).to have_css('#title-details a.media-category-link')
@@ -131,6 +166,10 @@ RSpec.describe 'Metadata tabs', type: :system do
       expect(page).to have_text('Episode fixture') if item == show
       expect(page).to have_no_css('#title-details .series-entry, #title-details .album-track')
       capture_ui_screenshot("metadata-#{item.class.name.underscore}-expanded")
+      page.refresh
+      expect(page).to have_css('#title-details [role="tab"]:first-child[aria-selected="true"]')
+      expect(page).to have_css('[role="tabpanel"]:not([hidden])', count: 1)
+      expect(page).to have_button('Show all')
     end
   end
 
