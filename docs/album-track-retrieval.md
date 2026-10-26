@@ -1,6 +1,7 @@
 # Album track retrieval investigation
 
-Evidence captured read-only on 2026-10-26. No production records were changed.
+The initial evidence below was captured read-only on 2026-10-26. This code
+change performs no production data repair.
 
 ## Reproduced cases
 
@@ -85,9 +86,10 @@ budget applies to both the HTTP deadline and the outer provider timeout, with
 shorter per-HTTP timeouts. A process interrupted after commit can leave a stale refreshing lease; the existing status and retry path
 recovers it. Background cover jobs remain unchanged.
 
-Album search excludes MusicBrainz Singles. Group imports choose a deterministic
-reported official release where available and retain its ID in existing refresh
-provenance. Explicit release URLs retain that edition. Subsequent refreshes keep
+Album search excludes MusicBrainz Singles. Unpinned groups now resolve only when
+one distinct official release is reported; competing or unverified candidates
+require a verified edition. See [edition ambiguity](musicbrainz-edition-selection.md).
+Explicit release URLs retain that edition. Subsequent refreshes keep
 the pinned release even if the group's response order or contents change. Legacy
 bare/namespaced MusicBrainz IDs default to group lookup unless the stored URL
 explicitly identifies a release.
@@ -101,7 +103,8 @@ conservatively preserved because historical track field provenance is absent.
 Remaining provider limits: iTunes's 200-song bound and default US storefront,
 MusicBrainz's one-request-per-second policy and potentially limited embedded
 release candidates. No alternate provider/region or edition is silently substituted
-on failure. The selected group edition is a stable source edition, not a claim
+on failure. An unambiguous or explicitly pinned edition is a source identity,
+not a claim
 that it matches a listener's particular physical pressing. Group/release requests
 are separated by the existing MusicBrainz delay; 429/503/timeouts remain retryable
 states rather than initiating a bulk retry storm.
@@ -176,7 +179,8 @@ Use it only for an approved missing/partial target after taking a database backu
 and row-level before snapshots. It retains normal user/item cooldowns, does not
 change source identity, preserves populated track fields, and is idempotent under
 repeated reconciliation. Do not use it for Geese or any wrong-edition/unverified
-candidate. The current approved write target set is empty.
+candidate. This command and code change grant no live write authority; targeted data
+repairs require their own separately reviewed approval.
 
 Keep the dry-run report, source payload evidence, approval, backup reference,
 operator/time, exact command, refresh result and post-run audit together. Compare

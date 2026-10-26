@@ -98,9 +98,10 @@ RSpec.describe 'Album track imports' do
     expect(album.metadata_refresh.state).to eq('success')
   end
 
-  it 'resolves a release group to a full official release and pins it across retries' do
+  it 'resolves a group with one reported official release and pins it across retries' do
     group = fixture('geese_release_group')
     release = fixture('geese_official_release')
+    group['releases'].select! { |row| row['id'] == release['id'] }
     group_request = mb_response('release-group', group.fetch('id'), group)
     release_request = mb_response('release', release.fetch('id'), release)
     allow_any_instance_of(MetadataProvider).to receive(:sleep)
@@ -224,6 +225,7 @@ RSpec.describe 'Album track imports' do
   it 'does not reuse an edition pin after the stored release-group identity changes' do
     group = fixture('geese_release_group')
     release = fixture('geese_official_release')
+    group['releases'].select! { |row| row['id'] == release['id'] }
     mb_response('release-group', group.fetch('id'), group)
     mb_response('release', release.fetch('id'), release)
     allow_any_instance_of(MetadataProvider).to receive(:sleep)

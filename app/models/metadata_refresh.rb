@@ -7,6 +7,7 @@ class MetadataRefresh < ApplicationRecord
     'queue_busy' => 'Background work is busy. Please try the metadata check again shortly.',
     'success' => 'Metadata refreshed. Your library history and reviews are preserved.',
     'unchanged' => 'Metadata checked. No changes found.',
+    'edition_required' => 'Tracks need a verified release edition. Existing tracks were preserved. Verify the source.',
     'edition_conflict' => 'A different edition was returned. Tracks were preserved. Check the source before retrying.',
     'partial' => 'Some metadata was refreshed, but the provider could not supply everything. Try again later.',
     'unavailable' => 'The metadata provider is unavailable or not configured. Your existing metadata is safe.',

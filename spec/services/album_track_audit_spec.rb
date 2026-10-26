@@ -8,7 +8,10 @@ RSpec.describe AlbumTrackAudit do
     [{ 'provider_id' => 'itunes:101', 'title' => 'Song 1', 'disc_number' => 1, 'track_number' => 1 },
      { 'provider_id' => 'itunes:102', 'title' => 'Song 2', 'disc_number' => 1, 'track_number' => 2 }]
   end
-  let(:adapter) { instance_double(MetadataProvider, provider: 'iTunes', partial: false, album_release_id: nil) }
+  let(:adapter) do
+    instance_double(MetadataProvider, provider: 'iTunes', partial: false, album_release_id: nil,
+                                      album_edition_required: false)
+  end
   let(:audit) { described_class.new(ids: [album.id]) }
 
   before do
@@ -85,5 +88,13 @@ RSpec.describe AlbumTrackAudit do
     expect(result).to include(classification: 'user_modified_or_unverified', eligible_for_review: false,
                               proposed_additions: [])
     expect(album.album_tracks.count).to eq(3)
+  end
+  it 'reports edition ambiguity without blaming manual edits or proposing replacement rows' do
+    AlbumMetadata.reconcile(album, rows)
+    allow(adapter).to receive_messages(partial: true, album_edition_required: true)
+    allow(adapter).to receive(:call).and_return([{ metadata_details: {} }, []])
+    expect(audit.report(album)).to include(classification: 'edition_required', source_state: 'edition_required',
+                                           eligible_for_review: false, proposed_additions: [])
+    expect(album.album_tracks.count).to eq(2)
   end
 end
