@@ -14,7 +14,8 @@ RSpec.describe 'Album tracks through signed imports', type: :request do
     lookup = stub_request(:get, 'https://itunes.apple.com/lookup')
              .with(query: { id: '21296483', entity: 'song', limit: '200' }).to_return(body: payload)
     allow(RefreshMediaMetadataJob).to receive(:perform_later).and_return(false)
-    selection = MetadataImport.sign('album', title: 'Magazine', api_id: 'itunes_21296483', artist: 'Jump, Little Children')
+    selection = MetadataImport.sign('album', title: 'Magazine', api_id: 'itunes_21296483',
+                                             artist: 'Jump, Little Children', release_year: 1998)
     post albums_path, params: { album: { import_selection: selection, review: 'Personal review', rating: '4' } }
     album = Album.last
     expect(response).to redirect_to(album)

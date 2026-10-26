@@ -241,4 +241,25 @@ RSpec.describe 'Album track imports' do
     expect(MetadataRefresher.new(album, user).call(claimed: true)).to eq('edition_conflict')
     expect(album.album_tracks.order(:id).map(&:attributes)).to eq(original)
   end
+  it 'keeps item and explicit user cooldowns while initial hydration is independent of other items' do
+    lookup = itunes_response
+    album = Album.create!(title: 'Album', api_id: 'itunes_42')
+    expect(MetadataRefresher.new(album, nil).import_album).to eq('cooldown')
+    album.metadata_refresh.update!(requested_at: nil)
+    user.update!(metadata_requested_at: Time.current)
+    expect(MetadataRefresher.new(album, user).enqueue).to eq('cooldown')
+    expect(lookup).to have_been_requested.once
+  end
+
+  it 'bounds a stalled initial lookup and records a retryable failure' do
+    stub_const('MetadataRefresher::ALBUM_TIMEOUT', 0.02)
+    stub_request(:get, 'https://itunes.apple.com/lookup')
+      .with(query: { id: '42', entity: 'song', limit: '200' }).to_return do
+      sleep 0.1
+      { body: itunes_payload.to_json }
+    end
+    album = Timeout.timeout(1) { Album.create!(title: 'Album', api_id: 'itunes_42') }
+    expect(album.metadata_refresh.state).to eq('failed')
+    expect(album.album_tracks).to be_empty
+  end
 end
