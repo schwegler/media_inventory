@@ -2,6 +2,8 @@
 
 # Owner-only work area. Public routes remain exhibitions, including for their owner.
 class ShelfWorkspaceController < ShelvesController
+  include ShelfCreationNonces
+
   skip_before_action :load_user
   before_action :logged_in_user
   before_action :workspace_owner
@@ -17,15 +19,14 @@ class ShelfWorkspaceController < ShelvesController
 
   def new
     @collection = @user.shelf_collections.new
-    @creation_token = session[:shelf_creation_token] ||= SecureRandom.hex(24)
+    @creation_token = issue_creation_nonce
   end
 
   def create
     if params[:creation_token].present? && params[:creation_token] == session[:last_shelf_creation_token]
       return redirect_to edit_managed_shelf_path(session[:last_shelf_creation_slug]), status: :see_other
     end
-    return head :conflict unless params[:creation_token].present? &&
-                                 params[:creation_token] == session[:shelf_creation_token]
+    return head :conflict unless valid_creation_nonce?
 
     mood = helpers.shelf_starting_mood(params[:starting_mood])
     presentation = helpers.shelf_image_style({}).merge('theme' => mood)
@@ -106,11 +107,6 @@ class ShelfWorkspaceController < ShelvesController
     attributes = params.require(:shelf_collection).permit(:title, :description, :preview_length, allowed_media_types: [])
     attributes[:allowed_media_types] = attributes[:allowed_media_types].compact_blank if attributes[:allowed_media_types]
     attributes
-  end
-
-  def remember_creation
-    session[:last_shelf_creation_token] = session.delete(:shelf_creation_token)
-    session[:last_shelf_creation_slug] = @collection.slug
   end
 
   def current_version?

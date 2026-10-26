@@ -69,6 +69,23 @@ RSpec.describe 'Owner shelf workspace', type: :request do
     expect(created.picks).to eq([])
   end
 
+  it 'keeps independently opened creation forms independent' do
+    login
+    tokens = 2.times.map do
+      get new_managed_shelf_path
+      Nokogiri::HTML(response.body).at_css('input[name="creation_token"]')['value']
+    end
+    expect(tokens.uniq.size).to eq(2)
+    expect do
+      tokens.each_with_index do |token, index|
+        post managed_shelves_path, params: { creation_token: token,
+                                             shelf_collection: { title: "Independent shelf #{index}" } }
+        expect(response).to have_http_status(:see_other)
+      end
+    end.to change(ShelfCollection, :count).by(2)
+    expect(owner.shelf_collections.pluck(:title)).to contain_exactly('Independent shelf 0', 'Independent shelf 1')
+  end
+
   it 'moves editors off public views for owners as well as visitors' do
     login
     get shelf_path(owner.username, collection: collection.slug)

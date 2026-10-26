@@ -39,7 +39,7 @@ Archive replaces irreversible delete: the owner reviews the consequence and type
 
 The additive migration introduces nullable `archived_at`; all existing shelves remain active. Rollback is reversible when no archives exist. If archives exist, rollback raises before removing protection rather than silently republishing archived shelves; restoration decisions require review first. Isolated checks verify two down/up cycles, exact prior data preservation, seven favorites, 1,000-title capacity and guarded rollback. No production migration has run.
 
-Creation uses a session form nonce and a deterministic shelf identity protected by the existing unique user/slug index. Repeated submissions cannot multiply shelves. New/settings forms retain invalid values, render errors, disable during Turbo submission and protect dirty navigation with a focus-managed leave dialog. Owner forms opt out of Turbo snapshots so stale nonces and discarded fields are not resurrected. Existing stale-save and item dirty-navigation protections remain.
+Each independently opened Create form gets its own nonce (up to ten pending forms per session) and a deterministic shelf identity protected by the existing unique user/slug index. Repeated submissions cannot multiply shelves. New/settings forms retain invalid values, render errors, disable during Turbo submission and protect dirty navigation with a focus-managed leave dialog. Owner forms opt out of Turbo snapshots so stale nonces and discarded fields are not resurrected. Existing stale-save and item dirty-navigation protections remain.
 
 ## Visual comparison and evidence
 
