@@ -62,10 +62,14 @@ RSpec.describe 'Users index', type: :request do
 
     context 'pagination' do
       before do
-        30.times do |n|
-          User.create!(name: "User #{n}", email: "user-#{n}@example.com", password: 'password123',
-                       password_confirmation: 'password123')
+        # Pagination needs persisted directory rows, not 30 additional RSA key
+        # generations. Derive them from the normally validated/created user;
+        # login still exercises that user's real password and creation callbacks.
+        attributes = user.attributes.except('id', 'name', 'email')
+        rows = 30.times.map do |n|
+          attributes.merge('name' => "User #{n}", 'email' => "user-#{n}@example.com")
         end
+        User.insert_all!(rows)
         post login_path, params: { session: { email: user.email, password: 'password123' } }
         get users_path
       end
@@ -75,6 +79,7 @@ RSpec.describe 'Users index', type: :request do
       end
 
       it 'lists each user' do
+        expect(User.count).to eq(31)
         User.page(1).each do |u|
           expect(response.body).to include(u.name)
         end

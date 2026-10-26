@@ -8,7 +8,7 @@ RSpec.describe 'In Progress Tracking and Logging', type: :request do
                  password: 'password123', password_confirmation: 'password123', confirmed_at: Time.current)
   end
 
-  let!(:other_user) do
+  let(:other_user) do
     User.create!(name: 'John Smith', username: 'johnsmith', email: 'john@example.com',
                  password: 'password123', password_confirmation: 'password123', confirmed_at: Time.current)
   end

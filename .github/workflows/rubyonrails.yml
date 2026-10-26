@@ -48,7 +48,7 @@ jobs:
         run: bin/rails dartsass:build
       # Add or replace test runners here
       - name: Run tests
-        run: bin/rake
+        run: bin/rake SPEC_OPTS='--profile 20'
       - name: Check selective browser behavior
         run: node --test spec/javascript/*.test.cjs spec/javascript/*.test.mjs
       - name: Install browser and matching driver
@@ -67,6 +67,7 @@ jobs:
           SE_AVOID_STATS: 'true'
         run: >-
           bundle exec rspec
+          --profile 20
           spec/system/public_home_system_spec.rb
           spec/system/discovery_system_spec.rb
           spec/system/amazon_sources_system_spec.rb
