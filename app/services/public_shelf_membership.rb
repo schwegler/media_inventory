@@ -31,12 +31,11 @@ class PublicShelfMembership
 
   private
 
-  # Bound the combined window BEFORE examining JSON picks. Named candidates must
-  # have a specifically published preview; Ruby verifies its current fingerprint.
+  # Bound the combined window BEFORE examining any JSON. Current named publication
+  # is checked afterward; unpublished candidates can crowd out older matches.
   def recent_candidates
     queries = { 'favorite' => FavoriteShelf, 'collection' => ShelfCollection }.map do |kind, model|
       scope = publicly_addressable(model)
-      scope = named_publications(scope) if kind == 'collection'
       scope.select(Arel.sql("'#{kind}' AS shelf_kind"), :id, :updated_at).distinct.arel.ast
     end
     union = Arel::Nodes::UnionAll.new(queries[0], queries[1])
@@ -52,11 +51,6 @@ class PublicShelfMembership
     users = User.where.not(confirmed_at: nil).where.not(username: [nil, ''])
                 .joins(:shelf_previews_attachments).select(:id)
     model.where(user_id: users)
-  end
-
-  def named_publications(scope)
-    scope = scope.joins(user: { shelf_previews_attachments: :blob })
-    scope.where("#{ShelfPublicationLookup.metadata_sql('category')} = ('collection:' || shelf_collections.slug)")
   end
 
   def current_publication?(record)
