@@ -115,6 +115,7 @@ GEM
       bigdecimal
       rexml
     crass (1.0.8)
+    csv (3.3.6)
     dartsass-rails (0.5.1)
       railties (>= 6.0.0)
       sass-embedded (~> 1.63)
@@ -414,6 +415,7 @@ GEM
 
 PLATFORMS
   arm64-darwin-25
+  arm64-darwin-27
   x86_64-linux-gnu
 
 DEPENDENCIES
@@ -422,6 +424,7 @@ DEPENDENCIES
   brakeman
   bundler-audit
   capybara
+  csv (~> 3.3)
   dartsass-rails
   dockerfile-rails (>= 1.7)
   foreman
@@ -451,7 +454,7 @@ DEPENDENCIES
   webmock (~> 3.34)
 
 RUBY VERSION
-   ruby 3.2.3p157
+   ruby 3.4.12p148
 
 BUNDLED WITH
    2.4.19
