@@ -1,3 +1,4 @@
+<% content_for :turbo_no_cache, 'true' %>
 <% public_review = @entry.is_public? %>
 <% author = @entry.user %>
 <% author_name = author.name.presence || author.display_handle %>

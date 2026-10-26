@@ -36,6 +36,7 @@ RSpec.describe 'Review pages', type: :request do
     expect(meta('og:description')).not_to include('secret ending', 'First paragraph')
     expect(document.at_css('meta[name="twitter:description"]')['content']).to eq(meta('og:description'))
     expect(response.headers['Cache-Control']).to include('no-store')
+    expect(document.at_css('meta[name="turbo-cache-control"]')['content']).to eq('no-cache')
     expect(response.body).to include("comments_for_LibraryItem_#{entry.id}", "like_button_LibraryItem_#{entry.id}")
   end
 
