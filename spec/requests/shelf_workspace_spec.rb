@@ -20,6 +20,10 @@ RSpec.describe 'Owner shelf workspace', type: :request do
   it 'requires authentication and scopes every editor and archive action to its owner' do
     get shelf_workspace_path
     expect(response).to redirect_to(login_path)
+    patch archive_managed_shelf_path(collection.slug)
+    expect(response).to redirect_to(login_path)
+    patch restore_managed_shelf_path(collection.slug)
+    expect(response).to redirect_to(login_path)
     other = User.create!(name: 'Other', username: 'other_curator', email: 'other@example.com', password: 'password')
     login(other)
     [edit_managed_shelf_path(collection.slug), managed_shelf_settings_path(collection.slug),
@@ -30,6 +34,10 @@ RSpec.describe 'Owner shelf workspace', type: :request do
     patch archive_managed_shelf_path(collection.slug), params: { confirmation: collection.title, shelf_version: version }
     expect(response).to have_http_status(:not_found)
     expect(collection.reload.archived_at).to be_nil
+    collection.update_column(:archived_at, Time.current)
+    patch restore_managed_shelf_path(collection.slug)
+    expect(response).to have_http_status(:not_found)
+    expect(collection.reload.archived_at).to be_present
   end
 
   it 'lists all seven favorites and custom shelves before public exhibitions' do
@@ -89,6 +97,8 @@ RSpec.describe 'Owner shelf workspace', type: :request do
 
   it 'requires confirmation and restores original URLs, selections and order without hard deletion' do
     login
+    library_item = owner.library_items.create!(item: movie, review: 'Private library note', is_public: false)
+    library_before = library_item.attributes
     original = collection.attributes.except('archived_at')
     patch archive_managed_shelf_path(collection.slug), params: { shelf_version: version, confirmation: 'wrong' }
     expect(response).to have_http_status(:unprocessable_content)
@@ -105,6 +115,8 @@ RSpec.describe 'Owner shelf workspace', type: :request do
     patch restore_managed_shelf_path(collection.slug)
     expect(response).to redirect_to(shelf_workspace_path)
     expect(collection.reload.attributes.except('archived_at')).to eq(original)
+    expect(library_item.reload.attributes).to eq(library_before)
+    expect(Movie.exists?(movie.id)).to be(true)
     get shelf_path(owner.username, collection: collection.slug)
     expect(response).to have_http_status(:ok)
   end
