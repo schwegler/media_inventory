@@ -4,6 +4,9 @@ require 'rails_helper'
 
 RSpec.describe 'Header spacing', type: :system do
   def expect_search_anchored
+    # Headless Chrome can defer CDP-emulated resize notifications until paint.
+    # Measure the rendered viewport, using the same frame as screenshot QA.
+    page.driver.browser.screenshot_as(:png)
     page.document.synchronize(5, errors: [RSpec::Expectations::ExpectationNotMetError]) do
       bounds = page.evaluate_script(<<~JS)
         (() => {
