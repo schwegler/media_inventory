@@ -17,9 +17,10 @@ class MetadataProvider
     @item = item
     @id = item.api_id.to_s
     @partial = false
+    @album_edition_required = false
   end
 
-  attr_reader :partial, :provider, :album_release_id, :album_release_group_id
+  attr_reader :partial, :provider, :album_release_id, :album_release_group_id, :album_edition_required
 
   def call
     raise Unsupported if @id.blank?
@@ -350,10 +351,19 @@ class MetadataProvider
     provenance = MetadataRefresh.find_by(item: @item)&.provider_values || {}
     return provenance['album_release_id'] if provenance['album_release_group_id'] == @id
 
-    release = Array(data['releases']).select { |row| row['id'].present? }.min_by do |row|
-      [row['status'] == 'Official' ? 0 : 1, row['date'].presence || '9999', row['id']]
+    releases = Array(data['releases']).select { |row| row['id'].present? }.uniq { |row| row['id'] }
+    return if releases.empty?
+
+    # Group membership and dates do not identify a listener's edition. In
+    # particular, a year-only bonus-disc date can sort before the full album.
+    # Keep explicit/pinned identities; never rank competing releases by date,
+    # title, country, track count, or provider response order.
+    if releases.one? && releases.first['status'] == 'Official'
+      releases.first.fetch('id')
+    else
+      @album_edition_required = true
+      nil
     end
-    release&.fetch('id')
   end
 
   def musicbrainz_includes

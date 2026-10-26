@@ -39,11 +39,12 @@ class AlbumTrackAudit
     adapter = MetadataProvider.new(album, revalidate: true, fresh: true,
                                           deadline: Process.clock_gettime(Process::CLOCK_MONOTONIC) + 12)
     fields, rows = Timeout.timeout(12) { adapter.call }
-    classification = classify(album, fields, existing, rows)
+    classification = classify_source(adapter, album, fields, existing, rows)
+    source_state = audit_source_state(adapter)
     source = { provider: adapter.provider, release_id: adapter.album_release_id, rows: rows }
     eligible = !adapter.partial && %w[missing partial].include?(classification)
     additions = rows.reject { |row| existing.any? { |track| track['provider_id'] == row['provider_id'] } }
-    evidence.merge(classification: classification, source_state: adapter.partial ? 'partial' : 'complete',
+    evidence.merge(classification: classification, source_state: source_state,
                    provider_evidence: source, evidence_sha256: Digest::SHA256.hexdigest(source.to_json),
                    eligible_for_review: eligible, proposed_additions: eligible ? additions : [])
   rescue MetadataProvider::Unsupported
@@ -57,6 +58,18 @@ class AlbumTrackAudit
   end
 
   private
+
+  def classify_source(adapter, album, fields, existing, rows)
+    return 'edition_required' if adapter.album_edition_required
+
+    classify(album, fields, existing, rows)
+  end
+
+  def audit_source_state(adapter)
+    return 'edition_required' if adapter.album_edition_required
+
+    adapter.partial ? 'partial' : 'complete'
+  end
 
   def classify(album, fields, existing, rows)
     type = fields.dig(:metadata_details, 'primary-type') || album.metadata_details['primary-type']

@@ -53,6 +53,7 @@ class MetadataRefresher
     changed = reconcile(fields, rows)
     state = changed.positive? ? 'success' : 'unchanged'
     state = 'partial' if @adapter.partial
+    state = 'edition_required' if @item.is_a?(Album) && @adapter.album_edition_required
     @refresh.update!(state: state, provider: @adapter.provider, succeeded_at: Time.current)
     state
   rescue AlbumMetadata::EditionConflict
