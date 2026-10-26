@@ -28,8 +28,10 @@
           <%= link_to 'Community', users_path, aria: { current: controller_name == 'users' && action_name == 'index' ? 'page' : nil } %>
           <% if logged_in? %><%= link_to 'Profile', current_user, aria: { current: current_user?(@user) && params[:tab].blank? && controller_name == 'users' ? 'page' : nil } %><% end %>
         </nav>
+        <div class="header-search-anchor">
         <div id="header-search-panel" class="combined-search" data-header-search-target="panel"><%= render 'shared/header_search' %></div>
         <button class="combined-search-toggle btn btn-ghost" type="button" data-action="header-search#toggle" aria-label="Search Trove and supported catalogs" aria-controls="header-search-panel" aria-expanded="false" data-header-search-target="button"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m16 16 4 4"/></svg></button>
+        </div>
       <%= render 'shared/appearance_menu' %>
       <div class="nav-user-section desktop-nav">
         <a class="blog-nav-link" href="https://tacobout.online/">Blog</a>
