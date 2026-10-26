@@ -60,7 +60,7 @@ RSpec.describe 'Media title details', type: :request do
     expect(document.at_css('.media-synopsis strong').text).to eq('story')
     expect(document.css('.media-synopsis [onclick]')).to be_empty
     expect(document.css('.media-description-row dt').map(&:text)).not_to include('Synopsis')
-    expect(document.at_css('[aria-label="Additional title details"]').text).to include('A different edition note.',
-                                                                                       '1234567890123')
+    expect(document.at_css('#metadata-details').text).to include('A different edition note.',
+                                                                 '1234567890123')
   end
 end

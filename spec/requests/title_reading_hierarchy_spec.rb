@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Title metadata priority', type: :request do
-  it 'keeps linked people in title details and shows only additional roles in the credit section' do
+  it 'consolidates linked people and additional roles into the appropriate metadata categories' do
     movie = Movie.create!(title: 'Credits hierarchy fixture', director: 'Director One', actors: 'Actor One',
                           metadata_credits_data: [{ 'name' => 'Director One', 'role' => 'Director' },
                                                   { 'name' => 'Actor One', 'role' => 'Actor' },
@@ -12,8 +12,8 @@ RSpec.describe 'Title metadata priority', type: :request do
     document = Nokogiri::HTML(response.body)
     facts = document.at_css('#title-details')
     expect(facts.css('a').map(&:text)).to include('Director One', 'Actor One')
-    additional = document.at_css('.entity-credits')
-    expect(additional.css('a').map(&:text)).to eq(['Composer One'])
+    expect(document.at_css('#metadata-creators').css('a').map(&:text)).to include('Director One', 'Composer One')
+    expect(facts.text.scan('Composer One').length).to eq(1)
     expect(document.at_css('.media-overview-stats')).to be_present
     expect(document.at_css('#community')).to be_present
   end
@@ -22,6 +22,6 @@ RSpec.describe 'Title metadata priority', type: :request do
     movie = Movie.create!(title: 'Structured-only fixture',
                           metadata_credits_data: [{ 'name' => 'Actor One', 'role' => 'Actor' }])
     get movie_path(movie)
-    expect(Nokogiri::HTML(response.body).at_css('.entity-credits').text).to include('Actor One')
+    expect(Nokogiri::HTML(response.body).at_css('#metadata-cast').text).to include('Actor One')
   end
 end

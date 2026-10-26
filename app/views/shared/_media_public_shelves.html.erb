@@ -1,0 +1,24 @@
+<% shelves = PublicShelfMembership.call(item, limit: 6) %>
+<% if shelves.any? %>
+  <section class="media-public-shelves media-section" aria-labelledby="public-shelves-heading">
+    <div class="media-public-shelves-heading"><h2 id="public-shelves-heading">On public shelves</h2><p>From recently updated published shelves</p></div>
+    <ul class="media-public-shelves-list" role="list">
+      <% shelves.each do |shelf| %>
+        <li>
+          <%= link_to shelf[:url], class: 'media-public-shelf' do %>
+            <span class="media-public-shelf-covers" aria-hidden="true">
+              <% shelf[:covers].first(5).each do |cover| %>
+                <% if cover[:cover].present? %>
+                  <%= image_tag cover[:cover], alt: '', loading: 'lazy', width: 38, height: 54 %>
+                <% else %>
+                  <span class="media-public-shelf-cover-fallback"><%= ui_icon(MediaLayoutHelper::CATALOGS.fetch(cover[:type])[2]) %></span>
+                <% end %>
+              <% end %>
+            </span>
+            <span class="media-public-shelf-copy"><strong><%= shelf[:title] %></strong><span>by <%= shelf[:creator][:name].presence || "@#{shelf[:creator][:username]}" %></span><span><%= pluralize(shelf[:count], 'title') %></span></span>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  </section>
+<% end %>

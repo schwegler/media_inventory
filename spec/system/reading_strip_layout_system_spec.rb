@@ -50,8 +50,10 @@ RSpec.describe 'Reading strip visual layout', type: :system do
       expect(page).to have_current_path(tv_show_path(show)) { |uri| uri.fragment == 'from-tacobout' }
       capture_ui_screenshot("strip-#{phase}-#{width}-reading")
       if phase != 'before'
-        expect(page).to have_css('.media-information #title-details')
-        expect(page).to have_css('.media-information .entity-credits')
+        expect(page).to have_css('#title-details')
+        click_button 'Show all'
+        expect(page).to have_css('#metadata-creators', visible: :all)
+        expect(page).to have_css('#metadata-creators a', text: 'George Kay', visible: :all)
         expect(page).to have_text('Second unit director')
       end
       next unless ENV['UI_QA_DIR']

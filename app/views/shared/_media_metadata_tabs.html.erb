@@ -1,0 +1,25 @@
+<% if groups.any? %>
+  <section id="title-details" class="media-description media-metadata" aria-labelledby="title-details-heading" data-controller="metadata-tabs">
+    <div class="media-metadata-heading">
+      <h2 id="title-details-heading">Details</h2>
+      <% if groups.many? %><button type="button" class="media-metadata-expand" data-metadata-tabs-target="expand" data-action="metadata-tabs#expand" hidden>Show all</button><% end %>
+    </div>
+    <% if groups.many? %>
+      <nav class="media-metadata-nav" aria-label="Detailed metadata" data-metadata-tabs-target="list" data-turbo="false">
+        <% groups.each do |group| %>
+          <a id="<%= group[:id] %>-tab" href="#<%= group[:id] %>" data-metadata-tabs-target="tab" data-action="click->metadata-tabs#choose keydown->metadata-tabs#navigate"><%= group[:label] %></a>
+        <% end %>
+      </nav>
+    <% end %>
+    <% groups.each do |group| %>
+      <section id="<%= group[:id] %>" class="media-metadata-panel" aria-labelledby="<%= group[:id] %>-heading" data-metadata-tabs-target="panel" data-action="beforematch->metadata-tabs#found">
+        <h3 id="<%= group[:id] %>-heading"><%= group[:label] %></h3>
+        <dl class="media-description-facts">
+          <% group[:rows].each do |_, label, value| %>
+            <div class="media-description-row<%= ' media-description-row-wide' if group[:id] != 'metadata-details' || %w[Description Synopsis Languages].include?(label) %>"><dt><%= label %></dt><dd><%= value %></dd></div>
+          <% end %>
+        </dl>
+      </section>
+    <% end %>
+  </section>
+<% end %>

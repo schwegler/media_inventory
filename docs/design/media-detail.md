@@ -1,0 +1,19 @@
+# Compact media metadata and public shelf discovery
+
+Design checkpoint before implementation — 26 October 2026; base 9e194e21.
+
+The overview retains cover, title, synopsis, key facts, rating and tracking jump. The existing document navigation (Overview / My Library / Details / Episodes or Issues / Community / Comments) remains document navigation. Quick actions, related reading, tracks, series entries and private game tracking stay independent.
+
+Only the detailed metadata block becomes compact. Its heading is Details, followed by a thin horizontally scrollable tab row, an understated Show all control and a two-column definition list. Current surface, border, accent, text and typography tokens apply in both themes. Tabs have 44px minimum targets and a visible active underline and focus outline. At narrow widths the tab row scrolls independently, facts stack and long values wrap. No fixed height truncates credits or descriptions.
+
+Categories use available content: Details for technical/publication/provider facts, Cast only for screen actor credits, Crew for screen creators and Creators for other media, Genres or Features for taxonomy/game features. Empty categories disappear. One category needs no tabs. Release year remains a fact; no invented Releases category. Linked metadata entities and category links remain links. Provider synopsis duplicating the visible synopsis is removed; other descriptions remain. Header facts remain useful while duplicate detailed facts and structured credits merge by role.
+
+Without JavaScript all categories are visible with normal fragment links and headings. Enhancement adds ARIA tablist/tab/tabpanel, roving focus, automatic selection on arrow/Home/End, and a Show all escape. Category fragments select their panels on initial load and history changes without intercepting top-level navigation. Searchable hidden-until-found panels reveal through beforematch; browsers without that support retain the expanded document presentation. Expanded mode restores all content to the accessibility tree. Turbo cache cleanup restores unenhanced markup.
+
+Below community content, On public shelves uses compact cover-strip rows: bounded catalog covers left, shelf title, creator and stored pick count right. No engagement claims. Up to six rows; deterministic recency with a stable tie break. Omit when empty. Discovery consumes the shelf task's shared public contract and must respect its publication eligibility gates. No library, review or tracking data enters these rows.
+
+Verification targets: desktop/mobile light/dark screenshots, 320px reflow (200% at 640px), long/missing metadata, all six catalog types, linked credits and tracks/episodes/issues, keyboard, fragment history, find-in-page, no JavaScript and owner/visitor privacy. Query cost must remain bounded with batched preview resolution.
+
+Implementation notes: reference MP4 was materialized locally through the current Library helper, then decoded as media with FFmpeg; 0/5-second frames confirm the independent metadata island and 10/15-second frames show compact cover-strip list rows. No attachment code was executed. The shelf service is shared with the separate shelves draft: original b0df5b69 is cherry-picked here as 491c4b75. Follow-up candidate bounding remains coordinated with its owner. This draft changes no review presentation blocks; the separate review draft owns those.
+
+Final discovery bound: shared follow-up 9beea6f3 (local 00e3cc14) limits typed JSON membership checks to the 500 most recently updated eligible published favorite shelves, returning six matches here (service maximum twelve). Up to five catalog covers per row are resolved in batches by media type. Older matches can be absent; the subtitle explicitly describes the recent published scope. Request tests constrain query count to seven or fewer for six same-type shelf rows and reject LibraryItem/ShelfCollection queries.
