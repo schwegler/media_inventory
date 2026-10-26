@@ -19,7 +19,7 @@ class MetadataProvider
     @partial = false
   end
 
-  attr_reader :partial, :provider
+  attr_reader :partial, :provider, :album_release_id, :album_release_group_id
 
   def call
     raise Unsupported if @id.blank?
@@ -304,7 +304,7 @@ class MetadataProvider
     @id = @id.delete_prefix('musicbrainz_')
     raise Unsupported unless @id.match?(/\A[0-9a-f-]{36}\z/i)
 
-    type = @item.external_url.to_s.include?('/release-group/') ? 'release-group' : 'release'
+    type = @item.external_url.to_s.include?('/release/') ? 'release' : 'release-group'
     inc = type == 'release-group' ? 'artist-credits+genres+releases' : musicbrainz_includes
     data = json("https://musicbrainz.org/ws/2/#{type}/#{@id}", fmt: 'json', inc: inc)
     track_data = musicbrainz_track_data(data, type)
@@ -316,20 +316,44 @@ class MetadataProvider
                metadata_details: data.slice('primary-type', 'secondary-types', 'disambiguation'),
                release_year: year(data['date'] || data['first-release-date']),
                thumbnail_url: "https://coverartarchive.org/#{type}/#{@id}/front-500" }
-    [fields, @include_children ? AlbumMetadata.musicbrainz(track_data) : []]
+    [fields, musicbrainz_album_rows(track_data)]
+  end
+
+  def musicbrainz_album_rows(data)
+    return [] unless @include_children
+
+    media = Array(data['media'])
+    expected = media.sum { |disc| disc['track-count'].to_i }
+    complete = media.any? && media.all? { |disc| Array(disc['tracks']).size == disc['track-count'].to_i }
+    validated_album_rows(AlbumMetadata.musicbrainz(data), expected, complete: complete)
   end
 
   def musicbrainz_track_data(data, type)
     return data unless @include_children && type == 'release-group'
 
-    release = Array(data['releases']).first
-    return data unless release
+    @album_release_group_id = @id
+    @album_release_id = musicbrainz_release_id(data)
+    unless @album_release_id.to_s.match?(/\A[0-9a-f-]{36}\z/i)
+      @partial = true
+      return {}
+    end
 
-    # MusicBrainz allows one request per second; the extra release call is refresh-only.
+    # Keep a group import attached to one edition, even if provider ordering changes.
+    # MusicBrainz allows one request per second.
     sleep 1.05
     optional_details do
-      [json("https://musicbrainz.org/ws/2/release/#{release.fetch('id')}", fmt: 'json', inc: musicbrainz_includes)]
+      [json("https://musicbrainz.org/ws/2/release/#{@album_release_id}", fmt: 'json', inc: musicbrainz_includes)]
     end.first || {}
+  end
+
+  def musicbrainz_release_id(data)
+    provenance = MetadataRefresh.find_by(item: @item)&.provider_values || {}
+    return provenance['album_release_id'] if provenance['album_release_group_id'] == @id
+
+    release = Array(data['releases']).select { |row| row['id'].present? }.min_by do |row|
+      [row['status'] == 'Official' ? 0 : 1, row['date'].presence || '9999', row['id']]
+    end
+    release&.fetch('id')
   end
 
   def musicbrainz_includes
@@ -344,8 +368,10 @@ class MetadataProvider
       query[:entity] = 'song'
       query[:limit] = 200
     end
-    data = json('https://itunes.apple.com/lookup', query).fetch('results')
-    album = data.find { |row| row['wrapperType'] == 'collection' } || data.first
+    data = json('https://itunes.apple.com/lookup', query).fetch('results', [])
+    raise Unavailable unless data.is_a?(Array)
+
+    album = data.find { |row| row['wrapperType'] == 'collection' && row['collectionId'].to_s == query[:id] }
     raise Unavailable unless album.is_a?(Hash)
 
     credits = [ProviderEntityMetadata.credit({ 'name' => album['artistName'], 'id' => album['artistId'] },
@@ -354,10 +380,28 @@ class MetadataProvider
                release_year: year(album['releaseDate']), metadata_credits_data: credits,
                metadata_details: album.slice('collectionExplicitness', 'copyright', 'trackCount', 'releaseDate'),
                thumbnail_url: album['artworkUrl100']&.sub('100x100bb', '600x600bb') }
-    extracted_tracks = @include_children ? AlbumMetadata.itunes(data) : []
-    declared_count = album['trackCount'].to_i
-    @partial = true if declared_count.positive? && extracted_tracks.size < declared_count
-    [fields, extracted_tracks]
+    [fields, itunes_album_rows(data, album)]
+  end
+
+  def itunes_album_rows(data, album)
+    return [] unless @include_children
+
+    matching = data.select { |row| row['collectionId'].to_s == album['collectionId'].to_s }
+    validated_album_rows(AlbumMetadata.itunes(matching), album['trackCount'].to_i)
+  end
+
+  def validated_album_rows(rows, expected, complete: true)
+    @partial = true if expected.zero? || rows.size != expected || !complete
+    return rows if valid_album_positions?(rows)
+
+    @partial = true
+    []
+  end
+
+  def valid_album_positions?(rows)
+    positions = rows.map { |row| [row['disc_number'].to_i, row['track_number'].to_i] }
+    rows.any? && positions.all? { |disc, track| disc.positive? && track.positive? } &&
+      positions.uniq.size == rows.size && rows.pluck('provider_id').uniq.size == rows.size
   end
 
   def tmdb_details(data)

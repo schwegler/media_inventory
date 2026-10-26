@@ -289,7 +289,9 @@ class MediaSearchService
 
     return [] unless data['release-groups']
 
-    data['release-groups'].slice(0, 5).map do |item|
+    # MusicBrainz returns singles alongside albums (often with the same title).
+    # Importing a single's correct track list must not masquerade as a full album.
+    data['release-groups'].select { |item| %w[Album EP].include?(item['primary-type']) }.first(5).map do |item|
       artist_name = item.dig('artist-credit', 0, 'name') || ''
       {
         title: item['title'],

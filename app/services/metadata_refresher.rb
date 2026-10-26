@@ -22,6 +22,8 @@ class MetadataRefresher
   def enqueue
     return 'cooldown' unless claim?
 
+    return call(claimed: true) if @item.is_a?(Album)
+
     unless RefreshMediaMetadataJob.perform_later(@item, @user)
       @refresh.update!(state: 'queue_busy', requested_at: nil)
       return 'queue_busy'
@@ -29,6 +31,13 @@ class MetadataRefresher
     'refreshing'
   rescue StandardError
     finish('failed')
+  end
+
+  def import_album
+    raise ArgumentError, 'Album required' unless @item.is_a?(Album)
+
+    @refresh.update!(state: 'refreshing', requested_at: Time.current)
+    call(claimed: true)
   end
 
   def call(claimed: false)
@@ -41,6 +50,8 @@ class MetadataRefresher
     state = 'partial' if @adapter.partial
     @refresh.update!(state: state, provider: @adapter.provider, succeeded_at: Time.current)
     state
+  rescue AlbumMetadata::EditionConflict
+    finish('edition_conflict')
   rescue MetadataProvider::Unsupported
     finish('unsupported')
   rescue MetadataProvider::RateLimited
@@ -85,6 +96,11 @@ class MetadataRefresher
       changed += AlbumMetadata.reconcile(@item, rows) if @item.is_a?(Album)
       changed += MetadataChildren.episodes(@item, rows) if @item.is_a?(TvShow)
       changed += MetadataChildren.issues(@item, rows) if @item.is_a?(Comic)
+      if @adapter.album_release_id
+        values['album_release_id'] = @adapter.album_release_id
+        values['album_release_group_id'] = @adapter.album_release_group_id
+      end
+      values.delete('entity_metadata_version') if @item.is_a?(Album) && @adapter.partial
       values['entity_metadata_version'] = 1 unless @adapter.partial
       @refresh.update!(provider_values: values)
     end

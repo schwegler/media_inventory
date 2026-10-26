@@ -99,8 +99,10 @@ RSpec.describe 'Metadata entity graph' do
   it 'ingests only supplied iTunes tracks and preserves IDs, numbers, duration and content flags' do
     album = Album.create!(title: 'Album')
     album.update_columns(api_id: 'itunes_42')
-    rows = [{ wrapperType: 'collection', collectionName: 'Album', artistName: 'Main Artist', artistId: 7 },
-            { wrapperType: 'track', kind: 'song', trackId: 9, trackName: 'Song', artistName: 'Guest Artist', artistId: 8,
+    rows = [{ wrapperType: 'collection', collectionId: 42, collectionName: 'Album',
+              artistName: 'Main Artist', artistId: 7 },
+            { wrapperType: 'track', kind: 'song', collectionId: 42, trackId: 9, trackName: 'Song',
+              artistName: 'Guest Artist', artistId: 8,
               discNumber: 2, trackNumber: 3, trackTimeMillis: 187_000, trackExplicitness: 'explicit' }]
     stub_request(:get, 'https://itunes.apple.com/lookup').with(query: hash_including({ id: '42', entity: 'song' }))
                                                          .to_return(body: { results: rows }.to_json)
