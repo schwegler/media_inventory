@@ -27,3 +27,15 @@ test("clipboard failure and manual-copy fallback do not emit success", async () 
   const f = fixture({ clipboard: { writeText: async () => { throw Error(); } } });
   await f.controller.copy(); assert.deepEqual(f.events, []);
 });
+test("manual review link fallback selects the URL and Escape restores the copy trigger", async () => {
+  const f = fixture({}); let selected = false; let focused = false; let restored = false;
+  Object.assign(f.controller, { hasFallbackTarget: true, hasCopyTarget: true,
+    fallbackTarget: { hidden: true, focus() { focused = true; }, select() { selected = true; } },
+    copyTarget: { focus() { restored = true; } } });
+  await f.controller.copy();
+  assert.equal(f.controller.fallbackTarget.hidden, false);
+  assert.equal(selected && focused, true);
+  f.controller.dismissFallback();
+  assert.equal(f.controller.fallbackTarget.hidden, true);
+  assert.equal(restored, true);
+});

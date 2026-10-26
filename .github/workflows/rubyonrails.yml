@@ -79,6 +79,7 @@ jobs:
           spec/system/metadata_detail_layout_system_spec.rb
           spec/system/tv_episodes_system_spec.rb
           spec/system/editorial_articles_system_spec.rb
+          spec/system/review_pages_system_spec.rb
           spec/system/title_reading_hierarchy_system_spec.rb
           spec/system/title_synopsis_system_spec.rb
           spec/system/reading_strip_layout_system_spec.rb
@@ -174,6 +175,7 @@ jobs:
           spec/system/metadata_detail_layout_system_spec.rb
           spec/system/tv_episodes_system_spec.rb
           spec/system/editorial_articles_system_spec.rb
+          spec/system/review_pages_system_spec.rb
           spec/system/title_reading_hierarchy_system_spec.rb
           spec/system/title_synopsis_system_spec.rb
           spec/system/reading_strip_layout_system_spec.rb
