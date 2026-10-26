@@ -16,7 +16,7 @@
     <% if @library_item&.review.present? || @library_item&.rating.present? %>
       <div class="child-review-summary">
         <% if @library_item.rating.present? %><p><%= render_stars(@library_item.rating) %></p><% end %>
-        <% if @library_item.review.present? %><%= simple_format(@library_item.review) %><% end %>
+        <% if @library_item.review.present? %><%= review_summary(@library_item, item: item) %><% end %>
       </div>
     <% end %>
   <% elsif logged_in? %>

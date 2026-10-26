@@ -48,6 +48,59 @@ RSpec.describe 'Dedicated review reading and sharing', type: :system do
     capture_ui_screenshot('review-missing-art-desktop')
   end
 
+  it 'shows bounded community excerpts and follows the full-review link with the keyboard' do
+    entry.update!(review: "Opening paragraph with a <a href=\"https://example.com/reading\">reading link</a>.\n\n" \
+                          "#{'Thoughtful words 👩🏽‍🚀 about the story. ' * 100}\n\n" \
+                          '<a href="https://example.com/omitted">THE FULL ENDING</a>')
+    visit "#{book_path(book)}#community"
+    click_button 'Dismiss Halloween character' if page.has_button?('Dismiss Halloween character', wait: 3)
+    card = find('.show-review-card')
+    expect(card).to have_link('reading link', href: 'https://example.com/reading')
+    expect(card).to have_no_link('THE FULL ENDING')
+    expect(card.text).not_to include('THE FULL ENDING')
+    expect(card.find('.review-excerpt-link')['aria-label']).to include(author.name, book.title)
+    [1400, 390].each do |width|
+      resize_browser_viewport(width, 900)
+      card.scroll_to(:top)
+      expect(page.evaluate_script('document.documentElement.scrollWidth <= innerWidth')).to be true
+      expect(card.find('.review-excerpt').native.size.height).to be < 600
+      capture_ui_screenshot("review-excerpt-#{width}")
+    end
+    card.find_link('Read full review').send_keys(:enter)
+    expect(page).to have_current_path(public_review_path(entry))
+    expect(page).to have_link('THE FULL ENDING', href: 'https://example.com/omitted')
+  end
+
+  it 'bounds a Madonna album review and gives short general-feed events an obvious review link' do
+    album = Album.create!(title: 'CONFESSIONS II', artist: 'Madonna', release_year: 2026)
+    body = (1..12).map { |number| "Paragraph #{number}. #{'A synthetic album listening note. ' * 25}" }.join("\n\n")
+    album_entry = LibraryItem.create!(user: author, item: album, is_public: true, review: body, rating: 4.5)
+    visit "#{album_path(album)}#community"
+    click_button 'Dismiss Halloween character' if page.has_button?('Dismiss Halloween character', wait: 3)
+    card = find('.show-review-card')
+    expect(card.text).not_to include('Paragraph 12.')
+    [1400, 390].each do |width|
+      resize_browser_viewport(width, 900)
+      card.scroll_to(:top)
+      expect(card.find('.review-excerpt').native.size.height).to be < 600
+      expect(page.evaluate_script('document.documentElement.scrollWidth <= innerWidth')).to be true
+      capture_ui_screenshot("madonna-review-excerpt-#{width}")
+    end
+    card.find_link('Read full review').send_keys(:enter)
+    expect(page).to have_current_path(public_review_path(album_entry))
+    expect(page).to have_text('Paragraph 12.')
+    album_entry.update!(review: 'A short album review.')
+    visit root_path
+    find('summary', text: 'From the community').click
+    event = all('.activity-card').find { |node| node.has_text?(album.title) }
+    expect(event).to have_link('View review', href: public_review_path(album_entry))
+    expect(event).to have_text('A short album review.')
+    event.scroll_to(:top)
+    capture_ui_screenshot('review-short-event-mobile')
+    event.find_link('View review').send_keys(:enter)
+    expect(page).to have_current_path(public_review_path(album_entry))
+  end
+
   it 'copies the review permalink, offers native sharing, and restores focus after fallback Escape' do
     visit public_review_path(entry)
     expect(page).to have_css('.review-page-share[data-connected="true"]')

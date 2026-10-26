@@ -215,7 +215,9 @@ class UsersController < ApplicationController
     activities = public_review_activities(activities) unless @profile_owner
     activities = activities.limit(20)
 
-    combined = preload_social_feed(activities.to_a + @user.posts.order(created_at: :desc).limit(20).to_a)
+    activity_records = activities.to_a
+    DashboardActivityQuery.attach_review_entries(activity_records, viewer_id: @profile_owner ? current_user.id : nil)
+    combined = preload_social_feed(activity_records + @user.posts.order(created_at: :desc).limit(20).to_a)
     combined.sort_by!(&:created_at).reverse!
     combined.first(20)
   end

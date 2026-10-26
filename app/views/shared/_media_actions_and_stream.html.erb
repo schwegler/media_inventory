@@ -132,7 +132,7 @@ end
               <% end %>
             </div>
             <% if @library_item.review.present? %>
-              <p class="reviewed-summary-text"><%= truncate(@library_item.review, length: 140) %></p>
+              <div class="reviewed-summary-text"><%= review_summary(@library_item, item: item, compact: true) %></div>
             <% end %>
           </div>
           <%= link_to "Edit review", edit_review_path(item_type: item.class.name, item_id: item.id), class: "sleek-btn sleek-btn-secondary", data: { turbo_frame: "modal" } %>

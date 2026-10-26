@@ -108,7 +108,7 @@
               <h2 style="margin: 0;">My Review</h2>
               <%= link_to "Edit review", edit_review_path(item_type: item.class.name, item_id: item.id), class: "sleek-btn sleek-btn-secondary", style: "font-size: 0.8125rem; padding: 0.35rem 0.75rem;", data: { turbo_frame: "modal" } %>
             </div>
-            <blockquote><%= simple_format(@library_item.review) %></blockquote>
+            <blockquote><%= review_summary(@library_item, item: item) %></blockquote>
           </section>
         <% end %>
       </div>

@@ -127,10 +127,7 @@
               </div>
 
               <div class="review-content-text">
-                <p>"<%= truncate(lib_item.respond_to?(:review) ? lib_item.review : '', length: 240) %>"</p>
-                <% if lib_item.respond_to?(:review) && lib_item.review.present? && lib_item.review.length > 240 %>
-                  <%= link_to "more", media, class: "more-review-link" %>
-                <% end %>
+<%= review_summary(lib_item, item: media, author: activity.user, compact: true, permalink: activity.activity_type == 'reviewed') %>
               </div>
 
               <div class="review-like-action">
@@ -207,7 +204,7 @@
                       </span>
                       <% if trackable.respond_to?(:review) && trackable.review.present? && activity.activity_type == 'reviewed' %>
                         <div class="activity-review-quote">
-                          "<%= truncate(trackable.review, length: 150) %>"
+                          <%= review_summary(trackable, item: media, author: activity.user, compact: true, permalink: activity.activity_type == 'reviewed') %>
                         </div>
                       <% end %>
                     </div>

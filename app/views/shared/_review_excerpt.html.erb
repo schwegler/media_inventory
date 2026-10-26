@@ -1,0 +1,8 @@
+<div class="review-excerpt">
+  <div class="review-excerpt-text"><%= excerpt.html %></div>
+  <% if excerpt.truncated? || permalink %>
+    <% label = excerpt.truncated? ? 'Read full review' : 'View review' %>
+    <%= link_to label, public_review_path(entry), class: 'review-excerpt-link', data: { turbo_frame: '_top' },
+                aria: { label: "#{label} by #{author.name.presence || author.display_handle} of #{item.title}" } %>
+  <% end %>
+</div>

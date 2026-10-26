@@ -30,10 +30,9 @@
                   <% end %>
                 </div>
               </div>
-              <div class="review-content"><%= simple_format(matching_item.review) %></div>
+              <div class="review-content"><%= review_summary(matching_item, item: item) %></div>
 
               <div class="review-actions-row">
-                <%= link_to "Read review", public_review_path(matching_item) %>
                 <%= render 'likes/like_button', item: matching_item %>
               </div>
 

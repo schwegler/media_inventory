@@ -2,6 +2,7 @@
 
 class PublicReviewsController < ActionController::API
   include ItemSharingHelper
+  include ReviewPagesHelper
 
   def index
     limit = params[:limit].to_s.match?(/\A[1-9]\d*\z/) ? [params[:limit].to_i, 20].min : 3
@@ -27,6 +28,7 @@ class PublicReviewsController < ActionController::API
       media_type: entry.item_type,
       item_title: item.is_a?(ComicIssue) ? item.display_title : item.title,
       item_url: canonical_item_url(item),
+      review_url: canonical_review_url(entry),
       cover_url: item.stored_cover_url.present? ? "#{public_trove_origin}#{item.stored_cover_url}" : nil
     }
   end
