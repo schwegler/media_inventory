@@ -12,7 +12,7 @@
 <% content_for :og_type, 'article' if public_review %>
 
 <article class="review-page" aria-labelledby="review-title">
-  <nav class="review-page-back" aria-label="Review navigation"><%= link_to "Back to #{title}", @item %></nav>
+  <nav class="review-page-back" aria-label="Review navigation"><%= link_to 'Back to title details', @item %></nav>
   <div class="review-page-layout">
     <aside class="review-page-artwork" aria-label="Media artwork">
       <%= link_to @item do %>
@@ -55,7 +55,6 @@
       <% end %>
       <div class="review-page-author-links">
         <%= link_to "View #{author_name}’s profile", author %>
-        <%= link_to "Explore #{title}", @item %>
         <% if current_user == author %><%= link_to 'Manage your review', polymorphic_path(@item, anchor: 'my-library'), class: 'review-page-manage' %><% end %>
       </div>
     </aside>
