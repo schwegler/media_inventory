@@ -75,7 +75,7 @@ class AlbumTrackAudit
   def changed_fields?(existing, rows)
     existing.any? do |track|
       row = rows.find { |candidate| candidate['provider_id'] == track['provider_id'] }
-      row&.any? { |field, value| track[field].present? && track[field] != value }
+      row.nil? || row.any? { |field, value| track[field].present? && track[field] != value }
     end
   end
 end

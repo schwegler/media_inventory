@@ -78,4 +78,12 @@ RSpec.describe AlbumTrackAudit do
     expect(album.album_tracks).to be_empty
     expect(album.metadata_refresh).to be_nil
   end
+  it 'excludes extra existing identities that the source cannot verify from the repair scope' do
+    AlbumMetadata.reconcile(album, rows)
+    album.album_tracks.create!(provider_id: 'manual:extra', title: 'Manual extra', disc_number: 2, track_number: 1)
+    result = audit.report(album)
+    expect(result).to include(classification: 'user_modified_or_unverified', eligible_for_review: false,
+                              proposed_additions: [])
+    expect(album.album_tracks.count).to eq(3)
+  end
 end
