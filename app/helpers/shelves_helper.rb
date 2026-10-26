@@ -5,6 +5,10 @@ module ShelvesHelper
   SHELF_IMAGE_STYLES = { 'layout' => %w[exhibition reading collector mixtape], 'texture' => %w[clean paper stars],
                          'companion' => %w[auto none telly facet bat] }.freeze
 
+  def shelf_starting_mood(value)
+    %w[everyday halloween christmas].include?(value) ? value : 'everyday'
+  end
+
   def shelf_theme_label(theme)
     theme == 'midnight_feature' ? 'Midnight Feature' : theme.capitalize
   end

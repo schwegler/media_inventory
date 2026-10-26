@@ -121,7 +121,7 @@ RSpec.describe 'Favorite shelves', type: :request do
 
   it 'does not publish on visits and deduplicates explicit same-signature previews' do
     login
-    get shelf_path(user.username, category: 'Movie')
+    get edit_favorite_shelf_path('Movie')
     doc = Nokogiri::HTML(response.body)
     expect(doc.text).to include('Publish share preview')
     expect(user.shelf_previews.count).to eq(0)
@@ -217,11 +217,9 @@ RSpec.describe 'Favorite shelves', type: :request do
         expect(page.at_css('button[data-action="favorite-shelf#copyAltText"]').text).to eq('Copy image alt text')
         expect(page.at_css('textarea[data-favorite-shelf-target="altText"]')['readonly']).to be_present
         toolbar_links = page.css('.shelf-toolbar-links a')
-        expected_links = [signed_in ? 'View shelf overview' : 'All shelves']
-        expected_links << 'Edit selections' if signed_in && category.nil?
-        expected_links += ['Customize profile', 'Preview as visitor'] if signed_in
+        expected_links = signed_in ? ['Shelves workspace', 'Edit shelf', 'All shelves'] : ['All shelves']
         expect(toolbar_links.map(&:text)).to eq(expected_links + ['View profile', 'Share'])
-        overview = toolbar_links.find { |link| link.text == (signed_in ? 'View shelf overview' : 'All shelves') }
+        overview = toolbar_links.find { |link| link.text == 'All shelves' }
         expect(URI.parse(overview['href']).path).to eq(shelf_path(user.username))
         expect(Rack::Utils.parse_nested_query(URI.parse(overview['href']).query)).not_to have_key('category')
         if signed_in
@@ -249,6 +247,8 @@ RSpec.describe 'Favorite shelves', type: :request do
     expect(user.reload.shelf_headline).to eq('My favorite distractions.')
     get shelf_path(user.username)
     expect(Nokogiri::HTML(response.body).at_css('h1').text).to eq('My favorite distractions.')
+    expect(response.body).not_to include('Edit headline')
+    get shelf_appearance_path
     expect(response.body).to include('Edit headline')
     delete logout_path
     get shelf_path(user.username)
@@ -257,7 +257,7 @@ RSpec.describe 'Favorite shelves', type: :request do
     login
     patch shelf_path(user.username), params: { shelf_headline: '   ' }
     expect(user.reload.shelf_headline).to be_nil
-    get shelf_path(user.username)
+    get shelf_appearance_path
     expect(Nokogiri::HTML(response.body).at_css('h1').text).to eq('The things I keep.')
   end
 
@@ -323,25 +323,26 @@ RSpec.describe 'Favorite shelves', type: :request do
   end
   it 'separates the showcase overview from editing Overall and retains presentation choices' do
     login
-    get shelf_path(user.username, category: 'overall', theme: 'electric', layout: 'reading',
-                                  texture: 'stars', companion: 'facet')
+    get edit_favorite_shelf_path('overall', theme: 'electric', layout: 'reading',
+                                            texture: 'stars', companion: 'facet')
     doc = Nokogiri::HTML(response.body)
     overview = doc.at_css('a.shelf-overview-link')
     query = Rack::Utils.parse_nested_query(URI.parse(overview['href']).query)
     expect(query).to include('theme' => 'electric', 'layout' => 'reading', 'texture' => 'stars', 'companion' => 'facet')
     expect(query).not_to have_key('category')
     expect(doc.at_css('.shelf-view-state').text).to eq('Editing Overall selections')
-    expect(doc.at_css('.shelf-heading > a')['href']).to eq(overview['href'])
+    expect(URI.parse(overview['href']).path).to eq(shelf_appearance_path)
+    expect(URI.parse(doc.at_css('.shelf-heading > a')['href']).path).to eq(shelf_path(user.username))
     get overview['href']
     doc = Nokogiri::HTML(response.body)
     expect(doc.at_css('.shelf-view-state').text).to eq('Viewing shelf overview')
     edit = doc.css('a').find { |link| link.text == 'Edit selections' }
-    expect(edit['href']).to include('category=overall', 'theme=electric', 'layout=reading')
+    expect(edit['href']).to include('/shelves/favorites/overall/edit', 'theme=electric', 'layout=reading')
     expect(doc.at_css('.shelf-overview-link')['aria-current']).to eq('page')
   end
   it 'offers Midnight Feature separately and accepts its explicitly published preview' do
     login
-    get shelf_path(user.username, category: 'Movie', theme: 'midnight_feature')
+    get edit_favorite_shelf_path('Movie', theme: 'midnight_feature')
     doc = Nokogiri::HTML(response.body)
     expect(doc.at_css('.favorite-shelf')['data-shelf-theme']).to eq('midnight_feature')
     expect(doc.css('.shelf-themes label').map(&:text)).to include('Midnight Feature', 'Halloween')

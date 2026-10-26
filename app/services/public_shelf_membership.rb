@@ -50,7 +50,8 @@ class PublicShelfMembership
   def publicly_addressable(model)
     users = User.where.not(confirmed_at: nil).where.not(username: [nil, ''])
                 .joins(:shelf_previews_attachments).select(:id)
-    model.where(user_id: users)
+    scope = model.where(user_id: users)
+    model == ShelfCollection ? scope.active : scope
   end
 
   def current_publication?(record)

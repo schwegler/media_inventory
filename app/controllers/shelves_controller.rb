@@ -7,14 +7,14 @@ class ShelvesController < ApplicationController
 
   def mine
     if current_user.username.present?
-      redirect_to shelf_path(current_user.username)
+      redirect_to shelf_workspace_path
     else
       redirect_to settings_path, notice: 'Choose a username in your profile settings to create your public Shelf.'
     end
   end
 
   def show
-    @shelf_owner = current_user?(@user) && params[:view] != 'visitor'
+    @shelf_owner = current_user?(@user) && @workspace_edit == true
     load_collection_context
     load_presentation
     @overview = !@collection && !FavoriteShelf::CATEGORIES.key?(params[:category])
@@ -26,7 +26,7 @@ class ShelvesController < ApplicationController
     @preview_signature = helpers.shelf_preview_signature(@user, @preview_category)
     @shelf_edit_version = helpers.shelf_edit_version(@user, @preview_category)
     @preview_image = helpers.shelf_preview_image(@user, @preview_category, @theme, style: @image_style)
-    render layout: 'shelf'
+    render 'shelves/show', layout: 'shelf'
   end
 
   def update
@@ -40,7 +40,7 @@ class ShelvesController < ApplicationController
   def perform_update
     return create_collection if params.key?(:new_collection)
 
-    @collection = @user.shelf_collections.find_by!(slug: params[:collection]) if params[:collection].present?
+    @collection = @user.shelf_collections.active.find_by!(slug: params[:collection]) if params[:collection].present?
     category = @collection ? "collection:#{@collection.slug}" : params[:category].presence || 'overview'
     if params[:shelf_version].present? && params[:shelf_version] != helpers.shelf_edit_version(@user, category)
       message = 'This shelf changed in another window. Reload before saving; your changes have not been applied.'
@@ -79,8 +79,8 @@ class ShelvesController < ApplicationController
   private
 
   def load_collection_context
-    @collection = @user.shelf_collections.find_by!(slug: params[:collection]) if params[:collection].present?
-    @collections = @user.shelf_collections.order(:created_at).to_a
+    @collection = @user.shelf_collections.active.find_by!(slug: params[:collection]) if params[:collection].present?
+    @collections = @user.shelf_collections.active.order(:created_at).to_a
     preload_collection_items(@collections)
     @collections = @collections.select { |collection| collection.items.any? } unless @shelf_owner
   end
@@ -210,7 +210,7 @@ class ShelvesController < ApplicationController
   def valid_preview_upload?(image, category, theme)
     valid_category = FavoriteShelf::CATEGORIES.key?(category) || category == 'overview' ||
                      (category.start_with?('collection:') &&
-                      @user.shelf_collections.exists?(slug: category.delete_prefix('collection:')))
+                      @user.shelf_collections.active.exists?(slug: category.delete_prefix('collection:')))
     valid_category &&
       ShelvesHelper::SHELF_THEMES.include?(theme) &&
       image.is_a?(ActionDispatch::Http::UploadedFile) && image.content_type == 'image/png' &&

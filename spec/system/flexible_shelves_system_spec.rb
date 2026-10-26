@@ -12,7 +12,7 @@ RSpec.describe 'Flexible shelf workspace', type: :system do
     collection = user.shelf_collections.create!(title: 'Winter discoveries',
                                                 description: 'Stories, sounds and worlds for slower evenings.',
                                                 picks: items.map { |item| { type: item.class.name, id: item.id } })
-    visit shelf_path(user.username, collection: collection.slug)
+    visit edit_managed_shelf_path(collection.slug)
     expect(page).to have_css('.favorite-shelf[data-connected="true"]')
     expect(page).to have_css('.shelf-slot', count: 12)
     first_title = items.first.title
@@ -21,9 +21,9 @@ RSpec.describe 'Flexible shelf workspace', type: :system do
     expect(page).to have_text('Shelf saved.')
     expect(collection.reload.picks[1]['id']).to eq(items.first.id)
     expect(collection.picks[1]['type']).to eq('Book')
-    find('summary', text: 'Shelf settings', exact_text: true).click
+    click_link 'Shelf settings', exact: true
     fill_in 'Overview cover count', with: 2
-    click_button 'Save shelf settings'
+    click_button 'Save changes'
     expect(page).to have_css('.shelf-slot', count: 12)
     expect(collection.reload.preview_length).to eq(2)
     capture_ui_screenshot('flexible-owner-desktop')
@@ -57,7 +57,7 @@ RSpec.describe 'Flexible shelf workspace', type: :system do
     book = Book.create!(title: 'The final title')
     Book.create!(title: 'Replacement title')
     shelf = user.shelf_collections.create!(title: 'A shelf taking shape', picks: [{ type: 'Book', id: book.id }])
-    visit shelf_path(user.username, collection: shelf.slug)
+    visit edit_managed_shelf_path(shelf.slug)
     expect(page).to have_css('.shelf-slot', count: 1)
     click_button 'Choose pick 1'
     select 'Books', from: 'Media type'

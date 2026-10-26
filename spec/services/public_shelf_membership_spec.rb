@@ -54,6 +54,10 @@ RSpec.describe PublicShelfMembership do
     expect(described_class.call(movie)).to eq([])
     publish.call("collection:#{shelf.slug}", ShelfCollectionPreviewSignature.call(shelf))
     expect(described_class.call(movie).size).to eq(1)
+    shelf.update_column(:archived_at, Time.current)
+    expect(described_class.call(movie)).to eq([])
+    shelf.update_column(:archived_at, nil)
+    expect(described_class.call(movie).size).to eq(1)
     owner.update!(confirmed_at: nil)
     expect(described_class.call(movie)).to eq([])
   end
