@@ -40,6 +40,7 @@ export default class extends Controller {
     window.removeEventListener("resize", this.onViewportChange)
     window.removeEventListener("scroll", this.onViewportChange)
     if (this.positionFrame) cancelAnimationFrame(this.positionFrame)
+    this.positionFrame = null
     document.removeEventListener("keydown", this.onKeydown)
     document.removeEventListener("click", this.onClick)
     document.removeEventListener("turbo:before-cache", this.onBeforeCache)

@@ -51,3 +51,17 @@ test('inline breakpoint discards popup state without stealing focus or changing 
   assert.equal(controller.buttonTarget['aria-expanded'], 'false')
   assert.equal(properties.size, 0)
 })
+
+test('disconnect clears a queued positioning frame so a reconnected controller can schedule again', () => {
+  const removed = [], cancelled = []
+  const events = { removeEventListener: name => removed.push(name) }
+  const Search = new Function('Controller', 'document', 'window', 'cancelAnimationFrame', source)(
+    class {}, events, events, frame => cancelled.push(frame))
+  const controller = new Search()
+  controller.resizeObserver = { disconnect: () => removed.push('observer') }
+  controller.positionFrame = 42
+  controller.disconnect()
+  assert.deepEqual(cancelled, [42])
+  assert.equal(controller.positionFrame, null)
+  assert.ok(removed.includes('resize') && removed.includes('scroll') && removed.includes('observer'))
+})
