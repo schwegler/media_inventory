@@ -8,6 +8,9 @@
   .media-metadata-nav { display: flex; gap: 1.25rem; overflow-x: auto; overscroll-behavior-x: contain; border-bottom: 1px solid var(--border); margin-bottom: 1rem; padding: 4px; scrollbar-width: thin; }
   .media-metadata-nav a { display: flex; align-items: center; min-height: 44px; flex-shrink: 0; color: var(--text-secondary); font-size: .875rem; text-decoration: none; border-bottom: 2px solid transparent; }
   .media-metadata-nav a[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); font-weight: 650; }
+  // The global hidden reset uses display:none!important. Until-found panels
+  // must retain a box so the browser can search and reveal their contents.
+  .media-metadata-panel[hidden="until-found"] { display: block !important; content-visibility: hidden; }
   .media-metadata-panel { scroll-margin-top: 8rem; min-width: 0; overflow-wrap: anywhere; }
   .media-metadata-panel h3 { font-size: .9375rem; margin: 1.25rem 0 .75rem; }
   &[data-tabbed="true"] .media-metadata-panel h3 { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

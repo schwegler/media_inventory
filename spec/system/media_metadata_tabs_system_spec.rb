@@ -34,6 +34,9 @@ RSpec.describe 'Metadata tabs', type: :system do
     page.go_forward
     expect(page).to have_css('#title-details[data-metadata-tabs-connected="true"]')
     expect(page).to have_css('#metadata-taxonomy-tab[aria-selected="true"]')
+    expect(page.evaluate_script("getComputedStyle(document.querySelector('#metadata-cast')).display")).to eq('block')
+    expect(page.evaluate_script("getComputedStyle(document.querySelector('#metadata-cast')).contentVisibility"))
+      .to eq('hidden')
     page.execute_script("document.querySelector('#metadata-cast').dispatchEvent(new Event('beforematch'))")
     expect(page).to have_css('#metadata-cast-tab[aria-selected="true"]')
     click_button 'Show all'
@@ -42,7 +45,14 @@ RSpec.describe 'Metadata tabs', type: :system do
     expect(page).to have_no_css('[role="tabpanel"]')
     expect(page).to have_css('#title-details .media-metadata-panel:not([hidden])', count: 4)
     click_button 'Show tabs'
-    expect(page).to have_css('[role="tabpanel"]', count: 1)
+    expect(page).to have_css('[role="tabpanel"]:not([hidden])', count: 1)
+  end
+
+  it 'keeps inactive metadata searchable to the browser text-search algorithm' do
+    visit movie_path(movie)
+    expect(page).to have_css('#title-details[data-metadata-tabs-connected="true"]')
+    expect(page).to have_css('#metadata-details-tab[aria-selected="true"]')
+    expect(page.evaluate_script("window.find('Actor fixture 30', false, false, true)")).to be true
   end
 
   it 'aligns a direct document fragment after enhancing long metadata and after reload' do
