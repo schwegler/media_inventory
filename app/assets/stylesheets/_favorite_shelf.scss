@@ -242,3 +242,77 @@
   .shelf-toolbar-links a { display: inline-flex; align-items: center; min-height: 44px; }
 }
 .favorite-shelf[data-favorite-shelf-owner-value="false"] .shelf-toolbar-links .shelf-overview-link { color: var(--shelf-text); padding-inline: 0; }
+
+// Shared shelf workspace: the same cover, header and action geometry for owners and visitors.
+.favorite-shelf {
+  .shelf-toolbar { margin-bottom: 32px; gap: 16px; flex-wrap: wrap; }
+  .shelf-toolbar-links { flex-wrap: wrap; gap: 20px; }
+  .shelf-detail-heading h1 { font: 400 clamp(36px, 4.5vw, 64px)/1.08 Georgia, serif; letter-spacing: -.035em; margin: 0; }
+  .shelf-description { font: 17px/1.6 Georgia, serif; max-width: 70ch; margin: 12px 0; overflow-wrap: anywhere; }
+  .shelf-metadata, .shelf-media-type { color: var(--shelf-muted); font-size: 13px; line-height: 1.5; }
+  .shelf-metadata a { text-decoration: underline; text-underline-offset: 3px; }
+  .shelf-action-bar { display: flex; flex-wrap: wrap; gap: 10px; padding: 16px 0 24px; }
+  .shelf-primary, .shelf-secondary, .shelf-add-title { min-height: 44px; border-radius: 6px; font-size: 13px; line-height: 1.4; font-weight: 600; padding: 12px 18px; }
+  .shelf-secondary, .shelf-add-title { border: 1px solid var(--shelf-line); background: transparent; color: var(--shelf-text); }
+  .shelf-settings, .shelf-image-settings { border-top: 1px solid var(--shelf-line); border-bottom: 1px solid var(--shelf-line); padding: 18px 0; margin: 0 0 24px; }
+  .shelf-settings summary, .shelf-image-settings > summary { font: 18px/1.4 Georgia, serif; color: var(--shelf-text); }
+  .shelf-settings-fields { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 24px; }
+  .shelf-settings label { display: block; margin-bottom: 8px; }
+  .shelf-settings :is(input[type="text"], input[type="number"], textarea) { display: block; width: 100%; min-height: 44px; padding: 10px; color: var(--shelf-text); background: var(--shelf-surface); border: 1px solid var(--shelf-line); border-radius: 5px; font-size: 14px; line-height: 1.5; }
+  .shelf-settings .shelf-media-choices { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 20px; }
+  .shelf-media-choices legend { margin-bottom: 12px; }
+  .shelf-media-choices label { display: flex; align-items: center; gap: 8px; min-height: 44px; }
+  .favorite-shelf-slots { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 28px 20px; align-items: start; margin: 24px 0 40px; }
+  .shelf-slot .shelf-pick { aspect-ratio: 2/3; box-shadow: none; border-radius: 4px; }
+  .shelf-pick img { object-fit: contain; }
+  .shelf-pick > span { padding: 12px; overflow-wrap: anywhere; }
+  .shelf-slot h3 { font: 15px/1.45 Georgia, serif; margin: 5px 0 12px; }
+  .shelf-media-type { font-size: 11px; margin: 10px 0 0; }
+  .shelf-controls { gap: 4px; }
+  .shelf-controls button { min-height: 44px; min-width: 44px; padding: 7px; font-size: 12px; }
+  .shelf-add-title { align-self: start; width: 100%; min-height: 90px; border-style: dashed; }
+  .shelf-status:empty { display: none; }
+  .shelf-status { padding: 12px 0; overflow-wrap: anywhere; }
+  .shelf-empty-state { border-block: 1px solid var(--shelf-line); padding: 32px 0; margin: 20px 0; }
+  .shelf-empty-state h2 { font: 30px/1.3 Georgia, serif; margin: 0 0 8px; }
+  .shelf-empty-state p { max-width: 60ch; color: var(--shelf-muted); }
+  .shelf-collections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; margin-top: 24px; }
+  .shelf-section-heading { grid-column: 1/-1; }
+  .shelf-section-heading h2 { font: 32px Georgia, serif; margin: 0 0 8px; }
+  .shelf-collections .shelf-collection-card { padding: 24px 0; border: 0; border-top: 1px solid var(--shelf-line); border-radius: 0; min-width: 0; background: transparent; }
+  .shelf-collection-link { display: block; }
+  .shelf-collection-covers { display: flex; gap: 8px; align-items: end; height: 140px; overflow: hidden; }
+  .shelf-collection-covers > span { flex: 1; min-width: 0; max-width: 100px; height: 100%; }
+  .shelf-collection-covers img { width: 100%; height: 100%; object-fit: contain; border-radius: 3px; }
+  .shelf-missing-cover { display: flex; align-items: center; height: 100%; padding: 8px; background: var(--shelf-surface); font-size: 11px; overflow-wrap: anywhere; }
+  .shelf-collection-card h2 { font: 26px/1.25 Georgia, serif; margin: 16px 0 8px; overflow-wrap: anywhere; }
+  .shelf-collection-card p { margin: 8px 0; color: var(--shelf-muted); overflow-wrap: anywhere; }
+  .shelf-collections > details { grid-column: 1/-1; border-top: 1px solid var(--shelf-line); padding: 24px 0; }
+  .shelf-image-settings .shelf-themes { flex-wrap: wrap; margin: 24px 0; }
+  .shelf-sharing { margin-top: 24px; }
+  @media(max-width: 1050px) { .favorite-shelf-slots { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  @media(max-width: 640px) {
+    .shelf-toolbar { margin-bottom: 28px; }
+    .shelf-toolbar-links { gap: 12px 18px; }
+    .shelf-heading h1 { font-size: 38px; }
+    .shelf-settings-fields { grid-template-columns: 1fr; gap: 16px; }
+    .favorite-shelf-slots { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 16px; }
+    .shelf-slot:first-child { grid-column: auto; width: auto; margin: 0; }
+    .shelf-collections { grid-template-columns: 1fr; }
+    .shelf-collection-covers { height: 110px; }
+  }
+}
+
+.shelf-page .favorite-shelf .shelf-detail-heading h1 { font: 400 clamp(36px, 4.5vw, 64px)/1.08 Georgia, serif; letter-spacing: -.035em; margin: 12px 0 0; }
+.favorite-shelf[data-favorite-shelf-flexible-value="true"] {
+  .shelf-slot, .shelf-slot:nth-child(4), .shelf-slot:nth-child(5), .shelf-slot:first-child, .shelf-slot:only-child { grid-column: auto; grid-row: auto; width: auto; margin: 0; }
+  .favorite-shelf-slots { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  @media(max-width: 1050px) { .favorite-shelf-slots { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  @media(max-width: 640px) { .favorite-shelf-slots { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+}
+
+.shelf-page .favorite-shelf .shelf-detail-heading h1 > .shelf-custom-title { font: inherit; letter-spacing: inherit; display: block; overflow: visible; color: inherit; margin: 0; -webkit-line-clamp: unset; }
+
+.shelf-page .favorite-shelf .shelf-introduction { display: block; padding-bottom: 28px; }
+.shelf-page .favorite-shelf .shelf-introduction h1 { font: 400 clamp(36px, 4.5vw, 64px)/1.08 Georgia, serif; letter-spacing: -.035em; }
+.shelf-page .favorite-shelf .shelf-introduction h1 br { display: none; }

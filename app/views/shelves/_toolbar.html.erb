@@ -1,0 +1,9 @@
+<nav class="shelf-toolbar" aria-label="Shelf navigation">
+  <div class="shelf-toolbar-links">
+    <%= link_to (@shelf_owner ? 'View shelf overview' : 'All shelves'), shelf_navigation_path(@user, theme: @theme, style: @image_style), class: "shelf-overview-link #{'shelf-primary' if @shelf_owner}", data: { shelf_link: true }, aria: { current: @overview ? 'page' : nil } %>
+    <% if @shelf_owner && @overview %><%= link_to 'Edit selections', shelf_navigation_path(@user, category: 'overall', theme: @theme, style: @image_style), data: { shelf_link: true } %><% end %>
+    <% if @shelf_owner %><%= link_to 'Customize profile', settings_path %><%= link_to 'Preview as visitor', shelf_path(@user.username, category: @overview ? nil : @category, collection: @collection&.slug, view: 'visitor') %><% end %>
+    <%= link_to 'View profile', handle_profile_path(@user.username) %><a href="#shelf-sharing" data-action="favorite-shelf#showSharing">Share</a>
+  </div>
+  <% if @shelf_owner %><p class="shelf-view-state"><%= @overview ? 'Viewing shelf overview' : (@collection ? 'Editing collection' : "Editing #{FavoriteShelf::CATEGORIES[@category]} selections") %></p><% end %>
+</nav>

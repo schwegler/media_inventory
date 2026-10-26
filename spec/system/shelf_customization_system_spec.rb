@@ -10,6 +10,8 @@ RSpec.describe 'Shelf Story customization', type: :system do
     user.favorite_shelves.create!(category: 'Movie', picks: [{ type: 'Movie', id: movie.id }])
     visit shelf_path(user.username, category: 'Movie', theme: 'telly', layout: 'reading')
     expect(page).to have_css('.favorite-shelf[data-connected="true"]')
+    find('summary', text: 'Appearance & share image').click
+    find('summary', text: 'Share image preview', exact_text: true).click
     choose 'Telly'
     select 'Reading list', from: 'Legacy layout'
     find('summary', text: 'Advanced appearance').click
@@ -47,6 +49,7 @@ RSpec.describe 'Shelf Story customization', type: :system do
     expect(page).to have_text('Viewing shelf overview')
     expect(page).to have_css('.shelf-introduction')
     expect(page).to have_css('.favorite-shelf[data-shelf-theme="electric"][data-shelf-texture="stars"]')
+    find('summary', text: 'Appearance & share image').click
     expect(page).to have_select('Legacy layout', selected: 'Reading list')
     capture_ui_screenshot('shelf-overview-navigation-mobile')
     click_link 'Edit selections'
@@ -56,6 +59,8 @@ RSpec.describe 'Shelf Story customization', type: :system do
     user = create_and_login_user
     user.update!(username: 'midnight_feature')
     visit shelf_path(user.username, category: 'Movie', theme: 'midnight_feature')
+    find('summary', text: 'Appearance & share image').click
+    find('summary', text: 'Share image preview', exact_text: true).click
     expect(page).to have_checked_field('Midnight Feature')
     expect(page).to have_text('the late show. questionable decisions.')
     expect(page).to have_css('.shelf-preview canvas[width="1080"][height="1920"]')
@@ -76,8 +81,10 @@ RSpec.describe 'Shelf Story customization', type: :system do
     user = create_and_login_user
     user.update!(username: 'themed_selections', shelf_headline: "it's finally spooky szn 🦇")
     visit shelf_path(user.username, category: 'Book', theme: 'halloween')
+    find('summary', text: 'Appearance & share image').click
+    find('summary', text: 'Share image preview', exact_text: true).click
     expect(page).to have_css('h1 .shelf-custom-title', text: user.shelf_headline)
-    expect(page).to have_css('h1 > span', text: 'Books · selections')
+    expect(page).to have_css('.shelf-description', text: 'Books · selections')
     expect(page).to have_field('shelf-image-alt-text',
                                with: /#{Regexp.escape(user.shelf_headline)}.*Category: Books/m,
                                visible: :all)

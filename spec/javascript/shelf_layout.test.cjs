@@ -86,3 +86,12 @@ test('Gallery, Feature and Mixtape have distinct five-pick compositions',()=>{
  const layouts=['exhibition','collector','mixtape'].map(name=>JSON.stringify(portraitShelfLayout(5,name)))
  assert.equal(new Set(layouts).size,3)
 })
+
+
+test('large shelves feature five covers and disclose the full total in alt text', () => {
+ const picks = Array.from({length: 12}, (_, i) => ({title: `Selection ${i + 1}`}))
+ const alt = shelfImageAltText({picks, overview:false, category:'Collection', theme:'midnight', format:'portrait', handle:'demo'})
+ assert.match(alt, /first 5 of 12 selections/)
+ assert.match(alt, /5\. Selection 5/)
+ assert.doesNotMatch(alt, /6\. Selection 6/)
+})

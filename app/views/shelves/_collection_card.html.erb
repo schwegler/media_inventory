@@ -1,0 +1,6 @@
+<article class="shelf-collection-card">
+  <%= link_to shelf_path(@user.username, collection: collection.slug), class: 'shelf-collection-link' do %>
+    <div class="shelf-collection-covers"><% collection.preview_items.each do |item| %><span><% if item.stored_cover_url.present? %><%= image_tag item.stored_cover_url, alt: item.title, loading: 'lazy' %><% else %><span class="shelf-missing-cover"><%= item.title %></span><% end %></span><% end %></div>
+    <h2><%= collection.title %></h2><p><%= collection.description %></p><p><%= pluralize(collection.picks.size, 'selection') %> · Open full shelf</p>
+  <% end %>
+</article>

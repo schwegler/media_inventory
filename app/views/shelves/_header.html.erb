@@ -1,0 +1,11 @@
+<header class="shelf-heading shelf-detail-heading">
+  <%= link_to "#{@user.name}’s Shelf", shelf_navigation_path(@user, theme: @theme, style: @image_style), data: { shelf_link: true } %>
+  <h1><span class="shelf-custom-title"><%= headline %></span></h1>
+  <p class="shelf-description"><%= @collection&.description.presence || "#{category_label} · selections" %></p>
+  <p class="shelf-metadata"><span data-shelf-count><%= pluralize(@items.size, 'selection') %></span> · <%= @collection ? (@collection.media_types.size == 6 ? 'Mixed media' : @collection.media_types.map { |type| FavoriteShelf::CATEGORIES[type] }.join(', ')) : 'Up to five favorites' %> · A shelf by <%= link_to @user.name, handle_profile_path(@user.username) %></p>
+  <div class="shelf-action-bar" role="group" aria-label="Shelf actions">
+    <% if @shelf_owner %><% if @collection %><button type="button" class="shelf-primary" data-action="favorite-shelf#add">Add a title</button><% end %><button type="button" class="shelf-secondary" data-action="favorite-shelf#save">Save shelf</button><% end %>
+    <button type="button" class="shelf-secondary" data-action="favorite-shelf#copyLink">Copy link</button>
+    <button type="button" class="shelf-secondary" data-action="favorite-shelf#nativeShare">Share</button>
+  </div>
+</header>

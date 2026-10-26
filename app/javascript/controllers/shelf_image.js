@@ -19,7 +19,7 @@ export function shelfImageAltText({ picks, shelves, overview, theme, format, han
   const heading = shelfImageHeading(headline)
   const description = source.map(shelf => {
     const titles = shelf.picks.slice(0, 5).map((pick, index) => `${index + 1}. ${pick.title || 'Untitled selection'}`)
-    return `${shelf.label}: ${titles.length ? titles.join('; ') : 'No selections yet'}.`
+    return `${shelf.label}: ${titles.length ? titles.join('; ') : 'No selections yet'}.${shelf.picks.length > 5 ? ` Showing the first 5 of ${shelf.picks.length} selections; open the full shelf for all titles.` : ''}`
   }).join('\n')
   return `${format === 'portrait' ? 'Portrait' : 'Landscape'} Trove share image for @${handle}’s Shelf in the ${SHELF_THEMES[theme]?.label || theme} theme. Heading: “${heading}”. ${overview ? "Shelf overview" : `Category: ${category || "Selections"}`}. ${layout} layout, ${texture} texture, ${companion} companion. Covers appear in selected order.\n${description}`
 }
@@ -225,7 +225,7 @@ export async function renderShelfImage(canvas, { picks = [], shelves = [], overv
   }
   const link = shelfPublicLink(handle, canonicalUrl, sharePath)
   ctx.strokeStyle = theme.line; ctx.beginPath(); ctx.moveTo(edge, portrait ? 1590 : h - 100); ctx.lineTo(w - edge, portrait ? 1590 : h - 100); ctx.stroke()
-  ctx.fillStyle = theme.accent; text(ctx, 'OPEN THE FULL SHELF  →', edge, portrait ? 1624 : h - 72, w - edge * 2, portrait ? 20 : 15, 1, '"Instrument Sans", sans-serif', 600)
+  ctx.fillStyle = theme.accent; text(ctx, `${picks.length > 5 && !overview ? `${picks.length} SELECTIONS · FIRST 5 SHOWN · ` : ''}OPEN THE FULL SHELF  →`, edge, portrait ? 1624 : h - 72, w - edge * 2, portrait ? 20 : 15, 1, '"Instrument Sans", sans-serif', 600)
   ctx.fillStyle = theme.text; text(ctx, `${link.host}${link.pathname}${link.search}`, edge, portrait ? 1664 : h - 40, w - edge * 2, portrait ? 25 : 18, 1)
   canvas.width = w; canvas.height = h; canvas.getContext("2d").drawImage(output, 0, 0)
 }

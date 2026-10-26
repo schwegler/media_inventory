@@ -47,6 +47,8 @@ RSpec.describe 'Shelf discovery and real exports', type: :system do
                                                 presentation: { theme: 'christmas', layout: 'exhibition' })
     visit shelf_path(user.username, collection: collection.slug)
     expect(page).to have_css('.favorite-shelf[data-connected="true"]')
+    find('summary', text: 'Appearance & share image').click
+    find('summary', text: 'Share image preview', exact_text: true).click
     expect(page).to have_css('.shelf-preview canvas[width="1080"][height="1920"]')
     %w[exhibition collector mixtape].each do |layout|
       choose("#{{ 'exhibition' => 'Gallery', 'collector' => 'Feature', 'mixtape' => 'Mixtape' }.fetch(layout)} layout")
@@ -105,6 +107,7 @@ RSpec.describe 'Shelf discovery and real exports', type: :system do
       expect(page.evaluate_script('document.documentElement.scrollWidth <= innerWidth')).to be(true)
       capture_ui_screenshot("visitor-collection-#{width}")
     end
+    find('summary', text: 'Appearance & share image').click
     page.execute_script("document.querySelector('.shelf-formats').scrollIntoView({block:'center'})")
     point = page.evaluate_script(<<~JS)
       (() => {

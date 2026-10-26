@@ -23,13 +23,15 @@ module ShelvesHelper
   def shelf_preview_signature(user, category)
     if category.start_with?('collection:')
       collection = user.shelf_collections.find_by!(slug: category.delete_prefix('collection:'))
-      return Digest::SHA256.hexdigest(['collection-v2-campaign', user.username, collection.title, collection.description,
-                                       collection.picks].to_json)
+      return Digest::SHA256.hexdigest(['collection-v3-full-shelf', user.username, collection.title, collection.description,
+                                       collection.picks, collection.allowed_media_types, collection.preview_length,
+                                       collection.presentation].to_json)
     end
 
     shelves = user.favorite_shelves.order(:category)
     shelves = shelves.where(category: category) unless category == 'overview'
-    payload = ['shelf-image-v5-campaign', user.username, user.shelf_headline, shelves.pluck(:category, :picks)]
+    payload = ['shelf-image-v6-workspace', user.username, user.shelf_headline, user.shelf_presentation,
+               shelves.pluck(:category, :picks)]
     Digest::SHA256.hexdigest(payload.to_json)
   end
 

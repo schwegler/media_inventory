@@ -1,0 +1,4 @@
+<article class="shelf-slot" data-media-type="<%= item.class.name %>">
+  <%= link_to item, class: 'shelf-pick' do %><% if item.stored_cover_url.present? %><%= image_tag item.stored_cover_url, alt: item.title, loading: 'lazy' %><% else %><span><%= item.title %></span><% end %><% end %>
+  <p class="shelf-media-type"><%= FavoriteShelf::CATEGORIES[item.class.name] %></p><h3><%= link_to "#{index + 1}. #{item.title}", item %></h3>
+</article>
