@@ -55,10 +55,17 @@ RSpec.describe 'Flexible shelf workspace', type: :system do
     user = create_and_login_user
     user.update!(username: 'empty_shelf_browser')
     book = Book.create!(title: 'The final title')
+    Book.create!(title: 'Replacement title')
     shelf = user.shelf_collections.create!(title: 'A shelf taking shape', picks: [{ type: 'Book', id: book.id }])
     visit shelf_path(user.username, collection: shelf.slug)
     expect(page).to have_css('.shelf-slot', count: 1)
-    find_button('Remove The final title from shelf').send_keys(:enter)
+    click_button 'Choose pick 1'
+    select 'Books', from: 'Media type'
+    fill_in 'Search titles', with: 'Replacement'
+    find('.shelf-result', text: 'Replacement title').click
+    expect(page).to have_no_css('dialog[open]')
+    expect(find_button('Choose pick 1')).to match_css(':focus')
+    find_button('Remove Replacement title from shelf').send_keys(:enter)
     expect(page).to have_no_css('.shelf-slot')
     expect(find_button('+ Add a title', exact: true)).to match_css(':focus')
     click_button 'Save shelf'

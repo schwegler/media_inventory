@@ -15,7 +15,7 @@ export default class extends Controller {
     this.applyTheme(); this.render()
     this.guard = event => { if (this.dirty || this.presentationDirty) { event.preventDefault(); event.returnValue = "" } }
     this.visitGuard = event => { if ((this.dirty || this.presentationDirty) && !window.confirm("Leave without saving your shelf?")) event.preventDefault() }
-    this.onDialogClose = () => { if (this.dialogTarget.open) return; this.dialogGeneration = (this.dialogGeneration || 0) + 1; const opener = this.opener; this.opener = null; if (opener && typeof opener.focus === "function" && opener.isConnected) opener.focus() }
+    this.onDialogClose = () => { if (this.dialogTarget.open) return; this.dialogGeneration = (this.dialogGeneration || 0) + 1; const opener = this.opener; this.opener = null; if (opener && typeof opener.focus === "function" && opener.isConnected) opener.focus(); else if (this.hasSlotsTarget) this.focusItem(this.slot) }
     if (this.hasDialogTarget) this.dialogTarget.addEventListener("close", this.onDialogClose)
     window.addEventListener("beforeunload", this.guard)
     document.addEventListener("turbo:before-visit", this.visitGuard)
