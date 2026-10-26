@@ -5,7 +5,7 @@
   <p class="shelf-metadata"><span data-shelf-count><%= pluralize(@items.size, 'selection') %></span> · <%= @collection ? shelf_media_mix(@items) : 'Up to five favorites' %> · A shelf by <%= link_to @user.name, handle_profile_path(@user.username) %></p>
   <div class="shelf-action-bar" role="group" aria-label="Shelf actions">
     <% if @shelf_owner %><% if @collection %><button type="button" class="shelf-primary" data-action="favorite-shelf#add">Add a title</button><% end %><button type="button" class="shelf-secondary" data-action="favorite-shelf#save">Save shelf</button><% end %>
-    <button type="button" class="shelf-secondary" data-action="favorite-shelf#copyLink">Copy link</button>
-    <button type="button" class="shelf-secondary" data-action="favorite-shelf#nativeShare">Share</button>
+    <% unless @shelf_owner %><button type="button" class="shelf-secondary" data-action="favorite-shelf#copyLink">Copy link</button>
+    <button type="button" class="shelf-secondary" data-action="favorite-shelf#nativeShare">Share</button><% end %>
   </div>
 </header>

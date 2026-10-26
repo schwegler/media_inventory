@@ -2,6 +2,17 @@
 
 SampleApp::Application.routes.draw do
   get '/api/reviews', to: 'public_reviews#index', defaults: { format: :json }
+  get 'shelves', to: 'shelf_workspace#index', as: :shelf_workspace
+  get 'shelves/new', to: 'shelf_workspace#new', as: :new_managed_shelf
+  post 'shelves', to: 'shelf_workspace#create', as: :managed_shelves
+  get 'shelves/appearance', to: 'shelf_workspace#appearance', as: :shelf_appearance
+  get 'shelves/favorites/:category/edit', to: 'shelf_workspace#favorite', as: :edit_favorite_shelf
+  get 'shelves/:slug/edit', to: 'shelf_workspace#edit', as: :edit_managed_shelf
+  get 'shelves/:slug/settings', to: 'shelf_workspace#settings', as: :managed_shelf_settings
+  patch 'shelves/:slug/settings', to: 'shelf_workspace#update', as: :update_managed_shelf
+  get 'shelves/:slug/archive', to: 'shelf_workspace#confirm_archive', as: :confirm_archive_shelf
+  patch 'shelves/:slug/archive', to: 'shelf_workspace#archive', as: :archive_managed_shelf
+  patch 'shelves/:slug/restore', to: 'shelf_workspace#restore', as: :restore_managed_shelf
   get 'shelf', to: 'shelves#mine', as: :my_shelf
   post 'shelves/catalog_items', to: 'shelf_catalog_items#create', as: :shelf_catalog_items
   get 'shelves/search', to: 'shelves#search', as: :search_shelves

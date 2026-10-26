@@ -45,7 +45,7 @@ RSpec.describe 'Shelf discovery and real exports', type: :system do
     collection = user.shelf_collections.create!(title: 'Winter stories & late discoveries',
                                                 description: 'Five different kinds of story.', picks: picks,
                                                 presentation: { theme: 'christmas', layout: 'exhibition' })
-    visit shelf_path(user.username, collection: collection.slug)
+    visit edit_managed_shelf_path(collection.slug)
     expect(page).to have_css('.favorite-shelf[data-connected="true"]')
     find('summary', text: 'Appearance & share image').click
     find('summary', text: 'Share image preview', exact_text: true).click

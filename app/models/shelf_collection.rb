@@ -6,6 +6,9 @@ class ShelfCollection < ApplicationRecord
   belongs_to :user
   attr_writer :items
 
+  scope :active, -> { where(archived_at: nil) }
+  scope :archived, -> { where.not(archived_at: nil) }
+
   before_validation :assign_slug, on: :create
   validates :title, presence: true, length: { maximum: 80 }
   validates :description, length: { maximum: 240 }

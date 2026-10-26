@@ -9,6 +9,7 @@
   <meta charset="utf-8">
   <title><%= full_title(yield(:title)) %></title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <% if @shelf_owner %><meta name="robots" content="noindex, nofollow"><% end %>
   <meta name="description" content="<%= yield(:meta_description).presence || "A home for every story, album, and game you're into. Build your shelf across 6 media formats, track active series, and share honest takes on Trove." %>">
   <meta property="og:title" content="<%= full_title(yield(:title)) %>">
   <meta property="og:description" content="<%= yield(:meta_description).presence || "A home for every story, album, and game you're into. Build your shelf across 6 media formats, track active series, and share honest takes on Trove." %>">

@@ -90,6 +90,7 @@ jobs:
           spec/system/shelf_preview_system_spec.rb
           spec/system/shelf_customization_system_spec.rb
           spec/system/flexible_shelves_system_spec.rb
+          spec/system/shelf_workspace_system_spec.rb
           spec/system/child_collection_performance_spec.rb
           spec/system/calendar_year_episodes_system_spec.rb
           spec/system/series_entries_system_spec.rb
@@ -188,6 +189,7 @@ jobs:
           spec/system/shelf_preview_system_spec.rb
           spec/system/shelf_customization_system_spec.rb
           spec/system/flexible_shelves_system_spec.rb
+          spec/system/shelf_workspace_system_spec.rb
           spec/system/child_collection_performance_spec.rb
           spec/system/calendar_year_episodes_system_spec.rb
           spec/system/series_entries_system_spec.rb

@@ -335,3 +335,7 @@
   .favorite-shelf .shelf-toolbar-more > div { inset-inline-start: 0; top: calc(100% + 8px); }
 }
 .favorite-shelf[data-favorite-shelf-flexible-value="true"] .shelf-slot[data-media-type="Album"] .shelf-pick { aspect-ratio: 2/3; }
+
+// Shelf sections inherit their saved palette rather than global section surfaces.
+.favorite-shelf .shelf-section-heading { background: transparent; color: var(--shelf-text); }
+.favorite-shelf .shelf-section-heading p { color: var(--shelf-muted); }

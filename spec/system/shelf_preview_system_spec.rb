@@ -7,7 +7,7 @@ RSpec.describe 'Deliberate shelf sharing', type: :system do
     user = create_and_login_user
     user.update!(username: 'preview_owner')
     resize_browser_viewport(390, 844)
-    visit shelf_path(user.username, category: 'Movie')
+    visit edit_favorite_shelf_path('Movie')
     expect(page).to have_css('[data-favorite-shelf-owner-value="true"][data-connected="true"]')
     expect(user.shelf_previews.count).to eq(0)
     alpha = page.evaluate_script(<<~JS)
