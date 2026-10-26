@@ -16,6 +16,12 @@ RSpec.describe ReviewExcerpt do
     expect(parsed(excerpt).at_css('a')['href']).to eq('https://example.com/read')
   end
 
+  it 'keeps a short list with nested paragraphs complete without double-counting its items' do
+    excerpt = described_class.new('<ul><li><p>First thought.</p></li><li><p>Second thought.</p></li></ul>')
+    expect(excerpt).not_to be_truncated
+    expect(parsed(excerpt).css('li p').map(&:text)).to eq(['First thought.', 'Second thought.'])
+  end
+
   it 'bounds one enormous paragraph and removes omitted links from the actual DOM' do
     excerpt = described_class.new("#{'Opening words. ' * 200}<a href=\"https://example.com/hidden\">Hidden tail</a>")
     expect(excerpt).to be_truncated

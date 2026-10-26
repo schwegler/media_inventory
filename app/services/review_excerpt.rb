@@ -15,7 +15,7 @@ class ReviewExcerpt
     @paragraphs = paragraphs
     @breaks = breaks
     @truncated = omitted_media || fragment.text.each_grapheme_cluster.take(length + 1).length > length ||
-                 fragment.css('p, li').count { |node| node.text.strip.present? } > paragraphs ||
+                 fragment.css('p, li').count { |node| paragraph_unit?(node) } > paragraphs ||
                  fragment.css('br').length > breaks
     trim_children(fragment) if truncated?
     @html = fragment.to_html.html_safe
@@ -51,8 +51,13 @@ class ReviewExcerpt
     end
   end
 
+  # A list item's nested paragraph is one readable unit, not two.
+  def paragraph_unit?(node)
+    %w[p li].include?(node.name) && node.text.strip.present? && node.css('p, li').empty?
+  end
+
   def trim_element(node)
-    if %w[p li].include?(node.name) && node.text.strip.present?
+    if paragraph_unit?(node)
       return stop_at(node) if @paragraphs.zero?
 
       @paragraphs -= 1
