@@ -52,16 +52,33 @@ test('inline breakpoint discards popup state without stealing focus or changing 
   assert.equal(properties.size, 0)
 })
 
-test('disconnect clears a queued positioning frame so a reconnected controller can schedule again', () => {
-  const removed = [], cancelled = []
-  const events = { removeEventListener: name => removed.push(name) }
-  const Search = new Function('Controller', 'document', 'window', 'cancelAnimationFrame', source)(
-    class {}, events, events, frame => cancelled.push(frame))
+test('viewport and header-size changes reposition immediately and disconnect removes their listeners', () => {
+  const listeners = new Map(), removed = []
+  const events = {
+    addEventListener: (name, callback) => listeners.set(name, callback),
+    removeEventListener: name => removed.push(name)
+  }
+  let observeChange
+  const Observer = class {
+    constructor(callback) { observeChange = callback }
+    observe() {}
+    disconnect() { removed.push('observer') }
+  }
+  const frames = []
+  const Search = new Function('Controller', 'document', 'window', 'ResizeObserver', 'requestAnimationFrame', source)(
+    class {}, events, events, Observer, callback => frames.push(callback))
   const controller = new Search()
-  controller.resizeObserver = { disconnect: () => removed.push('observer') }
-  controller.positionFrame = 42
+  controller.element = { dataset: {} }
+  let updates = 0
+  controller.positionPanel = () => updates++
+  controller.connect()
+  listeners.get('resize')()
+  assert.equal(updates, 1)
+  listeners.get('scroll')()
+  assert.equal(updates, 2)
+  observeChange()
+  assert.equal(updates, 3)
+  assert.equal(frames.length, 0)
   controller.disconnect()
-  assert.deepEqual(cancelled, [42])
-  assert.equal(controller.positionFrame, null)
   assert.ok(removed.includes('resize') && removed.includes('scroll') && removed.includes('observer'))
 })

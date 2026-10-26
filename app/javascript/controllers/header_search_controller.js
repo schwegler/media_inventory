@@ -18,13 +18,7 @@ export default class extends Controller {
       }
     }
     this.onBeforeCache = () => this.close()
-    this.onViewportChange = () => {
-      if (this.positionFrame) return
-      this.positionFrame = requestAnimationFrame(() => {
-        this.positionFrame = null
-        this.positionPanel()
-      })
-    }
+    this.onViewportChange = () => this.positionPanel()
     this.resizeObserver = new ResizeObserver(this.onViewportChange)
     this.resizeObserver.observe(this.element)
     this.resizeObserver.observe(this.buttonTarget)
@@ -39,8 +33,6 @@ export default class extends Controller {
     this.resizeObserver.disconnect()
     window.removeEventListener("resize", this.onViewportChange)
     window.removeEventListener("scroll", this.onViewportChange)
-    if (this.positionFrame) cancelAnimationFrame(this.positionFrame)
-    this.positionFrame = null
     document.removeEventListener("keydown", this.onKeydown)
     document.removeEventListener("click", this.onClick)
     document.removeEventListener("turbo:before-cache", this.onBeforeCache)
