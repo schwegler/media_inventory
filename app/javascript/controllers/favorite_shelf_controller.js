@@ -3,7 +3,7 @@ import { renderShelfImage, shelfImageAltText, SHELF_THEMES, SHELF_STYLES } from 
 
 export default class extends Controller {
   static targets = ["slots", "dialog", "query", "results", "status", "canvas", "altText", "altTextDetails", "companion", "searchType"]
-  static values = { style: Object, assets: Object, picks: Array, publicUrl: String, url: String, search: String, handle: String, category: String, shelves: Array, overview: Boolean, headline: String, owner: Boolean, previewCategory: String, previewSignature: String, previewStored: Boolean, previewTheme: String }
+  static values = { style: Object, assets: Object, picks: Array, publicUrl: String, url: String, search: String, handle: String, category: String, shelves: Array, overview: Boolean, headline: String, owner: Boolean, previewCategory: String, previewSignature: String, editVersion: String, capacity: Number, flexible: Boolean, allowedTypes: Array, previewStored: Boolean, previewTheme: String }
 
   connect() {
     this.picks = this.picksValue; this.dirty = false; this.imageFormat = this.element.querySelector('[name="shelf-format"]:checked')?.value || "portrait"
@@ -15,7 +15,7 @@ export default class extends Controller {
     this.applyTheme(); this.render()
     this.guard = event => { if (this.dirty || this.presentationDirty) { event.preventDefault(); event.returnValue = "" } }
     this.visitGuard = event => { if ((this.dirty || this.presentationDirty) && !window.confirm("Leave without saving your shelf?")) event.preventDefault() }
-    this.onDialogClose = () => { if (this.dialogTarget.open) return; this.dialogGeneration = (this.dialogGeneration || 0) + 1; const opener = this.opener; this.opener = null; if (opener && typeof opener.focus === "function" && opener.isConnected) opener.focus() }
+    this.onDialogClose = () => { if (this.dialogTarget.open) return; this.dialogGeneration = (this.dialogGeneration || 0) + 1; const opener = this.opener; this.opener = null; if (opener && typeof opener.focus === "function" && opener.isConnected) opener.focus(); else if (this.hasSlotsTarget) this.focusItem(this.slot) }
     if (this.hasDialogTarget) this.dialogTarget.addEventListener("close", this.onDialogClose)
     window.addEventListener("beforeunload", this.guard)
     document.addEventListener("turbo:before-visit", this.visitGuard)
@@ -43,7 +43,7 @@ export default class extends Controller {
     if (!this.hasSlotsTarget) { this.schedulePreview(); return }
     const owner = this.slotsTarget.dataset.owner === "true"
     this.slotsTarget.replaceChildren()
-    for (let index = 0; index < (owner ? 5 : this.picks.length); index++) {
+    for (let index = 0; index < (owner && !this.flexibleValue ? 5 : this.picks.length); index++) {
       const pick = this.picks[index], slot = document.createElement("article")
       slot.className = "shelf-slot"; slot.dataset.mediaType = pick?.type || ""
       const cover = owner ? this.button(pick ? "Replace" : "+ Add pick", event => this.open(index, event), `Choose pick ${index + 1}`) : document.createElement(pick?.url ? "a" : "div")
@@ -56,21 +56,36 @@ export default class extends Controller {
       if (pick?.url) {
         const link = document.createElement("a"); link.href = pick.url; link.textContent = title.textContent; title.replaceChildren(link)
       }
-      slot.append(cover, title)
+      const type = document.createElement("p"); type.className = "shelf-media-type"
+      type.textContent = { Movie: "Movie", TvShow: "TV show", Album: "Album", Book: "Book", Comic: "Comic", VideoGame: "Game" }[pick?.type] || "Selection"
+      slot.append(cover, type, title)
       if (owner && pick) {
         const controls = document.createElement("div"); controls.className = "shelf-controls"
         const up = this.button("←", () => this.move(index, -1), `Move ${pick.title} earlier`); up.disabled = index === 0
         const down = this.button("→", () => this.move(index, 1), `Move ${pick.title} later`); down.disabled = index === this.picks.length - 1
-        controls.append(up, down, this.button("Remove", () => { this.picks.splice(index, 1); this.changed() }, `Remove ${pick.title} from shelf`))
+        controls.append(up, down, this.button("Remove", () => { this.picks.splice(index, 1); this.changed(); this.focusItem(Math.min(index, this.picks.length - 1)) }, `Remove ${pick.title} from shelf`))
         slot.append(controls)
       }
       this.slotsTarget.append(slot)
     }
+    if (owner && this.flexibleValue) {
+      const add = this.button("+ Add a title", event => this.open(this.picks.length, event))
+      add.className = "shelf-add-title"; add.disabled = this.picks.length >= this.capacityValue; this.slotsTarget.append(add)
+      this.element.querySelectorAll('[data-action="favorite-shelf#add"]').forEach(button => { button.disabled = this.picks.length >= this.capacityValue })
+    }
+    const empty = this.element.querySelector(".shelf-empty-state"); if (empty) empty.hidden = this.picks.length > 0
+    const count = this.element.querySelector('[data-shelf-count]')
+    if (count) count.textContent = `${this.picks.length} ${this.picks.length === 1 ? "selection" : "selections"}`
     this.schedulePreview()
   }
   changed() { this.dirty = true; this.statusTarget.textContent = "Unsaved changes"; this.render() }
-  move(index, direction) { [this.picks[index], this.picks[index + direction]] = [this.picks[index + direction], this.picks[index]]; this.changed() }
-  open(index, event) { clearTimeout(this.timer); this.abort?.abort(); this.dialogGeneration = (this.dialogGeneration || 0) + 1; this.slot = Math.min(index, this.picks.length); this.opener = event?.currentTarget || document.activeElement; this.dialogTarget.showModal(); this.queryTarget.value = ""; this.resultsTarget.textContent = "Type at least two characters to search."; requestAnimationFrame(() => this.queryTarget.focus()) }
+  move(index, direction) { [this.picks[index], this.picks[index + direction]] = [this.picks[index + direction], this.picks[index]]; this.changed(); this.focusItem(index + direction) }
+  focusItem(index) {
+    const target = this.slotsTarget.querySelectorAll(".shelf-slot")[Math.max(0, index)]?.querySelector("button, a") || this.slotsTarget.querySelector(".shelf-add-title")
+    target?.focus()
+  }
+  add(event) { this.open(this.picks.length, event) }
+  open(index, event) { if (this.flexibleValue && index >= this.picks.length && this.picks.length >= this.capacityValue) { this.statusTarget.textContent = `This shelf holds up to ${this.capacityValue} titles. Remove a title before adding another.`; return }; clearTimeout(this.timer); this.abort?.abort(); this.dialogGeneration = (this.dialogGeneration || 0) + 1; this.slot = Math.min(index, this.picks.length); this.opener = event?.currentTarget || document.activeElement; this.dialogTarget.showModal(); this.queryTarget.value = ""; this.resultsTarget.textContent = "Type at least two characters to search."; requestAnimationFrame(() => this.queryTarget.focus()) }
   close() { this.dialogGeneration = (this.dialogGeneration || 0) + 1; this.dialogTarget.close() }
   localSource() { this.searchSource = "local"; this.updateSourceButtons(); this.search() }
   externalSource() { this.searchSource = "external"; this.updateSourceButtons(); this.search() }
@@ -101,11 +116,12 @@ export default class extends Controller {
       this.abort = new AbortController()
       try {
         const external = this.searchSource === "external"
-        const url = external ? `/media/autocomplete?type=${encodeURIComponent(this.searchTypeTarget.value)}&q=${encodeURIComponent(query)}` : `${this.searchValue}&q=${encodeURIComponent(query)}`
+        const url = external ? `/media/autocomplete?type=${encodeURIComponent(this.searchTypeTarget.value)}&q=${encodeURIComponent(query)}` : `${this.searchValue.replace(/category=[^&]*/, `category=${encodeURIComponent(this.searchTypeTarget.value.replace(/(^|_)([a-z])/g, (_, prefix, letter) => letter.toUpperCase()))}`)}&q=${encodeURIComponent(query)}`
         const response = await fetch(url, { signal: this.abort.signal })
         if (!response.ok) throw new Error("Search failed")
         const results = await response.json(); this.resultsTarget.replaceChildren()
         results.forEach(pick => {
+          if (!external && this.flexibleValue && this.allowedTypesValue?.length && !this.allowedTypesValue.includes(pick.type)) return
           const selected = this.picks.some(p => p.type === pick.type && p.id === pick.id)
           const result = this.button(`${pick.title} · ${pick.type || this.searchTypeTarget.value} ${pick.year || pick.release_year || ""}${selected ? " · Already selected" : ""}`, () => { if (external) this.selectExternal(pick); else { this.picks[this.slot] = pick; this.changed(); this.close() } })
           result.className = "shelf-result"; result.disabled = selected
@@ -116,6 +132,7 @@ export default class extends Controller {
       } catch (error) { if (error.name !== "AbortError") { this.resultsTarget.textContent = "Search unavailable. Your query is preserved."; this.resultsTarget.append(this.button("Retry search", () => this.search())) } }
     }, 200)
   }
+  settingsSubmit(event) { if (this.dirty || this.picksSaving) { event.preventDefault(); this.statusTarget.textContent = "Save your selections before changing shelf settings." } }
   async save() {
     if (this.picksSaving) return false
     const picks = this.picks.map(({ id, type }) => ({ id, type }))
@@ -123,10 +140,12 @@ export default class extends Controller {
     this.picksSaving = true
     this.statusTarget.textContent = "Saving…"
     try {
-      const response = await fetch(this.urlValue, { method: "PATCH", headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" }, body: JSON.stringify({ picks }) })
-      const result = await response.json()
-      if (!response.ok) throw new Error(result.error || "Save failed")
+      const response = await fetch(this.urlValue, { method: "PATCH", headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" }, body: JSON.stringify({ picks, shelf_version: this.editVersionValue || this.previewSignatureValue }) })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(result.error || "Could not save your shelf. Your changes are preserved; retry saving.")
       this.previewSignatureValue = result.preview_signature
+      this.editVersionValue = result.shelf_version || result.preview_signature
+      this.element.querySelectorAll('input[name="shelf_version"]').forEach(input => { input.value = this.editVersionValue })
       if (snapshot !== JSON.stringify(this.picks.map(({ id, type }) => ({ id, type })))) {
         this.dirty = true; this.statusTarget.textContent = "Your picks changed during saving. Save again before sharing."; return false
       }
@@ -139,7 +158,7 @@ export default class extends Controller {
     this.presentationDirty = true
     this.imageTheme = event.target.value
     try { localStorage.setItem("trove-shelf-theme", this.imageTheme) } catch { /* Presentation still works without storage. */ }
-    this.applyTheme(); this.schedulePreview()
+    this.applyTheme(); this.revealPreview(); this.schedulePreview()
   }
   customize(event) {
     if (!this.ownerValue) return
@@ -148,7 +167,7 @@ export default class extends Controller {
     if (!SHELF_STYLES[key]?.includes(event.target.value)) return
     this.imageStyle[key] = event.target.value
     try { localStorage.setItem("trove-shelf-style", JSON.stringify(this.imageStyle)) } catch { /* Optional storage. */ }
-    this.applyTheme(); this.schedulePreview()
+    this.applyTheme(); this.revealPreview(); this.schedulePreview()
   }
   applyTheme() {
     this.element.dataset.shelfTheme = this.imageTheme
@@ -169,17 +188,25 @@ export default class extends Controller {
       const url = new URL(link.href); url.searchParams.set("theme", this.imageTheme); for (const [key, value] of Object.entries(this.imageStyle)) url.searchParams.set(key, value); link.href = url.href
     })
   }
-  format(event) { this.imageFormat = event.target.value; this.schedulePreview() }
+  revealPreview() { const preview = this.canvasTarget.closest("details"); if (preview) preview.open = true }
+  format(event) { this.imageFormat = event.target.value; this.revealPreview(); this.schedulePreview() }
   presentationSnapshot() { return JSON.stringify({ theme: this.imageTheme, ...this.imageStyle }) }
   async savePresentation() {
+    if (!this.ownerValue) return true
     if (this.presentationSaving) { this.statusTarget.textContent = "Appearance is saving. Please wait, then retry sharing."; return false }
     if (!this.presentationDirty) { this.statusTarget.textContent = "Appearance saved. Visitors will see this presentation."; return true }
     const presentation = { theme: this.imageTheme, ...this.imageStyle }
     const snapshot = JSON.stringify(presentation)
     this.presentationSaving = true
     try {
-      const response = await fetch(this.urlValue, { method: "PATCH", headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" }, body: JSON.stringify({ presentation }) })
-      if (!response.ok) throw new Error("Appearance save failed")
+      const response = await fetch(this.urlValue, { method: "PATCH", headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" }, body: JSON.stringify({ presentation, shelf_version: this.editVersionValue || this.previewSignatureValue }) })
+      if (!response.ok) throw new Error("Appearance save failed. Reload if this shelf changed in another window.")
+      const result = await response.json?.()
+      if (result?.preview_signature) {
+        this.previewSignatureValue = result.preview_signature
+        this.editVersionValue = result.shelf_version || result.preview_signature
+        this.element.querySelectorAll('input[name="shelf_version"]').forEach(input => { input.value = this.editVersionValue })
+      }
       if (snapshot !== this.presentationSnapshot()) {
         this.presentationDirty = true
         this.statusTarget.textContent = "Your appearance changed during saving. Save again before sharing."
@@ -192,6 +219,14 @@ export default class extends Controller {
       this.statusTarget.textContent = "Could not save appearance. Your choices are preserved; retry before sharing."
       return false
     } finally { this.presentationSaving = false }
+  }
+  showSharing() { const panel = this.element.querySelector(".shelf-image-settings"); if (panel) panel.open = true }
+  async nativeShare() {
+    if (this.dirty) { this.statusTarget.textContent = "Save your changes before sharing."; return }
+    if (!navigator.share) return this.copyLink()
+    if (!(await this.savePresentation())) return
+    try { await navigator.share({ title: this.headlineValue, url: this.publicUrlValue }); this.statusTarget.textContent = "Shelf shared." }
+    catch (error) { if (error.name !== "AbortError") this.copyLink() }
   }
   async copyLink() {
     if (!(await this.savePresentation())) return

@@ -1,0 +1,16 @@
+<details class="shelf-headline-editor shelf-settings"><summary>Shelf settings</summary>
+  <%= form_with url: shelf_path(@user.username, collection: collection.slug), method: :patch, scope: :collection_details, data: { action: 'submit->favorite-shelf#settingsSubmit' } do |form| %>
+    <%= hidden_field_tag :shelf_version, @shelf_edit_version %>
+    <div class="shelf-settings-fields">
+      <div><%= form.label :title, 'Shelf title' %><%= form.text_field :title, value: collection.title, required: true, maxlength: 80 %></div>
+      <div><%= form.label :description, 'A little context' %><%= form.text_area :description, value: collection.description, maxlength: 240, rows: 2 %></div>
+      <div><%= form.label :preview_length, 'Overview cover count' %><%= form.number_field :preview_length, value: collection.preview_length, min: 1, max: 12, required: true %><p>Show 1–12 covers in the overview. All titles stay on your full shelf.</p></div>
+    </div>
+    <p>Custom shelves support up to <%= number_with_delimiter(collection.operational_capacity) %> titles. The overview and share image show a smaller preview.</p>
+    <fieldset class="shelf-media-choices"><legend>Allowed media types for new selections</legend>
+      <%= hidden_field_tag 'collection_details[allowed_media_types][]', '' %>
+      <% FavoriteShelf::CATEGORIES.except('overall').each do |type, label| %><label><%= check_box_tag 'collection_details[allowed_media_types][]', type, collection.media_types.include?(type), id: "shelf-media-type-#{type.underscore}" %><%= label %></label><% end %>
+    </fieldset><p>Existing selections stay when the mix changes. Select no types to allow all media.</p>
+    <%= form.submit 'Save shelf settings', class: 'shelf-primary' %>
+  <% end %>
+</details>

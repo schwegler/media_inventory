@@ -24,6 +24,7 @@ class ShelvesController < ApplicationController
     @shelves = @shelves.select { |shelf| shelf[:items].any? } unless @shelf_owner
     @preview_category = preview_category
     @preview_signature = helpers.shelf_preview_signature(@user, @preview_category)
+    @shelf_edit_version = helpers.shelf_edit_version(@user, @preview_category)
     @preview_image = helpers.shelf_preview_image(@user, @preview_category, @theme, style: @image_style)
     render layout: 'shelf'
   end
@@ -31,9 +32,20 @@ class ShelvesController < ApplicationController
   def update
     return head :forbidden unless current_user?(@user)
 
+    @user.with_lock do
+      return perform_update
+    end
+  end
+
+  def perform_update
     return create_collection if params.key?(:new_collection)
 
     @collection = @user.shelf_collections.find_by!(slug: params[:collection]) if params[:collection].present?
+    category = @collection ? "collection:#{@collection.slug}" : params[:category].presence || 'overview'
+    if params[:shelf_version].present? && params[:shelf_version] != helpers.shelf_edit_version(@user, category)
+      message = 'This shelf changed in another window. Reload before saving; your changes have not been applied.'
+      return render json: { error: message }, status: :conflict
+    end
     return update_collection if @collection && !params.key?(:preview_image)
 
     return update_presentation if params.key?(:presentation)
@@ -44,6 +56,8 @@ class ShelvesController < ApplicationController
 
     update_picks
   end
+
+  private :perform_update
 
   def search
     types = FavoriteShelf::CATEGORIES.keys - ['overall']
@@ -72,7 +86,7 @@ class ShelvesController < ApplicationController
   end
 
   def preload_collection_items(collections)
-    records_by_type = fetch_records_by_type(collections)
+    records_by_type = fetch_records_by_type(collections, preview: true)
     collections.each do |collection|
       collection.items = resolve_shelf_items(collection, records_by_type)
     end
@@ -90,16 +104,21 @@ class ShelvesController < ApplicationController
     @overview ? 'overview' : @category
   end
 
+  def valid_pick_input?(pick)
+    pick.respond_to?(:permit) && (pick[:id].is_a?(String) || pick[:id].is_a?(Integer)) &&
+      pick[:id].to_s.match?(/\A[1-9]\d*\z/)
+  end
+
   def update_picks
     shelf = @user.favorite_shelves.find_or_initialize_by(category: params[:category])
     input = params[:picks]
-    unless input.is_a?(Array) && input.all? { |pick| pick.respond_to?(:permit) }
+    unless input.is_a?(Array) && input.all? { |pick| valid_pick_input?(pick) }
       return render json: { error: 'Choose up to five picks.' }, status: :unprocessable_content
     end
 
     shelf.picks = input.map { |pick| { 'type' => pick[:type], 'id' => pick[:id].to_i } }
     if shelf.save
-      render json: { saved: true, preview_signature: helpers.shelf_preview_signature(@user, shelf.category) }
+      render json: saved_shelf_payload(shelf.category)
     else
       render json: { error: shelf.errors.full_messages.to_sentence }, status: :unprocessable_content
     end
@@ -107,7 +126,7 @@ class ShelvesController < ApplicationController
 
   def create_collection
     input = params.require(:new_collection)
-    collection = @user.shelf_collections.new(input.permit(:title, :description))
+    collection = @user.shelf_collections.new(input.permit(:title, :description, :preview_length, allowed_media_types: []))
     theme = %w[everyday halloween christmas].include?(input[:theme]) ? input[:theme] : 'everyday'
     collection.presentation = helpers.shelf_image_style({}).merge('theme' => theme)
     if collection.save
@@ -128,20 +147,24 @@ class ShelvesController < ApplicationController
       @collection.presentation = helpers.shelf_image_style(input).merge('theme' => input[:theme])
     else
       input = params[:picks]
-      return head :unprocessable_content unless input.is_a?(Array) && input.all? { |pick| pick.respond_to?(:permit) }
+      return head :unprocessable_content unless input.is_a?(Array) && input.all? { |pick| valid_pick_input?(pick) }
 
       @collection.picks = input.map { |pick| { 'type' => pick[:type], 'id' => pick[:id].to_i } }
     end
     if @collection.save
-      render json: { saved: true,
-                     preview_signature: helpers.shelf_preview_signature(@user, "collection:#{@collection.slug}") }
+      render json: saved_shelf_payload("collection:#{@collection.slug}")
     else
       render json: { error: @collection.errors.full_messages.to_sentence }, status: :unprocessable_content
     end
   end
 
   def update_collection_details
-    if @collection.update(params.require(:collection_details).permit(:title, :description))
+    attributes = params.require(:collection_details).permit(:title, :description, :preview_length, allowed_media_types: [])
+    if attributes.key?(:allowed_media_types)
+      attributes[:allowed_media_types] =
+        attributes[:allowed_media_types].compact_blank
+    end
+    if @collection.update(attributes)
       redirect_to shelf_path(@user.username, collection: @collection.slug), status: :see_other
     else
       redirect_to shelf_path(@user.username, collection: @collection.slug),
@@ -155,7 +178,13 @@ class ShelvesController < ApplicationController
                                               ShelvesHelper::SHELF_THEMES.include?(input[:theme])
 
     @user.update!(shelf_presentation: helpers.shelf_image_style(input).merge('theme' => input[:theme]))
-    render json: { saved: true }
+    category = params[:category].presence || 'overview'
+    render json: saved_shelf_payload(category)
+  end
+
+  def saved_shelf_payload(category)
+    { saved: true, preview_signature: helpers.shelf_preview_signature(@user, category),
+      shelf_version: helpers.shelf_edit_version(@user, category) }
   end
 
   def update_preview
@@ -226,8 +255,8 @@ class ShelvesController < ApplicationController
     end
   end
 
-  def fetch_records_by_type(shelves)
-    all_picks = shelves.flat_map { |shelf| Array(shelf.picks) }
+  def fetch_records_by_type(shelves, preview: false)
+    all_picks = shelves.flat_map { |shelf| preview ? Array(shelf.picks).first(shelf.preview_length) : Array(shelf.picks) }
     valid_picks = all_picks.select { |p| p.is_a?(Hash) && FavoriteShelf::CATEGORIES.key?(p['type']) && p['type'] != 'overall' }
 
     valid_picks.group_by { |p| p['type'] }.transform_values do |group|
