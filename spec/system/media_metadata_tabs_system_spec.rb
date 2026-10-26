@@ -53,6 +53,8 @@ RSpec.describe 'Metadata tabs', type: :system do
     expect(page).to have_css('#title-details .media-metadata-panel:not([hidden])', count: 4)
     click_button 'Show tabs'
     expect(page).to have_css('[role="tabpanel"]:not([hidden])', count: 1)
+    expect(page).to have_css('[role="tabpanel"][tabindex="0"]', count: 1)
+    expect(page).to have_css('[role="tabpanel"][hidden][tabindex="-1"]', count: 3, visible: :all)
   end
 
   it 'keeps inactive metadata searchable to the browser text-search algorithm' do

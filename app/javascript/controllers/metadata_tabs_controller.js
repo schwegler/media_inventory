@@ -92,7 +92,7 @@ export default class extends Controller {
     this.panelTargets.forEach((panel, i) => {
       panel.setAttribute("role", "tabpanel")
       panel.setAttribute("aria-labelledby", this.tabTargets[i].id)
-      panel.tabIndex = 0
+      panel.tabIndex = i === index ? 0 : -1
       if (i === index) panel.removeAttribute("hidden")
       else panel.setAttribute("hidden", "until-found")
     })
