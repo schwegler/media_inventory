@@ -7,6 +7,7 @@ class MetadataRefresher
   COOLDOWN = 5.minutes
   USER_COOLDOWN = 20.seconds
   LEASE = 2.minutes
+  ALBUM_TIMEOUT = 12
 
   def self.call(item, user)
     new(item, user).call
@@ -22,6 +23,8 @@ class MetadataRefresher
   def enqueue
     return 'cooldown' unless claim?
 
+    return call(claimed: true) if @item.is_a?(Album)
+
     unless RefreshMediaMetadataJob.perform_later(@item, @user)
       @refresh.update!(state: 'queue_busy', requested_at: nil)
       return 'queue_busy'
@@ -31,16 +34,29 @@ class MetadataRefresher
     finish('failed')
   end
 
+  def import_album
+    raise ArgumentError, 'Album required' unless @item.is_a?(Album)
+
+    return 'cooldown' unless claim_item?(Time.current)
+
+    @refresh.reload
+    call(claimed: true)
+  end
+
   def call(claimed: false)
     return 'cooldown' unless claimed || claim?
 
-    @adapter = MetadataProvider.new(@item, revalidate: @revalidate, fresh: @revalidate)
-    fields, rows = Timeout.timeout(45) { @adapter.call }
+    budget = @item.is_a?(Album) ? ALBUM_TIMEOUT : 45
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + budget
+    @adapter = MetadataProvider.new(@item, revalidate: @revalidate, fresh: @revalidate, deadline: deadline)
+    fields, rows = Timeout.timeout(budget) { @adapter.call }
     changed = reconcile(fields, rows)
     state = changed.positive? ? 'success' : 'unchanged'
     state = 'partial' if @adapter.partial
     @refresh.update!(state: state, provider: @adapter.provider, succeeded_at: Time.current)
     state
+  rescue AlbumMetadata::EditionConflict
+    finish('edition_conflict')
   rescue MetadataProvider::Unsupported
     finish('unsupported')
   rescue MetadataProvider::RateLimited
@@ -60,16 +76,19 @@ class MetadataRefresher
     @user.with_lock do
       return false if @user.metadata_requested_at && @user.metadata_requested_at > now - USER_COOLDOWN
 
-      claimed = MetadataRefresh.where(id: @refresh.id)
-                               .where('requested_at IS NULL OR requested_at < ?', now - COOLDOWN)
-                               .where('state != ? OR requested_at < ?', 'refreshing', now - LEASE)
-                               .update_all(state: 'refreshing', requested_at: now, updated_at: now)
-      return false if claimed.zero?
+      return false unless claim_item?(now)
 
       @user.update!(metadata_requested_at: now)
     end
     @refresh.reload
     true
+  end
+
+  def claim_item?(now)
+    MetadataRefresh.where(id: @refresh.id)
+                   .where('requested_at IS NULL OR requested_at < ?', now - COOLDOWN)
+                   .where('state != ? OR requested_at < ?', 'refreshing', now - LEASE)
+                   .update_all(state: 'refreshing', requested_at: now, updated_at: now).positive?
   end
 
   def reconcile(fields, rows)
@@ -85,6 +104,11 @@ class MetadataRefresher
       changed += AlbumMetadata.reconcile(@item, rows) if @item.is_a?(Album)
       changed += MetadataChildren.episodes(@item, rows) if @item.is_a?(TvShow)
       changed += MetadataChildren.issues(@item, rows) if @item.is_a?(Comic)
+      if @item.is_a?(Album) && @adapter.album_release_id
+        values['album_release_id'] = @adapter.album_release_id
+        values['album_release_group_id'] = @adapter.album_release_group_id
+      end
+      values.delete('entity_metadata_version') if @item.is_a?(Album) && @adapter.partial
       values['entity_metadata_version'] = 1 unless @adapter.partial
       @refresh.update!(provider_values: values)
     end

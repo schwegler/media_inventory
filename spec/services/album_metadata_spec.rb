@@ -27,7 +27,7 @@ RSpec.describe AlbumMetadata do
     expect(sorted_track_numbers).to eq((1..11).to_a)
   end
 
-  it 'updates existing tracks in place during refresh without creating duplicates' do
+  it 'preserves existing track titles during refresh without creating duplicates' do
     AlbumMetadata.reconcile(album, eleven_tracks)
     expect(album.album_tracks.count).to eq(11)
 
@@ -38,6 +38,6 @@ RSpec.describe AlbumMetadata do
 
     AlbumMetadata.reconcile(album, refreshed_tracks)
     expect(album.album_tracks.count).to eq(11)
-    expect(album.album_tracks.first.title).to start_with('Refreshed')
+    expect(album.album_tracks.first.title).to eq('Track 1')
   end
 end

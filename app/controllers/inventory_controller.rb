@@ -283,7 +283,7 @@ class InventoryController < ApplicationController
   end
 
   def enqueue_initial_metadata
-    return if @resource.is_a?(VideoGame)
+    return if @resource.is_a?(VideoGame) || @resource.is_a?(Album)
 
     MetadataRefresher.new(@resource, current_user).enqueue if @resource.api_id.present?
   end
