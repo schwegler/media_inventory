@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Impact site verification', type: :request do
-  let(:snippet) { "<meta name='impact-site-verification' value='58cdbce4-287d-4850-bf2f-0407230f1516'>" }
+  let(:snippet) { "<meta name='impact-site-verification' value='5b1bfb66-45c2-4155-b0ae-4848cc049db5'>" }
 
   it 'renders the exact verification tag once in the homepage head' do
     get root_path
@@ -15,7 +15,7 @@ RSpec.describe 'Impact site verification', type: :request do
     expect(tags.size).to eq(1)
     expect(tags.first.parent.name).to eq('head')
     expect(tags.first.attribute_nodes.to_h { |attribute| [attribute.name, attribute.value] })
-      .to eq('name' => 'impact-site-verification', 'value' => '58cdbce4-287d-4850-bf2f-0407230f1516')
+      .to eq('name' => 'impact-site-verification', 'value' => '5b1bfb66-45c2-4155-b0ae-4848cc049db5')
   end
 
   it 'keeps verification on the homepage when a query string is present' do
@@ -37,7 +37,7 @@ RSpec.describe 'Impact site verification', type: :request do
 
     get settings_account_path
     expect(response).to have_http_status(:ok)
-    expect(response.body).not_to include('impact-site-verification', '58cdbce4-287d-4850-bf2f-0407230f1516')
+    expect(response.body).not_to include('impact-site-verification', '5b1bfb66-45c2-4155-b0ae-4848cc049db5')
   end
 
   ['/login', '/signup', '/search', '/categories'].each do |path|
@@ -45,7 +45,7 @@ RSpec.describe 'Impact site verification', type: :request do
       get path
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).not_to include('impact-site-verification', '58cdbce4-287d-4850-bf2f-0407230f1516')
+      expect(response.body).not_to include('impact-site-verification', '5b1bfb66-45c2-4155-b0ae-4848cc049db5')
     end
   end
 end
