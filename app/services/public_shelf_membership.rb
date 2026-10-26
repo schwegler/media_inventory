@@ -3,6 +3,7 @@
 # Public selection membership only. Never joins LibraryItem, reviews or progress.
 class PublicShelfMembership
   MAX_RESULTS = 12
+  CANDIDATE_LIMIT = 500
 
   def self.call(item, limit: 6)
     return [] unless item&.persisted? && FavoriteShelf::CATEGORIES.except('overall').key?(item.class.name)
@@ -16,7 +17,9 @@ class PublicShelfMembership
   end
 
   def call
-    records = containing(publicly_addressable(FavoriteShelf)).includes(:user)
+    candidates = publicly_addressable(FavoriteShelf).order(updated_at: :desc, id: :desc)
+                                                    .limit(CANDIDATE_LIMIT).select(:id)
+    records = containing(FavoriteShelf.where(id: candidates)).includes(:user)
                                                              .order(updated_at: :desc, id: :desc).limit(@limit).to_a
     resolve_previews(records)
     records.map { |record| entry(record) }
@@ -36,7 +39,8 @@ class PublicShelfMembership
   def containing(scope)
     table = scope.model.table_name
     if scope.connection.adapter_name == 'PostgreSQL'
-      scope.where("#{table}.picks::jsonb @> ?::jsonb", [{ type: @item.class.name, id: @item.id }].to_json)
+      scope.where("EXISTS (SELECT 1 FROM jsonb_array_elements(#{table}.picks::jsonb) AS selection " \
+                  "WHERE selection->>'type' = ? AND selection->>'id' = ?)", @item.class.name, @item.id.to_s)
     else
       scope.where("EXISTS (SELECT 1 FROM json_each(#{table}.picks) AS selection " \
                   "WHERE json_extract(selection.value, '$.type') = ? " \

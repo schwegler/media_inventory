@@ -21,7 +21,14 @@ RSpec.describe PublicShelfMembership do
     expect(results.map { |result| result[:url] }).not_to include("collection=#{shelf.slug}")
     expect(results.first[:covers].first.keys).to contain_exactly(:title, :type, :cover)
     expect(described_class.call(movie, limit: 1).size).to eq(1)
-    owner.update!(username: nil)
+    owner.favorite_shelves.find_by!(category: 'Movie').update!(picks: [{ type: 'Movie', id: movie.id.to_s }])
+    expect(described_class.call(movie).size).to eq(1)
+    stub_const('PublicShelfMembership::CANDIDATE_LIMIT', 1)
+    owner.favorite_shelves.create!(category: 'Book', picks: [{ type: 'Book', id: book.id }])
+    expect(described_class.call(movie)).to eq([])
+    owner.update!(confirmed_at: nil)
+    expect(described_class.call(movie)).to eq([])
+    owner.update!(confirmed_at: Time.current, username: nil)
     expect(described_class.call(movie)).to eq([])
   end
 end
