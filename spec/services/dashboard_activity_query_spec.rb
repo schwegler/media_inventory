@@ -60,4 +60,19 @@ RSpec.describe DashboardActivityQuery do
     orphan.delete
     expect(described_class.new(Activity.all).popular(limit: 1)).to eq({ ['Movie', movie.id] => 2 })
   end
+
+  it 'batch attaches review entries across multiple direct activities in minimal queries' do
+    m1 = Movie.create!(title: 'Movie 1')
+    m2 = Movie.create!(title: 'Movie 2')
+    entry1 = LibraryItem.create!(user: owner, item: m1, review: 'Great 1', is_public: true)
+    entry2 = LibraryItem.create!(user: owner, item: m2, review: 'Great 2', is_public: true)
+    act1 = Activity.create!(user: owner, trackable: m1, activity_type: 'reviewed')
+    act2 = Activity.create!(user: owner, trackable: m2, activity_type: 'reviewed')
+    act3 = Activity.create!(user: owner, trackable: movie, activity_type: 'consumed')
+
+    described_class.attach_review_entries([act1, act2, act3])
+
+    expect(act1.trackable).to eq(entry1)
+    expect(act2.trackable).to eq(entry2)
+  end
 end
