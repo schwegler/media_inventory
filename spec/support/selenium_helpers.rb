@@ -108,6 +108,11 @@ module SystemTestHelpers
     fill_in 'Email', with: email
     fill_in 'Password', with: password
     click_button 'Log in'
+    # The URL can change while Turbo still displays the old login document.
+    expect(page).to have_no_css('form[action="/login"]', visible: :all)
+    settled = 'html:not([aria-busy="true"]):not([data-turbo-preview])'
+    settled += ':not(:active-view-transition)' unless Capybara.current_driver == :rack_test
+    expect(page).to have_css(settled, visible: :all)
     expect(page).to have_text('Logged in successfully.')
 
     user
