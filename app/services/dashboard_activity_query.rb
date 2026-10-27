@@ -47,28 +47,54 @@ class DashboardActivityQuery
                        .order(Arel.sql('COUNT(*) DESC'), Arel.sql(TYPE_SQL), Arel.sql(ID_SQL)).limit(limit).count
   end
 
+  # Batch resolves LibraryItem proxies for direct activity feed items without constructing
+  # N separate query objects or chaining N nested .or conditions.
   def self.attach_review_entries(activities, viewer_id: nil)
     direct = activities.reject { |activity| activity.trackable_type == 'LibraryItem' }
     return activities if direct.empty?
 
-    scope = direct.map do |activity|
-      entries = LibraryItem.where(user_id: activity.user_id, item_type: activity.trackable_type,
-                                  item_id: activity.trackable_id)
-      if activity.activity_type == 'reviewed'
-        entries = entries.where('is_public = ? OR user_id = ?', true, viewer_id)
-                         .where("TRIM(COALESCE(review, '')) <> ''")
-      end
-      entries
-    end.reduce(&:or)
-    ids = scope.group(:user_id, :item_type, :item_id).select('MIN(id)')
-    entries = LibraryItem.where(id: ids).includes(:item).index_by do |entry|
-      [entry.user_id, entry.item_type, entry.item_id]
-    end
+    entries = build_review_entry_index(direct, viewer_id: viewer_id)
     direct.each do |activity|
       entry = entries[[activity.user_id, activity.trackable_type, activity.trackable_id]]
       activity.association(:trackable).target = entry if entry
     end
     activities
+  end
+
+  def self.build_review_entry_index(direct, viewer_id:)
+    scope = review_entries_scope(direct, viewer_id: viewer_id)
+    return {} unless scope
+
+    ids = scope.group(:user_id, :item_type, :item_id).select('MIN(id)')
+    LibraryItem.where(id: ids).includes(:item).index_by do |entry|
+      [entry.user_id, entry.item_type, entry.item_id]
+    end
+  end
+
+  def self.review_entries_scope(direct, viewer_id:)
+    reviewed, other = direct.partition { |activity| activity.activity_type == 'reviewed' }
+    scopes = []
+    scopes << scope_for_activities(other) if other.any?
+    scopes << scope_for_reviewed_activities(reviewed, viewer_id) if reviewed.any?
+    scopes.compact.reduce(&:or)
+  end
+
+  def self.scope_for_activities(activities)
+    tuples = activities.map { |a| [a.user_id, a.trackable_type, a.trackable_id] }.uniq
+    return LibraryItem.none if tuples.empty?
+
+    conn = ApplicationRecord.connection
+    sql = tuples.map do |u_id, type, id|
+      "(user_id = #{conn.quote(u_id)} AND item_type = #{conn.quote(type)} AND item_id = #{conn.quote(id)})"
+    end.join(' OR ')
+
+    LibraryItem.where(Arel.sql(sql))
+  end
+
+  def self.scope_for_reviewed_activities(activities, viewer_id)
+    scope_for_activities(activities)
+      .where('is_public = ? OR user_id = ?', true, viewer_id)
+      .where("TRIM(COALESCE(review, '')) <> ''")
   end
 
   private
