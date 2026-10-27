@@ -111,6 +111,13 @@ RSpec.describe 'Profile overview and tracking dashboard', type: :system do
     user = create_and_login_user
     seed_profile(user)
     visit handle_profile_path(user.username)
+    expect(page).to have_current_path(handle_profile_path(user.username))
+    root = 'html:not([aria-busy="true"]):not([data-turbo-preview]):not(:active-view-transition)'
+    sharing = '.library-profile[data-profile-tab="overview"] .profile-share[data-connected="true"]'
+    expect(page).to have_css("#{root}:has(#{sharing})", visible: :all)
+    expect(page).to have_css(sharing) do |element|
+      element.evaluate_script("!!window.Stimulus?.getControllerForElementAndIdentifier(this, 'link-share')")
+    end
     page.execute_script("Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined })")
     click_button 'Copy profile link'
     expect(page).to have_field('Public profile link', visible: true)
