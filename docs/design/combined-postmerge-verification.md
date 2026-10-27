@@ -23,6 +23,8 @@ An independent combined trace also failed an import-save success assertion after
 
 The first candidate with those additions passed shelf/login/import checks but exposed a presentation focus assertion reading BODY after Escape, with a fresh catalog document in the artifact. Its isolated lifecycle/focus trace passed and showed correct synchronous Escape focus restoration; the exact uncontrolled cause remains uncertain. The presentation example now requires the catalog destination to be complete before starting its original native keyboard sequence. The original focus assertions remain unchanged; dropdown product code is untouched.
 
+The next exact-head candidate (`1043060b`) passed PostgreSQL focused seed26539 but failed the SQLite owner clipboard-fallback example: it attempted the copy action before requiring a completed profile document and live link-share controller. The artifact retained no pointer events, so interception is not claimed. The shelves worker supplied a seven-line profile precondition before the unchanged clipboard override/click/fallback/status/focus assertions; its focused profile tests passed. The prior failed candidate and all artifacts remain separate evidence.
+
 ## Verification contract
 
 Only the reviewed modal-focus callback changes production behavior. The additional changes require the intended destination and completed document/transition before original assertions and actions. There are no sleeps, action retries, error rescues, timeout increases, forced clicks, animation overrides or removed assertions. Existing strict media-section/header assertions remain unchanged.
