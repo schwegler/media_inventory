@@ -44,6 +44,14 @@ RSpec.describe 'Profile overview and tracking dashboard', type: :system do
     page.driver.browser.save_screenshot(File.join(ENV.fetch('UI_QA_DIR'), "#{name}.png"))
   end
 
+  # Rendered cards can exist while Turbo's snapshot layer still intercepts input.
+  def expect_settled_progress_dashboard
+    dashboard = '.library-profile[data-profile-tab="progress"] .profile-progress-dashboard'
+    expect(page).to have_css("#{dashboard}:not([aria-busy='true'])")
+    expect(page).to have_css('html:not([aria-busy="true"]):not([data-turbo-preview]):not(:active-view-transition)',
+                             visible: :all)
+  end
+
   [390, 1440].each do |width|
     it "keeps one collection row at #{width}px, opens the full dashboard and tracks the next episode" do
       user = create_and_login_user(name: 'Overview Reader')
@@ -73,9 +81,12 @@ RSpec.describe 'Profile overview and tracking dashboard', type: :system do
       capture_current("profile-collection-after-#{width}")
       click_link 'Open In progress dashboard'
       expect(page).to have_css('.profile-progress-dashboard .in-progress-card', count: 5)
+      expect_settled_progress_dashboard
       select 'Title A–Z', from: 'Sort by'
+      expect_settled_progress_dashboard
       click_button 'Apply filters'
       expect(page).to have_current_path(/sort=title/)
+      expect_settled_progress_dashboard
       expect(first('.in-progress-series-title')).to have_text('Evening series 1')
       expect(page).to have_css('.in-progress-card[data-tracking-ready="true"]')
       first('.in-progress-log-btn').send_keys(:enter)
@@ -83,11 +94,14 @@ RSpec.describe 'Profile overview and tracking dashboard', type: :system do
       expect(page).to have_css('.in-progress-log-btn:focus')
       expect(page).to have_text('5 active titles')
       select 'Comics', from: 'Media type'
+      expect_settled_progress_dashboard
       click_button 'Apply filters'
+      expect_settled_progress_dashboard
       expect(page).to have_text('No matching titles.')
       capture_profile("profile-progress-empty-#{width}")
       click_link 'Reset filters'
       expect(page).to have_css('.in-progress-card', count: 5)
+      expect_settled_progress_dashboard
       expect(page.evaluate_script('document.documentElement.scrollWidth <= innerWidth')).to be true
       capture_profile("profile-dashboard-#{width}")
     end
@@ -97,6 +111,13 @@ RSpec.describe 'Profile overview and tracking dashboard', type: :system do
     user = create_and_login_user
     seed_profile(user)
     visit handle_profile_path(user.username)
+    expect(page).to have_current_path(handle_profile_path(user.username))
+    root = 'html:not([aria-busy="true"]):not([data-turbo-preview]):not(:active-view-transition)'
+    sharing = '.library-profile[data-profile-tab="overview"] .profile-share[data-connected="true"]'
+    expect(page).to have_css("#{root}:has(#{sharing})", visible: :all)
+    expect(page).to have_css(sharing) do |element|
+      element.evaluate_script("!!window.Stimulus?.getControllerForElementAndIdentifier(this, 'link-share')")
+    end
     page.execute_script("Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined })")
     click_button 'Copy profile link'
     expect(page).to have_field('Public profile link', visible: true)

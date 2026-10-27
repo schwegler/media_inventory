@@ -12,9 +12,16 @@ RSpec.describe 'Metadata tabs', type: :system do
   end
 
   def expect_metadata_connected
-    expect(page).to have_css('#title-details') do |element|
+    expect(page).to have_css('html:not([aria-busy="true"]):not([data-turbo-preview]) #title-details') do |element|
       element.evaluate_script("!!window.Stimulus?.getControllerForElementAndIdentifier(this, 'metadata-tabs')")
     end
+  end
+
+  def expect_catalog_rendered
+    # Turbo changes the URL before rendering. Finish this visit before issuing
+    # another history traversal, or an in-flight catalog can replace the detail.
+    expect(page).to have_css('html:not([aria-busy="true"]):not([data-turbo-preview]) .catalog-page #catalog-title',
+                             exact_text: 'Movies')
   end
 
   it 'supports keyboard, history, searchable panels and expanded document presentation' do
@@ -101,6 +108,7 @@ RSpec.describe 'Metadata tabs', type: :system do
     click_button 'Show all'
     find('.media-back-link').click
     expect(page).to have_current_path(movies_path)
+    expect_catalog_rendered
     find(".card-2026-title a[href='#{movie_path(movie)}']").click
     expect_metadata_connected
     expect(page).to have_button('Show all')
@@ -110,12 +118,14 @@ RSpec.describe 'Metadata tabs', type: :system do
 
     page.go_back
     expect(page).to have_current_path(movies_path)
+    expect_catalog_rendered
     page.go_back
     expect_metadata_connected
     expect(page).to have_button('Show tabs')
     expect(page).to have_css('#title-details .media-metadata-panel:not([hidden])', count: 4)
     page.go_forward
     expect(page).to have_current_path(movies_path)
+    expect_catalog_rendered
     page.go_forward
     expect_metadata_connected
     expect(page).to have_button('Show all')
