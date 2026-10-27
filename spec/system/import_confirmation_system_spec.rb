@@ -15,6 +15,11 @@ RSpec.describe 'Import confirmation', type: :system do
     }.to_json)
   end
 
+  def expect_logged_book_page
+    settled = 'html:not([aria-busy="true"]):not([data-turbo-preview]):not(:active-view-transition)'
+    expect(page).to have_css("#{settled} .media-detail", visible: :all)
+  end
+
   it 'searches a title entered before the import controller connects' do
     script = page.driver.browser.execute_cdp('Page.addScriptToEvaluateOnNewDocument', source: <<~JS)
       const observer = new MutationObserver(() => {
@@ -65,6 +70,7 @@ RSpec.describe 'Import confirmation', type: :system do
     expect(find('input[name="book[import_selection]"]', visible: :all).value).to eq('')
     fill_in 'Review', with: 'My review'
     click_button 'Save manual entry'
+    expect_logged_book_page
     expect(page).to have_text('Book was successfully logged.')
     expect(Book.last.author).to eq('My correction')
     expect(Book.last.api_id).to be_blank
@@ -79,6 +85,7 @@ RSpec.describe 'Import confirmation', type: :system do
     expect(page).to have_text('Source details are unavailable')
     expect(page).to have_text('Search author')
     click_button 'Confirm and save'
+    expect_logged_book_page
     expect(page).to have_text('Book was successfully logged.')
     expect(Book.last.author).to eq('Search author')
   end
