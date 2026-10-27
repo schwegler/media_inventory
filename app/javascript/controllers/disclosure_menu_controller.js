@@ -13,15 +13,23 @@ export default class extends Controller {
       this.element.open = false
       this.element.querySelector("summary")?.focus()
     }
+    this.clickInside = event => {
+      const item = event.target.closest?.("a, button, [role='menuitem'], .dropdown-item")
+      if (item && !this.element.querySelector("summary")?.contains(item)) {
+        this.element.open = false
+      }
+    }
     this.beforeCache = () => { this.element.open = false }
     document.addEventListener("turbo:before-cache", this.beforeCache)
     document.addEventListener("pointerdown", this.dismissOutside)
     this.element.addEventListener("keydown", this.dismissEscape)
+    this.element.addEventListener("click", this.clickInside)
   }
 
   disconnect() {
     document.removeEventListener("turbo:before-cache", this.beforeCache)
     document.removeEventListener("pointerdown", this.dismissOutside)
     this.element.removeEventListener("keydown", this.dismissEscape)
+    this.element.removeEventListener("click", this.clickInside)
   }
 }
