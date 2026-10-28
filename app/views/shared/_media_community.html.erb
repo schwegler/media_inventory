@@ -33,7 +33,7 @@
               <div class="review-content"><%= review_summary(matching_item, item: item) %></div>
 
               <div class="review-actions-row">
-                <%= render 'likes/like_button', item: matching_item %>
+                <%= render 'likes/like_button', item: matching_item, like_stats: stats[:review_likes].fetch(matching_item.id) %>
               </div>
 
               <%= render 'shared/comments_box', matching_item: matching_item %>
