@@ -26,8 +26,10 @@ export default class extends Controller {
     this.element.dataset.connected = "true"
   }
   disconnect() { this.list?.removeEventListener("keydown", this.onKeydown) }
-  switch(event) { this.activate(event.currentTarget) }
-  activate(selected) {
+  switch(event) {
+    this.activate(event.currentTarget, { focusInput: true })
+  }
+  activate(selected, options = {}) {
     this.tabTargets.forEach(tab => {
       const active = tab === selected
       tab.classList.toggle("active", active)
@@ -38,6 +40,10 @@ export default class extends Controller {
       const active = content.dataset.tabName === selected.dataset.tabName
       content.classList.toggle("hidden", !active)
       content.hidden = !active
+      if (active && options.focusInput) {
+        const input = content.querySelector("input:not([type='hidden']), textarea, select")
+        if (input) input.focus()
+      }
     })
   }
   keydown(event) {
