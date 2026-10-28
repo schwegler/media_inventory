@@ -35,6 +35,7 @@ function createMockController() {
   const Controller = new Function('Controller', source)(class {})
   const instance = Object.create(Controller.prototype)
   instance.element = element
+  instance.closeOnSelectValue = true
 
   global.document = global.document || {}
   global.document.addEventListener = (type, handler) => { docListeners[type] = handler }
@@ -79,6 +80,25 @@ test('disclosure_menu_controller ignores clicks on summary', () => {
   elementListeners['click']({ target: summaryClickTarget })
 
   assert.equal(element.open, true)
+})
+
+test('persistent settings stay open between selections and still dismiss outside or with Escape', () => {
+  const { instance, element, linkItem, summary, docListeners, elementListeners } = createMockController()
+  instance.closeOnSelectValue = false
+  let focused = false
+  summary.focus = () => { focused = true }
+  instance.connect()
+
+  elementListeners.click({ target: linkItem })
+  assert.equal(element.open, true)
+  docListeners.pointerdown({ target: linkItem })
+  assert.equal(element.open, true)
+  elementListeners.keydown({ key: 'Escape', preventDefault() {} })
+  assert.equal(element.open, false)
+  assert.equal(focused, true)
+  element.open = true
+  docListeners.pointerdown({ target: {} })
+  assert.equal(element.open, false)
 })
 
 test('disclosure_menu_controller closes menu on turbo:before-cache', () => {

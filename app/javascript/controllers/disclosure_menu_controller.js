@@ -2,6 +2,8 @@ import { Controller } from "@hotwired/stimulus"
 
 // Native details remains usable without JS. Add familiar dismissal for floating menus.
 export default class extends Controller {
+  static values = { closeOnSelect: { type: Boolean, default: true } }
+
   connect() {
     this.element.dataset.connected = "true"
     this.dismissOutside = event => {
@@ -15,7 +17,7 @@ export default class extends Controller {
     }
     this.clickInside = event => {
       const item = event.target.closest?.("a, button, [role='menuitem'], .dropdown-item")
-      if (item && !this.element.querySelector("summary")?.contains(item)) {
+      if (this.closeOnSelectValue && item && !this.element.querySelector("summary")?.contains(item)) {
         this.element.open = false
       }
     }
