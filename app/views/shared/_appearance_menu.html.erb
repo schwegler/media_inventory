@@ -1,4 +1,4 @@
-<details class="appearance-menu" data-controller="disclosure-menu appearance-menu" data-action="turbo:render@document->appearance-menu#refresh schweg:seasonal-change@window->appearance-menu#sync">
+<details class="appearance-menu" data-controller="disclosure-menu appearance-menu" data-disclosure-menu-close-on-select-value="false" data-action="turbo:render@document->appearance-menu#refresh schweg:seasonal-change@window->appearance-menu#sync">
   <summary aria-label="Appearance"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4v16a8 8 0 0 0 0-16" fill="currentColor"/></svg><span class="appearance-label">Appearance</span></summary>
   <div class="appearance-panel">
     <fieldset><legend>Base mode</legend><div class="appearance-options"><% { 'os' => 'System', 'light' => 'Light', 'dark' => 'Dark' }.each do |value, label| %><label><input type="radio" name="base-mode" value="<%= value %>" data-appearance-menu-target="mode" data-action="appearance-menu#change"><%= label %></label><% end %></div></fieldset>
