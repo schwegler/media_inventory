@@ -162,6 +162,8 @@ class UsersController < ApplicationController
     items
   end
 
+  # PERFORMANCE OPTIMIZATION: Load up to 4 shared items first into memory. If fewer than 4 are returned,
+  # set @shared_items_count = @shared_items.size directly in memory to avoid a redundant COUNT(*) SQL query.
   def load_shared_items
     @shared_items = []
     return unless logged_in? && !current_user?(@user)
@@ -170,8 +172,8 @@ class UsersController < ApplicationController
       'EXISTS (SELECT 1 FROM library_items own WHERE own.user_id = ? AND own.is_collected = ? ' \
       'AND own.item_type = library_items.item_type AND own.item_id = library_items.item_id)', current_user.id, true
     )
-    @shared_items_count = shared.count
-    @shared_items = shared.order(created_at: :desc).limit(4)
+    @shared_items = shared.order(created_at: :desc).limit(4).to_a
+    @shared_items_count = @shared_items.size < 4 ? @shared_items.size : shared.count
     preload_library_items(@shared_items)
   end
 
