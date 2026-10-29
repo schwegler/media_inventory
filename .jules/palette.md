@@ -13,3 +13,7 @@
 ## 2026-10-24 - Dynamic Consumed Date Row ARIA & Focus Management
 **Learning:** Checkboxes toggling expandable date fields (such as "Consumed" in modal log forms) must link to the toggled element via `aria-controls`, maintain `aria-expanded` and `aria-hidden` states, and shift focus to the expanded input when toggled on by user interaction.
 **Action:** When creating toggle Stimulus controllers for form sections, set `aria-controls`, update `aria-expanded` and `aria-hidden`, and focus the first input inside the expanded row when `event` is present.
+
+## 2026-10-29 - Expandable Tab Island Toggle ARIA Synchronization
+**Learning:** Action buttons that toggle tabbed UI sections between compact tabbed views and full expanded list views must maintain `aria-expanded` and `aria-controls` attributes on the toggle button across server-side rendering and client-side Stimulus state transitions.
+**Action:** Pair initial server-side `aria-expanded` and `aria-controls` attributes with a dedicated update helper method in Stimulus controllers that synchronizes `aria-expanded` on `connect()`, `expand()`, `select()`, and `reveal()`.

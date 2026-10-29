@@ -9,10 +9,11 @@ export default class extends Controller {
   static targets = ["list", "tab", "panel", "expand"]
 
   connect() {
+    this.element.dataset.connected = "true"
     // Keep native find-in-page available. Unsupported browsers get the full document.
     if (this.tabTargets.length < 2 || !("onbeforematch" in document.documentElement)) return
     this.enhanced = true
-    this.expandTarget.hidden = false
+    if (this.hasExpandTarget) this.expandTarget.hidden = false
     this.onHash = () => this.applyLocation()
     window.addEventListener("hashchange", this.onHash)
     // Finish a fresh island before resolving an existing downstream fragment.
@@ -32,10 +33,17 @@ export default class extends Controller {
     // Cached DOM may still carry an earlier visit's expanded attributes.
     this.expanded = state?.expanded === true
     this.element.dataset.metadataExpanded = String(this.expanded)
-    this.expandTarget.textContent = this.expanded ? "Show tabs" : "Show all"
+    this.updateExpandButton()
     const index = this.fragmentIndex()
     if (this.expanded) this.reveal()
     else this.select(index >= 0 ? index : (state?.index ?? 0))
+  }
+
+  updateExpandButton() {
+    if (!this.hasExpandTarget) return
+    this.expandTarget.textContent = this.expanded ? "Show tabs" : "Show all"
+    this.expandTarget.setAttribute("aria-expanded", String(Boolean(this.expanded)))
+    this.expandTarget.setAttribute("aria-controls", this.element.id || "title-details")
   }
 
   presentation() {
@@ -92,7 +100,10 @@ export default class extends Controller {
     if (!Number.isInteger(index) || index < 0 || index >= this.panelTargets.length) index = 0
     this.selectedIndex = index
     this.element.dataset.metadataSelected = String(index)
-    this.expandTarget.hidden = false
+    if (this.hasExpandTarget) {
+      this.expandTarget.hidden = false
+      this.updateExpandButton()
+    }
     this.listTarget.setAttribute("role", "tablist")
     this.tabTargets.forEach((tab, i) => {
       tab.setAttribute("role", "tab")
@@ -123,7 +134,7 @@ export default class extends Controller {
   expand() {
     this.expanded = !this.expanded
     this.element.dataset.metadataExpanded = String(this.expanded)
-    this.expandTarget.textContent = this.expanded ? "Show tabs" : "Show all"
+    this.updateExpandButton()
     if (this.expanded) this.reveal()
     else this.select(Math.max(0, this.fragmentIndex()))
     this.remember()
@@ -131,6 +142,7 @@ export default class extends Controller {
 
   reveal() {
     delete this.element.dataset.tabbed
+    if (this.hasExpandTarget) this.updateExpandButton()
     this.listTarget.removeAttribute("role")
     this.tabTargets.forEach(tab => {
       for (const name of ["role", "aria-controls", "aria-selected", "tabindex"]) tab.removeAttribute(name)
