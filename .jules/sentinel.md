@@ -20,3 +20,8 @@
 **Vulnerability:** Weakly configured external links missing `noopener noreferrer` in `link_to` elements with `target: '_blank'`.
 **Learning:** Using `target: '_blank'` without `rel: 'noopener noreferrer'` allows newly opened tabs to have access to the `window.opener` object, creating a Reverse Tabnabbing vulnerability where the newly opened site could redirect the origin site to a phishing or malicious page.
 **Prevention:** Make sure `rel: 'noopener noreferrer'` is specified in `link_to` elements or raw HTML `<a>` tags whenever `target: '_blank'` is present.
+
+## 2024-05-15 - Quote Column Names in Dynamic SQL
+**Vulnerability:** Potential SQL Injection in `app/models/category.rb` where column names are dynamically interpolated into a SQL string without explicit quoting.
+**Learning:** Dynamic column names interpolated into a SQL string fragment can lead to SQL injection or Brakeman warnings.
+**Prevention:** Use `ActiveRecord::Base.connection.quote_column_name(attribute)` to ensure dynamic column names are properly quoted when used in SQL string interpolations.
