@@ -98,7 +98,7 @@ class MetadataProvider
                actors: cast,
                genre: Array(data['genres']).join(', ').presence,
                release_year: year(data['premiered']) }
-    [fields, children { json("https://api.tvmaze.com/shows/#{id}/episodes") }]
+    [fields, children { json("https://api.tvmaze.com/shows/#{id}/episodes", specials: 1) }]
   end
 
   def tvmaze_credits(embedded)

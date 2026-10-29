@@ -33,7 +33,7 @@ module MetadataEntitiesHelper
     if item.is_a?(ComicIssue)
       link_to("##{item.issue_number} · #{item.title.presence || 'Untitled issue'}", item, title: item.display_title)
     elsif item.is_a?(TvEpisode)
-      link_to("S#{item.season} · E#{item.episode} · #{item.name}", item, title: item.title)
+      link_to("#{item.episode_code} · #{item.name}", item, title: item.title)
     else
       metadata_work_link(item)
     end

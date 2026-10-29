@@ -13,7 +13,19 @@ class TvEpisode < ApplicationRecord
 
   def title
     show_title = tv_show&.title
-    "#{show_title} S#{season}E#{episode}: #{name}"
+    "#{show_title} #{episode_code}: #{name}"
+  end
+
+  def episode_code
+    episode.nil? ? "S#{season} · Special" : "S#{season}E#{episode}"
+  end
+
+  def episode_label
+    episode.nil? ? 'Special' : "Episode #{episode}"
+  end
+
+  def season_description
+    "Season #{season}, #{episode_label.downcase}"
   end
 
   # rubocop:disable-next Naming/PredicatePrefix
@@ -36,7 +48,7 @@ class TvEpisode < ApplicationRecord
   # Attempt to fetch a thumbnail from TVMaze if this episode is missing one.
   # Called opportunistically when marking an episode as watched or reviewed.
   def attempt_thumbnail_update!
-    return if thumbnail_url.present?
+    return if thumbnail_url.present? || episode.nil?
     return unless tv_show&.api_id.to_s.match?(/\A\d+\z/)
 
     require 'net/http'

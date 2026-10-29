@@ -99,7 +99,7 @@ class TvShow < ApplicationRecord
   def fetch_episodes_from_api
     require 'net/http'
     require 'json'
-    url = URI("https://api.tvmaze.com/shows/#{api_id}/episodes")
+    url = URI("https://api.tvmaze.com/shows/#{api_id}/episodes?specials=1")
     response = MediaSources::Http.cached_get(url)
     JSON.parse(response)
   rescue StandardError => e

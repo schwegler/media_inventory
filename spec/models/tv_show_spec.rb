@@ -49,7 +49,7 @@ RSpec.describe TvShow, type: :model do
         }
       }.to_json, headers: { 'Content-Type' => 'application/json' })
 
-    stub_request(:get, 'https://api.tvmaze.com/shows/537/episodes')
+    stub_request(:get, 'https://api.tvmaze.com/shows/537/episodes?specials=1')
       .to_return(body: [
         { id: 1, name: 'Pilot', season: 1, number: 1, airdate: '2006-10-11' }
       ].to_json, headers: { 'Content-Type' => 'application/json' })
@@ -62,5 +62,18 @@ RSpec.describe TvShow, type: :model do
     expect(tv_show.actors).to eq('Tina Fey, Alec Baldwin')
     expect(tv_show.genre).to eq('Comedy')
     expect(tv_show.release_year).to eq(2006)
+  end
+  it 'imports unnumbered specials in the initial TVMaze sync without assigning episode numbers' do
+    special = { id: 3_684_533, name: 'Halloween 6: The Mirror – Parts One & Two',
+                season: 6, number: nil, type: 'significant_special', airdate: '2026-10-29' }
+    stub_request(:get, 'https://api.tvmaze.com/shows/46573/episodes?specials=1')
+      .to_return(body: [special].to_json)
+    show = TvShow.create!(title: 'Ghosts', api_id: '46573')
+    show.send(:sync_episodes_from_api)
+    episode = show.tv_episodes.sole
+    expect(episode.episode).to be_nil
+    expect(episode.season).to eq(6)
+    expect(episode.provider_id).to eq('3684533')
+    expect(episode.metadata_details['Episode type']).to eq('significant_special')
   end
 end

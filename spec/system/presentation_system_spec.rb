@@ -110,7 +110,7 @@ RSpec.describe 'Presentation and keyboard access', type: :system do
     show = TvShow.create!(title: 'Refreshable show')
     show.update_columns(api_id: '42')
     stub_request(:get, 'https://api.tvmaze.com/shows/42').to_return(body: { network: { name: 'A network' } }.to_json)
-    stub_request(:get, 'https://api.tvmaze.com/shows/42/episodes').to_return(body: [].to_json)
+    stub_request(:get, 'https://api.tvmaze.com/shows/42/episodes?specials=1').to_return(body: [].to_json)
     visit tv_show_path(show)
     find('#metadata-health summary').click
     click_button 'Refresh metadata'
