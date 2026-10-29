@@ -12,14 +12,15 @@ export default class extends Controller {
   restore() {
     const seasons = this.contentTargets.map(t => parseInt(t.dataset.season, 10))
     if (seasons.length > 0) {
-      let savedSeason = this.activeSeasonValue
+      let savedSeason = this.hasActiveSeasonValue ? this.activeSeasonValue : null
       try {
         if (this.hasShowIdValue) {
           const storedSeason = sessionStorage.getItem(`tv-show:${this.showIdValue}:season`)
           if (storedSeason !== null) savedSeason = parseInt(storedSeason, 10)
         }
       } catch { /* Storage may be unavailable in embedded browsers. */ }
-      const initialSeason = seasons.includes(savedSeason) ? savedSeason : seasons[0]
+      const defaultSeason = seasons.includes(1) ? 1 : (seasons.find(season => season > 0) ?? seasons[0])
+      const initialSeason = seasons.includes(savedSeason) ? savedSeason : defaultSeason
       this.switchSeason(initialSeason)
     }
   }

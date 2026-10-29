@@ -15,7 +15,7 @@ RSpec.describe MetadataRefresher do
     stub_request(:get, 'https://api.tvmaze.com/shows/42').to_return(
       body: { network: { name: 'A network' }, image: { original: 'https://images.example/cover.jpg' } }.to_json
     )
-    stub_request(:get, 'https://api.tvmaze.com/shows/42/episodes').to_return(body: rows.to_json)
+    stub_request(:get, 'https://api.tvmaze.com/shows/42/episodes?specials=1').to_return(body: rows.to_json)
   end
 
   it 'releases the item lease and reports queue saturation without requesting providers' do
@@ -49,6 +49,46 @@ RSpec.describe MetadataRefresher do
     expect(comment.reload.commentable).to eq(episode)
   end
 
+  context 'with the combined Ghosts Halloween special' do
+    let(:special) do
+      { 'id' => 3_684_533, 'name' => 'Halloween 6: The Mirror – Parts One & Two',
+        'season' => 6, 'number' => nil, 'type' => 'significant_special', 'airdate' => '2026-10-29' }
+    end
+    let(:rows) do
+      [{ 'id' => 100, 'name' => 'Pilot', 'season' => 1, 'number' => 1 }, special,
+       special.merge('id' => 3_684_534, 'name' => 'Christmas Special', 'airdate' => '2026-12-10')]
+    end
+
+    it 'keeps distinct unnumbered specials and refreshes them idempotently by provider ID' do
+      expect(described_class.call(show, user)).to eq('success')
+      imported = show.tv_episodes.find_by!(provider_id: '3684533')
+      expect(imported.attributes.slice('season', 'episode', 'name', 'air_date')).to eq(
+        'season' => 6, 'episode' => nil, 'name' => special['name'], 'air_date' => '2026-10-29'
+      )
+      expect(imported.metadata_details['Episode type']).to eq('significant_special')
+      expire_cooldown
+      expect(described_class.call(show, user)).to eq('unchanged')
+      expect(show.tv_episodes.where(season: 6).pluck(:provider_id)).to contain_exactly('3684533', '3684534')
+      expect(show.tv_episodes.find_by!(provider_id: '3684533').id).to eq(imported.id)
+    end
+
+    it 'preserves completed-series history without marking new specials watched' do
+      episode
+      library = LibraryItem.create!(user: user, item: show, consumed: true, consumed_at: Date.new(2026, 5, 21))
+      original_library = library.reload.attributes
+      original_entries = user.library_items.order(:id).map(&:attributes)
+      original_passes = library.consumption_passes.order(:id).map(&:attributes)
+      original_pass_entries = ConsumptionPassEntry.order(:id).map(&:attributes)
+      expect(described_class.call(show, user)).to eq('success')
+      expect(library.reload.attributes).to eq(original_library)
+      expect(user.library_items.order(:id).map(&:attributes)).to eq(original_entries)
+      expect(library.consumption_passes.order(:id).map(&:attributes)).to eq(original_passes)
+      expect(ConsumptionPassEntry.order(:id).map(&:attributes)).to eq(original_pass_entries)
+      expect(show.tv_episodes.where(season: 6).pluck(:watched)).to eq([false, false])
+      expect(episode.reload.watched).to be true
+    end
+  end
+
   it 'keeps existing artwork on provider failure and reports rate limits' do
     show.update_columns(thumbnail_url: 'https://images.example/old.jpg')
     stub_request(:get, 'https://api.tvmaze.com/shows/42').to_return(status: 429)
@@ -58,7 +98,7 @@ RSpec.describe MetadataRefresher do
 
   it 'reports partial success when episodes are unavailable' do
     episode
-    stub_request(:get, 'https://api.tvmaze.com/shows/42/episodes').to_return(status: 503)
+    stub_request(:get, 'https://api.tvmaze.com/shows/42/episodes?specials=1').to_return(status: 503)
     expect(described_class.call(show, user)).to eq('partial')
     expect(show.tv_episodes.count).to eq(1)
     expect(show.reload.thumbnail_url).to eq('https://images.example/cover.jpg')

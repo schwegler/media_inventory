@@ -9,6 +9,8 @@ class ConsumptionPasses
   class << self
     # Record that +child+ (TvEpisode/ComicIssue) was completed by +user+ in the current pass.
     def record(user, child)
+      return if season_zero_extra?(child)
+
       series_lib = series_library_item(user, child)
       return unless series_lib
 
@@ -28,6 +30,8 @@ class ConsumptionPasses
 
     # Remove +child+ from the current pass (e.g. the user hit "Undo").
     def unrecord(user, child)
+      return if season_zero_extra?(child)
+
       series_lib = series_library_item(user, child)
       return unless series_lib
 
@@ -77,6 +81,8 @@ class ConsumptionPasses
     # When undoing in a re-watch, the episode must stay "watched" overall because an earlier
     # pass still covers it.
     def preserve_history?(user, child)
+      return false if season_zero_extra?(child)
+
       series_lib = series_library_item(user, child)
       return false unless series_lib
 
@@ -128,7 +134,7 @@ class ConsumptionPasses
       return false unless series_lib
 
       pass = options.fetch(:pass) { current_pass(series_lib) }
-      if pass&.rewatch?
+      if rewatch_tracking?(pass, child)
         entry_ids = options[:entry_ids] || pass_entry_ids(pass)
         entry_ids.include?(child.id)
       else
@@ -152,16 +158,20 @@ class ConsumptionPasses
       pass.update!(status: 'active', completed_on: nil)
     end
 
-    def sync_completion(pass, series_lib)
-      total = series_total(series_lib)
-      return unless total.positive? && pass.entries.count >= total
-
-      pass.update!(status: 'completed', completed_on: Date.current)
+    def rewatch_tracking?(pass, child)
+      pass&.rewatch? && !season_zero_extra?(child)
     end
 
-    def series_total(series_lib)
-      series = series_lib.item
-      series.is_a?(TvShow) ? series.tv_episodes.count : series.comic_issues.count
+    def season_zero_extra?(child)
+      child.is_a?(TvEpisode) && child.season&.zero?
+    end
+
+    def sync_completion(pass, series_lib)
+      selection = NextSeriesEntry.new(series_lib.item, pass)
+      total = selection.children.count
+      return unless total.positive? && selection.completed.count >= total
+
+      pass.update!(status: 'completed', completed_on: Date.current)
     end
   end
 end

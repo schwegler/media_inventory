@@ -16,7 +16,7 @@ RSpec.describe 'Large TV show sync and refresh' do
     details = { network: { name: 'BBC One' }, premiered: '1985-02-19',
                 _embedded: { crew: [{ type: 'Writer', person: { id: 9, name: 'Writer' } }] } }
     stub_request(:get, %r{\Ahttps://api.tvmaze.com/shows/793(?:\?|$)}).to_return(body: details.to_json)
-    stub_request(:get, 'https://api.tvmaze.com/shows/793/episodes')
+    stub_request(:get, 'https://api.tvmaze.com/shows/793/episodes?specials=1')
       .to_return(body: [{ summary: 'x' * MediaSources::Http::MAX_JSON_BYTES }].to_json)
     seasons = [{ id: 100, number: 1985, endDate: '1985-12-31' }, { id: 200, number: 2026, endDate: nil }]
     stub_request(:get, 'https://api.tvmaze.com/shows/793/seasons').to_return(body: seasons.to_json)

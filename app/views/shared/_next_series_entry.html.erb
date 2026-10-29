@@ -1,5 +1,5 @@
 <% tv = item.is_a?(TvShow) %>
-<% label = tv ? "S#{entry.season}E#{entry.episode} · #{entry.name.presence || 'Next episode'}" : "Issue ##{entry.issue_number} · #{entry.title}" %>
+<% label = tv ? "#{entry.episode_code} · #{entry.name.presence || 'Next episode'}" : "Issue ##{entry.issue_number} · #{entry.title}" %>
 <% release = media_release_date(entry) %>
 <div class="media-next-entry">
   <p><strong><%= release && release > Date.current ? 'Upcoming' : 'Up next' %></strong> · <%= link_to label, entry %></p>

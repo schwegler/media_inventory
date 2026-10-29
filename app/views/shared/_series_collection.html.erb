@@ -5,6 +5,7 @@
     <h2><%= label %> in this series</h2>
     <% if logged_in? %>
       <p class="media-progress"><strong data-child-collection-target="completed"><%= number_with_delimiter(collection.completed) %> of <%= number_with_delimiter(collection.total) %></strong> <%= label.downcase %> <%= collection.tv? ? 'watched' : 'read' %></p>
+      <% if collection.tv? && collection.seasons.include?(0) %><p class="muted">Season 0 extras do not count toward watch-through progress.</p><% end %>
       <progress value="<%= collection.completed %>" max="<%= [collection.total, 1].max %>" aria-label="<%= label %> completed"></progress>
       <%= render 'shared/consumption_pass_panel', item: item, library_item: @series_library_item if @series_library_item %>
     <% end %>

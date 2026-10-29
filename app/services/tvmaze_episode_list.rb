@@ -19,7 +19,7 @@ class TvmazeEpisodeList
   end
 
   def call
-    array("shows/#{@id}/episodes", revalidate: @revalidate)
+    array("shows/#{@id}/episodes?specials=1", revalidate: @revalidate)
   rescue MediaSources::Http::Error => e
     raise unless e.message == 'Response too large'
 
@@ -70,7 +70,7 @@ class TvmazeEpisodeList
 
   def append_season(rows, season, index, more:)
     additions = array("seasons/#{season['id']}/episodes", revalidate: revalidate_season?(season, index))
-    additions = additions.select { |row| regular_episode?(row) }
+    additions = additions.select { |row| catalog_episode?(row) }
     remaining = MAX_EPISODES - rows.size
     rows.concat(additions.first(remaining))
     complete = additions.size <= remaining && (rows.size < MAX_EPISODES || !more)
@@ -82,7 +82,7 @@ class TvmazeEpisodeList
     @revalidate && (index.zero? || season['endDate'].blank? || season['endDate'].to_s >= Date.current.iso8601)
   end
 
-  def regular_episode?(row)
-    row.is_a?(Hash) && row['number'].is_a?(Integer) && !row['type'].to_s.end_with?('_special')
+  def catalog_episode?(row)
+    MetadataChildren.episode_row?(row)
   end
 end

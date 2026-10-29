@@ -15,8 +15,8 @@
   if is_tv
     tag_label = "TV Show"
     fallback_icon = ui_icon('tv')
-    next_label = "S#{next_item.season}E#{next_item.episode}"
-    next_title = next_item.name.presence || "Episode #{next_item.episode}"
+    next_label = next_item.episode_code
+    next_title = next_item.name.presence || next_item.episode_label
     next_path = tv_episode_path(next_item)
     next_thumb = next_item.stored_cover_url.presence || series_cover
     release_date = media_release_date(next_item)

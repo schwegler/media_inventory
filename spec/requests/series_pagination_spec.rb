@@ -16,6 +16,23 @@ RSpec.describe 'Bounded series collections', type: :request do
     expect(response.body).to include('No matching episodes')
   end
 
+  it 'shows season six and labels an unnumbered combined special without a fabricated episode number' do
+    show.tv_episodes.create!(season: 5, episode: 22, name: 'Across the Pond')
+    special = show.tv_episodes.create!(season: 6, episode: nil, provider_id: '3684533',
+                                       name: 'Halloween 6: The Mirror – Parts One & Two',
+                                       metadata_details: { 'Episode type' => 'significant_special' })
+    get tv_show_path(show), params: { season: 6 }
+    expect(response).to have_http_status(:ok)
+    doc = Nokogiri::HTML(response.body)
+    expect(doc.at_css('select[name="season"] option[selected]').text).to eq('Season 6')
+    expect(doc.css('.series-entry').size).to eq(1)
+    expect(doc.at_css('.series-entry-title').text).to include("Special. #{special.name}")
+    get tv_episode_path(special)
+    expect(response).to have_http_status(:ok)
+    expect(Nokogiri::HTML(response.body).text).to include('Season 6, special')
+    expect(special.title).to include('S6 · Special:')
+  end
+
   it 'loads one bounded season page without instantiating the rest of the series' do
     TvEpisode.insert_all!(1000.times.map do |i|
       { tv_show_id: show.id, season: (i / 100) + 1, episode: (i % 100) + 1, name: "Chapter #{i}" }

@@ -2,12 +2,12 @@
 
 # Counts and candidates remain in SQL; a long-running series never loads every child.
 class NextSeriesEntry
-  attr_reader :children
+  attr_reader :children, :entries
 
   def initialize(series, pass)
     @tv = series.is_a?(TvShow)
-    @children = @tv ? series.tv_episodes : series.comic_issues
-    @entries = pass.entries.where(item_type: @tv ? 'TvEpisode' : 'ComicIssue')
+    @children = @tv ? series.tv_episodes.watch_through : series.comic_issues
+    @entries = pass.entries.where(item_type: @tv ? 'TvEpisode' : 'ComicIssue', item_id: @children.select(:id))
     @date = @tv ? :air_date : :release_date
   end
 

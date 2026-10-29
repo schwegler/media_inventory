@@ -17,7 +17,7 @@ RSpec.describe 'Approved import corrections' do
       _embedded: { crew: [{ type: 'Director', person: { name: 'Old director' } }] },
       image: { original: 'https://images.example/provider.jpg' }
     }.to_json)
-    stub_request(:get, 'https://api.tvmaze.com/shows/42/episodes').to_return(body: '[]')
+    stub_request(:get, 'https://api.tvmaze.com/shows/42/episodes?specials=1').to_return(body: '[]')
     expect(MetadataRefresher.call(show, user)).to eq('unchanged')
     expect(show.reload).to have_attributes(director: 'Correct director', thumbnail_url: 'https://images.example/correct.jpg')
     expect(show.metadata_entities.pluck(:name)).to include('Correct director')

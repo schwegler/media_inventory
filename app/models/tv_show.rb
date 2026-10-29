@@ -21,6 +21,10 @@ class TvShow < ApplicationRecord
 
   attr_accessor :refreshing_metadata
 
+  def self.default_season(seasons)
+    seasons.include?(1) ? 1 : (seasons.find { |season| season&.positive? } || seasons.first)
+  end
+
   private
 
   def enqueue_series_sync

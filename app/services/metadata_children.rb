@@ -1,15 +1,16 @@
 # frozen_string_literal: true
 
 # Reconcile in place: never delete children or touch personal/social attributes.
-# Explicit episode-only recovery omits artwork, enrichment and completion propagation.
+# Explicit episode-only recovery also omits artwork and enrichment.
 class MetadataChildren
   def self.episodes(show, rows, episode_only: false)
     changed = 0
     show.with_lock do
       rows.each do |row|
-        next unless row.is_a?(Hash) && row['season'].is_a?(Integer) && row['number'].is_a?(Integer)
+        next unless episode_row?(row)
 
-        episode = show.tv_episodes.find_or_initialize_by(season: row['season'], episode: row['number'])
+        episode = find_episode(show, row)
+        episode.assign_attributes(season: row['season'], episode: row['number'])
         episode.name = row['name'] if episode.name.blank?
         assign_episode_details(episode, row, show)
         image = MetadataProvider.image(row.dig('image', 'original') || row.dig('image', 'medium')) unless episode_only
@@ -22,10 +23,28 @@ class MetadataChildren
         enqueue_episode_details(episode, show) unless episode_only
       end
     end
-    if changed.positive? && !episode_only
-      LibraryItem.where(item: show, consumed: true).find_each(&:mark_all_episodes_watched)
-    end
     changed
+  end
+
+  def self.episode_row?(row)
+    return false unless row.is_a?(Hash) && row['season'].is_a?(Integer)
+    return true if row['number'].is_a?(Integer)
+
+    row['number'].nil? && row['id'].present? && %w[significant_special insignificant_special].include?(row['type'])
+  end
+
+  def self.find_episode(show, row)
+    existing = show.tv_episodes.find_by(provider_id: row['id'].to_s) if row['id'].present?
+    return existing if existing
+
+    # Older imports may have no provider ID. Unnumbered specials must never
+    # share a season/number lookup, since multiple specials can have number nil.
+    if row['number'].is_a?(Integer)
+      legacy = show.tv_episodes.find_by(season: row['season'], episode: row['number'], provider_id: [nil, ''])
+      legacy || show.tv_episodes.new
+    else
+      show.tv_episodes.new
+    end
   end
 
   def self.issues(comic, rows)

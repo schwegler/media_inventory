@@ -18,7 +18,7 @@ class TvShowsController < InventoryController
 
     ActiveRecord::Base.transaction do
       apply_season_episodes(episodes, consumed)
-      check_series_completion if consumed
+      check_series_completion if consumed && season_number != 0
     end
 
     notice = "Season #{season_number} marked as #{consumed ? 'watched' : 'unwatched'}."
@@ -42,11 +42,12 @@ class TvShowsController < InventoryController
   end
 
   def check_series_completion
-    total = @tv_show.tv_episodes.count
+    episodes = @tv_show.tv_episodes.watch_through
+    total = episodes.count
     return unless total.positive?
 
     watched = LibraryItem.where(user: current_user, item_type: 'TvEpisode',
-                                item_id: @tv_show.tv_episodes.select(:id), consumed: true).count
+                                item_id: episodes.select(:id), consumed: true).count
     return unless watched == total && !@library_item.consumed?
 
     @library_item.update!(consumed: true, consumed_at: @library_item.consumed_at || Time.current.to_date)

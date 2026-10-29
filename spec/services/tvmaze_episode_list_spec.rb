@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe TvmazeEpisodeList do
-  let(:full_url) { 'https://api.tvmaze.com/shows/793/episodes' }
+  let(:full_url) { 'https://api.tvmaze.com/shows/793/episodes?specials=1' }
   let(:seasons_url) { 'https://api.tvmaze.com/shows/793/seasons' }
 
   def episode(id, year)
@@ -55,7 +55,7 @@ RSpec.describe TvmazeEpisodeList do
     expect(WebMock).not_to have_requested(:get, seasons_url)
   end
 
-  it 'retains successful seasons on failure, excludes specials and retries using ended-season caches' do
+  it 'retains successful seasons and specials on failure and retries using ended-season caches' do
     oversized_list
     season_list
     latest = 'https://api.tvmaze.com/seasons/10002/episodes'
@@ -64,15 +64,15 @@ RSpec.describe TvmazeEpisodeList do
     stub_request(:get, latest).to_return(body: [episode(3, 1987), special].to_json)
     stub_request(:get, middle).to_return(status: 429)
     first = described_class.new('793', revalidate: true)
-    expect(first.call.map { |row| row['id'] }).to eq([3])
+    expect(first.call.map { |row| row['id'] }).to eq([3, 99])
     expect(first.partial).to be true
     expect(WebMock).not_to have_requested(:get, 'https://api.tvmaze.com/seasons/10000/episodes')
     stub_request(:get, middle).to_return(body: [episode(2, 1986)].to_json)
     second = described_class.new('793', revalidate: true)
-    expect(second.call.map { |row| row['season'] }).to eq([1987, 1986, 1985])
+    expect(second.call.map { |row| row['season'] }).to eq([1987, 1987, 1986, 1985])
     expect(second.partial).to be false
     third = described_class.new('793', revalidate: true)
-    expect(third.call.size).to eq(3)
+    expect(third.call.size).to eq(4)
     expect(WebMock).to have_requested(:get, middle).twice # one error, one success; then cached
   end
 

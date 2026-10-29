@@ -15,7 +15,7 @@ RSpec.describe 'Metadata repair', type: :request do
     stub_request(:get, 'https://api.tvmaze.com/shows/42').to_return(
       body: { name: 'Provider title', image: { original: 'https://images.example/new.jpg' } }.to_json
     )
-    stub_request(:get, 'https://api.tvmaze.com/shows/42/episodes').to_return(
+    stub_request(:get, 'https://api.tvmaze.com/shows/42/episodes?specials=1').to_return(
       body: [{ name: 'Pilot', season: 1, number: 1, airdate: '2026-10-01' }].to_json
     )
   end

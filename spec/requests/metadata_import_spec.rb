@@ -44,7 +44,7 @@ RSpec.describe 'Imported metadata confirmation', type: :request do
     preview = response.parsed_body
     expect(preview).to include('actors' => 'An actor', 'genre' => 'Drama', 'import_state' => 'ready')
     expect(TvShow.count).to eq(0)
-    expect(WebMock).not_to have_requested(:get, 'https://api.tvmaze.com/shows/42/episodes')
+    expect(WebMock).not_to have_requested(:get, 'https://api.tvmaze.com/shows/42/episodes?specials=1')
     post tv_shows_path, params: { tv_show: { title: 'Injected', network: 'Injected',
                                              import_selection: preview['import_selection'],
                                              rating: '4.5', review: 'My review', in_watchlist: '1' } }

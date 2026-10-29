@@ -1,1 +1,1 @@
-<%= render 'shared/media_child_detail', item: @tv_episode, parent: @tv_episode.tv_show, title: @tv_episode.name, description: "Season #{@tv_episode.season}, episode #{@tv_episode.episode}", date: @tv_episode.air_date, tracking: 'tv_episodes/tracking' %>
+<%= render 'shared/media_child_detail', item: @tv_episode, parent: @tv_episode.tv_show, title: @tv_episode.name, description: @tv_episode.season_description, date: @tv_episode.air_date, tracking: 'tv_episodes/tracking' %>

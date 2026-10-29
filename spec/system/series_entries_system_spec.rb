@@ -74,6 +74,30 @@ RSpec.describe 'Series entries and review drawers', type: :system do
     expect(page).to have_select('Season', selected: 'Season 3')
   end
 
+  it 'opens season one and keeps extras accessible without adding them to watch-through progress' do
+    user = create_and_login_user
+    show = TvShow.create!(title: 'Season zero browsing QA')
+    LibraryItem.create!(user: user, item: show)
+    extra = show.tv_episodes.create!(name: 'Behind the scenes', season: 0, episode: 1)
+    pilot = show.tv_episodes.create!(name: 'Pilot', season: 1, episode: 1)
+    show.tv_episodes.create!(name: 'Finale', season: 1, episode: 2)
+    LibraryItem.create!(user: user, item: pilot, consumed: true)
+    visit tv_show_path(show)
+    expect(page).to have_select('Season', selected: 'Season 1')
+    expect(page).to have_css('[data-child-collection-target="completed"]', text: '1 of 2')
+    expect(page).to have_css('.media-next-entry', text: 'Finale')
+    expect(page).to have_css('.child-collection-toolbar[data-connected="true"]')
+    select 'Season 0', from: 'Season'
+    expect(page).to have_css('#series-entries .series-entry-title', text: 'Behind the scenes')
+    within("#tv_episode_#{extra.id}") { click_button 'Mark watched: 1. Behind the scenes' }
+    expect(page).to have_css('[data-child-collection-target="completed"]', text: '1 of 2')
+    expect(LibraryItem.find_by!(user: user, item: extra)).to be_consumed
+    expect(page).to have_css('.child-collection-toolbar[data-connected="true"]')
+    select 'Season 1', from: 'Season'
+    expect(page).to have_css('#series-entries .series-entry-title', text: 'Finale')
+    expect(page).to have_select('Season', selected: 'Season 1')
+  end
+
   it 'uses the same issue layout, saves reviews, and preserves history during rereads' do
     user = create_and_login_user
     user.update!(theme: 'light')
