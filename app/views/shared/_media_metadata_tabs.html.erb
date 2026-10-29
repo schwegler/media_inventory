@@ -2,7 +2,7 @@
   <section id="title-details" class="media-description media-metadata" aria-labelledby="title-details-heading" data-controller="metadata-tabs">
     <div class="media-metadata-heading">
       <h2 id="title-details-heading">Details</h2>
-      <% if groups.many? %><button type="button" class="media-metadata-expand" data-metadata-tabs-target="expand" data-action="metadata-tabs#expand" hidden>Show all</button><% end %>
+      <% if groups.many? %><button type="button" class="media-metadata-expand" data-metadata-tabs-target="expand" data-action="metadata-tabs#expand" aria-expanded="false" aria-controls="title-details" hidden>Show all</button><% end %>
     </div>
     <% if groups.many? %>
       <nav class="media-metadata-nav" aria-label="Detailed metadata" data-metadata-tabs-target="list" data-turbo="false">
