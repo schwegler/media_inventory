@@ -146,7 +146,7 @@ GEM
       bigdecimal
       rake (~> 13.3)
     hashdiff (1.2.1)
-    hashie (5.1.0)
+    hashie (5.2.0)
       logger
     hotwire-livereload (2.1.1)
       actioncable (>= 7.0.0)
@@ -230,11 +230,11 @@ GEM
       rack (>= 1.2, < 4)
       snaky_hash (~> 2.0, >= 2.0.6)
       version_gem (~> 1.1, >= 1.1.12)
-    omniauth (2.1.4)
-      hashie (>= 3.4.6)
+    omniauth (2.3.1)
+      hashie (>= 3.5.2)
       logger
-      rack (>= 2.2.3)
-      rack-protection
+      rack (>= 2.2.8)
+      rack-protection (>= 2.2.0)
     omniauth-atproto (0.1.4)
       atproto_client (~> 0.1.4)
       didkit
@@ -269,7 +269,7 @@ GEM
     puma (8.0.2)
       nio4r (~> 2.0)
     racc (1.8.1)
-    rack (3.2.6)
+    rack (3.2.7)
     rack-protection (4.2.1)
       base64 (>= 0.1.0)
       logger (>= 1.6.0)
@@ -432,7 +432,7 @@ DEPENDENCIES
   image_processing (~> 2.2)
   importmap-rails
   kaminari (~> 1.2)
-  omniauth (~> 2.1)
+  omniauth (~> 2.3)
   omniauth-atproto (~> 0.1.4)
   omniauth-oauth2 (~> 1.9)
   omniauth-rails_csrf_protection (~> 2.0)
