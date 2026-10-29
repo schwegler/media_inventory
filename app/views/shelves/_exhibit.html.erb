@@ -1,5 +1,5 @@
-<%= link_to shelf_path(@user.username, category: shelf[:key], theme: @theme), class: "shelf-exhibit #{'shelf-exhibit-featured' if featured}", data: { shelf_link: true } do %>
-  <div class="shelf-exhibit-label"><span class="shelf-index"><%= format('%02d', index + 1) %></span><h2><%= shelf[:label] %></h2><span class="shelf-explore">Explore shelf <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></span></div>
+<%= link_to (@shelf_owner ? edit_favorite_shelf_path(shelf[:key], theme: @theme, **@image_style.symbolize_keys) : shelf_navigation_path(@user, category: shelf[:key], theme: @theme, style: @image_style)), class: "shelf-exhibit #{'shelf-exhibit-featured' if featured}", data: { shelf_link: true } do %>
+  <div class="shelf-exhibit-label"><span class="shelf-index"><%= format('%02d', index + 1) %></span><h2><%= shelf[:label] %></h2><span class="shelf-explore"><%= @shelf_owner ? 'Edit selections' : 'Explore shelf' %> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></span></div>
   <div class="shelf-artwork" aria-label="<%= shelf[:items].size %> selections, up to 5 covers">
     <% (@shelf_owner ? 5 : shelf[:items].size).times do |position| %>
       <% item = shelf[:items][position] %>

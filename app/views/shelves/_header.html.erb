@@ -1,5 +1,5 @@
 <header class="shelf-heading shelf-detail-heading">
-  <%= link_to "#{@user.name}’s Shelf", shelf_navigation_path(@user, theme: @theme, style: @image_style), data: { shelf_link: true } %>
+  <%= link_to "#{@user.name}’s Shelf", (@shelf_owner ? shelf_appearance_path(theme: @theme, **@image_style.symbolize_keys) : shelf_navigation_path(@user, theme: @theme, style: @image_style)), data: { shelf_link: true } %>
   <h1><span class="shelf-custom-title"><%= headline %></span></h1>
   <% if @collection&.description.present? || !@collection %><p class="shelf-description"><%= @collection&.description.presence || "#{category_label} · selections" %></p><% end %>
   <p class="shelf-metadata"><span data-shelf-count><%= pluralize(@items.size, 'selection') %></span> · <%= @collection ? shelf_media_mix(@items) : 'Up to five favorites' %> · A shelf by <%= link_to @user.name, handle_profile_path(@user.username) %></p>

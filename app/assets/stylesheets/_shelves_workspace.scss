@@ -60,11 +60,9 @@
 }
 
 .favorite-shelf.shelf-workspace-editor {
-  --shelf-bg: var(--canvas); --shelf-text: var(--text); --shelf-muted: var(--text-secondary);
-  --shelf-accent: var(--accent); --shelf-line: var(--border-strong); --shelf-surface: var(--surface);
-  background-image: none;
+  // Editing uses the shelf's presentation, including its texture. Global UI
+  // tokens belong to workspace forms, not the live shelf preview.
   .shelf-toolbar { font-size: .9rem; }
   .shelf-toolbar a, .shelf-toolbar summary { min-height: 44px; display: inline-flex; align-items: center; }
   .shelf-toolbar-more[open] summary { display: flex; }
-  .shelf-heading h1, .shelf-heading h1 span.shelf-custom-title { font-family: 'Space Grotesk', sans-serif; font-weight: 700; letter-spacing: -.025em; }
 }

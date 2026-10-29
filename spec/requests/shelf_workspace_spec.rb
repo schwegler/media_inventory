@@ -98,6 +98,23 @@ RSpec.describe 'Owner shelf workspace', type: :request do
     expect(Nokogiri::HTML(response.body).at_css('.favorite-shelf')['data-favorite-shelf-owner-value']).to eq('true')
   end
 
+  it 'provides direct owner editing links with presentation and a useful empty custom shelf state' do
+    login
+    get shelf_appearance_path(theme: 'midnight_feature', texture: 'stars', layout: 'mixtape', companion: 'facet')
+    doc = Nokogiri::HTML(response.body)
+    expect(doc.css('.shelf-exhibit').size).to eq(7)
+    doc.css('.shelf-exhibit').each do |link|
+      expect(URI.parse(link['href']).path).to match(%r{\A/shelves/favorites/[^/]+/edit\z})
+      expect(Rack::Utils.parse_nested_query(URI.parse(link['href']).query))
+        .to include('theme' => 'midnight_feature', 'texture' => 'stars', 'layout' => 'mixtape', 'companion' => 'facet')
+    end
+    expect(doc.at_css('.shelf-collections-empty a')['href']).to eq(new_managed_shelf_path)
+    get shelf_path(owner.username)
+    doc = Nokogiri::HTML(response.body)
+    expect(doc.css('.shelf-collections, .shelf-collections-empty')).to be_empty
+    expect(doc.css('.shelf-headline-editor, .shelf-customization')).to be_empty
+  end
+
   it 'keeps data and slug while editing and rejects stale changes inline' do
     login
     previous = collection.attributes.slice('slug', 'picks', 'presentation')

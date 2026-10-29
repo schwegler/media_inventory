@@ -332,7 +332,7 @@ RSpec.describe 'Favorite shelves', type: :request do
     expect(query).not_to have_key('category')
     expect(doc.at_css('.shelf-view-state').text).to eq('Editing Overall selections')
     expect(URI.parse(overview['href']).path).to eq(shelf_appearance_path)
-    expect(URI.parse(doc.at_css('.shelf-heading > a')['href']).path).to eq(shelf_path(user.username))
+    expect(URI.parse(doc.at_css('.shelf-heading > a')['href']).path).to eq(shelf_appearance_path)
     get overview['href']
     doc = Nokogiri::HTML(response.body)
     expect(doc.at_css('.shelf-view-state').text).to eq('Viewing shelf overview')

@@ -19,7 +19,6 @@ RSpec.describe 'Shelf Story customization', type: :system do
     select 'Telly', from: 'Mascot'
     expect(page).to have_css('.favorite-shelf[data-shelf-theme="telly"][data-shelf-texture="stars"]')
     expect(page).to have_css('.shelf-companion img[alt=""][src*="telly_shelf"]')
-    find('summary', text: 'More shelf actions').send_keys(:enter)
     expect(find_link('View shelf overview')[:href]).to include('layout=reading', 'texture=stars', 'companion=telly')
     find('input[name="shelf-format"][value="portrait"]').choose
     expect(page).to have_css('.shelf-preview canvas[width="1080"][height="1920"]')
@@ -43,7 +42,6 @@ RSpec.describe 'Shelf Story customization', type: :system do
     capture_ui_screenshot('shelf-overview-navigation-desktop')
     resize_browser_viewport(390, 844)
     expect(page.evaluate_script('document.documentElement.scrollWidth <= innerWidth')).to be(true)
-    find('summary', text: 'More shelf actions').send_keys(:enter)
     overview = find_link('View shelf overview')
     page.execute_script('arguments[0].focus()', overview)
     expect(overview).to match_css(':focus')
@@ -54,7 +52,7 @@ RSpec.describe 'Shelf Story customization', type: :system do
     find('summary', text: 'Appearance & share image').click
     expect(page).to have_select('Legacy layout', selected: 'Reading list')
     capture_ui_screenshot('shelf-overview-navigation-mobile')
-    click_link 'Edit selections'
+    within('.shelf-toolbar') { click_link 'Edit selections', exact: true }
     expect(page).to have_text('Editing Overall selections')
   end
   it 'renders Midnight Feature in every export layout without changing Halloween' do
@@ -102,7 +100,6 @@ RSpec.describe 'Shelf Story customization', type: :system do
     capture_ui_screenshot('custom-headline-category-mobile')
     click_button 'Save appearance'
     expect(page).to have_text('Appearance saved.')
-    find('summary', text: 'More shelf actions').send_keys(:enter)
     click_link 'View shelf overview'
     expect(page).to have_css('h1', text: user.shelf_headline)
     expect(user.reload.shelf_headline).to eq("it's finally spooky szn 🦇")
