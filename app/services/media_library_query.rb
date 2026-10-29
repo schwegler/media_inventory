@@ -33,13 +33,33 @@ class MediaLibraryQuery
     sort(scope)
   end
 
+  # OPTIMIZATION: Combine 5 separate COUNT queries into a single query with conditional aggregation.
+  # PERFORMANCE IMPACT: Reduces database query count from 5 to 1 for media library tab views.
   def statistics
-    { all: @libraries.count, backlog: @libraries.where(in_backlog: true).count,
-      finished: @libraries.where(consumed: true).count, collection: @libraries.where(is_collected: true).count,
-      progress: @libraries.where(id: ConsumptionPass.active.select(:library_item_id)).count }
+    table = LibraryItem.arel_table
+    counts = [
+      Arel.star,
+      table[:in_backlog].eq(true),
+      table[:consumed].eq(true),
+      table[:is_collected].eq(true),
+      table[:id].in(active_pass_subquery.arel)
+    ].map { |cond| count_expr(cond) }
+
+    row = @libraries.pick(*counts) || [0, 0, 0, 0, 0]
+    { all: row[0].to_i, backlog: row[1].to_i, finished: row[2].to_i, collection: row[3].to_i, progress: row[4].to_i }
   end
 
   private
+
+  def active_pass_subquery
+    ConsumptionPass.active.where(library_item_id: @libraries.select(:id)).select(:library_item_id)
+  end
+
+  def count_expr(condition)
+    return Arel::Nodes::NamedFunction.new('COUNT', [condition]) if condition == Arel.star
+
+    Arel::Nodes::NamedFunction.new('COUNT', [Arel::Nodes::Case.new.when(condition, 1)])
+  end
 
   def filtered_libraries
     case @filters['status']

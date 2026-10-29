@@ -3,11 +3,17 @@
   <details data-refresh-url="<%= metadata_status_path(media_type: item.class.model_name.route_key, media_id: item.id) %>" id="metadata-health" class="metadata-repair" data-refresh-state="<%= refresh&.current_state %>" data-refresh-result="<%= flash[:metadata_result].present? %>" <%= "open" if flash[:metadata_result].present? %>>
     <summary>Artwork &amp; metadata</summary>
     <p>Missing artwork or new releases? Check the original source. Source artwork replaces external artwork URLs; uploaded covers, reviews, and library history stay safe.</p>
+    <p><%= link_to 'Suggest a metadata correction', new_polymorphic_path([item, :edit_suggestion]) %>. Suggestions are reviewed before changing this shared title.</p>
     <% if refresh %>
       <p class="form-help" role="status" tabindex="-1"><%= refresh.message %>
         <% if refresh.succeeded_at %><br>Last checked <%= time_ago_in_words(refresh.succeeded_at) %> ago.<% end %>
         <% if refresh.provider %>Source: <%= refresh.provider %>.<% end %>
       </p>
+    <% end %>
+    <% if refresh %>
+      <% corrected = Array(refresh.provider_values['corrected_fields']).map(&:humanize) +
+                     Array(refresh.provider_values['corrected_detail_fields']).map { |key| MetadataDetailFields::LABELS.fetch(key, key.humanize) } %>
+      <% if corrected.any? %><p class="form-help">Reviewed corrections override source values for: <%= corrected.join(', ') %>.</p><% end %>
     <% end %>
     <% if item.api_id.present? %>
       <%= button_to 'Refresh metadata', refresh_metadata_path(media_type: item.class.model_name.route_key, media_id: item.id), class: 'btn btn-secondary btn-sm', data: { turbo_submits_with: 'Refreshing…' }, form: { data: { controller: 'refresh', action: 'turbo:submit-start->refresh#start turbo:submit-end->refresh#finish' } } %>

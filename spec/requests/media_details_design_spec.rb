@@ -48,4 +48,19 @@ RSpec.describe 'Media title details', type: :request do
     expect(document.at_css('#title-details')).to be_nil
     expect(document.at_css('a[href="#title-details"]')).to be_nil
   end
+
+  it 'promotes imported prose once, preserves distinct provider text, and sanitizes formatting' do
+    item = Book.create!(title: 'A story', metadata_details: {
+                          'Overview' => '<p>A <strong onclick="bad()">story</strong>.</p>',
+                          'description' => 'A different edition note.', 'isbn_13' => '1234567890123'
+                        })
+    get book_path(item)
+    document = Nokogiri::HTML(response.body)
+    expect(document.css('.media-synopsis').size).to eq(1)
+    expect(document.at_css('.media-synopsis strong').text).to eq('story')
+    expect(document.css('.media-synopsis [onclick]')).to be_empty
+    expect(document.css('.media-description-row dt').map(&:text)).not_to include('Synopsis')
+    expect(document.at_css('#metadata-details').text).to include('A different edition note.',
+                                                                 '1234567890123')
+  end
 end

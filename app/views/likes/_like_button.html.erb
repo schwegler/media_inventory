@@ -1,6 +1,7 @@
 <%# Local variables: item %>
-<% liked = logged_in? && current_user.liked?(item) %>
-<% likes_count = item.likes.respond_to?(:loaded?) && item.likes.loaded? ? item.likes.size : item.likes.count %>
+<% like_stats = local_assigns[:like_stats] %>
+<% liked = like_stats ? like_stats.fetch(:liked) : logged_in? && current_user.liked?(item) %>
+<% likes_count = like_stats ? like_stats.fetch(:count) : (item.likes.loaded? ? item.likes.size : item.likes.count) %>
 <% action_prefix = liked ? "Unlike" : "Like" %>
 <% aria_label_text = "#{action_prefix}#{likes_count > 0 ? " (#{likes_count})" : ""}" %>
 
@@ -9,7 +10,7 @@
               method: :post,
               class: local_assigns[:tweet_style] ? "btn-tweet-like btn-unstyled #{'liked' if liked}" : "btn-like-icon #{'liked' if liked}",
               style: local_assigns[:tweet_style] ? "display: flex; align-items: center; gap: 6px; cursor: pointer;" : "",
-              aria: { label: aria_label_text },
+              aria: { label: aria_label_text, pressed: liked },
               form_class: local_assigns[:tweet_style] ? "inline-form" : "",
               form: { data: { turbo: true, controller: "optimistic", optimistic_liked_value: !liked, action: "turbo:submit-start->optimistic#start turbo:before-fetch-response->optimistic#response turbo:submit-end->optimistic#finish" } } do %>
   <% if local_assigns[:tweet_style] %>

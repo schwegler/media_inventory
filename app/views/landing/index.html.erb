@@ -1,4 +1,5 @@
 <% if logged_in? %>
+<div class="home-dashboard">
   <div class="dashboard-welcome">
     <h1>Continue your story</h1>
     <p>Good stories are worth coming back to.</p>
@@ -126,10 +127,7 @@
               </div>
 
               <div class="review-content-text">
-                <p>"<%= truncate(lib_item.respond_to?(:review) ? lib_item.review : '', length: 240) %>"</p>
-                <% if lib_item.respond_to?(:review) && lib_item.review.present? && lib_item.review.length > 240 %>
-                  <%= link_to "more", media, class: "more-review-link" %>
-                <% end %>
+<%= review_summary(lib_item, item: media, author: activity.user, compact: true, permalink: activity.activity_type == 'reviewed') %>
               </div>
 
               <div class="review-like-action">
@@ -148,34 +146,25 @@
     </div>
   </section>
 
+</div>
 <% else %>
+  <% content_for :public_landing, true %>
+  <div class="public-home">
   <section class="home-intro" aria-labelledby="home-title">
     <div class="home-intro-main">
       <div class="home-hero-copy">
-        <h1 id="home-title">A home for every story, album, and game you’re into.</h1>
-        <p>Log what you watch, read, play, and spin—without algorithmic clutter. Build your shelf across 6 media formats, track active series, and share honest takes.</p>
-        <div class="home-actions">
-          <%= link_to "Create your library", signup_path, class: "sleek-btn sleek-btn-primary" %>
-          <%= link_to movies_path, class: "blog-link" do %>
-            <span>Browse the stacks</span>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg>
-          <% end %>
-        </div>
+        <h1 id="home-title">A shelf for everything you love.</h1>
+        <p>Collect, track and share games, music, books, movies, TV and comics.</p>
+        <%= render "public_search" %>
+        <div class="home-actions"><%= link_to "Create your shelf", signup_path, class: 'blog-link' %></div>
       </div>
-      <div class="home-hero-mascot" aria-hidden="true">
-        <%= image_tag 'brand/facet_pose_01_bookworm.png', class: 'mascot-sticker mascot-slot-hero', width: 140, height: 248, alt: '' %>
-      </div>
+      <%= render 'cover_wall' %>
     </div>
-    <aside class="home-blog" aria-label="Our blog">
-      <div class="home-blog-mascot" aria-hidden="true">
-        <%= image_tag 'brand/telly-facet-duo.webp', class: 'mascot-sticker', style: 'max-height: 160px;', width: 240, height: 160, alt: '', loading: 'lazy', decoding: 'async' %>
-      </div>
-      <h2>The Vault. The Broadcast.</h2>
-      <p>Trove stacks the collection; taco ‘bout it brings the hot takes, essays, and deep dives.</p>
-      <a class="blog-link" href="https://tacobout.online/">Tune into the blog <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></a>
-    </aside>
   </section>
 
+  <%= render "public_shelves" %>
+  <details class="home-community-disclosure">
+    <summary>From the community</summary>
   <div class="dashboard-layout">
     <section class="activity-feed-section" aria-labelledby="community-title">
       <h2 id="community-title">Community Activity</h2>
@@ -215,7 +204,7 @@
                       </span>
                       <% if trackable.respond_to?(:review) && trackable.review.present? && activity.activity_type == 'reviewed' %>
                         <div class="activity-review-quote">
-                          "<%= truncate(trackable.review, length: 150) %>"
+                          <%= review_summary(trackable, item: media, author: activity.user, compact: true, permalink: activity.activity_type == 'reviewed') %>
                         </div>
                       <% end %>
                     </div>
@@ -254,16 +243,7 @@
 
     <aside class="dashboard-sidebar">
       <div class="sidebar-widget">
-        <h2>Make it yours</h2>
-        <ol class="home-steps">
-          <li>Log across 6 formats (Movies, TV, Books, Albums, Comics, Games)</li>
-          <li>Track your backlog &amp; active seasons</li>
-          <li>Drop star ratings that sync to the blog &amp; feed</li>
-        </ol>
-      </div>
-
-      <div class="sidebar-widget">
-        <h2>Active Trackers</h2>
+        <h2>People in Trove</h2>
         <% if @active_trackers.empty? %><p>Meet the people behind the collections.</p><% end %>
         <div class="sidebar-user-list">
           <% @active_trackers.each do |user| %>
@@ -275,5 +255,8 @@
         </div>
       </div>
     </aside>
+  </div>
+  </details>
+  <div class="home-blog-link"><%= link_to "Read taco ’bout it", 'https://tacobout.online/', class: 'blog-link' %></div>
   </div>
 <% end %>

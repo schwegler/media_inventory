@@ -54,6 +54,7 @@ class TvShowsController < InventoryController
 
   def resource_params
     params.require(:tv_show).permit(
+      :import_selection,
       :title, :network, :director, :writer, :actors, :genre, :release_year, :is_public, :thumbnail_url, :in_watchlist,
       :is_collected, :consumed, :consumed_at, :review, :rating, :cover_image, :api_id, :external_url,
       :owned_physically, :owned_physically_format, :owned_digitally, :owned_digitally_format

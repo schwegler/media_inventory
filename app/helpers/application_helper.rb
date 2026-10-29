@@ -28,7 +28,7 @@ module ApplicationHelper
 
   def ui_preferences
     user = current_user if logged_in?
-    { theme: user&.theme || 'os', accent: user&.accent_theme || 'violet',
+    { seasonalTheme: user&.seasonal_theme || 'off', theme: user&.theme || 'os', accent: user&.accent_theme || 'violet',
       density: user&.content_density || 'comfortable', mediaLayout: user&.media_layout || 'covers',
       effects: user&.reduce_effects? ? 'reduced' : 'full' }
   end
@@ -39,7 +39,12 @@ module ApplicationHelper
     num = rating.to_f
     full_stars = num.floor
     half_star = num - full_stars >= 0.5 ? '½' : ''
-    ('★' * full_stars) + half_star
+    stars_str = ('★' * full_stars) + half_star
+    display_num = (num % 1).zero? ? num.to_i : num.round(1)
+
+    content_tag(:span, stars_str, class: 'star-rating',
+                                  title: "#{display_num} / 5 stars",
+                                  aria: { label: "#{display_num} out of 5 stars" })
   end
 
   def community_stats_for(item)
@@ -47,24 +52,35 @@ module ApplicationHelper
 
     ratings = matching_items.map { |i| i.rating.to_f if i.rating.present? }.compact
     avg_rating = ratings.any? ? (ratings.sum.to_f / ratings.size).round(1) : nil
+    reviews = matching_items.select { |i| i.review.present? }
 
     {
       avg_rating: avg_rating,
       watchers: matching_items.select { |i| i.in_backlog? || i.consumed? }.map(&:user).uniq.compact,
       collectors: matching_items.select(&:is_collected?).map(&:user).uniq.compact,
-      reviews: matching_items.select { |i| i.review.present? }
+      reviews: reviews,
+      review_likes: community_review_likes(reviews)
     }
   end
 
   private
 
+  # Aggregate reactions without instantiating every Like or loading the viewer's entire like history.
+  def community_review_likes(reviews)
+    return {} if reviews.empty?
+
+    likes = Like.where(likeable_type: 'LibraryItem', likeable_id: reviews.map(&:id))
+    counts = likes.group(:likeable_id).count
+    liked_ids = logged_in? ? likes.where(user_id: current_user.id).pluck(:likeable_id).to_set : Set.new
+    reviews.to_h { |review| [review.id, { count: counts.fetch(review.id, 0), liked: liked_ids.include?(review.id) }] }
+  end
+
   def fetch_matching_items(item)
     query = LibraryItem.where(item: item)
     if logged_in?
-      # Optimize to eager load user avatars to prevent N+1 queries in the community/watchers/collectors lists
-      query.where('is_public = ? OR user_id = ?', true, current_user.id).includes(user: { avatar_attachment: :blob })
+      query.where('is_public = ? OR user_id = ?', true, current_user.id)
+           .includes(user: { avatar_attachment: :blob })
     else
-      # Optimize to eager load user avatars to prevent N+1 queries in the community/watchers/collectors lists
       query.where(is_public: true).includes(user: { avatar_attachment: :blob })
     end
   end

@@ -1,9 +1,12 @@
 # frozen_string_literal: true
 
 source 'https://rubygems.org'
-ruby '3.2.3'
+ruby '3.4.12'
 
 gem 'rails', '~> 8.1.4'
+
+# CSV is a bundled gem in Ruby 3.4 and is required by import/export services.
+gem 'csv', '~> 3.3'
 
 # Use the Puma web server [https://github.com/puma/puma]
 gem 'puma', '>= 5.0'
@@ -24,7 +27,7 @@ gem 'image_processing', '~> 2.2'
 gem 'psych', '5.0.1'
 gem 'rdoc', '>= 6.5.1.1'
 
-gem 'sqlite3', '~> 2.9', '>= 2.9.6'
+gem 'sqlite3', '~> 2.10'
 
 group :development, :test do
   gem 'brakeman'
@@ -54,15 +57,15 @@ gem 'bcrypt', '~> 3.1'
 
 gem 'kaminari', '~> 1.2'
 
-gem 'omniauth', '~> 2.1'
+gem 'omniauth', '~> 2.3'
 gem 'omniauth-atproto', '~> 0.1.4'
-gem 'omniauth-oauth2', '~> 1.9'
+gem 'omniauth-oauth2', '~> 1.10'
 gem 'omniauth-rails_csrf_protection', '~> 2.0'
 gem 'rubyzip', '~> 3.4'
 
 gem 'administrate', '~> 1.0'
 
-gem 'webmock', '~> 3.26', group: :test
+gem 'webmock', '~> 3.34', group: :test
 
 gem 'dockerfile-rails', '>= 1.7', group: :development
 

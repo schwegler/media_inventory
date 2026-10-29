@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_14_170000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_26_210000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -250,6 +250,31 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_170000) do
     t.datetime "updated_at", null: false
     t.index ["user_id", "category"], name: "index_favorite_shelves_on_user_id_and_category", unique: true
     t.index ["user_id"], name: "index_favorite_shelves_on_user_id"
+  end
+
+  create_table "editorial_article_titles", force: :cascade do |t|
+    t.integer "editorial_article_id", null: false
+    t.string "item_type", null: false
+    t.integer "item_id", null: false
+    t.index ["editorial_article_id", "item_type", "item_id"], name: "index_editorial_article_titles_unique", unique: true
+    t.index ["editorial_article_id"], name: "index_editorial_article_titles_on_editorial_article_id"
+    t.index ["item_type", "item_id"], name: "index_editorial_article_titles_on_item"
+  end
+
+  create_table "editorial_articles", force: :cascade do |t|
+    t.bigint "wordpress_id", null: false
+    t.string "title", null: false
+    t.text "excerpt"
+    t.string "canonical_url", null: false
+    t.string "image_url"
+    t.datetime "published_at"
+    t.datetime "source_modified_at", null: false
+    t.datetime "checked_at", null: false
+    t.boolean "published", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["checked_at"], name: "index_editorial_articles_on_checked_at"
+    t.index ["wordpress_id"], name: "index_editorial_articles_on_wordpress_id", unique: true
   end
 
   create_table "game_artwork_batches", force: :cascade do |t|
@@ -561,6 +586,31 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_170000) do
     t.index ["follower_id"], name: "index_relationships_on_follower_id"
   end
 
+  create_table "shelf_catalog_identities", force: :cascade do |t|
+    t.string "media_type", null: false
+    t.string "identity_key", limit: 64, null: false
+    t.text "provider_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["media_type", "identity_key"], name: "index_shelf_catalog_identities_on_media_type_and_identity_key", unique: true
+  end
+
+  create_table "shelf_collections", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "slug", null: false
+    t.string "title", null: false
+    t.string "description"
+    t.json "picks", default: [], null: false
+    t.json "presentation", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.json "allowed_media_types", default: [], null: false
+    t.integer "preview_length", default: 5, null: false
+    t.datetime "archived_at"
+    t.index ["user_id", "slug"], name: "index_shelf_collections_on_user_id_and_slug", unique: true
+    t.index ["user_id"], name: "index_shelf_collections_on_user_id"
+  end
+
   create_table "steam_library_syncs", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "steam_id", null: false
@@ -618,7 +668,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_170000) do
     t.index ["release_year"], name: "index_tv_shows_on_release_year"
   end
 
+  create_table "remembered_devices", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "session_generation", null: false
+    t.string "token_digest", null: false
+    t.string "previous_token_digest"
+    t.datetime "rotated_at"
+    t.datetime "expires_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_remembered_devices_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
+    t.integer "session_generation", default: 0, null: false
     t.string "name"
     t.string "email"
     t.boolean "admin", default: false
@@ -668,6 +731,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_170000) do
     t.string "profile_header", default: "linen", null: false
     t.datetime "metadata_requested_at"
     t.string "shelf_headline"
+    t.string "seasonal_theme", default: "off", null: false
+    t.json "shelf_presentation", default: {}, null: false
     t.index ["created_at"], name: "index_users_on_created_at"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["username"], name: "index_users_on_username", unique: true
@@ -705,6 +770,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_170000) do
   add_foreign_key "consumption_passes", "library_items"
   add_foreign_key "edit_suggestions", "users"
   add_foreign_key "favorite_shelves", "users"
+  add_foreign_key "editorial_article_titles", "editorial_articles"
   add_foreign_key "game_artwork_batches", "video_games"
   add_foreign_key "game_artworks", "library_items"
   add_foreign_key "game_artworks", "video_games"
@@ -724,6 +790,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_170000) do
   add_foreign_key "metadata_credits", "metadata_entities"
   add_foreign_key "metadata_identities", "metadata_entities"
   add_foreign_key "posts", "users"
+  add_foreign_key "shelf_collections", "users", on_delete: :cascade
   add_foreign_key "steam_library_syncs", "users"
   add_foreign_key "tv_episodes", "tv_shows", on_delete: :cascade
+  add_foreign_key "remembered_devices", "users"
 end

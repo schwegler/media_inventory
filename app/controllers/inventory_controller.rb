@@ -8,6 +8,7 @@ class InventoryController < ApplicationController
   CATALOG_PAGE_SIZE = 24
   # Centralize authentication filter for all mutating inventory actions
   before_action :logged_in_user, only: %i[new create edit update destroy]
+  around_action :serialize_signed_import, only: :create
 
   def index
     @personal_library = params[:library] == 'mine'
@@ -30,6 +31,7 @@ class InventoryController < ApplicationController
 
   def new
     @resource = resource_class.new
+    prepare_discovery_selection if params[:discovery] == '1'
     instance_variable_set("@#{resource_name}", @resource)
   end
 
@@ -38,32 +40,20 @@ class InventoryController < ApplicationController
     global_params = resource_params.except(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
                                            :consumed_at, :is_public, :owned_physically, :owned_physically_format,
                                            :owned_digitally, :owned_digitally_format)
-    library_params = resource_params.slice(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
-                                           :consumed_at, :is_public, :owned_physically, :owned_physically_format,
-                                           :owned_digitally, :owned_digitally_format)
+    library_params = personal_library_params
 
-    # Handle the transition from watchlist to backlog
+    global_params = imported_attributes(global_params)
     library_params[:in_backlog] = library_params.delete(:in_watchlist) if library_params.key?(:in_watchlist)
+    @resource = selected_import_resource(global_params)
+    return redirect_existing_discovery if already_saved_discovery?
 
-    @resource = resolve_catalog_resource(global_params)
-
-    # Logging a shared game must not overwrite another user's curated catalog.
-    @resource.assign_attributes(global_params) unless @resource.is_a?(VideoGame) && @resource.persisted?
+    assign_logged_attributes(global_params)
     instance_variable_set("@#{resource_name}", @resource)
 
-    saved = false
-    ActiveRecord::Base.transaction do
-      if @resource.save
-        @library_item = LibraryItem.find_or_initialize_by(user: current_user, item: @resource)
-        @library_item.assign_attributes(library_params)
-        @library_item.save!
-        after_library_saved
-        saved = true
-      end
-    end
+    saved = save_logged_resource(library_params)
 
     if saved
-      enqueue_initial_metadata
+      finish_logged_resource
       respond_to do |format|
         format.html { redirect_to @resource, notice: "#{resource_class.model_name.human} was successfully logged." }
       end
@@ -73,6 +63,11 @@ class InventoryController < ApplicationController
       end
     end
     # rubocop:enable Metrics/MethodLength
+  rescue MetadataImport::Invalid => e
+    @resource = resource_class.new(resource_params.except(:import_selection, :catalog_selection))
+    @resource.errors.add(:base, e.message)
+    instance_variable_set("@#{resource_name}", @resource)
+    render :new, status: failure_status
   end
 
   def show
@@ -82,20 +77,7 @@ class InventoryController < ApplicationController
 
     if logged_in?
       @library_item = LibraryItem.find_by(user: current_user, item: @resource)
-      if @library_item
-        @resource.is_collected = @library_item.is_collected
-        @resource.in_watchlist = @library_item.in_backlog
-        @resource.in_backlog = @library_item.in_backlog
-        @resource.rating = @library_item.rating
-        @resource.review = @library_item.review
-        @resource.consumed = @library_item.consumed
-        @resource.consumed_at = @library_item.consumed_at
-        @resource.is_public = @library_item.is_public
-        @resource.owned_physically = @library_item.owned_physically
-        @resource.owned_physically_format = @library_item.owned_physically_format
-        @resource.owned_digitally = @library_item.owned_digitally
-        @resource.owned_digitally_format = @library_item.owned_digitally_format
-      end
+      assign_library_attributes if @library_item
     end
     instance_variable_set("@#{resource_name}", @resource)
     prepare_child_display
@@ -129,12 +111,11 @@ class InventoryController < ApplicationController
     @resource = resource_class.find(params[:id])
     @library_item = LibraryItem.find_or_initialize_by(user: current_user, item: @resource)
 
-    global_params = resource_params.except(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
+    global_params = resource_params.except(:import_selection, :is_collected, :in_watchlist, :in_backlog,
+                                           :rating, :review, :consumed,
                                            :consumed_at, :is_public, :owned_physically, :owned_physically_format,
                                            :owned_digitally, :owned_digitally_format)
-    library_params = resource_params.slice(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed,
-                                           :consumed_at, :is_public, :owned_physically, :owned_physically_format,
-                                           :owned_digitally, :owned_digitally_format)
+    library_params = personal_library_params
     library_params[:in_backlog] = library_params.delete(:in_watchlist) if library_params.key?(:in_watchlist)
 
     ActiveRecord::Base.transaction do
@@ -144,6 +125,7 @@ class InventoryController < ApplicationController
     end
 
     instance_variable_set("@#{resource_name}", @resource)
+    assign_library_attributes
     flash.now[:notice] = "#{resource_class.model_name.human} was successfully updated."
     respond_to do |format|
       format.html { redirect_to @resource, notice: "#{resource_class.model_name.human} was successfully updated." }
@@ -175,6 +157,119 @@ class InventoryController < ApplicationController
 
   private
 
+  # Turbo renders the same personal controls as show; the catalog record's
+  # virtual form attributes must reflect the saved library entry first.
+  def assign_library_attributes
+    fields = %w[is_collected rating review consumed consumed_at is_public owned_physically
+                owned_physically_format owned_digitally owned_digitally_format]
+    @resource.assign_attributes(@library_item.attributes.slice(*fields))
+    @resource.in_watchlist = @library_item.in_backlog
+    @resource.in_backlog = @library_item.in_backlog
+  end
+
+  def assign_logged_attributes(attributes)
+    if @resource.persisted?
+      return if @resource.is_a?(VideoGame)
+
+      attributes = attributes.slice(:cover_image).compact_blank
+    end
+    @resource.assign_attributes(attributes)
+  end
+
+  def save_logged_resource(library_params)
+    saved = false
+    ActiveRecord::Base.transaction do
+      if @resource.save
+        @library_item = LibraryItem.find_or_initialize_by(user: current_user, item: @resource)
+        @library_item.assign_attributes(library_params)
+        @library_item.save!
+        after_library_saved
+        saved = true
+      end
+    end
+
+    saved
+  end
+
+  def personal_library_params
+    resource_params.slice(:is_collected, :in_watchlist, :in_backlog, :rating, :review, :consumed, :consumed_at,
+                          :is_public, :owned_physically, :owned_physically_format,
+                          :owned_digitally, :owned_digitally_format)
+  end
+
+  def serialize_signed_import(&)
+    token = params.dig(resource_name, :import_selection)
+    data = MetadataImport.read(token, resource_name) if token.present?
+  rescue MetadataImport::Invalid
+    yield # create renders the established validation error
+  else
+    data ? ShelfCatalogImport.synchronize(resource_class, data, &) : yield
+  end
+
+  def finish_logged_resource
+    session.delete(:discovery_intent) if @imported
+    record_import_baseline
+    enqueue_initial_metadata
+  end
+
+  def already_saved_discovery?
+    params[:discovery] == '1' && @imported && @resource.persisted? &&
+      current_user.library_items.exists?(item: @resource)
+  end
+
+  def redirect_existing_discovery
+    session.delete(:discovery_intent)
+    redirect_to @resource, notice: 'This title is already in your library.'
+  end
+
+  def prepare_discovery_selection
+    intent = discovery_intent
+    return unless intent && intent[:type] == resource_name
+
+    data = MetadataImport.read(intent[:selection], resource_name)
+    @discovery_selection = DiscoveryResults.call([data], resource_name, user: current_user).first
+    @discovery_selection[:import_selection] = MetadataImport.sign(resource_name, @discovery_selection)
+    response.headers['Cache-Control'] = 'private, no-store'
+  rescue MetadataImport::Invalid => e
+    redirect_to discovery_search_path, alert: e.message
+  end
+
+  def imported_attributes(attributes)
+    token = attributes.delete(:import_selection)
+    @imported = MetadataImport.read(token, resource_name) if token.present?
+    return attributes unless @imported
+
+    result = MetadataImport.attributes(@imported, resource_class).merge(attributes.slice(:cover_image))
+    result[:thumbnail_url] = @imported[:cover_source_url] if @imported[:cover_source_url].present?
+    result
+  end
+
+  def selected_import_resource(attributes)
+    if @imported && resource_class == VideoGame
+      resource = resolve_catalog_resource(attributes.merge(catalog_selection: @imported[:catalog_selection]))
+      resource.importing_metadata = true
+      return resource
+    end
+    resource = if @imported && @imported[:is_local] && @imported[:catalog_id]
+                 resource_class.find(@imported[:catalog_id])
+               elsif @imported
+                 key = attributes[:api_id].present? ? :api_id : :external_url
+                 resource_class.where(key => attributes[key]).order(:id).first_or_initialize
+               else
+                 resolve_catalog_resource(attributes)
+               end
+    resource.importing_metadata = true if @imported
+    resource
+  end
+
+  def record_import_baseline
+    return unless @imported && @resource.previously_new_record?
+
+    MetadataRefresh.find_or_create_by!(item: @resource).update!(
+      provider_values: MetadataImport.attributes(@imported, resource_class).stringify_keys
+    )
+  end
+
   def preload_entity_credits
     return unless @resource.respond_to?(:metadata_credits)
 
@@ -188,7 +283,7 @@ class InventoryController < ApplicationController
   end
 
   def enqueue_initial_metadata
-    return if @resource.is_a?(VideoGame)
+    return if @resource.is_a?(VideoGame) || @resource.is_a?(Album)
 
     MetadataRefresher.new(@resource, current_user).enqueue if @resource.api_id.present?
   end

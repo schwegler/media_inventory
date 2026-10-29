@@ -100,6 +100,23 @@ RSpec.describe 'Stored catalog cover recovery', type: :request do
     expect(WebMock).not_to have_requested(:get, source.sub('https:', 'http:'))
   end
 
+  it 'recovers an absolute same-site selection and serves that exact existing blob' do
+    original = legacy_item(Book)
+    original.cover_image.attach(io: StringIO.new(png), filename: 'chosen.png', content_type: 'image/png')
+    blob = original.cover_image.blob
+    path = rails_storage_proxy_path(blob, only_path: true)
+    game = VideoGame.create!(title: 'Selected local cover')
+    game.update_columns(thumbnail_url: "https://trove.schweg.xyz#{path}")
+    expect { get game.stored_cover_url, params: { size: 'original' } }.not_to change(ActiveStorage::Blob, :count)
+    expect(response).to have_http_status(:found)
+    expect(response.location).to include(blob.signed_id)
+    expect(game.reload.cover_image.blob_id).to eq(blob.id)
+    follow_redirect!
+    expect(response.media_type).to eq('image/png')
+    expect(response.body.b).to eq(png.b)
+    expect(WebMock).not_to have_requested(:get, source)
+  end
+
   it 'serves existing manual uploads without contacting the source' do
     item = legacy_item(Book)
     item.cover_image.attach(io: StringIO.new(png), filename: 'manual.png', content_type: 'image/png')

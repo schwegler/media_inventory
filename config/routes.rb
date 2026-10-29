@@ -2,7 +2,19 @@
 
 SampleApp::Application.routes.draw do
   get '/api/reviews', to: 'public_reviews#index', defaults: { format: :json }
+  get 'shelves', to: 'shelf_workspace#index', as: :shelf_workspace
+  get 'shelves/new', to: 'shelf_workspace#new', as: :new_managed_shelf
+  post 'shelves', to: 'shelf_workspace#create', as: :managed_shelves
+  get 'shelves/appearance', to: 'shelf_workspace#appearance', as: :shelf_appearance
+  get 'shelves/favorites/:category/edit', to: 'shelf_workspace#favorite', as: :edit_favorite_shelf
+  get 'shelves/:slug/edit', to: 'shelf_workspace#edit', as: :edit_managed_shelf
+  get 'shelves/:slug/settings', to: 'shelf_workspace#settings', as: :managed_shelf_settings
+  patch 'shelves/:slug/settings', to: 'shelf_workspace#update', as: :update_managed_shelf
+  get 'shelves/:slug/archive', to: 'shelf_workspace#confirm_archive', as: :confirm_archive_shelf
+  patch 'shelves/:slug/archive', to: 'shelf_workspace#archive', as: :archive_managed_shelf
+  patch 'shelves/:slug/restore', to: 'shelf_workspace#restore', as: :restore_managed_shelf
   get 'shelf', to: 'shelves#mine', as: :my_shelf
+  post 'shelves/catalog_items', to: 'shelf_catalog_items#create', as: :shelf_catalog_items
   get 'shelves/search', to: 'shelves#search', as: :search_shelves
   get '/@:username/shelf', to: 'shelves#show', as: :shelf
   patch '/@:username/shelf', to: 'shelves#update'
@@ -137,6 +149,8 @@ SampleApp::Application.routes.draw do
   get '/categories/:category_type', to: 'categories#type_index', as: 'category_type'
   get '/categories/:category_type/*name', to: 'categories#show', as: 'category_item', format: false
   get '/search', to: 'search#index', as: 'search'
+  post '/discovery/selection', to: 'discovery#create', as: 'discovery_selection'
+  get '/discovery/resume', to: 'discovery#resume', as: 'resume_discovery'
   get '/collections/:user_id', to: 'collections#show', as: 'collection'
   get    '/login',   to: 'sessions#new'
   post   '/login',   to: 'sessions#create'
@@ -196,11 +210,13 @@ SampleApp::Application.routes.draw do
   delete '/settings/delete_account', to: 'settings#delete_account'
 
   get '/db_status', to: 'landing#db_status'
+  post '/media/import_preview', to: 'media#import_preview'
   get '/media/autocomplete', to: 'media#autocomplete'
   post '/media/copy', to: 'media#copy'
   post '/likes/toggle', to: 'likes#toggle', as: 'toggle_like'
 
   resources :comments, only: :create
+  get '/reviews/:id', to: 'review_pages#show', as: :public_review
   resource :review, only: %i[edit update]
 
   resources :consumption_passes, only: :create do

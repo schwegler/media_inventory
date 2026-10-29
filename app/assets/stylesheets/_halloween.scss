@@ -1,0 +1,44 @@
+@mixin styles {
+:root[data-accent='halloween'] {
+  color-scheme: light;
+  --canvas: #ffd49e; --surface: #fff0d8; --inset: #f6bc77;
+  --text: #3b1c0b; --text-secondary: #704022; --text-tertiary: #704022;
+  --border: #bd7d43; --border-strong: #8c4d22;
+  --accent: #85300c; --accent-hover: #642005; --accent-subtle: #ffe5bd;
+  --action: #8b310c; --on-action: #fff7e9; --on-accent: #fff7e9; --focus-ring: #85300c;
+}
+:root[data-theme='dark'][data-accent='halloween'] {
+  color-scheme: dark;
+  --canvas: #140f1b; --surface: #231a2ceb; --inset: #302136f2;
+  --text: #fff0d6; --text-secondary: #efc196; --text-tertiary: #efc196;
+  --border: #775346; --border-strong: #a87550; --action: #f49b48; --on-action: #21120b; --on-accent: #21120b; --focus-ring: #ffbd65; --accent: #ffbd65; --accent-hover: #ffdaa0; --accent-subtle: #64300c;
+}
+[data-profile-accent='halloween'] { --accent: #85300c; --accent-hover: #642005; --accent-subtle: #ffe5bd; --action: #8b310c; }
+:root[data-theme='dark'] [data-profile-accent='halloween'] { --accent: #ffbd65; --accent-hover: #ffdaa0; --accent-subtle: #64300c; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']):not([data-theme='dark']) [data-profile-accent='halloween'] { --accent: #ffbd65; --accent-hover: #ffdaa0; --accent-subtle: #64300c; }
+}
+[data-profile-header='halloween'] :is(.banner-placeholder, .banner-meadow, .member-card-banner) {
+  background: radial-gradient(circle at 78% 38%, #ffedba 0 32px, transparent 33px), linear-gradient(140deg, #b64c14, #f8b05e);
+}
+.shelf-page:has([data-shelf-theme='halloween']) { background: #140f1b; }
+[data-shelf-theme='halloween'] { --shelf-bg: #140f1b; --shelf-text: #fff0d6; --shelf-muted: #efc196; --shelf-accent: #ffbd65; --shelf-line: #ffbd6540; --shelf-surface: #302136; }
+:root[data-season] body { isolation: isolate; }
+.seasonal-scene { display: none; }
+:root[data-season='halloween']:not([data-season-effects='off']) .seasonal-scene {
+  display: block; position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
+  background: linear-gradient(170deg, #772c2726, transparent 60%), radial-gradient(ellipse at 5% 85%, #dd6a2022, transparent 70%);
+}
+.seasonal-moon { position: absolute; width: 124px; height: 124px; right: 3%; top: 18%; border-radius: 50%; background: radial-gradient(circle at 34% 30%, #ffe6ba70, #ffb85755 72%); box-shadow: 0 0 56px #ed944226; animation: camp-moon 12s ease-in-out infinite alternate; }
+.seasonal-hills { position: absolute; width: 140%; height: 300px; left: -20%; bottom: -120px; border-radius: 50%; background: #100719df; transform: rotate(-4deg); }
+.seasonal-trees { position: absolute; inset: auto 0 0; height: 240px; background: linear-gradient(#71312c42, #050309db); clip-path: polygon(0 100%, 0 65%, 4% 30%, 2% 65%, 5% 50%, 4% 80%, 8% 100%, 75% 100%, 79% 60%, 77% 74%, 80% 25%, 83% 74%, 81% 62%, 86% 100%, 91% 50%, 88% 67%, 93% 0, 98% 67%, 95% 50%, 100% 100%); }
+.seasonal-tent { position: absolute; right: 13%; bottom: 4%; width: 140px; height: 95px; opacity: .55; background: #a64915; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.seasonal-tent::after { content: ''; position: absolute; inset: 24px 45px 0; background: #ffdc8b; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.seasonal-fireflies { position: absolute; width: 100%; height: 75%; bottom: 0; opacity: .65; background: radial-gradient(circle at 2% 20%, #ffe6b4 0 2px, transparent 3px), radial-gradient(circle at 98% 35%, #ffe6b4 0 2px, transparent 3px), radial-gradient(circle at 3% 68%, #ffe6b4 0 2px, transparent 3px), radial-gradient(circle at 97% 84%, #ffe6b4 0 2px, transparent 3px), radial-gradient(circle at 1% 45%, #ffe6b4 0 1px, transparent 2px), radial-gradient(circle at 99% 60%, #ffe6b4 0 1px, transparent 2px); animation: camp-fireflies 9s ease-in-out infinite alternate; }
+.seasonal-mist { position: absolute; width: 120%; height: 200px; bottom: 7%; left: -10%; opacity: .5; border-radius: 50%; background: radial-gradient(ellipse, #d5b5d34a, transparent 68%); animation: camp-mist 16s ease-in-out infinite alternate; }
+@keyframes camp-moon { to { transform: translate3d(0, -16px, 0); } }
+@keyframes camp-fireflies { to { transform: translate3d(3px, -28px, 0); opacity: .85; } }
+@keyframes camp-mist { to { transform: translate3d(65px, 0, 0); } }
+:root[data-season-motion='paused'] .seasonal-scene *, :root[data-effects='reduced'] .seasonal-scene * { animation: none !important; }
+@media(prefers-reduced-motion: reduce) { .seasonal-scene * { animation: none !important; } }
+}

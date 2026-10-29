@@ -1,5 +1,6 @@
 import "@hotwired/turbo-rails"
 import "controllers"
+import "analytics"
 
 // Ensure body scroll is restored after Turbo navigations (especially when navigating away from a modal)
 document.addEventListener("turbo:load", () => {

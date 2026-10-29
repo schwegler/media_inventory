@@ -67,7 +67,7 @@ By default, running locally on your host machine will use **SQLite3** for simpli
 
 ### Prerequisites
 
-*   **Ruby:** Version `3.2.3` (defined in `.ruby-version` and `Gemfile`).
+*   **Ruby:** Version `3.4.12` (defined in `.ruby-version` and `Gemfile`, with the production image aligned in `Dockerfile`).
 *   **Node.js & npm** (only required for Tauri desktop client).
 
 ### Setup and Running

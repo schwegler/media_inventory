@@ -1,7 +1,10 @@
 <% content_for(:media_workspace, 'true') %>
 <%
   title, _, icon = media_catalog(item)
+  articles = EditorialArticle.for_title(item).to_a
   stats = community_stats_for(item)
+  metadata_groups = media_detail_groups(item)
+  amazon_reading = HalloweenReading.for_title(item)
   overview_facts = media_metadata(item).reject do |_, _, attribute|
     %w[Movie TvShow].include?(item.class.name) && %i[actors writer].include?(attribute)
   end
@@ -11,7 +14,7 @@
 <% content_for(:title, item.title) %>
 <% content_for(:meta_description, ([item.title] + media_metadata(item).map(&:last)).join(' • ')) %>
 <% content_for(:item_detail, 'true') %>
-<article class="media-detail" data-media-kind="<%= item.class.name %>">
+<article class="media-detail<%= ' media-detail--with-reading' if articles.any? %>" data-media-kind="<%= item.class.name %>">
   <%= link_to "← Back to #{title}", polymorphic_path(item.class), class: 'media-back-link' %>
   <header id="overview" class="media-overview">
     <div class="media-cover">
@@ -30,6 +33,9 @@
     </div>
     <div class="media-identity">
       <h1><%= item.title %></h1>
+      <%= link_to 'Track this title', '#my-library', class: 'media-tracking-jump', data: { turbo: false } if logged_in? %>
+      <%= render "shared/next_series_entry", item: item, entry: @next_series_entry if entries && @next_series_entry %>
+      <%= render 'shared/media_synopsis', item: item %>
       <dl class="media-facts">
         <% overview_facts.each do |label, value, attribute| %>
           <div><dt><%= label %></dt><dd><%= render_media_metadata_value(item, attribute, value) %></dd></div>
@@ -40,7 +46,6 @@
           <p class="media-personal-rating"><span>Your rating</span> <%= render_stars(@library_item.rating) %></p>
         <% end %>
       </div>
-      <%= render "shared/next_series_entry", item: item, entry: @next_series_entry if entries && @next_series_entry %>
       <details class="media-share" id="share-title-<%= item.id %>"><summary>Share this title</summary><%= render 'shared/item_sharing', item: item %></details>
     </div>
     <aside class="media-overview-stats" aria-label="Community summary">
@@ -49,10 +54,12 @@
       <div><strong><%= stats[:collectors].size %></strong><span>Collectors</span></div>
     </aside>
   </header>
-  <nav data-controller="media-sections" class="media-section-nav" aria-label="On this page">
+  <%# Fragment links belong to this document; Turbo visits can fetch/morph it without scrolling. %>
+  <nav data-controller="media-sections" data-turbo="false" class="media-section-nav" aria-label="On this page">
     <a href="#overview">Overview</a>
     <a href="#my-library">My Library</a>
-    <% if media_metadata(item).any? || (item.is_a?(VideoGame) && (item.synopsis.present? || item.metadata_details.present?)) %>
+    <% if articles.any? %><a href="#from-tacobout">Related reading</a><% end %>
+    <% if metadata_groups.any? %>
       <a href="#title-details">Details</a>
     <% end %>
     <% if entries %><a href="#media-entries"><%= entries_label %> <span><%= @series_collection.total %></span></a><% end %>
@@ -74,9 +81,9 @@
   <div class="media-detail-body">
     <div class="media-detail-main">
       <div id="my-library"><%= render 'shared/media_actions_and_stream', item: item, show_sources: false %></div>
-      <%= render 'shared/media_description', item: item %>
-      <%= render 'shared/entity_credits', item: item %>
-      <%= render 'shared/provider_details', item: item %>
+      <%= render 'shared/editorial_articles', item: item, articles: articles, compact: true if articles.any? %>
+      <%= render 'shared/amazon_reading', reading: amazon_reading if amazon_reading %>
+      <%= render 'shared/media_metadata_tabs', item: item, groups: metadata_groups %>
       <%= render 'albums/tracks', item: item if item.is_a?(Album) %>
       <% if item.is_a?(VideoGame) %>
         <% if @library_item %>
@@ -93,15 +100,16 @@
               <h2 style="margin: 0;">My Review</h2>
               <%= link_to "Edit review", edit_review_path(item_type: item.class.name, item_id: item.id), class: "sleek-btn sleek-btn-secondary", style: "font-size: 0.8125rem; padding: 0.35rem 0.75rem;", data: { turbo_frame: "modal" } %>
             </div>
-            <blockquote><%= simple_format(@library_item.review) %></blockquote>
+            <blockquote><%= review_summary(@library_item, item: item) %></blockquote>
           </section>
         <% end %>
       </div>
       <%= render 'shared/series_collection', item: item if entries %>
       <%= render 'shared/media_community', item: item, stats: stats %>
+      <%= render 'shared/media_public_shelves', item: item %>
     </div>
     <aside class="media-detail-aside" aria-label="Sources and title tools">
-      <%= render 'shared/media_sources', item: item %>
+      <%= render 'shared/media_sources', item: item, amazon_eligible: amazon_reading.present? %>
       <%= render 'shared/metadata_refresh', item: item %>
       <% if logged_in? %>
         <%= link_to 'Suggest an edit', new_polymorphic_path([item, :edit_suggestion]), class: 'media-tool-link' %>

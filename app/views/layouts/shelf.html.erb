@@ -1,3 +1,4 @@
+<% season = available_season %>
 <!DOCTYPE html>
 <html lang="en" data-theme="<%= logged_in? ? current_user.theme : 'os' %>"
       data-accent="<%= logged_in? ? current_user.accent_theme : 'violet' %>"
@@ -8,6 +9,7 @@
   <meta charset="utf-8">
   <title><%= full_title(yield(:title)) %></title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <% if @shelf_owner %><meta name="robots" content="noindex, nofollow"><% end %>
   <meta name="description" content="<%= yield(:meta_description).presence || "A home for every story, album, and game you're into. Build your shelf across 6 media formats, track active series, and share honest takes on Trove." %>">
   <meta property="og:title" content="<%= full_title(yield(:title)) %>">
   <meta property="og:description" content="<%= yield(:meta_description).presence || "A home for every story, album, and game you're into. Build your shelf across 6 media formats, track active series, and share honest takes on Trove." %>">
@@ -31,10 +33,12 @@
   <%= csrf_meta_tags %>
   <%= csp_meta_tag %>
 </head>
-<body class="shelf-page" data-viewer-id="<%= logged_in? ? current_user.id : 'guest' %>" data-ui-preferences="<%= ui_preferences.to_json %>" <% if hotwire_native_app? %>data-native="true"<% end %>>
+<body data-public-analytics="<%= public_analytics_page.to_json %>" class="shelf-page" data-controller="<%= 'halloween' if season %>" data-halloween-config-value="<%= SeasonalHelper::SEASON_CONFIG.to_json if season %>" data-action="turbo:render@document->halloween#refresh turbo:before-cache@document->halloween#reset trove:base-appearance@document->halloween#baseChoice" data-seasonal-preferences-url="<%= settings_appearance_path if logged_in? %>" data-viewer-id="<%= logged_in? ? current_user.id : 'guest' %>" data-ui-preferences="<%= ui_preferences.to_json %>" <% if hotwire_native_app? %>data-native="true"<% end %>>
   <a class="skip-link" href="#main-content">Skip to shelves</a>
   <%= render 'shared/site_navigation' %>
+  <%= render 'shared/halloween_invitation' %>
   <main id="main-content" tabindex="-1"><%= yield %></main>
+
   <%= turbo_frame_tag "modal" %>
 </body>
 </html>

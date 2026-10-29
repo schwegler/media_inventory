@@ -2,6 +2,7 @@
 
 class ComicIssuesController < ApplicationController
   include SeriesCollectionRendering
+  include ProfileProgressRendering
 
   before_action :logged_in_user, only: %i[toggle_read]
 
@@ -25,6 +26,8 @@ class ComicIssuesController < ApplicationController
     @library_item = LibraryItem.find_or_initialize_by(user: current_user, item: @comic_issue)
 
     if ConsumptionPasses.apply(current_user, @comic_issue, @library_item, comic_issue_params)
+      return render_profile_tracking if params[:profile_tracking] == '1'
+
       respond_to do |format|
         if params[:back_to_issue]
           format.html { redirect_to @comic_issue, notice: 'Issue updated.' }
@@ -49,6 +52,10 @@ class ComicIssuesController < ApplicationController
         end
       end
     else
+      if params[:profile_tracking] == '1'
+        return render_profile_tracking(error: 'Could not log this issue. Please try again.')
+      end
+
       respond_to do |format|
         format.html { redirect_back fallback_location: @comic_issue.comic, alert: 'Failed to update issue.' }
       end

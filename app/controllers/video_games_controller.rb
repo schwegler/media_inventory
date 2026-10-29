@@ -7,7 +7,7 @@ class VideoGamesController < InventoryController
   def create
     super
   rescue GameCatalogIdentity::Invalid => e
-    @video_game = VideoGame.new(resource_params.except(:catalog_selection))
+    @video_game = VideoGame.new(resource_params.except(:catalog_selection, :import_selection))
     @video_game.errors.add(:base, e.message)
     render :new, status: :unprocessable_content
   end
@@ -69,6 +69,8 @@ class VideoGamesController < InventoryController
                           .index_by(&:item_id)
   end
 
+  # PERFORMANCE OPTIMIZATION: Pluck distinct platform and storefront combinations in a single SQL query
+  # instead of running separate queries for each attribute.
   def prepare_library
     @game_statistics = GameLibraryStatistics.call(current_user)
     libraries = current_user.library_items.where(item_type: 'VideoGame')
@@ -77,8 +79,9 @@ class VideoGamesController < InventoryController
                                     game_cover_image_attachment: { blob: { artwork_renditions: :blob } })
                           .index_by(&:item_id)
     copies = GameCopy.where(library_item_id: libraries.select(:id))
-    @platforms = copies.distinct.order(:platform).pluck(:platform)
-    @storefronts = copies.where.not(storefront: [nil, '']).distinct.order(:storefront).pluck(:storefront)
+    platforms_and_storefronts = copies.distinct.pluck(:platform, :storefront)
+    @platforms = platforms_and_storefronts.map(&:first).compact_blank.uniq.sort
+    @storefronts = platforms_and_storefronts.map(&:second).compact_blank.uniq.sort
     @saved_views = current_user.game_library_views.order(:name)
   end
 
@@ -124,6 +127,7 @@ class VideoGamesController < InventoryController
 
   def resource_params
     params.require(:video_game).permit(
+      :import_selection,
       :catalog_selection, :copy_platform, :storefront, :edition, :access_method, :ownership_status, :play_status,
       :title, :game_type, :developer, :publisher, :platform, :release_year, :rating, :is_public, :thumbnail_url,
       :in_watchlist,

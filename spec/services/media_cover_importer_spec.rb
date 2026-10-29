@@ -55,6 +55,40 @@ RSpec.describe MediaCoverImporter do
     expect(WebMock).not_to have_requested(:get, url)
   end
 
+  it 'reuses absolute same-site proxy and redirect selections without HTTP or duplicate blobs' do
+    original = Book.create!(title: 'Existing cover')
+    original.cover_image.attach(io: StringIO.new(png), filename: 'cover.png', content_type: 'image/png')
+    blob = original.cover_image.blob
+    %w[proxy redirect].each do |action|
+      local_url = "https://trove.schweg.xyz/rails/active_storage/blobs/#{action}/#{blob.signed_id}/cover.png?download=1"
+      copy = Book.create!(title: 'Selected cover', thumbnail_url: local_url)
+      expect { 2.times { described_class.call(copy, local_url) } }.not_to change(ActiveStorage::Blob, :count)
+      expect(copy.reload.cover_image.blob_id).to eq(blob.id)
+      expect(described_class.ready?(copy, local_url)).to be(true)
+    end
+    expect(WebMock).not_to have_requested(:get, /trove\.schweg\.xyz/)
+  end
+
+  it 'resolves local covers only against the configured origin' do
+    allow(ENV).to receive(:fetch).and_call_original
+    allow(ENV).to receive(:fetch).with('HOST', anything).and_return('catalog.example:8443')
+    original = Book.create!(title: 'Existing cover')
+    original.cover_image.attach(io: StringIO.new(png), filename: 'cover.png', content_type: 'image/png')
+    path = original.stored_cover_url
+    expect(described_class.local_blob("https://catalog.example:8443#{path}")).to eq(original.cover_image.blob)
+    expect(described_class.local_blob("https://trove.schweg.xyz#{path}")).to be_nil
+  end
+
+  it 'does not treat lookalike hosts, credentials, ports or protocol-relative links as local' do
+    original = Book.create!(title: 'Existing cover')
+    original.cover_image.attach(io: StringIO.new(png), filename: 'cover.png', content_type: 'image/png')
+    path = Rails.application.routes.url_helpers.rails_storage_proxy_path(original.cover_image.blob, only_path: true)
+    ['https://evil.example', 'https://trove.schweg.xyz.evil.example', 'https://user@trove.schweg.xyz',
+     'https://trove.schweg.xyz:444', 'http://trove.schweg.xyz', '//trove.schweg.xyz'].each do |origin|
+      expect(described_class.local_blob("#{origin}#{path}")).to be_nil
+    end
+  end
+
   it 'repairs guessed legacy Steam covers using the returned header image' do
     legacy = 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/620/library_600x900.jpg'
     header = 'https://shared.fastly.steamstatic.com/actual-cover.jpg'
@@ -111,7 +145,8 @@ RSpec.describe MediaCoverImporter do
   it 'repairs a missing locally selected search cover through its original source' do
     described_class.call(item, url)
     blob = item.reload.cover_image.blob
-    local_url = Rails.application.routes.url_helpers.rails_storage_proxy_path(blob, only_path: true)
+    path = Rails.application.routes.url_helpers.rails_storage_proxy_path(blob, only_path: true)
+    local_url = "https://trove.schweg.xyz#{path}"
     item.update!(thumbnail_url: local_url)
     blob.service.delete(blob.key)
     MediaSources::Registry::CACHE.clear

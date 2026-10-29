@@ -2,6 +2,7 @@
 
 class TvEpisodesController < ApplicationController
   include SeriesCollectionRendering
+  include ProfileProgressRendering
 
   before_action :logged_in_user, only: %i[toggle_watched]
 
@@ -27,6 +28,7 @@ class TvEpisodesController < ApplicationController
     if ConsumptionPasses.apply(current_user, @tv_episode, @library_item, tv_episode_params)
       # Opportunistically fetch missing episode thumbnails from TVMaze
       SyncSeriesMetadataJob.perform_later(@tv_episode) if @tv_episode.thumbnail_url.blank?
+      return render_profile_tracking if params[:profile_tracking] == '1'
 
       respond_to do |format|
         if params[:back_to_episode]
@@ -52,6 +54,10 @@ class TvEpisodesController < ApplicationController
         end
       end
     else
+      if params[:profile_tracking] == '1'
+        return render_profile_tracking(error: 'Could not log this episode. Please try again.')
+      end
+
       respond_to do |format|
         format.html { redirect_back fallback_location: @tv_episode.tv_show, alert: 'Failed to update episode.' }
       end

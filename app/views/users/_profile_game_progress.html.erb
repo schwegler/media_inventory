@@ -1,0 +1,16 @@
+<% item = in_progress.series; run = in_progress.playthrough %>
+<% context = { profile_tracking: '1', profile_tab: @profile_tab, type: params[:type], sort: params[:sort], page: params[:page] } %>
+<article id="<%= in_progress.dom_id %>" class="in-progress-card profile-game-progress" data-media-type="VideoGame">
+  <div class="in-progress-header">
+    <div class="in-progress-cover"><% if item.stored_cover_url.present? %><%= media_cover_image item, alt: '', loading: 'lazy', width: 106, height: 159 %><% else %><span class="profile-cover-title"><%= item.title %></span><% end %></div>
+    <div class="in-progress-series-info"><span class="in-progress-series-tag">Game · Private tracking</span><h3 class="in-progress-series-title"><%= link_to item.title, item %></h3></div>
+  </div>
+  <div class="in-progress-next">
+    <p class="profile-section-note"><%= run.status.humanize %> · <%= run.progress %>%</p>
+    <div class="in-progress-progress-bar" role="progressbar" aria-valuenow="<%= run.progress %>" aria-valuemin="0" aria-valuemax="100" aria-label="<%= item.title %> progress"><div class="in-progress-progress-fill" style="width: <%= run.progress %>%"></div></div>
+    <div class="profile-game-actions">
+      <%= link_to 'Log session', new_game_tracking_path(video_game_id: item.id, kind: 'session', playthrough_id: run.id, **context), class: 'sleek-btn sleek-btn-primary', data: { turbo_frame: 'modal' }, aria: { label: "Log session for #{item.title}" } %>
+      <%= link_to 'Update progress', edit_game_tracking_path(video_game_id: item.id, id: run.id, kind: 'playthrough', **context), class: 'sleek-btn sleek-btn-secondary', data: { turbo_frame: 'modal' }, aria: { label: "Update progress for #{item.title}" } %>
+    </div>
+  </div>
+</article>

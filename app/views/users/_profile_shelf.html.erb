@@ -1,5 +1,5 @@
 <% if items.any? %>
-  <div class="profile-media-grid">
+  <div class="profile-media-grid<%= ' profile-media-row' if local_assigns[:compact] %>"<% if local_assigns[:compact] %> role="region" aria-label="Recently collected titles" tabindex="0"<% end %>>
     <% items.each do |entry| %>
       <% item = entry.item; next unless item %>
       <article class="profile-media-entry">
@@ -16,7 +16,7 @@
       </article>
     <% end %>
   </div>
-  <%= paginate items if items.respond_to?(:total_pages) %>
+  <% if items.respond_to?(:total_pages) %><div class="pagination-wrapper"><%= paginate items %></div><% end %>
 <% else %>
   <div class="profile-empty"><h3><%= empty_title %></h3><p><%= empty_description %></p><%= link_to 'Explore Trove', movies_path %></div>
 <% end %>

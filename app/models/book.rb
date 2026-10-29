@@ -22,6 +22,8 @@ class Book < ApplicationRecord
 
   # rubocop:disable-next Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
   def sync_details_from_api
+    return if importing_metadata
+
     return unless MediaSources::Registry.enabled?('itunes', 'Book')
 
     return unless api_id.to_s.match?(/\A(?:itunes_)?\d+\z/)

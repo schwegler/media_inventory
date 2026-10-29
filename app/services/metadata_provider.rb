@@ -17,9 +17,10 @@ class MetadataProvider
     @item = item
     @id = item.api_id.to_s
     @partial = false
+    @album_edition_required = false
   end
 
-  attr_reader :partial, :provider
+  attr_reader :partial, :provider, :album_release_id, :album_release_group_id, :album_edition_required
 
   def call
     raise Unsupported if @id.blank?
@@ -90,7 +91,7 @@ class MetadataProvider
     end
 
     fields = { metadata_credits_data: ProviderEntityMetadata.tvmaze(data),
-               metadata_details: data.slice('language', 'status', 'type'),
+               metadata_details: television_details(data),
                network: data.dig('network', 'name') || data.dig('webChannel', 'name'),
                thumbnail_url: data.dig('image', 'original') || data.dig('image', 'medium'),
                director: directors,
@@ -98,7 +99,24 @@ class MetadataProvider
                actors: cast,
                genre: Array(data['genres']).join(', ').presence,
                release_year: year(data['premiered']) }
-    [fields, children { json("https://api.tvmaze.com/shows/#{id}/episodes", specials: 1) }]
+    [fields, children { tvmaze_episode_rows(id) }]
+  end
+
+  def tvmaze_episode_rows(id)
+    list = TvmazeEpisodeList.new(id, deadline: @deadline, revalidate: @revalidate)
+    rows = list.call
+    @partial ||= list.partial
+    rows
+  rescue MediaSources::Http::Error => e
+    raise RateLimited if e.message == 'HTTP 429'
+
+    raise Unavailable
+  end
+
+  def television_details(data)
+    data.slice('language', 'status', 'type').merge(
+      'description' => plain_description(data['summary']), 'Runtime' => data['averageRuntime'] || data['runtime']
+    ).compact_blank
   end
 
   def tvmaze_credits(embedded)
@@ -195,10 +213,13 @@ class MetadataProvider
 
     volume = data['results']
     rows = children { comic_pages(id, token) }
-    credits = volume['person_credits'] || []
+    credits = Array(volume['person_credits']).presence || Array(volume['people'])
     organizations = [ProviderEntityMetadata.credit(volume['publisher'] || {}, 'Publisher', 'ComicVine',
                                                    kind: 'organization')].compact
     [{ metadata_credits_data: ProviderEntityMetadata.comic(credits) + organizations,
+       metadata_details: { 'description' => plain_description(volume['description'] || volume['deck']),
+                           'start_year' => volume['start_year'],
+                           'count_of_issues' => volume['count_of_issues'] }.compact_blank,
        publisher: volume.dig('publisher', 'name'), writer: comic_creators(credits, %w[writer]),
        artist: comic_creators(credits, %w[artist penciler inker colorist]),
        thumbnail_url: volume.dig('image', 'original_url'), external_url: volume['site_detail_url'] }, rows]
@@ -270,7 +291,8 @@ class MetadataProvider
     raise Unavailable unless data.is_a?(Hash)
 
     [{ metadata_credits_data: itunes_credits(data, :author),
-       metadata_details: data.slice('language', 'description'),
+       metadata_details: data.slice('language').merge('description' => plain_description(data['description']),
+                                                      'subjects' => data['genres']).compact_blank,
        author: data['artistName'], publisher: data['sellerName'], release_year: year(data['releaseDate']),
        thumbnail_url: data['artworkUrl100']&.sub('100x100bb', '400x400bb') }, []]
   end
@@ -283,7 +305,7 @@ class MetadataProvider
     @id = @id.delete_prefix('musicbrainz_')
     raise Unsupported unless @id.match?(/\A[0-9a-f-]{36}\z/i)
 
-    type = @item.external_url.to_s.include?('/release-group/') ? 'release-group' : 'release'
+    type = @item.external_url.to_s.include?('/release/') ? 'release' : 'release-group'
     inc = type == 'release-group' ? 'artist-credits+genres+releases' : musicbrainz_includes
     data = json("https://musicbrainz.org/ws/2/#{type}/#{@id}", fmt: 'json', inc: inc)
     track_data = musicbrainz_track_data(data, type)
@@ -295,20 +317,53 @@ class MetadataProvider
                metadata_details: data.slice('primary-type', 'secondary-types', 'disambiguation'),
                release_year: year(data['date'] || data['first-release-date']),
                thumbnail_url: "https://coverartarchive.org/#{type}/#{@id}/front-500" }
-    [fields, @include_children ? AlbumMetadata.musicbrainz(track_data) : []]
+    [fields, musicbrainz_album_rows(track_data)]
+  end
+
+  def musicbrainz_album_rows(data)
+    return [] unless @include_children
+
+    media = Array(data['media'])
+    expected = media.sum { |disc| disc['track-count'].to_i }
+    complete = media.any? && media.all? { |disc| Array(disc['tracks']).size == disc['track-count'].to_i }
+    validated_album_rows(AlbumMetadata.musicbrainz(data), expected, complete: complete)
   end
 
   def musicbrainz_track_data(data, type)
     return data unless @include_children && type == 'release-group'
 
-    release = Array(data['releases']).first
-    return data unless release
+    @album_release_group_id = @id
+    @album_release_id = musicbrainz_release_id(data)
+    unless @album_release_id.to_s.match?(/\A[0-9a-f-]{36}\z/i)
+      @partial = true
+      return {}
+    end
 
-    # MusicBrainz allows one request per second; the extra release call is refresh-only.
+    # Keep a group import attached to one edition, even if provider ordering changes.
+    # MusicBrainz allows one request per second.
     sleep 1.05
     optional_details do
-      [json("https://musicbrainz.org/ws/2/release/#{release.fetch('id')}", fmt: 'json', inc: musicbrainz_includes)]
+      [json("https://musicbrainz.org/ws/2/release/#{@album_release_id}", fmt: 'json', inc: musicbrainz_includes)]
     end.first || {}
+  end
+
+  def musicbrainz_release_id(data)
+    provenance = MetadataRefresh.find_by(item: @item)&.provider_values || {}
+    return provenance['album_release_id'] if provenance['album_release_group_id'] == @id
+
+    releases = Array(data['releases']).select { |row| row['id'].present? }.uniq { |row| row['id'] }
+    return if releases.empty?
+
+    # Group membership and dates do not identify a listener's edition. In
+    # particular, a year-only bonus-disc date can sort before the full album.
+    # Keep explicit/pinned identities; never rank competing releases by date,
+    # title, country, track count, or provider response order.
+    if releases.one? && releases.first['status'] == 'Official'
+      releases.first.fetch('id')
+    else
+      @album_edition_required = true
+      nil
+    end
   end
 
   def musicbrainz_includes
@@ -323,8 +378,10 @@ class MetadataProvider
       query[:entity] = 'song'
       query[:limit] = 200
     end
-    data = json('https://itunes.apple.com/lookup', query).fetch('results')
-    album = data.find { |row| row['wrapperType'] == 'collection' } || data.first
+    data = json('https://itunes.apple.com/lookup', query).fetch('results', [])
+    raise Unavailable unless data.is_a?(Array)
+
+    album = data.find { |row| row['wrapperType'] == 'collection' && row['collectionId'].to_s == query[:id] }
     raise Unavailable unless album.is_a?(Hash)
 
     credits = [ProviderEntityMetadata.credit({ 'name' => album['artistName'], 'id' => album['artistId'] },
@@ -333,10 +390,28 @@ class MetadataProvider
                release_year: year(album['releaseDate']), metadata_credits_data: credits,
                metadata_details: album.slice('collectionExplicitness', 'copyright', 'trackCount', 'releaseDate'),
                thumbnail_url: album['artworkUrl100']&.sub('100x100bb', '600x600bb') }
-    extracted_tracks = @include_children ? AlbumMetadata.itunes(data) : []
-    declared_count = album['trackCount'].to_i
-    @partial = true if declared_count.positive? && extracted_tracks.size < declared_count
-    [fields, extracted_tracks]
+    [fields, itunes_album_rows(data, album)]
+  end
+
+  def itunes_album_rows(data, album)
+    return [] unless @include_children
+
+    matching = data.select { |row| row['collectionId'].to_s == album['collectionId'].to_s }
+    validated_album_rows(AlbumMetadata.itunes(matching), album['trackCount'].to_i)
+  end
+
+  def validated_album_rows(rows, expected, complete: true)
+    @partial = true if expected.zero? || rows.size != expected || !complete
+    return rows if valid_album_positions?(rows)
+
+    @partial = true
+    []
+  end
+
+  def valid_album_positions?(rows)
+    positions = rows.map { |row| [row['disc_number'].to_i, row['track_number'].to_i] }
+    rows.any? && positions.all? { |disc, track| disc.positive? && track.positive? } &&
+      positions.uniq.size == rows.size && rows.pluck('provider_id').uniq.size == rows.size
   end
 
   def tmdb_details(data)
@@ -365,12 +440,26 @@ class MetadataProvider
     end
     fields = { metadata_credits_data: authors + contributors + publishers,
                metadata_details: openlibrary_details(data, edition),
-               author: names(authors), publisher: Array(edition['publishers']).join(', ').presence }
+               (@item.is_a?(Comic) ? :writer : :author) => names(authors),
+               release_year: openlibrary_release_year(data, edition, path),
+               thumbnail_url: openlibrary_cover(data, edition),
+               publisher: Array(edition['publishers']).join(', ').presence }
     [fields, []]
+  end
+
+  def openlibrary_cover(data, edition)
+    cover = (Array(edition['covers']) + Array(data['covers'])).find { |id| id.is_a?(Integer) && id.positive? }
+    "https://covers.openlibrary.org/b/id/#{cover}-L.jpg" if cover
   end
 
   def openlibrary_details(data, edition)
     fields = edition.slice('isbn_10', 'isbn_13', 'number_of_pages', 'edition_name', 'publish_date')
+    fields['description'] = plain_description(data['description'] || edition['description'])
+    if @id.include?('/works/') && edition.present?
+      fields['edition_note'] =
+        'Publisher, ISBN and publication facts refer to one available edition; other editions may differ.'
+    end
+    fields['edition_source'] = edition['key'] if edition['key'].to_s.match?(%r{\A/books/OL\d+M\z})
     fields['subjects'] = Array(data['subjects']).first(20)
     fields['languages'] = Array(edition['languages']).filter_map do |language|
       language['key']&.delete_prefix('/languages/')
@@ -397,9 +486,30 @@ class MetadataProvider
     raise Unavailable unless data.is_a?(Hash)
 
     [{ metadata_credits_data: itunes_credits(data, creator),
+       metadata_details: itunes_details(data),
        creator => data['artistName'], genre: data['primaryGenreName'],
        release_year: year(data['releaseDate']),
        thumbnail_url: data['artworkUrl100']&.sub('100x100bb', '600x600bb') }, []]
+  end
+
+  def itunes_details(data)
+    { 'description' => plain_description(data['longDescription'] || data['shortDescription']),
+      'Runtime' => data['trackTimeMillis'].to_i.positive? ? data['trackTimeMillis'].to_i / 60_000 : nil,
+      'collectionExplicitness' => data['contentAdvisoryRating'] }.compact_blank
+  end
+
+  def plain_description(value)
+    value = value['value'] if value.is_a?(Hash)
+    ActionController::Base.helpers.strip_tags(value.to_s).presence
+  end
+
+  def openlibrary_release_year(data, edition, path)
+    work_year = @item.release_year if path.include?('/works/') && @item.respond_to?(:release_year)
+    openlibrary_year(data['first_publish_date']) || work_year || openlibrary_year(edition['publish_date'])
+  end
+
+  def openlibrary_year(value)
+    value.to_s[/\b[12]\d{3}\b/]&.to_i
   end
 
   def itunes_credits(data, creator)
@@ -428,7 +538,7 @@ class MetadataProvider
   end
 
   def year(value)
-    match = value.to_s.match(/\A(19\d{2}|20\d{2})/)
+    match = value.to_s.match(/\A([12]\d{3})/)
     match[1].to_i if match
   end
 end

@@ -4,16 +4,18 @@
   .header-shell .app-header .app-nav { display: flex; align-items: center; gap: 1rem; width: calc(100% - 40px); max-width: 1320px; min-height: 76px; padding: 16px 0; margin-inline: auto; }
   .header-shell .app-header .library-nav, .header-shell .app-header .workspace-primary-nav, .header-shell .app-header .nav-user-section { display: none; }
   .header-shell .app-header .nav-brand { position: static; display: flex; align-items: center; flex-shrink: 0; top: auto; }
-  .header-shell .app-header .brand-link { display: inline-flex; align-items: center; gap: .5rem; }
+  .header-shell .app-header .brand-link { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; }
   .header-shell .app-header .brand-logo { display: block; width: 36px; height: 36px; border-radius: 8px; margin: 0; }
   .header-shell .app-header .brand-text { position: static; top: auto; font: 700 2rem/1 'Instrument Sans', sans-serif; letter-spacing: -1.5px; text-transform: none; }
-  .header-shell .app-header .brand-companion { display: inline-block; margin-left: 1rem; padding-left: 1rem; }
+  // Keep the credit in the same row as the logo, with its own accessible hit area.
+  .header-shell .app-header .brand-companion { display: inline-flex; align-items: center; min-height: 44px; margin: 0 0 0 .75rem; padding: 0 0 0 .75rem; border: 0; border-left: 1px solid var(--border); font-size: .6875rem; line-height: 1; }
   .header-shell .app-header .combined-search { display: block; flex: 1; min-width: 0; align-self: center; }
   .header-shell .app-header .global-search-form { width: 100%; height: 44px; padding: 0 .75rem; gap: .5rem; align-items: center; }
   .header-shell .app-header .global-search-input { min-width: 0; height: 42px; line-height: normal; padding: 0; border: 0; box-shadow: none; background: transparent; }
   .header-shell .app-header .global-search-btn { display: inline-flex; align-items: center; justify-content: center; height: 42px; min-height: 42px; min-width: 24px; }
   .header-shell .app-header .mobile-menu-btn, .header-shell .app-header .combined-search-toggle { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 44px; height: 44px; min-height: 44px; min-width: 44px; padding: .5rem; margin: 0; }
   .header-shell .app-header .combined-search-toggle { display: none; }
+  .header-shell .app-header .header-search-anchor { display: contents; }
   .header-shell .app-header.combined-header { top: 12px; left: 12px; right: 12px; width: auto; margin-inline: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); box-shadow: 0 4px 16px rgba(var(--rgb-inverse), .08); }
   .header-shell .app-header.combined-header::before { display: none; }
   .header-shell .app-header.combined-header .app-nav { width: 100%; min-height: 68px; padding: 12px; }
@@ -38,6 +40,9 @@
   // Category navigation remains on catalog pages; the header has one universal composition.
   .media-workspace .catalog-navigation { display: flex; }
   @media (min-width: 1100px) {
+    // A real containing block follows the trigger through header reflow before
+    // resize callbacks run. Inline search keeps its existing flex layout.
+    body:not(.public-landing) .header-shell .app-header .header-search-anchor { display: block; position: relative; flex: 0 0 44px; height: 44px; }
     .header-shell .app-header .workspace-primary-nav { display: flex; flex: 1; min-width: 0; align-items: center; justify-content: center; gap: clamp(.75rem, 1.5vw, 1.5rem); }
     .header-shell .workspace-primary-nav a { color: var(--text-secondary); font-size: .8125rem; white-space: nowrap; text-decoration: none; border: 0; padding: .75rem 0; }
     .header-shell .workspace-primary-nav a[aria-current] { color: var(--accent); border: 0; }
@@ -46,7 +51,7 @@
     .media-workspace .catalog-navigation { display: none; }
   }
 
-  .header-shell .app-header.search-open .combined-search { display: block; position: absolute; right: 0; top: calc(100% + 8px); width: min(460px, calc(100vw - 24px)); padding: .75rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 24px rgba(var(--rgb-inverse), .12); z-index: 1050; }
+  .header-shell .app-header.search-open .combined-search { display: block; position: absolute; left: var(--search-left, 12px); right: auto; top: var(--search-top, calc(100% + 8px)); box-sizing: border-box; width: min(460px, var(--search-max-width, calc(100vw - 24px))); padding: .75rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 24px rgba(var(--rgb-inverse), .12); z-index: 1050; }
   @media (min-width: 1100px) {
     .header-shell .app-header .mobile-menu-btn { display: none; }
     .header-shell .app-header .nav-user-section { display: flex; align-items: center; flex-shrink: 0; gap: .5rem; }
@@ -71,6 +76,7 @@
 
   // Anchor the panel to the header, rather than the page or a distant ancestor.
   .header-shell .app-header:not(.combined-header) { position: relative; }
+  .header-shell .app-header .mobile-nav-panel > .blog-nav-link { display: flex; align-items: center; min-height: 44px; }
   .header-shell .app-header .mobile-nav-panel.active {
     box-sizing: border-box;
     right: 12px;

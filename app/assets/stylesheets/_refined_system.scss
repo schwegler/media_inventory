@@ -19,8 +19,6 @@
   .header-shell .app-header.combined-header, .header-shell .app-header.combined-header.floating { border-radius: 0; box-shadow: none; backdrop-filter: none; background: var(--canvas); }
   .combined-header .nav-link { border-radius: 0; }
   .combined-header .nav-link[aria-current='page'] { background: transparent; box-shadow: inset 0 -2px var(--accent); }
-  .header-shell .app-header .brand-companion { display: block; margin: .25rem 0 0 2.75rem; padding: 0; border: 0; font-size: .625rem; }
-  .header-shell .app-header .nav-brand { display: block; }
   .header-shell .workspace-primary-nav > a[aria-current='page'] { color: var(--text); box-shadow: inset 0 -1px var(--accent); }
   .browse-navigation { position: relative; font-size: .8125rem; color: var(--text-secondary); }
   .browse-navigation > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; list-style: none; }
@@ -57,7 +55,7 @@
   .tracking-rest h2 { margin: 0 0 .5rem; }
   .tracking-rest p { margin: 0 0 .5rem; color: var(--text-secondary); }
   .in-progress-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 2rem; }
-  .in-progress-card { display: grid; grid-template-columns: 106px minmax(0, 1fr); column-gap: 1.25rem; row-gap: 1rem; padding: 1.5rem 0; border: 0; border-bottom: 1px solid var(--border); border-radius: 0; background: transparent; transition: none; }
+  .in-progress-card { display: grid; align-content: start; grid-template-columns: 106px minmax(0, 1fr); column-gap: 1.25rem; row-gap: 1rem; padding: 1.5rem 0; border: 0; border-bottom: 1px solid var(--border); border-radius: 0; background: transparent; transition: none; }
   .in-progress-header { display: contents; }
   .in-progress-cover { grid-column: 1; grid-row: 1/3; width: 106px; height: 159px; border-radius: 3px; }
   .in-progress-series-info { grid-column: 2; padding-right: 44px; }
@@ -88,53 +86,58 @@
   .tracking-options-menu { position: absolute; right: 0; width: min(250px, 75vw); padding: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; }
   .tracking-options-menu p { margin: 0 0 .75rem; font-size: .875rem; }
   .tracking-options-menu button { min-height: 44px; width: 100%; color: var(--text); background: var(--inset); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; }
-  #in_progress_dashboard_section .in-progress-grid { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
-  #in_progress_dashboard_section .in-progress-card:first-child { grid-template-columns: 144px minmax(0, 1fr); }
-  #in_progress_dashboard_section .in-progress-card:first-child .in-progress-cover { width: 144px; height: 216px; }
   .media-entries .consumption-pass-panel { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; padding: .75rem 0; border: 0; background: transparent; border-bottom: 1px solid var(--border); gap: .75rem; }
   .media-entries .consumption-pass-status { margin: 0; font-size: .875rem; }
   .pass-options summary, .series-filters summary, .series-bulk summary { min-height: 44px; display: flex; align-items: center; gap: .5rem; cursor: pointer; font-size: .875rem; color: var(--accent); }
   .pass-options summary::before, .series-filters summary::before, .series-bulk summary::before { content: '+'; }
   .pass-options[open] summary::before, .series-filters[open] summary::before, .series-bulk[open] summary::before { content: '−'; }
-  .media-entries .child-collection-toolbar { display: flex; flex-wrap: wrap; align-items: start; gap: .75rem; padding-block: .75rem; }
+  .media-entries .child-collection-toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem; padding-block: .75rem; }
   .series-filters { flex: 1 1 300px; min-width: 0; }
   .series-filter-fields { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem; padding-block: .5rem; }
-  .series-filter-fields > div { flex: 1 1 150px; min-width: 0; }
+  .series-filter-fields > div { flex: 1 1 120px; min-width: 0; }
+  .series-filter-fields > .series-filter-actions { flex: 0 0 auto; display: flex; align-items: center; gap: .75rem; }
+  .media-entries .series-filter-actions :is(button, a) { display: inline-flex; align-items: center; justify-content: center; height: 44px; margin: 0; padding-block: 0; }
   .series-filter-fields :is(input, select) { width: 100%; }
   .series-bulk { margin-bottom: 1rem; }
   .media-entries .consumption-pass-status { width: auto; }
   .media-entries .consumption-pass-status strong { display: inline; }
   .media-entries .consumption-pass-panel { margin-bottom: .75rem; border-radius: 0; }
   .media-detail .media-entries h2 { font-size: 1.5rem; font-weight: 500; margin-bottom: 1rem; }
-  .media-entries .child-collection-toolbar > .series-season-filter { flex: 0 1 160px; min-width: 140px; }
   .companion-note > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--accent); }
   .companion-note > div { display: flex; align-items: center; gap: 1rem; max-width: 560px; padding: 1rem 0; }
   .companion-note .quiet-companion { flex: 0 0 56px; margin: 0; }
   .series-season-navigation { display: flex; gap: .5rem; align-items: center; }
   .media-entries .series-season-navigation .sleek-btn { width: 44px; padding: .5rem; }
   .media-entries > progress { max-width: 100%; height: 4px; }
-  @media (max-width: 1050px) {
-    #in_progress_dashboard_section .in-progress-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    #in_progress_dashboard_section .in-progress-card:first-child { grid-template-columns: 106px minmax(0, 1fr); }
-    #in_progress_dashboard_section .in-progress-card:first-child .in-progress-cover { width: 106px; height: 159px; }
-  }
-  @media (max-width: 800px) { .dashboard-social-layout { grid-template-columns: 1fr; gap: 0; } .in-progress-grid, #in_progress_dashboard_section .in-progress-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 800px) { .dashboard-social-layout { grid-template-columns: 1fr; gap: 0; } .in-progress-grid { grid-template-columns: 1fr; } }
   @media (max-width: 580px) {
-    .in-progress-card, #in_progress_dashboard_section .in-progress-card:first-child { grid-template-columns: 90px minmax(0, 1fr); gap: 1rem; }
-    .in-progress-cover, #in_progress_dashboard_section .in-progress-card:first-child .in-progress-cover { width: 90px; height: 135px; }
+    .in-progress-card { grid-template-columns: 90px minmax(0, 1fr); gap: 1rem; }
+    .in-progress-cover { width: 90px; height: 135px; }
     .in-progress-series-info .in-progress-series-title { font-size: 1.1875rem; }
     .in-progress-series-info { padding-right: 36px; }
     .tracking-options > summary { width: 44px; }
     .in-progress-form-actions { flex-direction: row; align-items: center; }
     .in-progress-rating-select { flex: 0 1 110px; width: 110px; padding-left: .5rem; }
     .in-progress-log-btn { width: auto; padding-inline: .75rem; }
-    .child-collection-toolbar > div { min-width: 0; }
+    .series-filters { flex-basis: 100%; }
+    .series-filter-fields > div { flex-basis: 100%; }
+    .series-filter-fields > .series-filter-actions { flex-basis: 100%; }
   }
   .quiet-companion { display: block; width: 56px; height: 72px; object-fit: contain; margin: 0 auto 1rem; filter: none; }
   .home-empty-state { padding: 2rem; }
   .home-empty-state h2, .home-empty-state h3 { margin: 0 0 .75rem; }
   .profile-companion-mascot .mascot-sticker { width: 42px; height: 55px; filter: none; transition: none; transform: none; }
   .media-workspace .media-overview { grid-template-columns: 240px minmax(0, 1fr); gap: 2.5rem; }
+  // Comic art must retain its source proportions; the child-page height cap
+  // otherwise clips covers after this layer widens the artwork column.
+  .media-workspace .media-detail:is([data-media-kind='Comic'], [data-media-kind='ComicIssue']) .media-overview .media-cover {
+    max-height: none;
+    aspect-ratio: auto;
+  }
+  .media-workspace .media-detail:is([data-media-kind='Comic'], [data-media-kind='ComicIssue']) .media-cover > .artwork-zoom { height: auto; }
+  .media-workspace .media-detail:is([data-media-kind='Comic'], [data-media-kind='ComicIssue']) .media-cover img { height: auto; object-fit: contain; }
+  .media-workspace .media-detail:is([data-media-kind='Comic'], [data-media-kind='ComicIssue']) .media-cover > .artwork-fallback { aspect-ratio: 2 / 3; }
+
   .media-workspace .media-overview .media-cover { width: 240px; border-radius: 3px; box-shadow: none; }
   .media-workspace .media-identity h1 { font-family: 'Space Grotesk', sans-serif; font-size: clamp(2.0625rem, 4vw, 3.5rem); font-weight: 500; line-height: 1.08; }
   .media-overview-stats { grid-column: 2; display: flex; flex-wrap: wrap; gap: 1.5rem; border: 0; padding: 0; background: transparent; box-shadow: none; }

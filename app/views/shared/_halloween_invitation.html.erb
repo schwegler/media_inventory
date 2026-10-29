@@ -1,0 +1,10 @@
+<% if (season = available_season) %>
+  <aside class="halloween-invitation" data-halloween-target="stage" hidden aria-label="Halloween character">
+    <div data-halloween-target="invitation" class="halloween-invitation-actions" hidden>
+      <button type="button" data-action="halloween#character" aria-label="Turn on Halloween mode" title="make it weird" class="halloween-bat"><%= image_tag season['asset'], alt: '', width: 96, height: 126, decoding: 'async', loading: 'lazy', aria: { hidden: true } %></button>
+      <button type="button" class="seasonal-dismiss" data-action="halloween#dismiss" aria-label="Dismiss Halloween character">×</button>
+    </div>
+  </aside>
+  <p class="seasonal-announcement" role="alert" data-halloween-target="announcement"></p>
+  <div class="seasonal-scene" aria-hidden="true"><span class="seasonal-moon"></span><span class="seasonal-hills"></span><span class="seasonal-trees"></span><span class="seasonal-tent"></span><span class="seasonal-fireflies"></span><span class="seasonal-mist"></span></div>
+<% end %>

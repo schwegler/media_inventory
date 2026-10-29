@@ -1,0 +1,6 @@
+<nav class="library-format-navigation" aria-label="My library formats">
+  <%= link_to 'Library overview', owner_library_path, aria: { current: selected.nil? && @profile_tab == 'collection' ? 'page' : nil } %>
+  <% ProfilesHelper::PROFILE_MEDIA_TYPES.each do |type, label| %>
+    <%= link_to label, library_format_path(type.constantize), aria: { current: selected == type ? 'page' : nil } %>
+  <% end %>
+</nav>

@@ -1,0 +1,21 @@
+<% content_for :robots, 'noindex, nofollow' %>
+<% content_for :turbo_no_cache, true %>
+<section class="shelves-workspace workspace-form-page" data-controller="shelf-form" data-action="input->shelf-form#changed change->shelf-form#changed turbo:before-visit@document->shelf-form#beforeVisit beforeunload@window->shelf-form#beforeUnload">
+  <%= link_to 'Back to Shelves', shelf_workspace_path, class: 'workspace-back' %>
+  <h1><%= creating ? 'Create shelf' : 'Shelf settings' %></h1>
+  <% if @collection.errors.any? %><div class="workspace-errors" role="alert" tabindex="-1" data-shelf-form-target="errors"><h2>Check your shelf</h2><ul><% @collection.errors.full_messages.each do |message| %><li><%= message %></li><% end %></ul></div><% end %>
+  <%= form_with model: @collection, url: creating ? managed_shelves_path : update_managed_shelf_path(@collection.slug), method: creating ? :post : :patch, data: { action: 'submit->shelf-form#submit turbo:submit-end->shelf-form#submitted' } do |form| %>
+    <% if creating %><%= hidden_field_tag :creation_token, @creation_token %><% else %><%= hidden_field_tag :shelf_version, shelf_edit_version(@user, "collection:#{@collection.slug}") %><% end %>
+    <div class="workspace-field"><%= form.label :title, 'Shelf title' %><%= form.text_field :title, required: true, maxlength: 80, placeholder: 'Something for a winter night', autocomplete: 'off', aria: { invalid: @collection.errors[:title].any? } %></div>
+    <div class="workspace-field"><%= form.label :description, 'A little context (optional)' %><%= form.text_area :description, maxlength: 240, rows: 3, placeholder: 'What brings these titles together?' %></div>
+    <% if creating %><div class="workspace-field"><%= label_tag :starting_mood, 'Starting mood' %><%= select_tag :starting_mood, options_for_select([['Everyday', 'everyday'], ['Halloween', 'halloween'], ['Christmas', 'christmas']], params[:starting_mood]) %></div><% end %>
+    <% unless creating %>
+      <fieldset class="workspace-field"><legend>New selections</legend><p>Choose allowed media types. Existing selections stay when this mix changes.</p><%= hidden_field_tag 'shelf_collection[allowed_media_types][]', '' %><div class="workspace-media-types"><% FavoriteShelf::CATEGORIES.except('overall').each do |type, label| %><label><%= check_box_tag 'shelf_collection[allowed_media_types][]', type, @collection.media_types.include?(type), id: "managed-media-#{type}" %><%= label %></label><% end %></div><p>Select no types to allow all six.</p></fieldset>
+      <div class="workspace-field"><%= form.label :preview_length, 'Overview cover count' %><%= form.number_field :preview_length, min: 1, max: 12, required: true %><p>Show 1–12 covers. All titles stay on the full shelf.</p></div>
+    <% end %>
+    <p class="workspace-hint"><%= creating ? 'Create your shelf, then add titles. Collect up to 1,000 titles in your own order.' : 'Your shelf URL and saved selections stay the same.' %></p>
+    <div class="workspace-form-actions"><%= form.submit(creating ? 'Create shelf' : 'Save changes', class: 'workspace-primary', data: { turbo_submits_with: creating ? 'Creating…' : 'Saving…' }) %><%= link_to 'Cancel', creating ? shelf_workspace_path : edit_managed_shelf_path(@collection.slug), class: 'workspace-secondary' %></div>
+  <% end %>
+  <% unless creating %><section class="workspace-danger"><h2>Archive shelf</h2><p>Take this shelf off your public pages without deleting its selections. You can restore it from Shelves.</p><%= link_to 'Review archive…', confirm_archive_shelf_path(@collection.slug), class: 'workspace-secondary' %></section><% end %>
+  <dialog data-shelf-form-target="leaveDialog" data-action="cancel->shelf-form#stay" aria-labelledby="leave-shelf-heading"><h2 id="leave-shelf-heading">Leave without saving?</h2><p>Your changes will be discarded.</p><div class="workspace-form-actions"><button type="button" class="workspace-primary" data-action="shelf-form#stay" autofocus>Keep editing</button><button type="button" class="workspace-secondary" data-action="shelf-form#leave">Discard changes</button></div></dialog>
+</section>

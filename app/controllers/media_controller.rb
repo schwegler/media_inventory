@@ -2,7 +2,7 @@
 
 # rubocop:disable-next Metrics/ClassLength
 class MediaController < ApplicationController
-  before_action :logged_in_user, only: :copy
+  before_action :logged_in_user, only: %i[copy import_preview]
 
   def copy
     source_type = params[:source_type].to_s.strip
@@ -56,10 +56,40 @@ class MediaController < ApplicationController
               else []
               end
 
-    render json: results, status: @search_pending ? :accepted : :ok
+    results = sign_import_results(discovery_results(results, type), type)
+    render json: autocomplete_payload(results, q, type), status: @search_pending ? :accepted : :ok
+  end
+
+  def import_preview
+    response.headers['Cache-Control'] = 'private, no-store'
+    type = params[:type].to_s
+    data = MetadataImport.read(params[:selection], type)
+    result = MetadataImport.preview(data, type)
+    render json: result.merge(import_selection: MetadataImport.sign(type, result))
+  rescue MetadataImport::Invalid => e
+    render json: { error: e.message }, status: :unprocessable_content
   end
 
   private
+
+  def discovery_results(results, type)
+    return results unless params[:discovery] == '1'
+
+    response.headers['Cache-Control'] = 'private, no-store'
+    DiscoveryResults.call(results, type, user: current_user)
+  end
+
+  def autocomplete_payload(results, query, type)
+    return results unless params[:discovery] == '1'
+
+    { results: results, sources: MediaSearchService.source_states(query, type) }
+  end
+
+  def sign_import_results(results, type)
+    return results unless MetadataImport::TYPES.include?(type)
+
+    results.map { |result| result.merge(import_selection: MetadataImport.sign(type, result)) }
+  end
 
   def build_copied_item(item, target_list)
     new_item = item.dup
@@ -88,6 +118,7 @@ class MediaController < ApplicationController
   def fetch_local_movies(query)
     MetadataSearch.call(Movie.with_attached_cover_image, query).limit(5).map do |m|
       {
+        catalog_id: m.id,
         title: m.title,
         director: m.director,
         writer: m.writer,
@@ -113,6 +144,7 @@ class MediaController < ApplicationController
   def fetch_local_albums(query)
     MetadataSearch.call(Album.with_attached_cover_image, query).limit(5).map do |a|
       {
+        catalog_id: a.id,
         title: a.title,
         artist: a.artist,
         genre: a.genre,
@@ -139,6 +171,7 @@ class MediaController < ApplicationController
     comics = comics.where('title LIKE ?', "% (#{search.year})") if search.year
     comics.order(title: :asc).limit(100).map do |c|
       {
+        catalog_id: c.id,
         title: c.title,
         writer: c.writer,
         artist: c.artist,
@@ -164,6 +197,7 @@ class MediaController < ApplicationController
   def fetch_local_tv_shows(query)
     MetadataSearch.call(TvShow.with_attached_cover_image, query).limit(5).map do |t|
       {
+        catalog_id: t.id,
         title: t.title,
         network: t.network,
         director: t.director,
@@ -201,7 +235,7 @@ class MediaController < ApplicationController
         cover_source_url: vg.cover_image.attached? ? url_for(vg.cover_image) : vg.thumbnail_url,
         api_id: vg.api_id,
         catalog_id: vg.id,
-        catalog_selection: vg.signed_id(purpose: 'game-catalog-selection', expires_in: 30.minutes),
+        catalog_selection: MetadataImport.game_selection(vg),
         external_url: vg.external_url,
         is_local: true
       }
@@ -218,6 +252,7 @@ class MediaController < ApplicationController
   def fetch_local_books(query)
     MetadataSearch.call(Book.with_attached_cover_image, query).limit(5).map do |b|
       {
+        catalog_id: b.id,
         title: b.title,
         author: b.author,
         publisher: b.publisher,
@@ -234,7 +269,8 @@ class MediaController < ApplicationController
   def filter_unique_results(all_results)
     seen = {}
     all_results.select do |item|
-      key = "#{item[:title].to_s.downcase.strip}_#{item[:release_year]}"
+      key = [item[:title].to_s.downcase.strip, item[:release_year].to_s, item[:artist].to_s.downcase.strip,
+             item[:author].to_s.downcase.strip]
 
       if seen[key]
         false

@@ -229,11 +229,12 @@ class Category
   end
 
   def self.like_clause(attribute)
-    "LOWER(#{attribute}) = :exact OR " \
-      "LOWER(#{attribute}) LIKE :starts ESCAPE '!' OR " \
-      "LOWER(#{attribute}) LIKE :ends ESCAPE '!' OR " \
-      "LOWER(#{attribute}) LIKE :middle ESCAPE '!' OR " \
-      "LOWER(#{attribute}) LIKE :substr ESCAPE '!'"
+    quoted = ActiveRecord::Base.connection.quote_column_name(attribute)
+    "LOWER(#{quoted}) = :exact OR " \
+      "LOWER(#{quoted}) LIKE :starts ESCAPE '!' OR " \
+      "LOWER(#{quoted}) LIKE :ends ESCAPE '!' OR " \
+      "LOWER(#{quoted}) LIKE :middle ESCAPE '!' OR " \
+      "LOWER(#{quoted}) LIKE :substr ESCAPE '!'"
   end
 
   def self.media_type_matches?(model, media_type)

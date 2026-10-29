@@ -164,3 +164,56 @@ RSpec.describe MediaSearchService do
     end
   end
 end
+
+RSpec.describe 'Discovery provider bounds and outcomes' do
+  before { MediaSources::Registry::CACHE.clear }
+
+  ['Madonna', 'Buckethead', 'Charli xcx'].each do |artist|
+    it "keeps #{artist} album queries bounded and caches refinement independently" do
+      endpoint = %r{itunes.apple.com/search}
+      stub_request(:get, endpoint).with(query: hash_including('term' => artist, 'entity' => 'album',
+                                                              'limit' => '5', 'country' => 'US')).to_return(body: {
+                                                                results: 5.times.map do |i|
+                                                                  { collectionId: i + 1, collectionName: "Synthetic #{i}",
+                                                                    artistName: artist, releaseDate: '2024-01-01' }
+                                                                end
+                                                              }.to_json)
+      results = MediaSearchService.call(artist, 'album')
+      expect(results.size).to eq(5)
+      MediaSearchService.call(artist, 'album')
+      expect(WebMock).to have_requested(:get, endpoint).once
+      expect(MediaSearchService.source_states(artist, 'album')).to include(source: 'itunes', state: 'ready')
+      MediaSearchService.call("#{artist} Specific album", 'album')
+      expect(WebMock).to have_requested(:get, endpoint).twice
+    end
+  end
+
+  it 'reports swallowed provider failures separately from an empty successful source' do
+    stub_request(:get, /itunes.apple.com/).to_return(status: 429)
+    MediaSearchService.call('Synthetic outage', 'album')
+    expect(MediaSearchService.source_states('Synthetic outage', 'album')).to include(source: 'itunes', state: 'unavailable')
+    stub_request(:get, /itunes.apple.com/).to_return(body: { results: [] }.to_json)
+    MediaSearchService.call('Synthetic zero', 'album')
+    expect(MediaSearchService.source_states('Synthetic zero', 'album')).to include(source: 'itunes', state: 'ready')
+  end
+
+  it 'does not collapse albums from different artists with the same title and year' do
+    stub_request(:get, /itunes.apple.com/).to_return(body: { results: [
+      { collectionId: 1, collectionName: 'Synthetic same title', artistName: 'One', releaseDate: '2024-01-01' },
+      { collectionId: 2, collectionName: 'Synthetic same title', artistName: 'Two', releaseDate: '2024-01-01' }
+    ] }.to_json)
+    expect(MediaSearchService.call('Synthetic same title', 'album').size).to eq(2)
+  end
+end
+
+RSpec.describe 'Discovery combined result ceiling' do
+  it 'returns at most twenty selected external candidates' do
+    service = MediaSearchService.new('Synthetic broad query', 'album')
+    allow(MediaSources::Registry).to receive(:enabled?).and_return(true)
+    %i[fetch_itunes_albums fetch_musicbrainz_albums fetch_wikipedia
+       fetch_internet_archive].each_with_index do |method, source|
+      allow(service).to receive(method).and_return(10.times.map { |i| { title: "Synthetic #{source} #{i}" } })
+    end
+    expect(service.call.length).to eq(20)
+  end
+end

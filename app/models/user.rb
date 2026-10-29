@@ -3,7 +3,10 @@
 # rubocop:disable-next Metrics/ClassLength
 class User < ApplicationRecord
   has_many :favorite_shelves, dependent: :destroy
+  has_many :shelf_collections, dependent: :destroy
   has_many :game_library_views, dependent: :destroy
+  has_many :remembered_devices, dependent: :delete_all
+  before_update :revoke_sign_ins, if: :will_save_change_to_password_digest?
   has_secure_password
 
   before_validation { self.email = nil if email.blank? }
@@ -22,11 +25,13 @@ class User < ApplicationRecord
                        allow_nil: true
   validates :theme, inclusion: { in: %w[light dark os] }
 
-  ACCENTS = %w[violet ink moss].freeze
+  validates :seasonal_theme, inclusion: { in: %w[off halloween] }
+
+  ACCENTS = %w[violet ink moss halloween].freeze
   validates :accent_theme, :profile_accent, inclusion: { in: ACCENTS }
   validates :content_density, inclusion: { in: %w[comfortable compact] }
   validates :media_layout, inclusion: { in: %w[covers rows] }
-  validates :profile_header, inclusion: { in: %w[linen solid minimal] }
+  validates :profile_header, inclusion: { in: %w[linen solid minimal halloween] }
 
   has_many_attached :shelf_previews
   has_one_attached :avatar
@@ -128,6 +133,14 @@ class User < ApplicationRecord
   end
 
   private
+
+  def revoke_sign_ins
+    # Increment in the database so concurrent password changes on stale instances
+    # cannot reuse a generation and accidentally keep an intermediate session alive.
+    self.class.update_counters(id, session_generation: 1)
+    self.session_generation = self.class.where(id: id).pick(:session_generation)
+    remembered_devices.delete_all
+  end
 
   def generate_activitypub_keys
     require 'openssl'

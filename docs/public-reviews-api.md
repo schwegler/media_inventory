@@ -26,6 +26,7 @@ Each review contains:
 | `media_type` | string | `Movie`, `TvShow`, `TvEpisode`, `Album`, `Comic`, `ComicIssue`, `VideoGame`, or `Book` |
 | `item_title` | string | Catalog title; episodes and issues include parent context |
 | `item_url` | string | Canonical HTTPS catalog item URL |
+| `review_url` | string | Canonical HTTPS dedicated review URL; use this for review links |
 | `cover_url` | string or null | Absolute HTTPS Trove cover proxy URL when the item has a cover source or attachment |
 
 Missing optional rating and cover values are always JSON `null`. Cover URLs use Trove's existing cover-serving route; upstream artwork availability can still affect the image response. URLs use the configured public `HOST` HTTPS origin, falling back to `https://trove.schweg.xyz`, never the caller's Host header.

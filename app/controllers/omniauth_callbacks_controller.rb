@@ -34,33 +34,30 @@ class OmniAuthCallbacksController < ApplicationController
     end
     user.save!
 
-    session[:user_id] = user.id unless current_user
-    redirect_to root_path, notice: 'Successfully connected to Mastodon!'
+    finish_oauth_login(user, 'mastodon')
+    redirect_to discovery_destination(root_path), notice: 'Successfully connected to Mastodon!'
   end
 
-  # rubocop:disable-next Metrics/AbcSize
   def atproto
     auth = request.env['omniauth.auth']
 
     did = auth.uid || auth.info.did
-    handle = auth.info.nickname || auth.info.handle || did
+    profile = BlueskyPublicProfile.fetch(did)
+    handle = profile['handle'].presence || auth.info.nickname.presence || auth.info.handle.presence
 
     user = current_user || User.find_by(bsky_did: did) || User.new
 
+    previous_handle = user.bsky_handle if user.bsky_did == did
     user.bsky_did = did
-    user.bsky_handle = handle
+    user.bsky_handle = handle || previous_handle.presence || did
     user.bsky_access_token = auth.credentials.token
     user.bsky_refresh_token = auth.credentials.refresh_token
 
-    if user.new_record?
-      user.name = auth.info.name || user.bsky_handle
-      user.username = User.generate_unique_username(user.bsky_handle)
-      user.password = SecureRandom.hex(16)
-    end
+    initialize_bluesky_profile(user, auth, profile) if user.new_record?
     user.save!
 
-    session[:user_id] = user.id unless current_user
-    redirect_to root_path, notice: 'Successfully connected to Bluesky!'
+    finish_oauth_login(user, 'atproto')
+    redirect_to discovery_destination(root_path), notice: 'Successfully connected to Bluesky!'
   end
 
   def failure
@@ -68,6 +65,12 @@ class OmniAuthCallbacksController < ApplicationController
   end
 
   private
+
+  def initialize_bluesky_profile(user, auth, profile)
+    user.name = (profile['displayName'].presence || auth.info.name.presence || user.bsky_handle).first(50)
+    user.username = User.generate_unique_username(user.bsky_handle)
+    user.password = SecureRandom.hex(16)
+  end
 
   # rubocop:disable-next Metrics/AbcSize
   def setup_mastodon(req)

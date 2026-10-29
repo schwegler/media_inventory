@@ -1,10 +1,12 @@
 <% content_for(:title, "#{@user.name}'s library") %>
 <% content_for(:meta_description, @user.bio.presence || "Explore #{@user.name}'s public collection and recent activity on Trove.") %>
 <% public_url = canonical_item_url(@user) %>
+<% content_for(:turbo_no_cache, 'true') %>
+<% content_for(:robots, 'noindex, follow') if @profile_owner || params[:preview].present? %>
 <% content_for(:canonical_url, public_url) %>
 <% content_for(:og_type, 'profile') %>
 <% content_for(:meta_image, url_for(@user.avatar)) if @user.avatar.attached? %>
-<div class="library-profile profile-page" data-profile-accent="<%= @user.profile_accent %>" data-profile-header="<%= @user.profile_header %>">
+<div class="library-profile profile-page" data-profile-tab="<%= @profile_tab %>" data-profile-accent="<%= @user.profile_accent %>" data-profile-header="<%= @user.profile_header %>">
   <% if current_user?(@user) && !@profile_owner %>
     <div class="profile-notice">You’re viewing your public profile. Private reviews and ratings are hidden. <%= link_to 'Back to your profile', user_path(@user) %></div>
   <% end %>
@@ -23,15 +25,16 @@
     <div class="library-profile-actions">
       <% if @profile_owner %>
         <%= link_to 'Edit profile', settings_path, class: 'sleek-btn sleek-btn-primary' %>
-        <%= link_to 'Curate favorites', shelf_path(@user.username, category: 'overall'), class: 'sleek-btn sleek-btn-secondary' if @user.username.present? %>
+        <%= link_to 'Edit shelf selections', shelf_path(@user.username, category: 'overall'), class: 'sleek-btn sleek-btn-secondary' if @user.username.present? %>
         <%= link_to 'Public preview', user_path(@user, preview: 'public'), class: 'sleek-btn sleek-btn-secondary' %>
       <% elsif logged_in? && !current_user?(@user) %>
         <%= render 'follow_form', user: @user %>
       <% elsif !logged_in? %>
         <%= link_to 'Log in to follow', login_path, class: 'sleek-btn sleek-btn-primary' %>
       <% end %>
-      <div class="profile-share" data-controller="link-share" data-link-share-url-value="<%= public_url %>">
-        <button type="button" class="sleek-btn sleek-btn-secondary" data-action="link-share#copy">Share profile</button>
+      <div class="profile-share" data-controller="link-share" data-link-share-url-value="<%= public_url %>" data-link-share-title-value="<%= @user.name %>’s library on Trove">
+        <button type="button" class="sleek-btn sleek-btn-secondary" data-action="link-share#copy">Copy profile link</button>
+        <button type="button" hidden class="sleek-btn sleek-btn-secondary" data-link-share-target="native" data-action="link-share#share">Share profile…</button>
         <span role="status" aria-live="polite" data-link-share-target="status"></span>
         <input readonly hidden value="<%= public_url %>" aria-label="Public profile link" data-link-share-target="fallback">
       </div>
@@ -49,36 +52,33 @@
       </div>
       <nav class="library-profile-tabs" aria-label="Profile sections">
         <%= link_to 'Shelf', shelf_path(@user.username) if @user.username.present? %>
-        <% { 'overview' => 'Overview', 'collection' => 'Collection', 'backlog' => 'Backlog', 'posts' => 'Activity', 'likes' => 'Likes' }.each do |key, label| %>
+        <% { 'overview' => 'Overview', 'progress' => 'In progress', 'collection' => 'Collection', 'backlog' => 'Backlog', 'posts' => 'Activity', 'likes' => 'Likes' }.each do |key, label| %>
           <%= link_to label, profile_tab_path(key), class: (@profile_tab == key ? 'active' : nil), aria: { current: @profile_tab == key ? 'page' : nil } %>
         <% end %>
       </nav>
       <% if @profile_tab == 'overview' %>
         <%= render 'profile_favorites', items: @profile_favorites if @profile_favorites.any? && @user.username.present? %>
-        <% if @in_progress_items.any? %>
-          <section class="profile-section" id="in_progress_section">
-            <div class="profile-section-heading">
-              <h2>In progress</h2>
-              <span><%= @in_progress_items.size %> active <%= @in_progress_items.size == 1 ? 'series' : 'series' %></span>
-            </div>
-            <div class="in-progress-grid">
-              <% @in_progress_items.each do |item| %>
-                <%= render 'shared/in_progress_card', in_progress: item, profile_owner: @profile_owner %>
-              <% end %>
-            </div>
-          </section>
-        <% end %>
-        <section class="profile-section">
-          <div class="profile-section-heading"><h2>Recently collected</h2><%= link_to 'View all', profile_tab_path('collection') %></div>
-          <%= render 'profile_shelf', items: @recent_collection, empty_title: 'A library waiting to happen.', empty_description: @profile_owner ? 'Find something you love and add it to your collection.' : 'No collection items yet.' %>
+        <%= render 'profile_progress_preview' %>
+        <section class="profile-section profile-recent" aria-labelledby="recent-collection-heading">
+          <div class="profile-section-heading"><h2 id="recent-collection-heading">Recently collected</h2><%= link_to 'View collection', profile_tab_path('collection') %></div>
+          <%= render 'profile_shelf', items: @recent_collection, compact: true, empty_title: 'A library waiting to happen.', empty_description: @profile_owner ? 'Find something you love and add it to your collection.' : 'No collection items yet.' %>
         </section>
         <section class="profile-section">
-          <div class="profile-section-heading"><h2>Recent activity</h2><%= link_to 'View all', profile_tab_path('posts') %></div>
+          <div class="profile-section-heading"><h2>Recent activity</h2><%= link_to 'View activity', profile_tab_path('posts') %></div>
           <%= render 'profile_feed', feed: @combined_feed.first(5) %>
         </section>
+      <% elsif @profile_tab == 'progress' %>
+        <%= render 'profile_progress' %>
       <% elsif %w[collection backlog].include?(@profile_tab) %>
         <section class="profile-section">
           <div class="profile-section-heading"><h2><%= @profile_tab.capitalize %></h2><span><%= @profile_owner ? 'Your library, including private reviews' : 'Private reviews are hidden' %></span></div>
+          <% if @profile_owner %>
+            <aside class="owner-library-tools" aria-labelledby="owner-library-tools-title">
+              <h3 id="owner-library-tools-title">Manage by format</h3>
+              <p>Search, filter and update all your titles in the same My library workspace used from Browse.</p>
+              <%= render 'shared/library_formats', selected: nil %>
+            </aside>
+          <% end %>
           <%= form_with url: user_path(@user), method: :get, class: 'profile-filter' do |f| %>
             <%= hidden_field_tag :tab, @profile_tab %>
             <%= hidden_field_tag :preview, 'public' if params[:preview] == 'public' %>
@@ -104,7 +104,11 @@
           <% @likes.each do |like| %>
             <% target = like.likeable; next unless target %>
             <div class="profile-like-row">Liked a <%= like.likeable_type.titleize %>
-              <% if target.respond_to?(:title) %><%= link_to target.title, target.is_a?(LibraryItem) ? target.item : target %><% end %>
+              <% if review_page_linkable?(target) %>
+                <%= link_to "Review of #{target.title}", public_review_path(target) %>
+              <% elsif target.respond_to?(:title) %>
+                <%= link_to target.title, target.is_a?(LibraryItem) ? target.item : target %>
+              <% end %>
             </div>
           <% end %>
           <% if @likes.empty? %><div class="profile-empty"><h3>No likes to show yet.</h3><p><%= @profile_owner ? 'Your liked items will appear here.' : 'Public library likes will appear here.' %></p></div><% end %>

@@ -1,0 +1,20 @@
+<nav class="shelf-toolbar" aria-label="Shelf navigation">
+  <div class="shelf-toolbar-links">
+    <% if current_user?(@user) %><%= link_to 'Shelves workspace', shelf_workspace_path, data: { shelf_link: true } %><% end %>
+    <% if @shelf_owner %>
+      <%= link_to 'View public shelf', shelf_path(@user.username, collection: @collection&.slug, category: @overview ? nil : @category), data: { shelf_link: true } %>
+      <% if @collection %><%= link_to 'Shelf settings', managed_shelf_settings_path(@collection.slug), data: { shelf_link: true } %><% end %>
+    <% elsif current_user?(@user) %>
+      <%= link_to 'Edit shelf', (@collection ? edit_managed_shelf_path(@collection.slug) : (@overview ? shelf_appearance_path : edit_favorite_shelf_path(@category))), data: { shelf_link: true } %>
+    <% end %>
+    <%= link_to (@shelf_owner ? 'View shelf overview' : 'All shelves'), (@shelf_owner ? shelf_appearance_path(theme: @theme, **@image_style.symbolize_keys) : shelf_navigation_path(@user, theme: @theme, style: @image_style)), class: "shelf-overview-link #{'shelf-primary' if @shelf_owner}", data: { shelf_link: true }, aria: { current: @overview ? 'page' : nil } %>
+    <% if @shelf_owner && @overview %><%= link_to 'Edit selections', edit_favorite_shelf_path('overall', theme: @theme, **@image_style.symbolize_keys), data: { shelf_link: true } %><% end %>
+    <% if @shelf_owner %><details class="shelf-toolbar-more"><summary>More shelf actions</summary><div>
+      <%= link_to 'Customize profile', settings_path %><%= link_to 'Preview as visitor', shelf_path(@user.username, category: @overview ? nil : @category, collection: @collection&.slug, view: 'visitor'), data: { shelf_link: true } %>
+      <%= link_to 'View profile', handle_profile_path(@user.username) %><a href="#shelf-sharing" data-action="favorite-shelf#showSharing">Share</a>
+    </div></details><% else %>
+      <%= link_to 'View profile', handle_profile_path(@user.username) %><a href="#shelf-sharing" data-action="favorite-shelf#showSharing">Share</a>
+    <% end %>
+  </div>
+  <% if @shelf_owner %><p class="shelf-view-state"><%= @overview ? 'Viewing shelf overview' : (@collection ? 'Editing shelf' : "Editing #{FavoriteShelf::CATEGORIES[@category]} selections") %></p><% end %>
+</nav>

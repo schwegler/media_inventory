@@ -33,10 +33,11 @@ RSpec.describe 'Presentation and keyboard access', type: :system do
     expect(page).to have_css('.workspace-primary-nav', visible: true)
     page.execute_script('window.scrollTo(0, 400)')
     resize_browser_viewport(320, 844)
-    click_button 'Search the library'
+    click_button 'Search Trove and supported catalogs'
     expect(page.evaluate_script('document.activeElement.classList.contains("global-search-input")')).to be true
     page.driver.browser.action.send_keys(:escape).perform
-    expect(page.evaluate_script('document.activeElement.getAttribute("aria-label")')).to eq('Search the library')
+    expect(page.evaluate_script('document.activeElement.getAttribute("aria-label")'))
+      .to eq('Search Trove and supported catalogs')
   end
 
   it 'supports narrow navigation, restores menu focus, and previews and persists profile themes' do
@@ -65,6 +66,8 @@ RSpec.describe 'Presentation and keyboard access', type: :system do
   it 'supports keyboard menus, a modal focus trap and focus restoration' do
     create_and_login_user
     visit movies_path
+    settled = 'html:not([aria-busy="true"]):not([data-turbo-preview]):not(:active-view-transition)'
+    expect(page).to have_css("#{settled} .catalog-page", visible: :all)
     expect(page).to have_css('[data-controller="dropdown"][data-connected="true"]')
     click_button 'Toggle log menu'
     expect(page.evaluate_script('document.activeElement.textContent')).to include('Log Movie')

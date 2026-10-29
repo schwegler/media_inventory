@@ -1,0 +1,28 @@
+<% articles = local_assigns.fetch(:articles) { EditorialArticle.for_title(item).to_a } %>
+<% compact = local_assigns.fetch(:compact, false) %>
+<% if articles.any? %>
+  <section id="from-tacobout" class="media-section editorial-articles<%= ' editorial-articles--compact' if compact %>" aria-labelledby="editorial-articles-heading">
+    <div class="editorial-articles-heading">
+      <% unless compact %><span class="editorial-eyebrow">Related reading</span><% end %>
+      <h2 id="editorial-articles-heading">from taco ’bout it</h2>
+      <% unless compact %><p>Stories, essays, and a different perspective on this title.</p><% end %>
+    </div>
+    <div class="editorial-article-grid">
+      <% (compact ? articles.first(1) : articles).each do |article| %>
+        <% next unless Editorial::Urls.article(article.canonical_url) %>
+        <%= render 'shared/editorial_article_card', article: article %>
+      <% end %>
+    </div>
+    <% if compact && articles.size > 1 %>
+      <details class="editorial-more">
+        <summary><%= articles.size - 1 %> more <%= 'story'.pluralize(articles.size - 1) %> about this title</summary>
+        <div class="editorial-article-grid">
+          <% articles.drop(1).each do |article| %>
+            <% next unless Editorial::Urls.article(article.canonical_url) %>
+            <%= render 'shared/editorial_article_card', article: article %>
+          <% end %>
+        </div>
+      </details>
+    <% end %>
+  </section>
+<% end %>

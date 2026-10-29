@@ -1,0 +1,5 @@
+<div class="form-group remember-device">
+  <%= check_box_tag name, '1', false, id: id, aria: { describedby: "#{id}_help" } %>
+  <%= label_tag id, 'Remember this device for 30 days' %>
+  <p id="<%= id %>_help">Use only on a private device. Signing out removes remembered access on this device.</p>
+</div>

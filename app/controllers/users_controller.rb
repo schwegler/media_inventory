@@ -3,6 +3,7 @@
 # rubocop:disable Metrics/ClassLength
 class UsersController < ApplicationController
   include RecordPreloader
+  include ProfileProgressRendering
 
   before_action :logged_in_user, only: %i[index edit update destroy]
   before_action :correct_user,   only: %i[edit update]
@@ -16,9 +17,11 @@ class UsersController < ApplicationController
                                            .group(:user_id).count
   end
 
+  # rubocop:disable-next Metrics/MethodLength
   def show
     return if load_canonical_profile
 
+    response.headers['Cache-Control'] = 'private, no-store'
     prepare_profile_library
 
     # PERFORMANCE OPTIMIZATION: Conditionally fetch and preload data strictly required for the active profile tab.
@@ -33,10 +36,12 @@ class UsersController < ApplicationController
 
     case @profile_tab
     when 'overview'
-      @in_progress_items = InProgressTracker.items_for(@user)
+      @in_progress_items = InProgressTracker.items_for(@user, public_only: !@profile_owner, limit: 2, include_games: true)
       recent = @visible_library.where(is_collected: true).order(created_at: :desc).limit(6)
       @recent_collection = preload_library_items(recent)
       @combined_feed = fetch_combined_feed
+    when 'progress'
+      load_profile_progress
     when 'collection'
       @collection_items = preload_library_items(fetch_library_items(is_collected: true))
     when 'backlog'
@@ -61,10 +66,10 @@ class UsersController < ApplicationController
     @user = User.new(adjusted_params)
     @user.confirmed_at = Time.current # Automatically confirmed via password signup
     if @user.save
-      reset_session
+      forget_device
       log_in @user
       flash[:success] = 'Welcome to Trove!'
-      redirect_to @user
+      redirect_to discovery_destination(@user)
     else
       render 'new', status: :unprocessable_content
     end
@@ -129,20 +134,36 @@ class UsersController < ApplicationController
 
   def prepare_profile_library
     @profile_owner = current_user?(@user) && params[:preview] != 'public'
-    @profile_tab = %w[overview collection backlog posts likes].include?(params[:tab]) ? params[:tab] : 'overview'
+    @profile_tab = %w[overview progress collection backlog posts likes].include?(params[:tab]) ? params[:tab] : 'overview'
     # `is_public` controls review/rating visibility only; every library entry is visible on the profile.
     @visible_library = @user.library_items
-    @collection_count = @visible_library.where(is_collected: true).count
-    @backlog_count = @visible_library.where(in_backlog: true).count
-    @library_mix = @visible_library.where(is_collected: true).group(:item_type).count
+
+    # OPTIMIZATION: Combine library mix counts and backlog count into a single SQL query
+    counts = @visible_library.where('is_collected = ? OR in_backlog = ?', true, true)
+                             .group(:item_type, :is_collected, :in_backlog).count
+
+    @library_mix = Hash.new(0)
+    @backlog_count = 0
+
+    counts.each do |(item_type, is_collected, in_backlog), count|
+      @library_mix[item_type] += count if is_collected
+      @backlog_count += count if in_backlog
+    end
+
+    @collection_count = @library_mix.values.sum
   end
 
+  # Batch preloads attachments and card ratings for profile favorite cards on profile overview
   def profile_favorites
     return [] unless @profile_tab == 'overview'
 
-    (@user.favorite_shelves.find_by(category: 'overall')&.items || []).first(3)
+    items = (@user.favorite_shelves.find_by(category: 'overall')&.items || []).first(3)
+    preload_records_attachments(items)
+    items
   end
 
+  # PERFORMANCE OPTIMIZATION: Load up to 4 shared items first into memory. If fewer than 4 are returned,
+  # set @shared_items_count = @shared_items.size directly in memory to avoid a redundant COUNT(*) SQL query.
   def load_shared_items
     @shared_items = []
     return unless logged_in? && !current_user?(@user)
@@ -151,8 +172,8 @@ class UsersController < ApplicationController
       'EXISTS (SELECT 1 FROM library_items own WHERE own.user_id = ? AND own.is_collected = ? ' \
       'AND own.item_type = library_items.item_type AND own.item_id = library_items.item_id)', current_user.id, true
     )
-    @shared_items_count = shared.count
-    @shared_items = shared.order(created_at: :desc).limit(4)
+    @shared_items = shared.order(created_at: :desc).limit(4).to_a
+    @shared_items_count = @shared_items.size < 4 ? @shared_items.size : shared.count
     preload_library_items(@shared_items)
   end
 
@@ -196,7 +217,9 @@ class UsersController < ApplicationController
     activities = public_review_activities(activities) unless @profile_owner
     activities = activities.limit(20)
 
-    combined = preload_social_feed(activities.to_a + @user.posts.order(created_at: :desc).limit(20).to_a)
+    activity_records = activities.to_a
+    DashboardActivityQuery.attach_review_entries(activity_records, viewer_id: @profile_owner ? current_user.id : nil)
+    combined = preload_social_feed(activity_records + @user.posts.order(created_at: :desc).limit(20).to_a)
     combined.sort_by!(&:created_at).reverse!
     combined.first(20)
   end

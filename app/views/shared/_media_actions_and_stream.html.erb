@@ -70,6 +70,7 @@ end
                           method: :patch,
                           params: { item.class.name.underscore.to_sym => { is_collected: !item.is_collected? } },
                           form: { data: { controller: "optimistic", action: "turbo:submit-start->optimistic#start turbo:before-fetch-response->optimistic#response turbo:submit-end->optimistic#finish", optimistic_label_value: (item.is_collected? ? "Collection" : "✓ In Collection"), optimistic_selected_value: !item.is_collected? } },
+                          aria: { pressed: item.is_collected? },
                           class: "sleek-btn #{item.is_collected? ? 'sleek-btn-secondary is-selected' : 'sleek-btn-primary'}" %>
 
             <%= button_to item.in_watchlist? ? "✓ On List" : watchlist_add_label.delete_prefix("Add to "),
@@ -77,6 +78,7 @@ end
                           method: :patch,
                           params: { item.class.name.underscore.to_sym => { in_watchlist: !item.in_watchlist? } },
                           form: { data: { controller: "optimistic", action: "turbo:submit-start->optimistic#start turbo:before-fetch-response->optimistic#response turbo:submit-end->optimistic#finish", optimistic_label_value: (item.in_watchlist? ? watchlist_add_label.delete_prefix("Add to ") : "✓ On List"), optimistic_selected_value: !item.in_watchlist? } },
+                          aria: { pressed: item.in_watchlist? },
                           class: "sleek-btn #{item.in_watchlist? ? 'sleek-btn-secondary is-selected' : 'sleek-btn-secondary'}" %>
 
             <%= button_to item.consumed? ? "✓ #{consumed_past_participle.capitalize}" : consumed_past_participle.capitalize,
@@ -84,6 +86,7 @@ end
                           method: :patch,
                           params: { item.class.name.underscore.to_sym => { consumed: !item.consumed?, consumed_at: (item.consumed? ? nil : Time.current.to_date) } },
                           form: { data: { controller: "optimistic", action: "turbo:submit-start->optimistic#start turbo:before-fetch-response->optimistic#response turbo:submit-end->optimistic#finish", optimistic_label_value: (item.consumed? ? consumed_past_participle.capitalize : "✓ #{consumed_past_participle.capitalize}"), optimistic_selected_value: !item.consumed? } },
+                          aria: { pressed: item.consumed? },
                           class: "sleek-btn #{item.consumed? ? 'sleek-btn-secondary is-selected' : 'sleek-btn-success'}" %>
 
           <%= render 'likes/like_button', item: item %>
@@ -129,7 +132,7 @@ end
               <% end %>
             </div>
             <% if @library_item.review.present? %>
-              <p class="reviewed-summary-text"><%= truncate(@library_item.review, length: 140) %></p>
+              <div class="reviewed-summary-text"><%= review_summary(@library_item, item: item, compact: true) %></div>
             <% end %>
           </div>
           <%= link_to "Edit review", edit_review_path(item_type: item.class.name, item_id: item.id), class: "sleek-btn sleek-btn-secondary", data: { turbo_frame: "modal" } %>

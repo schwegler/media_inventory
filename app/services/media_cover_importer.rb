@@ -57,7 +57,7 @@ class MediaCoverImporter
 
     blob = item.cover_image.blob
     blob.service.delete(blob.key) if CoverImport.exists?(item: item, failure_reason: 'Corrupted stored image')
-    blob.metadata['remote_source'] == source_url && stored_file?(blob)
+    (blob.metadata['remote_source'] == source_url || local_blob(source_url)&.id == blob.id) && stored_file?(blob)
   end
 
   def self.current_selection?(item, source_url)
@@ -80,6 +80,9 @@ class MediaCoverImporter
   end
 
   def self.local_blob(url)
+    url = local_path(url)
+    return unless url
+
     match = url.match(%r{\A/rails/active_storage/blobs/(?:redirect|proxy)/([^/]+)/[^?#]+\z})
     return ActiveStorage::Blob.find_signed(match[1]) if match
 
@@ -88,6 +91,23 @@ class MediaCoverImporter
 
     item = match[1].camelize.constantize.find_by(id: match[2])
     item.cover_image.blob if item&.cover_image&.attached?
+  end
+
+  # Absolute links copied from Trove are references to existing artwork, not
+  # provider downloads. Never send these through HTTP or broaden its allowlist.
+  def self.local_path(url)
+    uri = URI.parse(url)
+    return uri.path if uri.relative? && !uri.host && uri.path.start_with?('/')
+
+    configured = ENV.fetch('HOST', 'https://trove.schweg.xyz')
+    origin = URI.parse(configured.include?('://') ? configured : "https://#{configured}")
+    return unless uri.is_a?(URI::HTTPS) && uri.userinfo.nil? &&
+                  origin.is_a?(URI::HTTPS) && origin.userinfo.nil? &&
+                  uri.host == origin.host && uri.port == origin.port
+
+    uri.path
+  rescue URI::InvalidURIError
+    nil
   end
 
   def self.stored_file?(blob)

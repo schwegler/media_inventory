@@ -28,7 +28,7 @@
       </span>
       <% if trackable.respond_to?(:review) && trackable.review.present? && activity.activity_type == 'reviewed' %>
         <div class="activity-review-quote">
-          "<%= truncate(trackable.review, length: 150) %>"
+          <%= review_summary(trackable, author: activity.user, compact: true, permalink: activity.activity_type == 'reviewed') %>
         </div>
       <% end %>
     </div>

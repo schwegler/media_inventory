@@ -1,0 +1,1 @@
+<fieldset class="shelf-themes"><legend>Theme</legend><% ShelvesHelper::SHELF_THEMES.each do |theme| %><label><input type="radio" name="shelf-theme" value="<%= theme %>" <%= 'checked' if @theme == theme %> data-action="favorite-shelf#theme"><span><%= shelf_theme_label(theme) %></span></label><% end %></fieldset>

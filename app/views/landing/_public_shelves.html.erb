@@ -1,0 +1,23 @@
+<% if @public_shelves.any? %>
+  <section class="home-public-shelves" aria-labelledby="public-shelves-title">
+    <div class="home-shelves-heading"><h2 id="public-shelves-title">A little shelf inspiration</h2><span>Real picks, made public.</span></div>
+    <div class="home-shelf-gallery">
+      <% @public_shelves.each do |entry| %>
+        <% shelf, items = entry.values_at(:shelf, :items) %>
+        <% title = "#{shelf.user.name}’s #{shelf.category == 'overall' ? 'favorites' : FavoriteShelf::CATEGORIES[shelf.category].downcase}" %>
+        <article class="home-shelf-example">
+          <%= link_to shelf_path(shelf.user.username, category: shelf.category), class: 'home-shelf-preview', aria: { label: "View #{title}" } do %>
+            <% items.each do |item| %>
+              <% if item.stored_cover_url.present? %>
+                <%= image_tag item.stored_cover_url, alt: item.title, loading: 'lazy', width: 96, height: 144 %>
+              <% else %>
+                <span class="home-shelf-title-only"><%= item.title %></span>
+              <% end %>
+            <% end %>
+          <% end %>
+          <h3><%= link_to title, shelf_path(shelf.user.username, category: shelf.category) %></h3>
+        </article>
+      <% end %>
+    </div>
+  </section>
+<% end %>

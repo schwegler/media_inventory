@@ -1,21 +1,17 @@
 # frozen_string_literal: true
 
 module MetadataEntitiesHelper
-  PROVIDER_FIELDS = {
-    'Original title' => 'Original title', 'Languages' => 'Languages', 'Countries' => 'Production countries',
-    'Runtime' => 'Runtime (minutes)', 'Overview' => 'Synopsis', 'IMDb ID' => 'IMDb ID',
-    'language' => 'Language', 'status' => 'Status', 'primary-type' => 'Release type',
-    'secondary-types' => 'Release categories', 'disambiguation' => 'Edition',
-    'collectionExplicitness' => 'Content rating', 'copyright' => 'Copyright',
-    'trackCount' => 'Tracks', 'releaseDate' => 'Release date', 'isbn_10' => 'ISBN-10', 'isbn_13' => 'ISBN-13',
-    'number_of_pages' => 'Pages', 'edition_name' => 'Edition', 'publish_date' => 'Publication date',
-    'subjects' => 'Subjects', 'languages' => 'Languages', 'description' => 'Description'
-  }.freeze
+  PROVIDER_FIELDS = MetadataDetailFields::LABELS
 
   def provider_display_details(item)
-    return {} unless item.respond_to?(:metadata_details) && !item.is_a?(VideoGame)
+    return {} unless item.respond_to?(:metadata_details)
 
-    PROVIDER_FIELDS.each_with_object({}) do |(field, label), result|
+    fields = if item.is_a?(VideoGame)
+               PROVIDER_FIELDS.slice('original_release_date', 'release_date_label', 'official_website')
+             else
+               PROVIDER_FIELDS
+             end
+    fields.each_with_object({}) do |(field, label), result|
       value = item.metadata_details[field]
       result[label] = value if value.present? && (value.is_a?(String) || value.is_a?(Numeric) || value.is_a?(Array))
     end
@@ -41,8 +37,8 @@ module MetadataEntitiesHelper
 
   def entity_credit_links(credits)
     safe_join(credits.map do |credit|
-      link_to(credit.metadata_entity.name, metadata_entity_path(credit.metadata_entity), class: 'media-category-link',
-                                                                                         data: { turbo_frame: '_top' })
+      link_to(credit.metadata_entity.display_name, metadata_entity_path(credit.metadata_entity),
+              class: 'media-category-link', data: { turbo_frame: '_top' })
     end.uniq, ', ')
   end
 
@@ -67,7 +63,7 @@ module MetadataEntitiesHelper
   def linked_child_credit_groups(linked)
     linked.group_by(&:role).transform_values do |credits|
       safe_join(credits.map do |credit|
-        child_credit_label(credit.metadata_entity.name, credit.metadata_entity, credit.details['character'])
+        child_credit_label(credit.metadata_entity.display_name, credit.metadata_entity, credit.details['character'])
       end.uniq, ', ')
     end
   end

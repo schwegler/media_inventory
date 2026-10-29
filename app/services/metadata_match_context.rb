@@ -28,7 +28,7 @@ class MetadataMatchContext
   def self.credit_context(model, ids, matching)
     MetadataCredit.where(item_type: model.name, item_id: ids, metadata_entity_id: matching)
                   .includes(:metadata_entity).order(:position, :id).each_with_object({}) do |credit, result|
-      result[credit.item_id] ||= "#{credit.role}: #{credit.metadata_entity.name}"
+      result[credit.item_id] ||= "#{credit.role}: #{credit.metadata_entity.display_name}"
     end
   end
 end

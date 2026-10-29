@@ -1,3 +1,4 @@
+<% season = available_season %>
 <!DOCTYPE html>
 <html lang="en" data-theme="<%= logged_in? ? current_user.theme : 'os' %>"
       data-accent="<%= logged_in? ? current_user.accent_theme : 'violet' %>"
@@ -5,9 +6,13 @@
       data-media-layout="<%= logged_in? ? current_user.media_layout : 'covers' %>"
       data-effects="<%= logged_in? && current_user.reduce_effects? ? 'reduced' : 'full' %>">
 <head>
+  <% if request.path == root_path %>
+    <meta name='impact-site-verification' value='5b1bfb66-45c2-4155-b0ae-4848cc049db5'>
+  <% end %>
   <title><%= full_title(yield(:title)) %></title>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="turbo-prefetch" content="true">
+  <% if content_for?(:turbo_no_cache) %><meta name="turbo-cache-control" content="no-cache"><% end %>
   <meta name="view-transition" content="same-origin">
   <meta name="turbo-refresh-method" content="morph">
   <meta name="turbo-refresh-scroll" content="preserve">
@@ -17,6 +22,7 @@
   <meta property="og:title" content="<%= full_title(yield(:title)) %>">
   <meta property="og:description" content="<%= yield(:meta_description).presence || "A home for every story, album, and game you're into. Log what you watch, read, play, and spin—without algorithmic clutter. Build your shelf across 6 media formats, track active series, and share honest takes on Trove." %>">
   <meta property="og:image" content="<%= public_preview_image_url(yield(:meta_image)) %>">
+  <% if content_for?(:robots) %><meta name="robots" content="<%= yield(:robots) %>"><% end %>
   <meta property="og:url" content="<%= yield(:canonical_url).presence || request.original_url %>">
   <% if content_for?(:canonical_url) %><link rel="canonical" href="<%= yield(:canonical_url) %>"><% end %>
   <meta property="og:type" content="<%= yield(:og_type).presence || "website" %>">
@@ -42,17 +48,11 @@
     <meta name="turbo-visit-control" content="reload">
   <% end %>
 
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PPD2TWSZBW"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-PPD2TWSZBW');
-  </script>
+  <%# Analytics stays paused until public-route eligibility, explicit consent,
+      sanitized payloads and the existing CSP have been reviewed together.
+      The application layout also serves authentication and private accounts. %>
 </head>
-<body class="<%= 'item-detail' if content_for?(:item_detail) %> <%= 'media-workspace' if content_for?(:media_workspace) %>" data-controller="artwork form-errors" data-viewer-id="<%= logged_in? ? current_user.id : 'guest' %>" data-ui-preferences="<%= ui_preferences.to_json %>" <% if hotwire_native_app? %>data-native="true"<% end %>>
+<body data-public-analytics="<%= public_analytics_page.to_json %>" class="<%= 'public-landing' if content_for?(:public_landing) %> <%= 'item-detail' if content_for?(:item_detail) %> <%= 'media-workspace' if content_for?(:media_workspace) %>" data-controller="artwork form-errors<%= ' halloween' if season %>" data-halloween-config-value="<%= SeasonalHelper::SEASON_CONFIG.to_json if season %>" data-action="turbo:render@document->halloween#refresh turbo:before-cache@document->halloween#reset trove:base-appearance@document->halloween#baseChoice" data-seasonal-preferences-url="<%= settings_appearance_path if logged_in? %>" data-viewer-id="<%= logged_in? ? current_user.id : 'guest' %>" data-ui-preferences="<%= ui_preferences.to_json %>" <% if hotwire_native_app? %>data-native="true"<% end %>>
   <a href="#main-content" class="skip-link">Skip to content</a>
   <% if content_for?(:header_artwork) %>
     <div class="item-page-artwork" aria-hidden="true">
@@ -61,6 +61,7 @@
   <% end %>
 
   <%= render 'shared/site_navigation' %>
+  <%= render 'shared/halloween_invitation' %>
 
 <main id="main-content" tabindex="-1" class="container">
   <div id="flash-messages">
@@ -75,18 +76,22 @@
   <%= yield %>
 </main>
 
+
 <footer class="app-footer">
   <div class="container">
     <div class="footer-content">
       <div class="footer-copyright">
-        <%= render "shared/creator_credit" %>
         <div class="footer-brand"><div class="footer-wordmark"><%= image_tag 'brand/trove_rounded_app_icon.png', width: 32, height: 32, alt: '', class: 'footer-logo', loading: 'lazy' %><strong>trove</strong></div><span>A library companion to taco ’bout it.</span></div>
       </div>
       <a class="blog-link" href="https://tacobout.online/">Visit the blog <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></a>
     </div>
-    <div class="footer-attribution">
+    <p class="footer-affiliate-disclosure">Some links are paid links. As an Amazon Associate I earn from qualifying purchases.</p>
+    <div class="footer-details">
+      <%= render "shared/creator_credit" %>
+      <div class="footer-attribution">
         <%= image_tag "tmdb_logo.svg", alt: "TMDB Logo", class: "tmdb-logo" %>
         <p class="attribution-text">This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+      </div>
     </div>
   </div>
 </footer>

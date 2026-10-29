@@ -4,7 +4,13 @@ export default class extends Controller {
   static targets = ["input", "output", "count"]
   static values = { default: String, limit: Number }
 
-  connect() { this.update() }
+  connect() {
+    this.element.dataset.connected = "true"
+    if (this.hasCountTarget) {
+      this.countTarget.setAttribute("aria-live", "polite")
+    }
+    this.update()
+  }
 
   update() {
     const samples = {
@@ -16,7 +22,9 @@ export default class extends Controller {
     const length = typeof Intl.Segmenter === "function"
       ? [...new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(text)].length
       : Array.from(text).length
-    this.outputTarget.textContent = text
-    this.countTarget.textContent = `${length}/${this.limitValue} characters in this sample${length > this.limitValue ? " — shorten your template before sharing." : ". Actual length depends on the item."}`
+    if (this.hasOutputTarget) this.outputTarget.textContent = text
+    if (this.hasCountTarget) {
+      this.countTarget.textContent = `${length}/${this.limitValue} characters in this sample${length > this.limitValue ? " — shorten your template before sharing." : ". Actual length depends on the item."}`
+    }
   }
 }

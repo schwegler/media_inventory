@@ -16,24 +16,25 @@ RSpec.describe 'Landing and Authentication', type: :system do
   it 'displays the community landing page for guests' do
     visit root_path
 
+    expect(page).to have_text('A shelf for everything you love.')
+    expect(page).not_to have_text('Community Activity')
+    find('summary', text: 'From the community').click
     expect(page).to have_text('Community Activity')
-    expect(page).to have_text('Make it yours')
-    expect(page).to have_text('Active Trackers')
+    expect(page).to have_text('People in Trove')
     expect(page).to have_text('Active Tracker')
+    find('summary', text: 'From the community').click
 
     [390, 720, 1440].each do |width|
       resize_browser_viewport(width, 1000)
       hero = find('.home-hero-mascot')
       copy = find('.home-hero-copy')
       expect(hero.find('img')['naturalWidth'].to_i).to be_positive
-      if width <= 720
-        expect(hero.rect.y + hero.rect.height).to be <= copy.rect.y
-        header = find('.app-header').rect
-        expect(hero.rect.y).to be >= header.y + header.height
+      if width <= 760
+        expect(hero.rect.y).to be >= copy.rect.y + copy.rect.height
       else
         expect(hero.rect.x).to be >= copy.rect.x + copy.rect.width
       end
-      expect(page).to have_css('.home-blog img[src*="telly-facet-duo"]')
+      expect(page).to have_link('Read taco ’bout it', href: 'https://tacobout.online/')
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be true
       capture_ui_screenshot("landing-mascots-#{width}")
     end
@@ -87,8 +88,10 @@ RSpec.describe 'Landing and Authentication', type: :system do
     end
     # Wait for the Turbo logout response before issuing another navigation.
     expect(page).to have_link('Log in', exact: true)
-    expect(page).to have_text('Community Activity')
+    expect(page).to have_text('A shelf for everything you love.')
     visit root_path
+    expect(page).to have_text('A shelf for everything you love.')
+    find('summary', text: 'From the community').click
     expect(page).to have_text('Community Activity')
   end
 
@@ -102,6 +105,8 @@ RSpec.describe 'Landing and Authentication', type: :system do
       confirmed_at: Time.current
     )
 
+    user.follow(friend)
+
     # Create TV Show and Episode
     tv_show = TvShow.find_or_create_by!(title: '30 Rock')
     episode = tv_show.tv_episodes.create!(
@@ -114,7 +119,8 @@ RSpec.describe 'Landing and Authentication', type: :system do
       item: episode,
       consumed: true,
       rating: '4.5',
-      review: 'Hilarious episode'
+      review: 'Hilarious episode',
+      is_public: true
     )
 
     # Create activity for the episode
@@ -138,7 +144,7 @@ RSpec.describe 'Landing and Authentication', type: :system do
     expect(page).to have_text('Continue your story')
     expect(page).to have_text('New from friends')
     expect(page).to have_text('Popular with friends')
-    expect(page).to have_text('Popular reviews with friends')
+    expect(page).to have_text('Recent reviews from friends')
     expect(page).to have_text('Hilarious episode')
   end
 end

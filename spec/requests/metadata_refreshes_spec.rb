@@ -103,11 +103,33 @@ RSpec.describe 'Metadata repair', type: :request do
     expect(WebMock).not_to have_requested(:get, 'https://api.tvmaze.com/shows/42')
   end
 
-  it 'keeps status authorization aligned with game refresh ownership and fixed media types' do
+  it 'refreshes a catalog-only Steam game using its prefixed source ID without adding it to a library' do
+    login
+    game = VideoGame.create!(title: 'PowerWash Simulator', release_year: 2022, developer: 'FuturLab')
+    game.update_columns(api_id: 'steam_1290000', thumbnail_url: 'https://images.example/old.jpg')
+    endpoint = 'https://store.steampowered.com/api/appdetails?appids=1290000'
+    stub_request(:get, endpoint).to_return(body: {
+      '1290000' => { success: true, data: { developers: ['FuturLab'], type: 'game',
+                                            header_image: 'https://images.example/powerwash.jpg' } }
+    }.to_json)
+    expect do
+      post refresh_metadata_path(media_type: 'video_games', media_id: game.id), as: :turbo_stream
+    end.not_to change(LibraryItem, :count)
+    expect(response).to have_http_status(:see_other)
+    expect(MetadataRefresh.find_by!(item: game).state).to eq('success')
+    expect(game.reload.thumbnail_url).to eq('https://images.example/powerwash.jpg')
+    expect(game.api_id).to eq('steam_1290000')
+    expect(WebMock).to have_requested(:get, endpoint).once
+    get metadata_status_path(media_type: 'video_games', media_id: game.id), as: :json
+    expect(response.parsed_body['state']).to eq('success')
+  end
+
+  it 'allows catalog game status without creating ownership and rejects invalid media types' do
     login
     game = VideoGame.create!(title: 'Unowned game')
     get metadata_status_path(media_type: 'video_games', media_id: game.id), as: :json
-    expect(response).to have_http_status(:forbidden)
+    expect(response).to have_http_status(:ok)
+    expect(user.library_items.exists?(item: game)).to be false
     LibraryItem.create!(user: user, item: game)
     get metadata_status_path(media_type: 'video_games', media_id: game.id), as: :json
     expect(response).to have_http_status(:ok)

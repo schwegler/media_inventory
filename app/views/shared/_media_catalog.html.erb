@@ -10,6 +10,7 @@
     <% end %>
   </header>
   <%= render "shared/library_switch", klass: klass %>
+<%= render "shared/library_formats", selected: klass.name if @personal_library %>
   <% unless @personal_library %>
   <nav class="catalog-navigation" aria-label="Media catalogs">
     <% MediaLayoutHelper::CATALOGS.each do |name, (label, *)| %>

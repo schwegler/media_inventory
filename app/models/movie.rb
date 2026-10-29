@@ -20,6 +20,8 @@ class Movie < ApplicationRecord
   private
 
   def sync_details_from_api
+    return if importing_metadata
+
     return if api_id.blank? || !api_id.match?(/\A\d+\z/) || !saved_change_to_api_id?
 
     api_key = MediaSources::Registry.token('TMDB', 'Movie')

@@ -1,0 +1,14 @@
+<%= hidden_field_tag "#{f.object_name}[import_selection]", params.dig(f.object_name, :import_selection), data: { thumbnail_fetcher_target: 'importSelection' } %>
+<section class="import-confirmation hidden" data-thumbnail-fetcher-target="importPreview" aria-label="Imported metadata">
+  <h4>Confirm imported information</h4>
+  <p role="status" aria-live="polite" data-thumbnail-fetcher-target="importStatus"></p>
+  <dl class="import-facts" data-thumbnail-fetcher-target="importFacts"></dl>
+  <details>
+    <summary>More source details and credits</summary>
+    <dl class="import-facts" data-thumbnail-fetcher-target="importExtra"></dl>
+  </details>
+  <p>Sources vary in coverage. Missing information is not a claim that it does not exist. Episodes, issues and tracks, where supported, are checked after saving; long collections may be incomplete.</p>
+  <p>Your tracking, rating and review below are yours to edit. For corrections to a shared title, use <strong>Suggest an edit</strong> on its details page after saving.</p>
+  <button type="button" class="btn btn-secondary" data-action="click->thumbnail-fetcher#useAsManual">Use as manual entry</button>
+  <p class="form-help">Removes the source link from this form so you can edit metadata. Existing catalog titles retain their shared metadata. Search again to choose a different source.</p>
+</section>

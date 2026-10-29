@@ -78,6 +78,28 @@ RSpec.describe 'Bounded series collections', type: :request do
     expect(Nokogiri::HTML(response.body).css('#series-entries .series-entry').size).to eq(1)
   end
 
+  it 'renders accessible issue navigation and clamps stale pages' do
+    comic = Comic.create!(title: 'Paged issues')
+    ComicIssue.insert_all!(46.times.map { |i| { comic_id: comic.id, issue_number: i + 1, title: "Chapter #{i + 1}" } })
+    get comic_path(comic), params: { entries_page: 2, page: 3, child_status: 'all', child_q: 'Chapter' }
+    pager = Nokogiri::HTML(response.body).at_css('nav.series-pagination')
+    expect(pager).to be_present
+    expect(pager.text).to include('31–46 of 46 issues', 'Page 2 of 2')
+    expect(pager.at_css('[aria-disabled="true"]').text).to include('Next')
+    previous = pager.at_css('a[rel="prev"]')
+    query = Rack::Utils.parse_query(URI.parse(previous['href']).query)
+    expect(query).to include('entries_page' => '1', 'page' => '3', 'child_q' => 'Chapter', 'child_status' => 'all')
+    expect(previous['data-turbo']).to eq('false')
+    expect(URI.parse(previous['href']).fragment).to eq('media-entries')
+    get previous['href']
+    first_page = Nokogiri::HTML(response.body)
+    expect(first_page.css('#series-entries .series-entry').size).to eq(30)
+    expect(first_page.at_css('.series-pagination [aria-disabled=true]').text).to include('Previous')
+    expect(first_page.at_css('input[name=page]')['value']).to eq('3')
+    get comic_path(comic), params: { entries_page: 999 }
+    expect(Nokogiri::HTML(response.body).css('#series-entries .series-entry').size).to eq(16)
+  end
+
   it 'uses pass-scoped progress while keeping lifetime history and other viewers private' do
     library = LibraryItem.create!(user: user, item: show)
     episode = show.tv_episodes.create!(season: 1, episode: 1, name: 'Pilot')

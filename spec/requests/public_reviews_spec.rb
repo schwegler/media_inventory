@@ -42,6 +42,7 @@ RSpec.describe 'Public review API', type: :request do
                             'updated_at' => entry.updated_at.utc.iso8601(6))
     expect(data['reviewer']).to eq('display_name' => 'Reviewer', 'profile_url' => 'https://trove.schweg.xyz/@reviewer')
     expect(data['item_url']).to eq("https://trove.schweg.xyz#{movie_path(entry.item)}")
+    expect(data['review_url']).to eq("https://trove.schweg.xyz#{public_review_path(entry)}")
     entry.item.update!(thumbnail_url: 'http://example.com/cover.jpg')
     entry.update!(rating: '4.5')
     expect(fetch_reviews.first).to include('rating' => 4.5, 'cover_url' => "https://trove.schweg.xyz/media/covers/movie/#{entry.item_id}")

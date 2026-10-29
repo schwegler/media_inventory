@@ -39,7 +39,7 @@
         <% if child_lib&.rating.present? || child_lib&.review.present? %>
           <div class="series-entry-review">
             <% if child_lib.rating.present? %><p><%= child_lib.rating %> ★</p><% end %>
-            <% if child_lib.review.present? %><%= simple_format(child_lib.review) %><% end %>
+            <% if child_lib.review.present? %><%= review_summary(child_lib, item: item) %><% end %>
           </div>
         <% end %>
         <% if logged_in? && series_lib.present? %>
