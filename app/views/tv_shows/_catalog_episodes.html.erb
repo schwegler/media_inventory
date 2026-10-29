@@ -2,27 +2,28 @@
       <%
         episodes_by_season = @tv_show.tv_episodes.with_attached_cover_image.includes(:tv_show, metadata_credits: :metadata_entity).order(:season, :episode).group_by(&:season)
         sorted_seasons = episodes_by_season.keys.sort
+        default_season = TvShow.default_season(sorted_seasons)
       %>
       <div class="show-episodes-section"  data-controller="season-tabs" data-season-tabs-show-id-value="<%= @tv_show.id %>" data-action="turbo:morph@document->season-tabs#restore">
 
         <div class="season-selector">
           <label class="visually-hidden" for="series-season">Season</label>
           <select id="series-season" data-season-tabs-target="selector" data-action="change->season-tabs#choose">
-            <% sorted_seasons.each do |season| %><option value="<%= season %>">Season <%= season %></option><% end %>
+            <% sorted_seasons.each do |season| %><option value="<%= season %>" <%= 'selected' if season == default_season %>>Season <%= season %></option><% end %>
           </select>
           <button type="button" class="sleek-btn sleek-btn-secondary" aria-label="Previous season" data-season-tabs-target="previous" data-action="season-tabs#previous">‹</button>
           <button type="button" class="sleek-btn sleek-btn-secondary" aria-label="Next season" data-season-tabs-target="next" data-action="season-tabs#next">›</button>
         </div>
 
         <div>
-          <% sorted_seasons.each_with_index do |season, index| %>
+          <% sorted_seasons.each do |season| %>
             <div id="season-panel-<%= season %>"
                  role="region"
                  aria-label="Season <%= season %>"
                  tabindex="0"
                  data-season-tabs-target="content"
                  data-season="<%= season %>"
-                 class="season-episodes-list <%= 'hidden' unless index == 0 %>"
+                 class="season-episodes-list <%= 'hidden' unless season == default_season %>"
                  >
               <% season_eps = episodes_by_season[season] %>
               <% if logged_in? %>

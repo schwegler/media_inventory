@@ -13,9 +13,9 @@ class SeriesCollection
     @user = user
     @library = library
     @pass = ConsumptionPasses.current_pass(library)
-    @total = @scope.count
+    @total = (tv? ? @scope.watch_through : @scope).count
     @done = completed_scope
-    @completed = @done.count
+    @completed = (tv? ? @done.watch_through : @done).count
     @query = params[:child_q].to_s.strip.first(200)
     @status = %w[true false].include?(params[:child_status]) ? params[:child_status] : 'all'
     select_season(params[:season])
@@ -34,12 +34,13 @@ class SeriesCollection
   def completed_scope
     return @scope.none unless @user
 
-    ids = if pass&.rewatch?
-            pass.entries.where(item_type: @scope.klass.name).select(:item_id)
-          else
-            @user.library_items.where(item_type: @scope.klass.name, consumed: true).select(:item_id)
-          end
-    @scope.where(id: ids)
+    lifetime_ids = @user.library_items.where(item_type: @scope.klass.name, consumed: true).select(:item_id)
+    return @scope.where(id: lifetime_ids) unless pass&.rewatch?
+
+    pass_ids = pass.entries.where(item_type: @scope.klass.name).select(:item_id)
+    return @scope.where(id: pass_ids) unless tv?
+
+    @scope.watch_through.where(id: pass_ids).or(@scope.where(season: 0, id: lifetime_ids))
   end
 
   def select_season(value)
@@ -50,7 +51,7 @@ class SeriesCollection
                 else
                   seasons.find do |s|
                     s.to_s == value.to_s
-                  end || seasons.first
+                  end || TvShow.default_season(seasons)
                 end
               end
     @selected = tv? && season != 'all' ? @scope.where(season: season) : @scope

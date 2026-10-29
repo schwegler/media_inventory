@@ -4,6 +4,7 @@ class SeriesNeighbors
   def self.call(item)
     if item.is_a?(TvEpisode)
       scope = item.tv_show.tv_episodes
+      scope = item.season&.zero? ? scope.where(season: 0) : scope.watch_through
       order = ['COALESCE(season, 0)', 'COALESCE(episode, 0)', 'id'].map { |sql| Arel.sql(sql) }
       values = [item.season || 0, item.episode || 0, item.id]
       before = scope.where('(COALESCE(season, 0), COALESCE(episode, 0), id) < (?, ?, ?)', *values)

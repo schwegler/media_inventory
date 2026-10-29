@@ -7,6 +7,8 @@ class TvEpisode < ApplicationRecord
 
   has_one_attached :cover_image
 
+  scope :watch_through, -> { where.not(season: 0).or(where(season: nil)) }
+
   belongs_to :tv_show
   has_many :likes, as: :likeable, dependent: :destroy
   has_many :comments, as: :commentable, dependent: :destroy

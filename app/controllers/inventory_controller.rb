@@ -327,8 +327,10 @@ class InventoryController < ApplicationController
   def prepare_series_library
     child_class, foreign_key = resource_class == TvShow ? [TvEpisode, :tv_show_id] : [ComicIssue, :comic_id]
     pass_ids = @libraries.values.flat_map { |library| library.consumption_passes.map(&:id) }
-    @library_pass_counts = ConsumptionPassEntry.where(consumption_pass_id: pass_ids).group(:consumption_pass_id).count
     children = child_class.where(foreign_key => @resources.map(&:id))
+    children = children.watch_through if child_class == TvEpisode
+    @library_pass_counts = ConsumptionPassEntry.where(consumption_pass_id: pass_ids, item_type: child_class.name,
+                                                      item_id: children.select(:id)).group(:consumption_pass_id).count
     @library_child_totals = children.group(foreign_key).count
     consumed_ids = current_user.library_items.where(item_type: child_class.name, consumed: true).select(:item_id)
     @library_child_consumed = children.where(id: consumed_ids).group(foreign_key).count

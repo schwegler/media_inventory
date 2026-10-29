@@ -37,7 +37,7 @@ class LibraryItem < ApplicationRecord
     return unless item.is_a?(TvShow)
 
     watched_date = consumed_at || Time.current.to_date
-    item.tv_episodes.find_each do |episode|
+    item.tv_episodes.watch_through.find_each do |episode|
       ep_lib = user.library_items.find_or_initialize_by(item: episode)
       ConsumptionPasses.apply(user, episode, ep_lib, { consumed: true, consumed_at: ep_lib.consumed_at || watched_date })
     end

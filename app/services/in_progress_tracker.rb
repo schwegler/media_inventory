@@ -103,18 +103,25 @@ class InProgressTracker
       next if selected.empty?
 
       children = model.where(foreign_key => selected.map { |pass| pass.library_item.item_id })
+      children = children.watch_through if model == TvEpisode
       totals = children.group(foreign_key).count
-      entries = ConsumptionPassEntry.where(consumption_pass_id: selected.map(&:id), item_type: model.name)
-      entry_table = ConsumptionPassEntry.arel_table
-      child_table = model.arel_table
-      join = entry_table.join(child_table).on(child_table[:id].eq(entry_table[:item_id])).join_sources
-      completed = entries.joins(join).group(entry_table[:consumption_pass_id], child_table[foreign_key]).count
+      completed = completed_counts(selected, model, foreign_key)
       selected.each do |pass|
         id = pass.library_item.item_id
         result[pass.id] = [totals.fetch(id, 0), completed.fetch([pass.id, id], 0)]
       end
     end
     result
+  end
+
+  def completed_counts(passes, model, foreign_key)
+    entries = ConsumptionPassEntry.where(consumption_pass_id: passes.map(&:id), item_type: model.name)
+    entry_table = ConsumptionPassEntry.arel_table
+    child_table = model.arel_table
+    join = entry_table.join(child_table).on(child_table[:id].eq(entry_table[:item_id])).join_sources
+    joined = entries.joins(join)
+    joined = joined.merge(TvEpisode.watch_through) if model == TvEpisode
+    joined.group(entry_table[:consumption_pass_id], child_table[foreign_key]).count
   end
 
   def activity_at(record)
@@ -140,7 +147,9 @@ class InProgressTracker
     # Comics retain their existing opt-in visibility; games stay owner-only.
     scope = scope.where(item_type: 'TvShow').or(scope.where(is_public: true)) if @public_only
     activity = 'COALESCE((SELECT MAX(consumed_at) FROM consumption_pass_entries ' \
-               'WHERE consumption_pass_id = consumption_passes.id), consumption_passes.created_at) AS tracker_activity_at'
+               'WHERE consumption_pass_id = consumption_passes.id AND (item_type != \'TvEpisode\' OR item_id IN ' \
+               '(SELECT id FROM tv_episodes WHERE season IS NULL OR season != 0))), ' \
+               'consumption_passes.created_at) AS tracker_activity_at'
     ConsumptionPass.active.where(library_item_id: scope.select(:id))
                    .select('consumption_passes.*', Arel.sql(activity))
                    .includes(library_item: { item: [{ cover_image_attachment: :blob }] })
@@ -182,7 +191,7 @@ class InProgressTracker
              last_consumed_at: if pass.has_attribute?(:tracker_activity_at)
                                  activity_at(pass)
                                else
-                                 pass.entries.maximum(:consumed_at) || pass.created_at
+                                 selection.entries.maximum(:consumed_at) || pass.created_at
                                end)
   end
 
