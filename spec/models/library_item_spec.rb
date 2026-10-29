@@ -54,8 +54,9 @@ RSpec.describe LibraryItem, type: :model do
       expect(user.library_items.find_by(item: ep3).consumed).to be(true)
     end
 
-    it 'marks newly imported episodes watched if the series is already watched by the user' do
-      LibraryItem.create!(user: user, item: tv_show, consumed: true)
+    it 'leaves newly imported episodes unwatched when the series was already completed' do
+      show_library = LibraryItem.create!(user: user, item: tv_show, consumed: true)
+      history = user.library_items.order(:id).map(&:attributes)
 
       MetadataChildren.episodes(
         tv_show,
@@ -64,7 +65,10 @@ RSpec.describe LibraryItem, type: :model do
 
       ep4 = tv_show.tv_episodes.find_by(season: 2, episode: 2)
       expect(ep4).to be_present
-      expect(user.library_items.find_by(item: ep4)&.consumed).to be(true)
+      expect(user.library_items.find_by(item: ep4)).to be_nil
+      expect(ep4.watched).to be false
+      expect(show_library.reload.consumed).to be true
+      expect(user.library_items.order(:id).map(&:attributes)).to eq(history)
     end
   end
 end
