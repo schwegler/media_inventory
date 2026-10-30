@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_26_210000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_30_000000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -275,6 +275,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_26_210000) do
     t.datetime "updated_at", null: false
     t.index ["checked_at"], name: "index_editorial_articles_on_checked_at"
     t.index ["wordpress_id"], name: "index_editorial_articles_on_wordpress_id", unique: true
+  end
+
+  create_table "editorial_sync_states", force: :cascade do |t|
+    t.string "name", null: false
+    t.datetime "watermark"
+    t.datetime "window_after"
+    t.datetime "window_before"
+    t.integer "next_page", default: 1, null: false
+    t.integer "per_page"
+    t.string "lease_token"
+    t.datetime "lease_until"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_editorial_sync_states_on_name", unique: true
   end
 
   create_table "game_artwork_batches", force: :cascade do |t|

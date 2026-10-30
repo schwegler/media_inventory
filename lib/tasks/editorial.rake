@@ -1,6 +1,19 @@
 # frozen_string_literal: true
 
 namespace :editorial do
+  desc 'Run one durable bounded sync and removal rotation (does not install a schedule)'
+  task tick: :environment do
+    result = Editorial::Runner.new.call(max_pages: ENV.fetch('MAX_PAGES', '2'),
+                                        per_page: ENV.fetch('PER_PAGE', '25'),
+                                        recheck_limit: ENV.fetch('RECHECK_LIMIT', '25'))
+    puts JSON.pretty_generate(result)
+    imports = result[:import] || {}
+    checks = result[:recheck] || {}
+    failed = imports[:error] || imports.fetch(:invalid_ids, []).any? ||
+             checks.values_at(:unavailable_ids, :invalid_ids).compact.any?(&:any?)
+    abort 'Editorial tick incomplete; inspect report and retry saved checkpoint' if failed
+  end
+
   desc 'Cache public WordPress posts (bounded; preserve returned window when resuming)'
   task sync: :environment do
     result = Editorial::Sync.new.call(page: ENV.fetch('PAGE', '1'), max_pages: ENV.fetch('MAX_PAGES', '2'),
