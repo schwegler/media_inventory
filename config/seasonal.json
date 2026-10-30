@@ -5,13 +5,13 @@
     "id": "trove",
     "character": "Facet"
   },
-  "activeSeason": "halloween-2026",
+  "activeSeason": null,
   "seasons": [
     {
       "id": "halloween-2026",
       "theme": "halloween",
       "label": "Halloween",
-      "enabled": true,
+      "enabled": false,
       "asset": "brand/facet_bat_costume_2026.png",
       "window": {
         "from": "2026-10-18T00:00:00Z",

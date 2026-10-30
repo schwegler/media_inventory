@@ -3,7 +3,10 @@ const assert = require('node:assert/strict')
 const { readFileSync } = require('node:fs')
 const source = readFileSync('app/javascript/controllers/halloween_controller.js', 'utf8').replace(/^import .*\n/gm, '').replace('export default class', 'return class')
 const configSource = readFileSync('app/javascript/controllers/season_config.js', 'utf8').replace(/export /g, '')
-const config = JSON.parse(readFileSync('config/seasonal.json', 'utf8'))
+const productionConfig = JSON.parse(readFileSync('config/seasonal.json', 'utf8'))
+const config = structuredClone(productionConfig)
+config.activeSeason = 'halloween-2026'
+config.seasons[0].enabled = true
 function fixture(instant = '2026-10-20T12:00:00Z', attributes = { theme: 'os', accent: 'moss' }) {
   let now = Date.parse(instant)
   const values = new Map(Object.entries(attributes).map(([k, v]) => [`data-${k}`, v]))
@@ -89,4 +92,24 @@ test('an explicit pre-preset browser choice survives the added default field whe
  f.body.dataset.uiPreferences=JSON.stringify({seasonalTheme:'off',theme:'os',accent:'moss'})
  f.instance.connect();assert.equal(f.values.get('data-season'),'halloween')
  f.instance.undo();assert.deepEqual(Object.fromEntries(f.values),f.original)
+})
+
+// Exercise the shipped config independently of the enabled campaign fixtures above.
+test('retired campaign ignores saved account, browser and session Halloween without changing preferences', () => {
+  const f = fixture()
+  f.instance.configValue = productionConfig
+  f.body.dataset.uiPreferences = JSON.stringify({ seasonalTheme: 'halloween', theme: 'os', accent: 'moss' })
+  f.storage.set('seasonal-theme:v1', 'halloween')
+  f.storage.set('trove-seasonal-session:v2:halloween-2026', JSON.stringify({ viewer: '1', previous: { theme: 'os', accent: 'moss' } }))
+  const saved = Array.from(f.storage)
+  f.instance.connect()
+  assert.deepEqual(Object.fromEntries(f.values), f.original)
+  assert.equal(f.instance.stageTarget.hidden, true)
+  assert.equal(f.timers.length, 0)
+  assert.deepEqual(Array.from(f.storage), saved)
+  const { availableSeason, currentSeason } = new Function(configSource + ';return {availableSeason,currentSeason}')()
+  for (const instant of ['2026-10-20', '2026-12-20', '2027-10-20']) {
+    assert.equal(availableSeason(productionConfig), null)
+    assert.equal(currentSeason(productionConfig, Date.parse(instant)), null)
+  }
 })

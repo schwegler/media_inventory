@@ -5,6 +5,14 @@ require 'rails_helper'
 RSpec.describe 'Halloween invitation', type: :system do
   include ActiveSupport::Testing::TimeHelpers
 
+  # Keep the reusable campaign covered independently of the retired live configuration.
+  before do
+    config = SeasonalHelper::SEASON_CONFIG.deep_dup
+    config['activeSeason'] = 'halloween-2026'
+    config['seasons'].first['enabled'] = true
+    stub_const('SeasonalHelper::SEASON_CONFIG', config)
+  end
+
   around { |example| travel_to(Time.utc(2026, 10, 20, 12)) { example.run } }
 
   before do
