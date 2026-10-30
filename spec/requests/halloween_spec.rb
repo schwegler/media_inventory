@@ -5,6 +5,14 @@ require 'rails_helper'
 RSpec.describe 'Halloween appearance', type: :request do
   include ActiveSupport::Testing::TimeHelpers
 
+  # Keep the reusable campaign covered independently of the retired live configuration.
+  before do
+    config = SeasonalHelper::SEASON_CONFIG.deep_dup
+    config['activeSeason'] = 'halloween-2026'
+    config['seasons'].first['enabled'] = true
+    stub_const('SeasonalHelper::SEASON_CONFIG', config)
+  end
+
   it 'accepts independent Halloween profile and account choices without changing existing preferences' do
     user = User.new(name: 'Seasonal reader', password: 'password123')
     expect(user).to be_valid

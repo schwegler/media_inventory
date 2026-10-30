@@ -5,6 +5,14 @@ require 'rails_helper'
 RSpec.describe 'Halloween invitation', type: :system do
   include ActiveSupport::Testing::TimeHelpers
 
+  # Keep the reusable campaign covered independently of the retired live configuration.
+  before do
+    config = SeasonalHelper::SEASON_CONFIG.deep_dup
+    config['activeSeason'] = 'halloween-2026'
+    config['seasons'].first['enabled'] = true
+    stub_const('SeasonalHelper::SEASON_CONFIG', config)
+  end
+
   around { |example| travel_to(Time.utc(2026, 10, 20, 12)) { example.run } }
 
   before do
@@ -122,5 +130,33 @@ RSpec.describe 'Halloween invitation', type: :system do
       document.querySelector("#user_seasonal_theme_halloween").closest("fieldset").scrollIntoView({block: "center"})
     JS
     capture_ui_screenshot('saved-halloween-settings-mobile')
+  end
+end
+
+RSpec.describe 'Retired seasonal display', type: :system do
+  it 'keeps returning Halloween preferences dormant on desktop and mobile' do
+    user = create_and_login_user
+    user.update!(seasonal_theme: 'halloween', theme: 'light', accent_theme: 'moss')
+    page.execute_script(<<~JS)
+      localStorage.setItem('seasonal-theme:v1', 'halloween');
+      sessionStorage.setItem('trove-seasonal-session:v2:halloween-2026', JSON.stringify({
+        viewer: '#{user.id}', previous: { theme: 'light', accent: 'moss' }
+      }));
+    JS
+    visit settings_appearance_path
+    expect(page).to have_css('html[data-theme="light"][data-accent="moss"]')
+    expect(page).to have_no_css('html[data-season]', visible: :all)
+    expect(page).to have_no_css('.halloween-invitation, .seasonal-scene, .seasonal-controls', visible: :all)
+    expect(page).to have_no_field('Halloween night', visible: :all)
+    capture_ui_screenshot('retired-season-desktop')
+    resize_browser_viewport(390, 844)
+    visit movies_path
+    expect(page).to have_css('html[data-theme="light"][data-accent="moss"]')
+    expect(page).to have_no_css('html[data-season]', visible: :all)
+    expect(page).to have_no_css('.halloween-invitation, .seasonal-scene, .seasonal-controls', visible: :all)
+    expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+    expect(user.reload.seasonal_theme).to eq('halloween')
+    expect(page.evaluate_script("localStorage.getItem('seasonal-theme:v1')")).to eq('halloween')
+    capture_ui_screenshot('retired-season-mobile')
   end
 end
