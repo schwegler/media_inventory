@@ -94,8 +94,17 @@ export default class extends Controller {
       this.selectorTarget.value = String(season)
       this.selectorTarget.setAttribute('aria-controls', `season-panel-${season}`)
     }
+    const activeElement = typeof document !== "undefined" ? document.activeElement : null
     if (this.hasPreviousTarget) this.previousTarget.disabled = season === Number(this.contentTargets[0]?.dataset.season)
     if (this.hasNextTarget) this.nextTarget.disabled = season === Number(this.contentTargets.at(-1)?.dataset.season)
+
+    // Preserve focus when stepping disables the currently focused navigation button
+    if (activeElement && activeElement.disabled) {
+      const fallback = (this.hasPreviousTarget && !this.previousTarget.disabled) ? this.previousTarget
+        : (this.hasNextTarget && !this.nextTarget.disabled) ? this.nextTarget
+        : (this.hasSelectorTarget ? this.selectorTarget : null)
+      fallback?.focus()
+    }
     this.dispatch("change")
   }
 }

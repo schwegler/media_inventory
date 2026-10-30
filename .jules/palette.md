@@ -17,3 +17,7 @@
 ## 2026-10-29 - Expandable Tab Island Toggle ARIA Synchronization
 **Learning:** Action buttons that toggle tabbed UI sections between compact tabbed views and full expanded list views must maintain `aria-expanded` and `aria-controls` attributes on the toggle button across server-side rendering and client-side Stimulus state transitions.
 **Action:** Pair initial server-side `aria-expanded` and `aria-controls` attributes with a dedicated update helper method in Stimulus controllers that synchronizes `aria-expanded` on `connect()`, `expand()`, `select()`, and `reveal()`.
+
+## 2026-11-05 - Focus Preservation on Disabled Stepping Controls
+**Learning:** Stepping buttons in paginated or tabbed navigation (such as TV show season controls) that become disabled (`disabled = true`) when reaching boundary limits automatically drop browser focus to `document.body`. This causes screen reader and keyboard users to lose their place on the page.
+**Action:** When updating button disabled states in Stimulus controllers, check if `document.activeElement` is disabled and immediately shift focus to an active fallback control (`previousTarget`, `nextTarget`, or selector dropdown).
