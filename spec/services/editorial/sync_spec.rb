@@ -97,6 +97,15 @@ RSpec.describe Editorial::Sync do
     expect(EditorialArticle.find_by!(wordpress_id: 43).published).to be true
   end
 
+  it 'distinguishes rejected later collection pages from confirmed individual removals' do
+    request = stub_request(:get, endpoint).with(query: hash_including('page' => '2'))
+                                          .to_return(status: 400, body: '{"code":"rest_post_invalid_page_number"}')
+    expect { described_class.new.call(page: 2) }.to raise_error(Editorial::Client::PageDrift)
+    expect(request).to have_been_requested.once
+    stub_request(:get, endpoint).with(query: hash_including('page' => '1')).to_return(status: 400)
+    expect { described_class.new.call }.to raise_error(Editorial::Client::Unavailable)
+  end
+
   it 'rejects over-budget runs, arbitrary endpoints and redirects without widening shared policy' do
     expect { described_class.new.call(max_pages: 21) }.to raise_error(ArgumentError)
     expect { described_class.new.call(per_page: 51) }.to raise_error(ArgumentError)

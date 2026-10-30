@@ -2,9 +2,10 @@
 
 module Editorial
   class Sync
-    def initialize(client: Client.new)
+    def initialize(client: Client.new, commit: ->(&block) { block.call })
       @client = client
       @import = PostImport.new
+      @commit = commit
     end
 
     # Explicit resumable windows: retain the same before/after values when a run
@@ -53,7 +54,7 @@ module Editorial
     end
 
     def import_post(post, report)
-      @import.call(post)
+      @commit.call { @import.call(post) }
       report[:imported] += 1
     rescue PostImport::Invalid
       report[:invalid_ids] << (post.is_a?(Hash) ? post['id'] : nil)
@@ -63,17 +64,17 @@ module Editorial
       post = @client.fetch(id: article.wordpress_id, params: { context: 'view' })
       raise PostImport::Invalid, 'Unexpected post ID' unless post.is_a?(Hash) && post['id'] == article.wordpress_id
 
-      @import.call(post)
+      @commit.call { @import.call(post) }
       report[:checked] += 1
     rescue Client::Removed
-      @import.suppress(article)
+      @commit.call { @import.suppress(article) }
       report[:checked] += 1
     rescue Client::Unavailable
       report[:unavailable_ids] << article.wordpress_id
-      article.update!(checked_at: Time.current) # Rotate failures without discarding their safe cache.
+      @commit.call { article.update!(checked_at: Time.current) } # Rotate failures without discarding their safe cache.
     rescue PostImport::Invalid
       report[:invalid_ids] << article.wordpress_id
-      article.update!(checked_at: Time.current)
+      @commit.call { article.update!(checked_at: Time.current) }
     end
   end
 end

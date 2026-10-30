@@ -48,3 +48,59 @@ The newest story is visible initially; additional stories remain available in a 
 For titles with stories, title facts, linked credits and provider details share one information surface with quieter secondary headings. Long provider descriptions use the wider prose row, and short facts stay aligned at the top beside longer content. No metadata is removed or hidden. Structured-only roles and extra contributors remain available; the earlier duplicate-credit filtering is retained. Episodes/issues, pagination, tracking, public progress, ownership formats, metadata tools, reviews, comments and community sections are unchanged. No import, authentication, session, schema or scheduling behavior changes.
 
 Visual regression coverage includes 1440×1000 desktop, the supplied 647×2047 screenshot dimensions and 390×844 mobile. The capture fixture uses the Lupin/related-article text shown in feedback; local comparison runs can supply the existing public cover/article image through `READING_QA_COVER` and `READING_QA_IMAGE`. CI uses local fixture artwork. `READING_QA_PHASE=before` is an explicit baseline-capture mode; normal runs assert the repaired layout. Screenshot files and geometry measurements are retained under `UI_QA_DIR`.
+
+## Durable scheduler entry point (inactive)
+
+`editorial:tick` is ready for an external scheduler; this change installs no timer,
+job backend, Fly process, or production schedule. Production release approval,
+reviewed migration, initial archive budget, cadence and alerting are activation
+gates. Keep `fly.toml` unchanged. Test first against a disposable database:
+
+```sh
+RAILS_ENV=test bin/rails db:migrate
+RAILS_ENV=test MAX_PAGES=2 PER_PAGE=25 RECHECK_LIMIT=25 bin/rails editorial:tick
+# Repeat the same command to resume; no PAGE/AFTER/BEFORE is needed.
+RAILS_ENV=test bin/rails runner 'puts EditorialSyncState.find_by(name: "tacobout").attributes.except("lease_token").to_json'
+```
+
+The singleton `tacobout` checkpoint freezes AFTER (last completed watermark),
+BEFORE (UTC seconds at window creation), PER_PAGE and next page. A changed
+PER_PAGE argument applies only to the next window. Each valid page checkpoints
+separately. Invalid posts pin their page, including invalid posts without an ID;
+valid neighbors may be imported again. No later run can forget that invalid page
+and publish its watermark. Repair upstream metadata and retry. Network failure
+or interruption preserves the current page; partial imports replay idempotently.
+Only a fully valid completed window advances the watermark. Completion starts a
+new incremental window on the next invocation, with the existing one-second overlap.
+
+One conditional database UPDATE acquires a two-minute renewable lease. All cache
+writes and checkpoint writes fence ownership and expiration inside a transaction;
+network requests run outside transactions. A replacement worker can reclaim a
+crashed worker's expired lease; the old worker cannot write or release its
+replacement's lease. A busy invocation returns `status: busy` without fetching.
+This works with SQLite's write serialization and PostgreSQL row locking. Database
+busy/deadlock errors should be retried by the scheduler, never treated as success.
+Do not run manual sync/recheck commands concurrently with tick: those diagnostic
+commands do not participate in the scheduler lease. Clock synchronization is
+required across workers. An invocation paused beyond the lease fails closed.
+
+MAX_PAGES is 1–20, PER_PAGE is 1–50, RECHECK_LIMIT is 1–100. Defaults make at most
+2 list requests plus 25 post requests, each with the client's bounded retries;
+this is a request-count budget, not a short wall-clock guarantee. Schedule with
+enough runtime for request deadlines/retries. Recheck runs after listing failures
+or invalid pages and rotates failures as well as suppressed records, preserving
+last-known state. Fatal database errors or lease loss abort the invocation.
+Nonzero exit reports incomplete imports/rechecks; retain JSON output for alerting.
+An invalid page can block import progress while rechecks continue.
+
+A later collection page returning HTTP 400 (including WordPress's out-of-range
+page error after edits) resets next page to 1 of the *same* frozen window, with no
+watermark advance. This conservative recovery also replays other later-page 400s;
+persistent errors require operator investigation. First-page errors retain page 1.
+No list error or list absence suppresses an article. Offset pagination remains
+non-snapshot: edits can shift or omit rows even in an apparently completed pass,
+and modified timestamps have ties. Repeated archive passes are still needed for
+coverage reconciliation. To repeat an archive, stop the scheduler, wait for any
+lease to expire and confirm workers have exited, then use the manual bounded
+archive commands above; do not erase the durable incremental checkpoint. Do not
+infer deletion from archive absence. Only individual rechecks can confirm removal.

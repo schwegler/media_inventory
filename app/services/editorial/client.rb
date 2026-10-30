@@ -6,6 +6,7 @@ module Editorial
   class Client < MediaSources::Http
     class Unavailable < StandardError; end
     class Removed < StandardError; end
+    class PageDrift < Unavailable; end
     ENDPOINT = 'https://tacobout.online/wp-json/wp/v2/posts'
 
     def self.validated_uri(value)
@@ -40,7 +41,8 @@ module Editorial
         JSON.parse(body)
       rescue MediaSources::Http::Error, Timeout::Error, SocketError, IOError, SystemCallError, OpenSSL::SSL::SSLError => e
         status = metadata[:status]
-        raise Removed, "HTTP #{status}" if id && [404, 410].include?(status)
+        raise Removed, "HTTP #{status}" if removed_post?(id, status)
+        raise PageDrift, 'Collection page rejected; replay frozen window' if rejected_page?(id, params, status)
 
         if attempts < 3 && (status.nil? || status == 429 || status >= 500)
           sleep(0.25 * (2**(attempts - 1)))
@@ -50,6 +52,16 @@ module Editorial
       rescue JSON::ParserError
         raise Unavailable, 'Invalid WordPress JSON'
       end
+    end
+
+    private
+
+    def removed_post?(id, status)
+      id.present? && [404, 410].include?(status)
+    end
+
+    def rejected_page?(id, params, status)
+      id.nil? && status == 400 && params[:page].to_i > 1
     end
   end
 end
