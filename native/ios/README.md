@@ -10,31 +10,17 @@ A native iOS wrapper for the Media Inventory (MediaTracker) Rails 8 web applicat
 
 ## Getting Started
 
-1. **Open the project in Xcode**
+The checked-in `MediaInventory/Package.swift` declares a regular Swift target, not an iOS application product. There is no `.xcodeproj`/`.xcworkspace`, and the manifest does not declare the JSON/plist resources. Opening it alone does not provide a runnable simulator app.
 
-   Open `MediaInventory/Package.swift` in Xcode. It will automatically resolve the Hotwire Native dependency via Swift Package Manager.
+To complete the wrapper, create an iOS application target in Xcode, integrate the Hotwire Native dependency and these sources, and wire the scene manifest and resources into the app bundle. `AppDelegate` force-unwraps the bundled `path-configuration.json` URL, so resource packaging is required. Build and simulator/device verification remain necessary.
 
-   ```bash
-   open MediaInventory/Package.swift
-   ```
-
-2. **Start your Rails server**
-
-   Make sure your Rails app is running locally:
-
-   ```bash
-   bin/rails server
-   ```
-
-3. **Build and run**
-
-   Select a simulator or connected device (iOS 18+) and press **⌘R** to build and run.
+Start Rails with `bin/dev` from the repository root. The DEBUG URL in `MediaInventory/Sources/Configuration/Server.swift` is `http://localhost:3000`; on a physical device, configure a reachable development host instead. The release URL is still a placeholder.
 
 ## Configuration
 
 ### Server URL
 
-Edit `Sources/Configuration/Server.swift` to update the development or production URLs:
+Edit `MediaInventory/Sources/Configuration/Server.swift` to update the development or production URLs:
 
 ```swift
 enum Server {
@@ -48,16 +34,16 @@ enum Server {
 
 ### Path Configuration
 
-The path configuration in `Sources/Configuration/path-configuration.json` controls:
+The path configuration in `MediaInventory/Sources/Configuration/path-configuration.json` declares:
 
-- **Tabs**: Bottom tab bar items (Home, Movies, Albums)
+- **Tabs**: Home, Movies, Albums settings (the current `SceneDelegate` creates one Navigator; it does not build a native tab bar)
 - **Rules**: URL pattern matching for navigation behavior (e.g., modal presentation for `/new`, `/edit`, `/login`)
 
 A server-side path configuration is also loaded from `/configurations/ios_v1.json` to allow remote updates without app releases.
 
 ### Bundle Identifier
 
-Update the bundle identifier in `Sources/Resources/Info.plist` from `com.example.MediaInventory` to your actual identifier before submitting to the App Store.
+Update the bundle identifier in `MediaInventory/Sources/Resources/Info.plist` from `com.example.MediaInventory` to your actual identifier before submitting to the App Store.
 
 ## Project Structure
 

@@ -1,6 +1,6 @@
-# Media Inventory App with Hotwire & Native Client Support
+# Trove — Media Inventory with Hotwire & Native Clients
 
-Welcome to the **Media Inventory Application**, a modern Ruby on Rails 8.1 web platform designed to catalog personal media collections. The application features an editorial media-centered interface, modular database entities, and supports three clients (Web, iOS, and Desktop) consuming the same server-rendered HTML.
+Welcome to **Trove (Media Inventory)**, a modern Ruby on Rails 8.1 web platform designed to catalog personal media collections. The application features an editorial media-centered interface, modular database entities, and supports three clients (Web, iOS, and Desktop) consuming the same server-rendered HTML.
 
 ---
 
@@ -20,9 +20,9 @@ Welcome to the **Media Inventory Application**, a modern Ruby on Rails 8.1 web p
     *   **Turbo Drive & Morphing:** Smooth, instantaneous page transitions with Turbo 8 morphing.
     *   **Turbo Frames & Streams:** Inline pagination and real-time updates for resource creation and lists.
     *   **Stimulus JS:** Modular controllers replacing legacy jQuery handlers, including an interactive iTunes/Google Books cover art thumbnail fetcher.
-*   **Hotwire Native iOS App:** A native iOS WKWebView wrapper using the `hotwire-native-ios` SDK. Supports native tab bars, page transitions, and native bridge components.
+*   **Hotwire Native iOS App:** A native iOS WKWebView wrapper using the `hotwire-native-ios` SDK. Includes navigation and bridge source; the checked-in Swift package still needs an iOS application target and resource wiring (see the native README).
 *   **Tauri 2 Desktop App:** A cross-platform desktop application wrapper targeting macOS, Windows, and Linux. Built with Rust and Tauri 2.
-*   **Flexible Database Support:** Dynamically routes to PostgreSQL when run inside Docker containers, and falls back to SQLite3 for simple local host execution.
+*   **Flexible Database Support:** Uses `DATABASE_ADAPTER` when set; otherwise a `DATABASE_URL` starting with `postgres` selects PostgreSQL, and SQLite3 is the default. Docker Compose supplies a PostgreSQL URL.
 *   **Social Integrations:** Built-in support for automated status updates and cross-posting to Mastodon and Bluesky via user-configured credentials.
 
 ---
@@ -68,7 +68,8 @@ By default, running locally on your host machine will use **SQLite3** for simpli
 ### Prerequisites
 
 *   **Ruby:** Version `3.4.12` (defined in `.ruby-version` and `Gemfile`, with the production image aligned in `Dockerfile`).
-*   **Node.js & npm** (only required for Tauri desktop client).
+*   **Node.js** with `node --test` support for the Rails JavaScript checks; **npm** for the Tauri desktop client.
+*   **ImageMagick** with WebP decoding for artwork processing/tests (CI installs it); native gem builds also need compiler tools and PostgreSQL client headers. Browser specs need Chrome and a matching ChromeDriver.
 
 ### Setup and Running
 
@@ -77,12 +78,13 @@ By default, running locally on your host machine will use **SQLite3** for simpli
     cd media_inventory
     bundle install
     ```
-2.  **Run Database Migrations & Seed Content:**
+2.  **Create the local development schema without demo seeds:**
     ```bash
-    bundle exec rails db:migrate
-    bundle exec rails db:seed
+    RAILS_ENV=development bundle exec rails db:create db:migrate
     ```
-    *(Clears existing records and generates demo users and 31 media items).*
+    Confirm `DATABASE_URL` and `DATABASE_ADAPTER` select your intended local development database first.
+
+    **Destructive demo seeds:** `db/seeds.rb` calls `delete_all` on users, several media tables, and API configurations. Never seed a database containing data you want to keep. Only for explicitly disposable local development data, after checking the target, run `RAILS_ENV=development bundle exec rails db:seed`. `db:prepare` (including `bin/setup` and container startup) can also load seeds when initializing a database.
 3.  **Start the Development Server:**
     ```bash
     bin/dev
@@ -95,24 +97,21 @@ By default, running locally on your host machine will use **SQLite3** for simpli
 
 ## 🐳 Running with Docker (PostgreSQL)
 
-To run the entire stack containerized using **PostgreSQL**:
+The Compose configuration uses **PostgreSQL 17**, distinct from CI’s PostgreSQL 11 service and Fly’s SQLite volume. Its startup runs `db:prepare`, which can load destructive demo seeds on initialization. Use a fresh, explicitly disposable local development database/volume only.
 
-1.  **Start the Container Stack:**
+The shared `Dockerfile` installs production gems only (`BUNDLE_WITHOUT=development:test`); the development Compose file does not override that setting. It is not a complete development/test image as checked in. To inspect this configuration:
+
+1.  **Validate the Compose configuration:**
     ```bash
-    docker compose up --build
+    docker compose config --quiet
     ```
-    *(Pulls/builds Postgres 17 and the Rails 8 application, then starts the server on port 3000).*
-2.  **Open the Application:**
-    Navigate to [http://localhost:3000](http://localhost:3000).
+    Review the gem-group configuration before attempting development startup. The configured web port is 3000.
 
 ---
 
 ## 📱 Running the iOS App (Xcode)
 
-1.  Ensure you have **Xcode 16+** installed.
-2.  Open `/native/ios/MediaInventory/Package.swift` in Xcode.
-3.  Choose a Simulator target (e.g., iPhone 16 running iOS 18+).
-4.  Click **Run** to launch the wrapper, which will load `http://localhost:3000` (for development).
+See [the iOS setup and current limitations](native/ios/README.md). The repository contains Swift package source for iOS 18+, not a ready-to-run Xcode application project.
 
 ---
 
@@ -147,11 +146,27 @@ To run the entire stack containerized using **PostgreSQL**:
 
 ## 🧪 Testing & Quality Assurance
 
-*   **RSpec Test Suite:** Includes request and system specs covering all views, paginated resources, controller actions, and security headers.
+*   **RSpec Test Suite:** Includes request, service, model, and system specs. Before schema loading or tests, ensure `DATABASE_URL` targets a dedicated disposable test database, never development or production data. For an isolated local SQLite test database:
     ```bash
-    bundle exec rspec
+    RAILS_ENV=test DATABASE_ADAPTER=sqlite3 DATABASE_URL=sqlite3:db/docs_test.sqlite3 bundle exec rails db:schema:load
+    RAILS_ENV=test DATABASE_ADAPTER=sqlite3 DATABASE_URL=sqlite3:db/docs_test.sqlite3 bundle exec rails dartsass:build
+    RAILS_ENV=test DATABASE_ADAPTER=sqlite3 DATABASE_URL=sqlite3:db/docs_test.sqlite3 bundle exec rspec
     ```
 *   **Linter Checks:** Run RuboCop static analysis checks to verify code style:
     ```bash
     bundle exec rubocop
     ```
+
+*   **JavaScript and public contact checks:**
+    ```bash
+    node --test spec/javascript/*.test.cjs spec/javascript/*.test.mjs
+    python3 scripts/check_public_email.py
+    ```
+
+CI (`.github/workflows/rubyonrails.yml`) tests PostgreSQL and SQLite, builds Sass, runs a separate browser regression list with `RUN_BROWSER_SPECS=1`, checks RuboCop/Brakeman/bundler-audit, and builds/checks the production image. On GitHub Actions the initial suite excludes system specs; locally the full RSpec command includes them and requires Chrome/ChromeDriver. See the workflow for the current browser file list and driver environment variables.
+
+## Deployment configuration
+
+`Dockerfile` builds the production image. `docker-compose.production.yml` requires `POSTGRES_PASSWORD` and `SECRET_KEY_BASE` in the environment. `fly.toml` instead configures SQLite at `/data/production.sqlite3` on a persistent `/data` volume and runs `db:prepare` as its release command. These are deployment configurations, not evidence of a deployment’s current state. Review database targets, seed behavior, persistent storage, and secrets before any separately authorized deployment.
+
+Coding agents should start with [AGENTS.md](AGENTS.md).
