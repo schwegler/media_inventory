@@ -33,6 +33,7 @@ class MetadataImport
 
   def self.attributes(data, klass)
     result = data.slice(*FIELDS).select { |field, _| klass.column_names.include?(field.to_s) }
+    result.delete(:release_year) if klass == Book && data[:book_format] == 'audiobook'
     if klass == Comic && data[:release_year].present? && result[:title].present?
       suffix = " (#{data[:release_year]})"
       result[:title] += suffix unless result[:title].end_with?(suffix)

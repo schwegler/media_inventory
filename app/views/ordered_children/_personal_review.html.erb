@@ -1,0 +1,7 @@
+<div id="<%= dom_id(child, :personal_review) %>">
+  <% if entry&.rating.present? %><p><%= render_stars(entry.rating) %></p><% end %>
+  <% if entry&.review.present? %><blockquote><%= review_summary(entry, item: child) %></blockquote><p><%= link_to 'Read full review', public_review_path(entry) %></p><% end %>
+  <% if logged_in? %>
+    <%= link_to entry&.review.present? ? 'Edit review' : 'Write a review', edit_review_path(item_type: child.class.name, item_id: child.id), class: 'sleek-btn sleek-btn-secondary', data: { turbo_frame: 'modal' } %>
+  <% else %><%= link_to 'Log in to review', login_path %><% end %>
+</div>

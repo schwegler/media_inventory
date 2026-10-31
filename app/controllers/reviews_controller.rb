@@ -6,6 +6,8 @@ class ReviewsController < ApplicationController
     'TvShow' => TvShow,
     'TvEpisode' => TvEpisode,
     'Album' => Album,
+    'AlbumTrack' => AlbumTrack,
+    'BookChapter' => BookChapter,
     'Comic' => Comic,
     'ComicIssue' => ComicIssue,
     'VideoGame' => VideoGame,
@@ -60,10 +62,14 @@ class ReviewsController < ApplicationController
 
     if model_class.present?
       @item = model_class.find(params[:item_id])
+      return head :not_found if %w[AlbumTrack BookChapter].include?(@item.class.name) &&
+                                !OrderedReviewChildren.parent(@item)
+
       @library_item = LibraryItem.find_or_initialize_by(user: current_user, item: @item)
     elsif params[:id].present?
       @library_item = current_user.library_items.find(params[:id])
       @item = @library_item.item
+      head :not_found unless REVIEWABLE_MODELS.key?(@library_item.item_type)
     else
       redirect_to root_path, alert: 'Invalid review item.'
     end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_30_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_31_060000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -95,6 +95,60 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_000000) do
     t.text "options"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "book_chapter_completions", force: :cascade do |t|
+    t.integer "book_reading_pass_id", null: false
+    t.integer "book_chapter_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["book_chapter_id"], name: "index_book_chapter_completions_on_book_chapter_id"
+    t.index ["book_reading_pass_id", "book_chapter_id"], name: "book_pass_chapter", unique: true
+    t.index ["book_reading_pass_id"], name: "index_book_chapter_completions_on_book_reading_pass_id"
+  end
+
+  create_table "book_chapters", force: :cascade do |t|
+    t.integer "book_edition_id", null: false
+    t.string "identity_key", null: false
+    t.integer "position", null: false
+    t.string "label"
+    t.string "title"
+    t.string "part"
+    t.string "provenance", default: "manual", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["book_edition_id", "identity_key"], name: "index_book_chapters_on_book_edition_id_and_identity_key", unique: true
+    t.index ["book_edition_id", "position"], name: "index_book_chapters_on_book_edition_id_and_position", unique: true
+    t.index ["book_edition_id"], name: "index_book_chapters_on_book_edition_id"
+  end
+
+  create_table "book_editions", force: :cascade do |t|
+    t.integer "book_id", null: false
+    t.string "identity_key", null: false
+    t.string "label", null: false
+    t.string "format", null: false
+    t.string "structure_kind", default: "chapters", null: false
+    t.string "source", default: "manual", null: false
+    t.string "source_id"
+    t.string "source_url"
+    t.string "isbn"
+    t.date "published_on"
+    t.boolean "complete_chapter_list", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["book_id", "identity_key"], name: "index_book_editions_on_book_id_and_identity_key", unique: true
+    t.index ["book_id"], name: "index_book_editions_on_book_id"
+  end
+
+  create_table "book_reading_passes", force: :cascade do |t|
+    t.integer "library_item_id", null: false
+    t.integer "book_edition_id", null: false
+    t.integer "number", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["book_edition_id"], name: "index_book_reading_passes_on_book_edition_id"
+    t.index ["library_item_id", "book_edition_id", "number"], name: "book_pass_number", unique: true
+    t.index ["library_item_id"], name: "index_book_reading_passes_on_library_item_id"
   end
 
   create_table "books", force: :cascade do |t|
@@ -242,16 +296,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_000000) do
     t.index ["user_id"], name: "index_edit_suggestions_on_user_id"
   end
 
-  create_table "favorite_shelves", force: :cascade do |t|
-    t.integer "user_id", null: false
-    t.string "category", null: false
-    t.json "picks", default: [], null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["user_id", "category"], name: "index_favorite_shelves_on_user_id_and_category", unique: true
-    t.index ["user_id"], name: "index_favorite_shelves_on_user_id"
-  end
-
   create_table "editorial_article_titles", force: :cascade do |t|
     t.integer "editorial_article_id", null: false
     t.string "item_type", null: false
@@ -289,6 +333,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_000000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_editorial_sync_states_on_name", unique: true
+  end
+
+  create_table "favorite_shelves", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "category", null: false
+    t.json "picks", default: [], null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "category"], name: "index_favorite_shelves_on_user_id_and_category", unique: true
+    t.index ["user_id"], name: "index_favorite_shelves_on_user_id"
   end
 
   create_table "game_artwork_batches", force: :cascade do |t|
@@ -600,6 +654,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_000000) do
     t.index ["follower_id"], name: "index_relationships_on_follower_id"
   end
 
+  create_table "remembered_devices", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "session_generation", null: false
+    t.string "token_digest", null: false
+    t.string "previous_token_digest"
+    t.datetime "rotated_at"
+    t.datetime "expires_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_remembered_devices_on_user_id"
+  end
+
   create_table "shelf_catalog_identities", force: :cascade do |t|
     t.string "media_type", null: false
     t.string "identity_key", limit: 64, null: false
@@ -680,18 +746,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_000000) do
     t.index ["created_at"], name: "index_tv_shows_on_created_at"
     t.index ["genre"], name: "index_tv_shows_on_genre"
     t.index ["release_year"], name: "index_tv_shows_on_release_year"
-  end
-
-  create_table "remembered_devices", force: :cascade do |t|
-    t.integer "user_id", null: false
-    t.integer "session_generation", null: false
-    t.string "token_digest", null: false
-    t.string "previous_token_digest"
-    t.datetime "rotated_at"
-    t.datetime "expires_at", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["user_id"], name: "index_remembered_devices_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -775,6 +829,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_000000) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "activities", "users", on_delete: :cascade
   add_foreign_key "album_tracks", "albums"
+  add_foreign_key "book_chapter_completions", "book_chapters"
+  add_foreign_key "book_chapter_completions", "book_reading_passes"
+  add_foreign_key "book_chapters", "book_editions"
+  add_foreign_key "book_editions", "books"
+  add_foreign_key "book_reading_passes", "book_editions"
+  add_foreign_key "book_reading_passes", "library_items"
   add_foreign_key "borrow_requests", "library_items", on_delete: :cascade
   add_foreign_key "borrow_requests", "users", column: "borrower_id", on_delete: :cascade
   add_foreign_key "borrow_requests", "users", column: "lender_id", on_delete: :cascade
@@ -783,8 +843,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_000000) do
   add_foreign_key "consumption_pass_entries", "consumption_passes"
   add_foreign_key "consumption_passes", "library_items"
   add_foreign_key "edit_suggestions", "users"
-  add_foreign_key "favorite_shelves", "users"
   add_foreign_key "editorial_article_titles", "editorial_articles"
+  add_foreign_key "favorite_shelves", "users"
   add_foreign_key "game_artwork_batches", "video_games"
   add_foreign_key "game_artworks", "library_items"
   add_foreign_key "game_artworks", "video_games"
@@ -804,8 +864,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_000000) do
   add_foreign_key "metadata_credits", "metadata_entities"
   add_foreign_key "metadata_identities", "metadata_entities"
   add_foreign_key "posts", "users"
+  add_foreign_key "remembered_devices", "users"
   add_foreign_key "shelf_collections", "users", on_delete: :cascade
   add_foreign_key "steam_library_syncs", "users"
   add_foreign_key "tv_episodes", "tv_shows", on_delete: :cascade
-  add_foreign_key "remembered_devices", "users"
 end

@@ -39,7 +39,9 @@ module ItemSharingHelper
   end
 
   def item_preview_image_url(item)
-    if item.respond_to?(:stored_cover_url) && item.stored_cover_url.present?
+    if %w[AlbumTrack BookChapter].include?(item.class.name)
+      item_preview_image_url(OrderedReviewChildren.parent(item))
+    elsif item.respond_to?(:stored_cover_url) && item.stored_cover_url.present?
       public_preview_image_url(item.stored_cover_url)
     elsif item.is_a?(TvEpisode)
       item_preview_image_url(item.tv_show)

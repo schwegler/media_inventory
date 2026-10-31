@@ -4,7 +4,7 @@
     <% tracks.group_by(&:disc_number).each do |disc, entries| %>
       <% if tracks.map(&:disc_number).uniq.size > 1 %><h3>Disc <%= disc %></h3><% end %>
       <ol class="album-track-list"><% entries.each do |track| %>
-        <li id="track-<%= track.id %>"><span class="track-number"><%= track.track_number %></span><div><strong><%= track.title %></strong>
+        <li id="track-<%= track.id %>"><span class="track-number"><%= track.track_number %></span><div><strong><%= link_to track.title, album_track_path(track) %></strong>
           <% track.metadata_credits.group_by(&:role).each do |role, credits| %><p><%= role %>: <%= entity_credit_links(credits) %></p><% end %>
           <% if track.content_rating.present? %><small><%= track.content_rating.humanize %></small><% end %>
         </div><span class="track-duration"><% if track.duration_ms %><%= track.duration_ms / 60_000 %>:<%= format('%02d', track.duration_ms / 1000 % 60) %><% end %></span></li>

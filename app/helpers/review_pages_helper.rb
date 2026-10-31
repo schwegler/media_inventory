@@ -16,10 +16,14 @@ module ReviewPagesHelper
     "Read this #{entry.item.class.model_name.human.downcase} review on Trove.#{rating}"
   end
 
+  def child_review_title(item)
+    item.respond_to?(:display_title) ? item.display_title : item.title
+  end
+
   def review_artwork_item(item)
     return item.tv_show if item.is_a?(TvEpisode) && item.stored_cover_url.blank?
     return item.comic if item.is_a?(ComicIssue) && item.stored_cover_url.blank?
 
-    item
+    OrderedReviewChildren.parent(item) || item
   end
 end

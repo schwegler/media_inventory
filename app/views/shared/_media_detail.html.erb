@@ -85,6 +85,7 @@
       <%= render 'shared/amazon_reading', reading: amazon_reading if amazon_reading %>
       <%= render 'shared/media_metadata_tabs', item: item, groups: metadata_groups %>
       <%= render 'albums/tracks', item: item if item.is_a?(Album) %>
+      <%= render 'book_editions/list', book: item if item.is_a?(Book) %>
       <% if item.is_a?(VideoGame) %>
         <% if @library_item %>
           <%= render 'tracking', library: @library_item %>

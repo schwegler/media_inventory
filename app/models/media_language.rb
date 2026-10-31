@@ -8,10 +8,14 @@ module MediaLanguage
   PLAY = { past: 'played', negative: 'unplayed', list: 'backlog' }.freeze
   DEFAULT = { past: 'finished', negative: 'not finished', list: 'backlog' }.freeze
   TYPES = { 'Movie' => WATCH, 'TvShow' => WATCH, 'TvEpisode' => WATCH, 'WrestlingEvent' => WATCH,
-            'Book' => READ, 'Comic' => READ, 'ComicIssue' => READ, 'Album' => LISTEN, 'VideoGame' => PLAY }.freeze
+            'Book' => READ, 'Comic' => READ, 'ComicIssue' => READ, 'BookChapter' => READ,
+            'AlbumTrack' => LISTEN, 'Album' => LISTEN,
+            'VideoGame' => PLAY }.freeze
 
   def self.for(record)
     record = record.item if record.is_a?(LibraryItem)
+    return LISTEN if record.is_a?(BookChapter) && record.book_edition&.format == 'audiobook'
+
     TYPES.fetch(record.class.name, DEFAULT)
   end
 end

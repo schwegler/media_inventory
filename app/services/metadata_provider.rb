@@ -290,11 +290,21 @@ class MetadataProvider
     data = json('https://itunes.apple.com/lookup', id: numeric_id('itunes_')).fetch('results').first
     raise Unavailable unless data.is_a?(Hash)
 
-    [{ metadata_credits_data: itunes_credits(data, :author),
-       metadata_details: data.slice('language').merge('description' => plain_description(data['description']),
-                                                      'subjects' => data['genres']).compact_blank,
-       author: data['artistName'], publisher: data['sellerName'], release_year: year(data['releaseDate']),
-       thumbnail_url: data['artworkUrl100']&.sub('100x100bb', '400x400bb') }, []]
+    edition = BookProviderMetadata.apple(data)
+    raise Unavailable unless edition && edition[:api_id] == "itunes_#{numeric_id('itunes_')}"
+
+    fields = { metadata_credits_data: itunes_credits(data, :author),
+               metadata_details: book_details(data, edition),
+               author: data['artistName'], publisher: data['sellerName'],
+               thumbnail_url: data['artworkUrl100']&.sub('100x100bb', '400x400bb') }
+    # Edition dates remain on BookEdition; they are not a work's original publication date.
+    [fields, []]
+  end
+
+  def book_details(data, edition)
+    data.slice('language').merge('description' => plain_description(data['description']),
+                                 'subjects' => data['genres'], 'Edition format' => edition[:book_format],
+                                 'Edition release date' => edition.dig(:book_edition_data, :published_on)).compact_blank
   end
 
   def album
@@ -429,9 +439,7 @@ class MetadataProvider
     data = json("https://openlibrary.org#{path}.json")
     authors = openlibrary_authors(data)
     edition = data
-    if path.include?('/works/')
-      edition = optional_details { json("https://openlibrary.org#{path}/editions.json", limit: 1)['entries'] }.first || {}
-    end
+    edition = openlibrary_work_edition(path) if path.include?('/works/')
     contributors = Array(edition['contributors']).filter_map do |entry|
       ProviderEntityMetadata.credit(entry, entry['role'].presence || 'Contributor', 'OpenLibrary')
     end
@@ -445,6 +453,12 @@ class MetadataProvider
                thumbnail_url: openlibrary_cover(data, edition),
                publisher: Array(edition['publishers']).join(', ').presence }
     [fields, []]
+  end
+
+  def openlibrary_work_edition(path)
+    return {} if @item.is_a?(Book)
+
+    optional_details { json("https://openlibrary.org#{path}/editions.json", limit: 1)['entries'] }.first || {}
   end
 
   def openlibrary_cover(data, edition)

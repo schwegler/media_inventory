@@ -1,0 +1,18 @@
+<div class="review-page-related">
+  <% if @parent_review %><p><%= link_to "This author’s review of #{@parent.title}", public_review_path(@parent_review) %></p><% end %>
+  <% if @previous_review || @next_review %>
+    <nav class="child-review-navigation" aria-label="This author’s sibling reviews">
+      <% if @previous_review %><%= link_to "← Previous review: #{child_review_title(@previous_review.item)}", public_review_path(@previous_review), rel: 'prev' %><% end %>
+      <% if @next_review %><%= link_to "Next review: #{child_review_title(@next_review.item)} →", public_review_path(@next_review), rel: 'next' %><% end %>
+    </nav>
+  <% end %>
+  <% groups = @edition_reviews || [[nil, @child_reviews || []]] %>
+  <% groups.each do |edition, reviews| %>
+    <% if reviews.any? %>
+      <section aria-label="This author’s child reviews">
+        <h2><%= edition ? "Chapter reviews · #{edition.display_title}" : 'This author’s child reviews' %></h2>
+        <ol><% reviews.each do |entry| %><li><%= link_to child_review_title(entry.item), public_review_path(entry) %><% unless entry.is_public? %> · Private<% end %></li><% end %></ol>
+      </section>
+    <% end %>
+  <% end %>
+</div>

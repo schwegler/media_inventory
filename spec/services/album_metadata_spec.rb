@@ -31,13 +31,16 @@ RSpec.describe AlbumMetadata do
     AlbumMetadata.reconcile(album, eleven_tracks)
     expect(album.album_tracks.count).to eq(11)
 
-    # Subsequent refresh with same disc/track numbers but new provider IDs or titles
+    original_tracks = album.album_tracks.order(:id).pluck(:id, :provider_id, :title, :disc_number, :track_number)
+
+    # Subsequent refresh with the same identities and positions but different titles
     refreshed_tracks = eleven_tracks.map do |t|
       t.merge('title' => "Refreshed #{t['title']}")
     end
 
     AlbumMetadata.reconcile(album, refreshed_tracks)
     expect(album.album_tracks.count).to eq(11)
-    expect(album.album_tracks.first.title).to eq('Track 1')
+    expect(album.album_tracks.order(:id).pluck(:id, :provider_id, :title, :disc_number, :track_number))
+      .to eq(original_tracks)
   end
 end

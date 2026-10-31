@@ -50,7 +50,8 @@ RSpec.describe MetadataProvider do
     [Book, Album].each do |klass|
       item = catalog_item(klass, '42')
       query = klass == Album ? hash_including({ id: '42', entity: 'song' }) : { id: '42' }
-      payload = { results: [{ wrapperType: 'collection', collectionId: 42, artistName: 'Creator',
+      payload = { results: [{ wrapperType: 'collection', collectionId: 42, collectionName: 'Synthetic title',
+                              artistName: 'Creator',
                               artworkUrl100: 'https://images.example/100x100bb.jpg' }] }.to_json
       stub_request(:get, 'https://itunes.apple.com/lookup').with(query: query).to_return(body: payload)
       fields, = described_class.new(item).call
@@ -63,7 +64,8 @@ RSpec.describe MetadataProvider do
     [Book, Album, Movie].each do |klass|
       item = catalog_item(klass, 'itunes_42')
       query = klass == Album ? hash_including({ id: '42', entity: 'song' }) : { id: '42' }
-      payload = { results: [{ wrapperType: 'collection', collectionId: 42, artistName: 'Creator' }] }.to_json
+      payload = { results: [{ wrapperType: 'collection', collectionId: 42, collectionName: 'Synthetic title',
+                              artistName: 'Creator' }] }.to_json
       stub_request(:get, 'https://itunes.apple.com/lookup').with(query: query).to_return(body: payload)
       fields, = described_class.new(item).call
       expect(fields.values).to include('Creator')

@@ -10,6 +10,8 @@ class LibraryItem < ApplicationRecord
   belongs_to :user
   belongs_to :item, polymorphic: true
 
+  has_many :book_reading_passes, dependent: :destroy
+
   has_many :game_copies, dependent: :destroy
   has_many :game_playthroughs, dependent: :destroy
   has_many :consumption_passes, dependent: :destroy

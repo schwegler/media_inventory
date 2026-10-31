@@ -185,7 +185,11 @@ SampleApp::Application.routes.draw do
   resources :albums do
     resources :edit_suggestions, only: %i[new create]
   end
+  resources :album_tracks, only: :show
+  resources :book_chapters, only: :show
+  resources :book_reading_passes, only: %i[create update]
   resources :books do
+    resources :book_editions, only: %i[create update]
     resources :edit_suggestions, only: %i[new create]
   end
 

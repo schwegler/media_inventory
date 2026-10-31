@@ -9,9 +9,12 @@ class DiscoveryResults
     ids = results.filter_map { |item| item[:api_id].presence }
     urls = results.filter_map { |item| item[:external_url].presence }
     records = klass.where(api_id: ids).or(klass.where(external_url: urls)).order(:id).to_a
+    matches = results.map do |result|
+      type == 'book' ? BookCatalogIdentity.existing(result, strict: false) : existing_record(records, result)
+    end
+    records = matches.compact
     membership = user ? user.library_items.where(item_type: klass.name, item_id: records.map(&:id)).pluck(:item_id) : []
-    results.map do |result|
-      record = existing_record(records, result)
+    results.zip(matches).map do |result, record|
       record ? result.merge(is_local: true, catalog_id: record.id, in_library: membership.include?(record.id)) : result
     end
   end

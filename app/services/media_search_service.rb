@@ -54,7 +54,7 @@ class MediaSearchService
     started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     @deadline = started_at + 12
     MediaSources::Registry::CACHE.fetch(
-      ['media-search-v9', @type, @query.downcase.strip,
+      ['media-search-v10', @type, @query.downcase.strip,
        ApiConfiguration.order(:id).pluck(:source_name, :media_type, :is_active, :updated_at)], expires_in: 15.minutes
     ) do
       results = search_sources(&progress)
@@ -158,6 +158,7 @@ class MediaSearchService
   def rank_results(results)
     return GameSearchQuery.new(@query).rank(results).first(20) if @type == 'video_game'
 
+    results = BookSearchQuery.new(@query).rank(results) if @type == 'book'
     filter_unique_results(results).first(20)
   end
 
@@ -183,6 +184,8 @@ class MediaSearchService
 
       key = [item[:title].to_s.downcase.strip, item[:release_year].to_s, item[:artist].to_s.downcase.strip,
              item[:author].to_s.downcase.strip]
+
+      key += [item[:book_format], item[:api_id]] if @type == 'book'
 
       if seen[key]
         item.except(:api_id, :external_url, :source).each do |field, value|
@@ -516,7 +519,8 @@ class MediaSearchService
   def fetch_open_library(query)
     uri = URI('https://openlibrary.org/search.json')
     uri.query = URI.encode_www_form(q: @type == 'comic' ? "#{query} subject:comics" : query,
-                                    limit: 5, fields: 'key,title,author_name,first_publish_year,cover_i,publisher')
+                                    limit: 5,
+                                    fields: 'key,title,author_name,first_publish_year,cover_i,publisher,isbn,edition_key')
     data = JSON.parse(MediaSources::Http.cached_get(uri, expires_in: 15.minutes, deadline: @deadline))
     Array(data['docs']).map do |book|
       { title: book['title'], author: Array(book['author_name']).join(', ').presence,
@@ -551,27 +555,18 @@ class MediaSearchService
   # --- Books ---
 
   def fetch_itunes_books(query)
-    url = URI("https://itunes.apple.com/search?term=#{CGI.escape(query)}&media=ebook&limit=5&country=US")
-    response = MediaSources::Http.cached_get(url, expires_in: 15.minutes, deadline: @deadline)
-    data = JSON.parse(response)
+    # Independent requests: a failing format must not hide the other format.
+    %w[ebook audiobook].flat_map { |format| fetch_apple_book_format(query, format) }
+  end
 
-    return [] unless data['results']
-
-    data['results'].map do |item|
-      {
-        title: item['trackName'],
-        author: item['artistName'],
-        publisher: item['sellerName'],
-        release_year: item['releaseDate']&.split('-')&.first,
-        thumbnail_url: item['artworkUrl100']&.sub('100x100bb', '400x400bb'),
-        api_id: "itunes_#{item['trackId']}",
-        external_url: item['trackViewUrl'],
-        is_local: false
-      }
-    end
+  def fetch_apple_book_format(query, format)
+    uri = URI('https://itunes.apple.com/search')
+    uri.query = URI.encode_www_form(term: query, media: format, limit: 25, country: 'US')
+    data = JSON.parse(MediaSources::Http.cached_get(uri, expires_in: 15.minutes, deadline: @deadline))
+    Array(data['results']).filter_map { |item| BookProviderMetadata.apple(item, format: format) }
   rescue StandardError => e
     Thread.current[:media_search_failure] = true
-    Rails.logger.error "iTunes Books search failed: #{e.class}"
+    Rails.logger.warn "Apple Books #{format} search failed: #{e.class}"
     []
   end
 end

@@ -29,7 +29,9 @@ class PublicReviewsController < ActionController::API
       item_title: item.is_a?(ComicIssue) ? item.display_title : item.title,
       item_url: canonical_item_url(item),
       review_url: canonical_review_url(entry),
-      cover_url: item.stored_cover_url.present? ? "#{public_trove_origin}#{item.stored_cover_url}" : nil
+      cover_url: if review_artwork_item(item)&.stored_cover_url.present?
+                   "#{public_trove_origin}#{review_artwork_item(item).stored_cover_url}"
+                 end
     }
   end
 end
