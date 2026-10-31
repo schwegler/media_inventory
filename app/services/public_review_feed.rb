@@ -20,11 +20,7 @@ class PublicReviewFeed
     loop do
       batch = scope.offset(offset).limit(100).preload(:user, :item).to_a
       items = batch.map(&:item).compact
-      ActiveRecord::Associations::Preloader.new(records: items.grep(TvEpisode), associations: :tv_show).call
-      ActiveRecord::Associations::Preloader.new(records: items.grep(ComicIssue), associations: :comic).call
-      ActiveRecord::Associations::Preloader.new(records: items.grep(AlbumTrack), associations: :album).call
-      ActiveRecord::Associations::Preloader.new(records: items.grep(BookChapter),
-                                              associations: { book_edition: :book }).call
+      preload_child_parents(items)
       preload_item_cover_attachments(items)
       batch.each do |entry|
         result << entry unless self.class.plain_text(entry.review).blank?
@@ -38,6 +34,14 @@ class PublicReviewFeed
   end
 
   private
+
+  def preload_child_parents(items)
+    ActiveRecord::Associations::Preloader.new(records: items.grep(TvEpisode), associations: :tv_show).call
+    ActiveRecord::Associations::Preloader.new(records: items.grep(ComicIssue), associations: :comic).call
+    ActiveRecord::Associations::Preloader.new(records: items.grep(AlbumTrack), associations: :album).call
+    ActiveRecord::Associations::Preloader.new(records: items.grep(BookChapter),
+                                              associations: { book_edition: :book }).call
+  end
 
   def preload_item_cover_attachments(items)
     return if items.blank?
