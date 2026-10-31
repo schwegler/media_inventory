@@ -1,0 +1,11 @@
+<% content_for :turbo_no_cache, 'true' %>
+<% content_for :title, @child.display_title %>
+<article class="media-section ordered-child-detail">
+  <p><%= link_to "← #{@parent.title}", @parent %></p>
+  <% if @child.is_a?(BookChapter) %><p><%= @child.book_edition.display_title %> · <%= @child.book_edition.structure_kind.humanize %><%= " · #{@child.part}" if @child.part.present? %></p><% end %>
+  <h1><%= @child.display_title %></h1>
+  <section id="my-library">
+    <h2>Your review</h2>
+    <%= render 'ordered_children/personal_review', child: @child, entry: @library_item %>
+  </section>
+</article>

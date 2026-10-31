@@ -32,6 +32,10 @@
       <% end %>
     </div>
   <% end %>
+<% elsif @item.is_a?(AlbumTrack) || @item.is_a?(BookChapter) %>
+  <%= turbo_stream.replace dom_id(@item, :personal_review) do %>
+    <%= render 'ordered_children/personal_review', child: @item, entry: @library_item %>
+  <% end %>
 <% else %>
   <%= turbo_stream.replace "media_actions_#{@item.class.name.underscore}_#{@item.id}" do %>
     <%= render 'shared/media_actions_and_stream', item: @item, show_sources: false %>

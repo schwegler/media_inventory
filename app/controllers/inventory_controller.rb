@@ -72,6 +72,7 @@ class InventoryController < ApplicationController
 
   def show
     @resource = resource_class.find(params[:id])
+    response.headers['Cache-Control'] = 'private, no-store' if @resource.is_a?(Book)
     preload_entity_credits
     return if redirect_to_canonical_url(@resource)
 
@@ -183,6 +184,7 @@ class InventoryController < ApplicationController
         @library_item = LibraryItem.find_or_initialize_by(user: current_user, item: @resource)
         @library_item.assign_attributes(library_params)
         @library_item.save!
+        BookProviderMetadata.attach(@resource, @imported) if @resource.is_a?(Book) && @imported
         after_library_saved
         saved = true
       end
@@ -218,6 +220,7 @@ class InventoryController < ApplicationController
   end
 
   def redirect_existing_discovery
+    BookProviderMetadata.attach(@resource, @imported) if @resource.is_a?(Book)
     session.delete(:discovery_intent)
     redirect_to @resource, notice: 'This title is already in your library.'
   end
@@ -245,21 +248,21 @@ class InventoryController < ApplicationController
   end
 
   def selected_import_resource(attributes)
-    if @imported && resource_class == VideoGame
-      resource = resolve_catalog_resource(attributes.merge(catalog_selection: @imported[:catalog_selection]))
-      resource.importing_metadata = true
-      return resource
-    end
-    resource = if @imported && @imported[:is_local] && @imported[:catalog_id]
-                 resource_class.find(@imported[:catalog_id])
-               elsif @imported
-                 key = attributes[:api_id].present? ? :api_id : :external_url
-                 resource_class.where(key => attributes[key]).order(:id).first_or_initialize
-               else
-                 resolve_catalog_resource(attributes)
-               end
-    resource.importing_metadata = true if @imported
+    return resolve_catalog_resource(attributes) unless @imported
+
+    resource = selected_provider_import(attributes)
+    resource.importing_metadata = true
     resource
+  end
+
+  def selected_provider_import(attributes)
+    return resolve_catalog_resource(attributes.merge(catalog_selection: @imported[:catalog_selection])) if
+      resource_class == VideoGame
+    return BookCatalogIdentity.existing(@imported) || resource_class.new if resource_class == Book
+    return resource_class.find(@imported[:catalog_id]) if @imported[:is_local] && @imported[:catalog_id]
+
+    key = attributes[:api_id].present? ? :api_id : :external_url
+    resource_class.where(key => attributes[key]).order(:id).first_or_initialize
   end
 
   def record_import_baseline

@@ -124,6 +124,9 @@ RSpec.describe 'Public review API', type: :request do
              Comic.create!(title: 'Comic'), VideoGame.create!(title: 'Game'), Book.create!(title: 'Book')]
     media << media[1].tv_episodes.create!(name: 'Episode', season: 1, episode: 1)
     media << media[3].comic_issues.create!(title: 'Issue', issue_number: '1')
+    media << media[2].album_tracks.create!(title: 'Track', provider_id: 'synthetic:1', disc_number: 1, track_number: 1)
+    edition = media[5].book_editions.create!(identity_key: 'manual:test', label: 'Test edition', format: 'ebook')
+    media << edition.book_chapters.create!(identity_key: 'manual:first', position: 0, title: 'Prologue')
     media.each { |item| review(item: item) }
     expect(fetch_reviews(limit: 20).map { |r| r['media_type'] }).to match_array(ReviewsController::REVIEWABLE_MODELS.keys)
     user.destroy!

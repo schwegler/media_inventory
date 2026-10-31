@@ -30,6 +30,7 @@
           <div>Review by <%= link_to author_name, author %><span><%= @item.class.model_name.human %></span></div>
         </div>
         <h1 id="review-title"><%= link_to title, @item %><% if @item.respond_to?(:release_year) && @item.release_year.present? %> <span class="review-page-year"><%= @item.release_year %></span><% end %></h1>
+        <% if @parent %><p><%= link_to @parent.title, @parent %><% if @item.is_a?(BookChapter) %> · <%= @item.book_edition.display_title %><% end %></p><% end %>
         <% if @entry.rating.present? %><div class="review-page-rating"><%= render_stars(@entry.rating) %><span><%= @entry.rating %> / 5</span></div><% end %>
         <div class="review-page-dates">
           <% if @entry.consumed? && @entry.consumed_at.present? %>
@@ -59,7 +60,10 @@
       </div>
     </aside>
 
-      <div class="review-page-prose"><%= simple_format(@entry.review) %></div>
+      <div class="review-page-prose">
+        <%= render "related_reviews" %>
+        <%= simple_format(@entry.review) %>
+      </div>
 
       <section class="review-page-conversation" aria-labelledby="review-conversation-title">
         <div class="review-page-reactions"><%= render 'likes/like_button', item: @entry %></div>

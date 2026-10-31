@@ -22,6 +22,9 @@ class PublicReviewFeed
       items = batch.map(&:item).compact
       ActiveRecord::Associations::Preloader.new(records: items.grep(TvEpisode), associations: :tv_show).call
       ActiveRecord::Associations::Preloader.new(records: items.grep(ComicIssue), associations: :comic).call
+      ActiveRecord::Associations::Preloader.new(records: items.grep(AlbumTrack), associations: :album).call
+      ActiveRecord::Associations::Preloader.new(records: items.grep(BookChapter),
+                                              associations: { book_edition: :book }).call
       preload_item_cover_attachments(items)
       batch.each do |entry|
         result << entry unless self.class.plain_text(entry.review).blank?
@@ -43,6 +46,7 @@ class PublicReviewFeed
       case item
       when TvEpisode then [item, item.tv_show]
       when ComicIssue then [item, item.comic]
+      when AlbumTrack, BookChapter then [OrderedReviewChildren.parent(item)]
       else [item]
       end
     end.compact.uniq
@@ -63,6 +67,9 @@ class PublicReviewFeed
       parent = case type
                when 'TvEpisode' then ' AND EXISTS (SELECT 1 FROM tv_shows WHERE tv_shows.id = tv_episodes.tv_show_id)'
                when 'ComicIssue' then ' AND EXISTS (SELECT 1 FROM comics WHERE comics.id = comic_issues.comic_id)'
+               when 'AlbumTrack' then ' AND EXISTS (SELECT 1 FROM albums WHERE albums.id = album_tracks.album_id)'
+               when 'BookChapter' then ' AND EXISTS (SELECT 1 FROM book_editions JOIN books ON books.id = ' \
+                                       'book_editions.book_id WHERE book_editions.id = book_chapters.book_edition_id)'
                else ''
                end
       "(library_items.item_type = '#{type}' AND EXISTS (SELECT 1 FROM #{model.table_name} " \

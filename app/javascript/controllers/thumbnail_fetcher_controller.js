@@ -267,7 +267,7 @@ export default class extends Controller {
       else if (mediaType === "comic") subtitle = option.writer || ""
       else if (mediaType === "tv_show") subtitle = option.network || ""
       else if (mediaType === "video_game") subtitle = option.developer || ""
-      else if (mediaType === "book") subtitle = option.author || ""
+      else if (mediaType === "book") subtitle = [option.author, option.book_format].filter(Boolean).join(" · ")
 
       const yearInfo = option.release_year ? ` (${option.release_year})` : ""
       const tooltipText = `${option.title}${yearInfo} ${subtitle ? `- ${subtitle}` : ""}`
@@ -407,10 +407,10 @@ export default class extends Controller {
     this.importStatusTarget.textContent = message
     this.importFactsTarget.replaceChildren()
     this.importExtraTarget.replaceChildren()
-    const fields = { source: "Selected source", api_id: "Source ID", title: "Title", author: "Author", director: "Director", writer: "Writer", actors: "Cast", artist: "Artist", publisher: "Publisher", developer: "Developer", platform: "Platforms", network: "Network", genre: "Genres", release_year: "Release year", game_type: "Type" }
+    const fields = { source: "Selected source", api_id: "Source ID", book_format: "Edition format", title: "Title", author: "Author", director: "Director", writer: "Writer", actors: "Cast", artist: "Artist", publisher: "Publisher", developer: "Developer", platform: "Platforms", network: "Network", genre: "Genres", release_year: "Release year", game_type: "Type" }
     const targetNames = { release_year: "releaseYear", game_type: "gameType" }
     for (const [key, label] of Object.entries(fields)) {
-      if (!["source", "api_id", "title"].includes(key) && !this.targets.find(targetNames[key] || key)) continue
+      if (!["source", "api_id", "title", "book_format"].includes(key) && !this.targets.find(targetNames[key] || key)) continue
       this.appendImportFact(label, option[key])
     }
     this.appendImportFact("Cover", option.thumbnail_url ? "Artwork URL supplied" : null)
