@@ -58,7 +58,7 @@ bin/rails server
 npm run dev
 ```
 
-In dev mode, Tauri loads `http://localhost:3000` directly via the `devUrl` setting. If the Rails server isn't running, the app displays a fallback page with auto-retry.
+In dev mode, Tauri loads `http://localhost:3000` directly via the `devUrl` setting. There is no configured navigation-error fallback for this dev URL. The packaged build uses `frontendDist: "../src"`; its connection page polls localhost and redirects when reachable.
 
 ## Production Build
 
@@ -83,6 +83,7 @@ To point the app at a deployed server instead of localhost:
 1. **Edit `src-tauri/tauri.conf.json`**:
    - Change `build.frontendDist` to your production URL (e.g., `"https://media-inventory.example.com"`)
    - Remove or leave `build.devUrl` (it's only used during `tauri dev`)
+   - If keeping the bundled connection page instead, update its hardcoded localhost fetch and redirect URLs in `src/index.html`.
 
 2. **Update the CSP** in `app.security.csp` to allow your production domain in `connect-src`, `script-src`, etc.
 
