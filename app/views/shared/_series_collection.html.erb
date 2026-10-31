@@ -1,6 +1,6 @@
 <% collection = @series_collection %>
 <% label = collection.tv? ? 'Episodes' : 'Issues' %>
-<%= turbo_frame_tag 'series-entries', data: { turbo_action: 'advance' } do %>
+<%= turbo_frame_tag 'series-entries', data: { turbo_action: 'advance', series_request_token: request.headers['X-Series-Request'].to_s.first(100) } do %>
   <section id="media-entries" class="media-section media-entries" tabindex="-1" aria-label="<%= label %>">
     <h2><%= label %> in this series</h2>
     <% if logged_in? %>

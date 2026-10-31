@@ -14,7 +14,7 @@
 <% content_for(:title, item.title) %>
 <% content_for(:meta_description, ([item.title] + media_metadata(item).map(&:last)).join(' • ')) %>
 <% content_for(:item_detail, 'true') %>
-<article class="media-detail<%= ' media-detail--with-reading' if articles.any? %>" data-media-kind="<%= item.class.name %>">
+<article class="media-detail<%= ' media-detail--with-reading' if articles.any? %>" data-media-kind="<%= item.class.name %>"<% if entries %> data-controller="series-response"<% end %>>
   <%= link_to "← Back to #{title}", polymorphic_path(item.class), class: 'media-back-link' %>
   <header id="overview" class="media-overview">
     <div class="media-cover">

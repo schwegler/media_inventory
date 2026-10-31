@@ -98,6 +98,57 @@ RSpec.describe 'Series entries and review drawers', type: :system do
     expect(page).to have_select('Season', selected: 'Season 1')
   end
 
+  it 'keeps the latest season when an earlier tracking response arrives after navigation' do
+    user = create_and_login_user
+    show = TvShow.create!(title: 'Out-of-order season QA')
+    LibraryItem.create!(user: user, item: show)
+    extra = show.tv_episodes.create!(name: 'Behind the scenes', season: 0, episode: 1)
+    show.tv_episodes.create!(name: 'Finale', season: 1, episode: 1)
+    visit tv_show_path(show)
+    expect(page).to have_css('[data-series-response-connected="true"]')
+    select 'Season 0', from: 'Season'
+    expect(page).to have_css('#series-entries .series-entry-title', text: 'Behind the scenes')
+    page.execute_script(<<~JS, toggle_watched_tv_episode_path(extra))
+      const trackingPath = arguments[0];
+      const fetch = window.fetch.bind(window);
+      window.fetch = async (input, options) => {
+        const response = await fetch(input, options);
+        if (new URL(input.url || input, location.href).pathname === trackingPath) {
+          await new Promise(resolve => {
+            window.releaseSeriesTrackingResponse = resolve;
+            document.documentElement.dataset.seriesMutationHeld = 'true';
+          });
+        }
+        return response;
+      };
+      document.addEventListener('turbo:before-stream-render', event => {
+        if (event.target.target !== 'series-entries' || !window.seriesTrackingReleased) return;
+        const render = event.detail.render;
+        event.detail.render = async stream => {
+          await render(stream);
+          document.documentElement.dataset.seriesLateResponseRendered = 'true';
+        };
+      });
+      document.addEventListener('turbo:frame-load', event => {
+        if (event.target.id === 'series-entries' && window.seriesTrackingReleased) {
+          document.documentElement.dataset.seriesLateResponseRendered = 'true';
+        }
+      });
+    JS
+    within("#tv_episode_#{extra.id}") { click_button 'Mark watched: 1. Behind the scenes' }
+    expect(page).to have_css('html[data-series-mutation-held="true"]', visible: :all)
+    expect(user.library_items.find_by!(item: extra)).to be_consumed
+    select 'Season 1', from: 'Season'
+    expect(page).to have_css('#series-entries .series-entry-title', text: 'Finale')
+    page.execute_script('window.seriesTrackingReleased = true; window.releaseSeriesTrackingResponse()')
+    expect(page).to have_css('html[data-series-late-response-rendered="true"]', visible: :all)
+    expect(page).to have_select('Season', selected: 'Season 1')
+    expect(page).to have_css('#series-entries .series-entry-title', text: 'Finale')
+    expect(page).to have_no_css('#series-entries .series-entry-title', text: 'Behind the scenes')
+    expect(page).to have_css('[data-child-collection-target="completed"]', text: '0 of 1')
+    capture_ui_screenshot('late-tracking-response-latest-season')
+  end
+
   it 'uses the same issue layout, saves reviews, and preserves history during rereads' do
     user = create_and_login_user
     user.update!(theme: 'light')

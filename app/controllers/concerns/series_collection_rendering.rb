@@ -3,7 +3,19 @@
 module SeriesCollectionRendering
   extend ActiveSupport::Concern
 
+  included do
+    before_action :tag_series_request
+  end
+
   private
+
+  def tag_series_request
+    token = request.headers['X-Series-Request'].to_s
+    return unless token.match?(/\A[a-zA-Z0-9-]{1,64}:\d{1,10}\z/)
+
+    response.headers['X-Series-Request'] = token
+    response.headers['Cache-Control'] = 'private, no-store'
+  end
 
   def render_series_frame
     render partial: 'shared/series_collection', locals: { item: @resource }
@@ -21,6 +33,11 @@ module SeriesCollectionRendering
   end
 
   def render_series_collection(series, library)
+    if request.headers['X-Series-Refresh'] == 'true' && response.headers['X-Series-Request'].present?
+      response.headers['X-Series-Refresh'] = 'true'
+      return head :no_content
+    end
+
     prepare_series_collection(series, library)
     render turbo_stream: turbo_stream.replace('series-entries',
                                               partial: 'shared/series_collection', locals: { item: series })

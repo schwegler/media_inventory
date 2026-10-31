@@ -8,7 +8,7 @@ function setup() {
   const select = { value: '1' }
   const source = fs.readFileSync('app/javascript/controllers/series_navigation_controller.js', 'utf8')
     .replace(/^import .*\n/gm, '').replace('export default class', 'return class')
-  const Class = new Function('Controller', 'setTimeout', 'clearTimeout', source)(class {},
+  const Class = new Function('Controller', 'setTimeout', 'clearTimeout', source)(class { dispatch() {} },
     callback => { timers.set(++nextTimer, callback); return nextTimer }, id => timers.delete(id))
   const controller = new Class()
   controller.element = { requestSubmit() { submissions++ }, querySelector() { return select } }
