@@ -15,7 +15,7 @@ class BookEditionsController < ApplicationController
       BookChapterLists.reconcile(edition, BookChapterLists.manual(params[:chapters]))
       edition.update!(complete_chapter_list: ActiveModel::Type::Boolean.new.cast(params[:complete_chapter_list]))
     end
-    redirect_to book_path(@book, anchor: "edition-#{edition.id}"), notice: 'Chapter list added.'
+    redirect_to book_path(@book, anchor: "edition-#{edition.id}"), status: :see_other, notice: 'Chapter list added.'
   rescue ActiveRecord::RecordInvalid, BookChapterLists::Conflict => e
     redirect_to @book, alert: e.message
   end
@@ -37,7 +37,7 @@ class BookEditionsController < ApplicationController
         BookChapterLists.reconcile(edition, BookChapterLists.manual(params[:chapters])) if params[:chapters].present?
       end
     end
-    redirect_to book_path(@book, anchor: "edition-#{edition.id}"), notice: 'Edition added.'
+    redirect_to book_path(@book, anchor: "edition-#{edition.id}"), status: :see_other, notice: 'Edition added.'
   rescue ActiveRecord::RecordInvalid, BookChapterLists::Conflict => e
     redirect_to @book, alert: e.message
   end

@@ -13,7 +13,8 @@ class BookReadingPassesController < ApplicationController
       current = scope.maximum(:number) || 0
       scope.create!(book_edition: edition, number: current + 1) if expected == current.to_s
     end
-    redirect_to book_path(edition.book, anchor: "edition-#{edition.id}"), notice: 'Reading/listening pass ready.'
+    redirect_to book_path(edition.book, anchor: "edition-#{edition.id}"), status: :see_other,
+                                                                          notice: 'Reading/listening pass ready.'
   end
 
   def update
@@ -26,6 +27,6 @@ class BookReadingPassesController < ApplicationController
         pass.book_chapter_completions.where(book_chapter: chapter).destroy_all
       end
     end
-    redirect_to book_path(pass.book_edition.book, anchor: "edition-#{pass.book_edition_id}")
+    redirect_to book_path(pass.book_edition.book, anchor: "edition-#{pass.book_edition_id}"), status: :see_other
   end
 end

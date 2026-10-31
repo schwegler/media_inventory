@@ -143,7 +143,7 @@
   overflow-wrap: anywhere;
 }
 
-.book-edition { margin-block: 1.5rem; padding-block: 1rem; border-top: 1px solid var(--border); }
+.book-edition { scroll-margin-top: 8rem; margin-block: 1.5rem; padding-block: 1rem; border-top: 1px solid var(--border); }
 .book-chapter-list { padding-inline-start: 1.5rem; }
 .book-chapter-list li { padding-block: .5rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; }
 .review-page-related { font-size: 1rem; min-width: 0; margin-bottom: 1.5rem; }

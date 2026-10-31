@@ -15,9 +15,13 @@ RSpec.describe 'Book editions and track reviews', type: :system do
     check 'This is the complete list for this edition'
     click_button 'Add edition'
     expect(page).to have_text('Test ebook edition')
+    edition_anchor = "edition-#{book.book_editions.sole.id}"
+    expect(page).to have_current_path(book_path(book)) { |uri| uri.fragment == edition_anchor }
     click_button 'Start reading/listening'
     expect(page).to have_text('0 of 3 known chapters completed')
     click_button 'Complete Prologue'
+    expect(page).to have_button('Undo Prologue', wait: 10)
+    expect(page).to have_current_path(book_path(book)) { |uri| uri.fragment == edition_anchor }
     expect(page).to have_text('1 of 3 known chapters completed')
     capture_ui_screenshot('book-edition-progress-desktop')
     resize_browser_viewport(390, 844)

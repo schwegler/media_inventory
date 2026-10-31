@@ -17,7 +17,7 @@
         <p>No chapter list available. Progress is unknown.</p>
         <% if library %>
           <details><summary>Add a manual list for this edition</summary>
-            <%= form_with url: book_book_edition_path(book, edition), method: :patch, class: 'standard-form' do %>
+            <%= form_with url: book_book_edition_path(book, edition), method: :patch, data: { turbo: false }, class: 'standard-form' do %>
               <%= label_tag "chapters_#{edition.id}", 'Chapter list (one per line)' %>
               <%= text_area_tag :chapters, nil, id: "chapters_#{edition.id}", rows: 7, required: true %>
               <p>Optional syntax: Part | Label | Title. Use only the list for this edition.</p>
@@ -32,12 +32,12 @@
         <% if library %>
           <p><%= done.size %> of <%= chapters.size %> known <%= edition.structure_kind.humanize.downcase %> completed<%= " · Pass #{pass.number}" if pass %>.</p>
           <% if history.size > 1 %><details><summary>Earlier passes</summary><ul><% history[0...-1].each do |prior| %><li>Pass <%= prior.number %>: <%= prior.book_chapter_completions.size %> completed</li><% end %></ul></details><% end %>
-          <%= button_to pass ? 'Start another reading/listening pass' : 'Start reading/listening', book_reading_passes_path, params: { book_edition_id: edition.id, previous_number: pass&.number || 0 }, class: 'sleek-btn sleek-btn-secondary' %>
+          <%= button_to pass ? 'Start another reading/listening pass' : 'Start reading/listening', book_reading_passes_path, params: { book_edition_id: edition.id, previous_number: pass&.number || 0 }, form: { data: { turbo: false } }, class: 'sleek-btn sleek-btn-secondary' %>
         <% end %>
         <ol class="book-chapter-list">
           <% chapters.each do |chapter| %>
             <li><div><% if chapter.part.present? %><small><%= chapter.part %></small><% end %> <%= link_to chapter.display_title, book_chapter_path(chapter) %></div>
-              <% if pass %><%= button_to done.include?(chapter.id) ? 'Undo completion' : 'Mark completed', book_reading_pass_path(pass), method: :patch, params: { chapter_id: chapter.id, completed: !done.include?(chapter.id) }, class: 'sleek-btn sleek-btn-secondary', aria: { label: "#{done.include?(chapter.id) ? 'Undo' : 'Complete'} #{chapter.display_title}" } %><% end %>
+              <% if pass %><%= button_to done.include?(chapter.id) ? 'Undo completion' : 'Mark completed', book_reading_pass_path(pass), method: :patch, params: { chapter_id: chapter.id, completed: !done.include?(chapter.id) }, form: { data: { turbo: false } }, class: 'sleek-btn sleek-btn-secondary', aria: { label: "#{done.include?(chapter.id) ? 'Undo' : 'Complete'} #{chapter.display_title}" } %><% end %>
             </li>
           <% end %>
         </ol>
@@ -47,7 +47,7 @@
   <% if library %>
     <details><summary>Add an edition and manual chapter list</summary>
       <p>Use a list from your edition. Audiobook segments may differ from literary chapters. Existing lists and reviews are preserved.</p>
-      <%= form_with scope: :book_edition, url: book_book_editions_path(book), class: 'standard-form' do |f| %>
+      <%= form_with scope: :book_edition, url: book_book_editions_path(book), data: { turbo: false }, class: 'standard-form' do |f| %>
         <div class="form-group"><%= f.label :label, 'Edition label' %><%= f.text_field :label, required: true, maxlength: 255, placeholder: 'Publisher, year, narrator, or edition name' %></div>
         <div class="form-group"><%= f.label :format %><%= f.select :format, %w[print ebook audiobook unknown] %></div>
         <div class="form-group"><%= f.label :structure_kind, 'List describes' %><%= f.select :structure_kind, [['Literary chapters', 'chapters'], ['Audiobook segments', 'audio_segments']] %></div>
