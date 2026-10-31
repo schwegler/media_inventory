@@ -5,6 +5,7 @@ require 'rails_helper'
 RSpec.describe 'Book editions and track reviews', type: :system do
   it 'creates a manual edition, tracks a pass, reviews a chapter, and follows author navigation' do
     user = create_and_login_user(email: 'chapter-ui@example.com')
+    page.driver.browser.logs.get(:browser) # Scope console evidence to this flow, not earlier examples.
     book = Book.create!(title: 'Synthetic edition novel', author: 'Test writer')
     LibraryItem.create!(user: user, item: book, review: 'My work review', rating: 4, is_public: true)
     visit book_path(book)

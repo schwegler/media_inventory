@@ -10,7 +10,8 @@ RSpec.describe 'Import confirmation', type: :system do
                                   author: 'Search author' }]
     )
     stub_request(:get, 'https://itunes.apple.com/lookup?id=42').to_return(body: {
-      results: [{ artistName: 'Detail author', sellerName: 'Detail publisher', releaseDate: '2020-01-01',
+      results: [{ kind: 'ebook', trackId: 42, trackName: 'The imported book', artistName: 'Detail author',
+                  sellerName: 'Detail publisher', releaseDate: '2020-01-01',
                   description: 'A description from the source' }]
     }.to_json)
   end
