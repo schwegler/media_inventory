@@ -12,8 +12,7 @@ export default class extends Controller {
 
   disconnect() {
     if (this.timeout) clearTimeout(this.timeout)
-    this.restoreCopyButton()
-    this.timeout = null
+    if (this.copyTimeout) clearTimeout(this.copyTimeout)
   }
 
   async share() {
@@ -54,27 +53,20 @@ export default class extends Controller {
 
   flashButtonSuccess(button) {
     if (this.copyTimeout) clearTimeout(this.copyTimeout)
-    if (this.copyButton !== button) {
-      this.restoreCopyButton()
-      this.copyButton = button
-      this.originalAriaLabel = button.getAttribute("aria-label")
+    if (button.dataset.originalAriaLabel === undefined) {
+      button.dataset.originalAriaLabel = button.getAttribute("aria-label") || ""
     }
     button.setAttribute("aria-label", "Copied!")
-    this.copyTimeout = setTimeout(() => this.restoreCopyButton(), 2000)
-  }
 
-  restoreCopyButton() {
-    if (this.copyTimeout) clearTimeout(this.copyTimeout)
-    if (this.copyButton) {
-      if (this.originalAriaLabel === null) {
-        this.copyButton.removeAttribute("aria-label")
+    this.copyTimeout = setTimeout(() => {
+      if (button.dataset.originalAriaLabel) {
+        button.setAttribute("aria-label", button.dataset.originalAriaLabel)
       } else {
-        this.copyButton.setAttribute("aria-label", this.originalAriaLabel)
+        button.removeAttribute("aria-label")
       }
-    }
-    this.copyButton = null
-    this.originalAriaLabel = null
-    this.copyTimeout = null
+      delete button.dataset.originalAriaLabel
+      this.copyTimeout = null
+    }, 2000)
   }
 
   showStatus(message, autoClear = true) {
