@@ -53,7 +53,7 @@ export default class extends Controller {
 
   flashButtonSuccess(button) {
     if (this.copyTimeout) clearTimeout(this.copyTimeout)
-    if (!button.dataset.originalAriaLabel) {
+    if (button.dataset.originalAriaLabel === undefined) {
       button.dataset.originalAriaLabel = button.getAttribute("aria-label") || ""
     }
     button.setAttribute("aria-label", "Copied!")
@@ -64,6 +64,8 @@ export default class extends Controller {
       } else {
         button.removeAttribute("aria-label")
       }
+      delete button.dataset.originalAriaLabel
+      this.copyTimeout = null
     }, 2000)
   }
 
