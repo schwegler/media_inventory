@@ -1,6 +1,8 @@
-const { test } = require('node:test')
+const { test, beforeEach } = require('node:test')
 const assert = require('node:assert/strict')
 const { readFileSync } = require('node:fs')
+
+beforeEach((t) => t.mock.timers.enable({ apis: ['setTimeout'] }))
 
 const source = readFileSync('app/javascript/controllers/link_share_controller.js', 'utf8')
   .replace(/^import .*\n/gm, '').replace('export default class', 'return class')
@@ -50,7 +52,7 @@ function createMockButton(initialAriaLabel = null) {
 
   return {
     dataset,
-    getAttribute(name) { return attributes[name] || null },
+    getAttribute(name) { return attributes[name] ?? null },
     setAttribute(name, value) { attributes[name] = value },
     removeAttribute(name) { delete attributes[name] },
     hasAttribute(name) { return name in attributes }
@@ -64,49 +66,63 @@ test('link_share_controller sets data-connected="true" on connect', () => {
   assert.equal(element.dataset.connected, 'true')
 })
 
-test('link_share_controller copy writes text and updates aria-label', async () => {
+test('copy writes the link and restores its accessible name after feedback', async (t) => {
   const { instance, status, getClipboardText } = createMockController()
-  instance.connect()
   const button = createMockButton('Copy item link')
-
-  const event = {
-    currentTarget: button
-  }
-
-  await instance.copy(event)
-
+  await instance.copy({ currentTarget: button })
   assert.equal(getClipboardText(), 'https://example.com/item/42')
   assert.equal(status.textContent, 'Link copied.')
   assert.equal(button.getAttribute('aria-label'), 'Copied!')
-  assert.equal(button.dataset.originalAriaLabel, 'Copy item link')
-  assert.notEqual(instance.copyTimeout, null)
+  t.mock.timers.tick(2000)
+  assert.equal(button.getAttribute('aria-label'), 'Copy item link')
+  assert.equal(status.textContent, '')
+  assert.equal(instance.copyTimeout, null)
 })
 
-test('link_share_controller preserves undefined originalAriaLabel on rapid consecutive clicks without initial aria-label', async () => {
-  const { instance } = createMockController()
-  instance.connect()
+for (const label of [null, '', 'Copy link']) {
+  test(`rapid clicks restore original label ${JSON.stringify(label)} after the last click`, async (t) => {
+    const { instance } = createMockController()
+    const button = createMockButton(label)
+    await instance.copy({ currentTarget: button })
+    t.mock.timers.tick(1500)
+    await instance.copy({ currentTarget: button })
+    t.mock.timers.tick(500)
+    assert.equal(button.getAttribute('aria-label'), 'Copied!')
+    t.mock.timers.tick(1500)
+    assert.equal(button.getAttribute('aria-label'), label)
+    assert.equal(button.hasAttribute('aria-label'), label !== null)
+    assert.equal(instance.copyTimeout, null)
+    // A later cycle must capture the current label rather than stale state.
+    button.setAttribute('aria-label', 'Updated copy label')
+    await instance.copy({ currentTarget: button })
+    t.mock.timers.tick(2000)
+    assert.equal(button.getAttribute('aria-label'), 'Updated copy label')
+  })
+}
+
+test('disconnect restores the button and cancels pending feedback', async (t) => {
+  const { instance, status } = createMockController()
   const button = createMockButton(null)
-
-  const event = { currentTarget: button }
-
-  await instance.copy(event)
-  assert.equal(button.dataset.originalAriaLabel, '')
-  assert.equal(button.getAttribute('aria-label'), 'Copied!')
-
-  // Second rapid click while aria-label is "Copied!"
-  await instance.copy(event)
-  assert.equal(button.dataset.originalAriaLabel, '')
-  assert.equal(button.getAttribute('aria-label'), 'Copied!')
+  await instance.copy({ currentTarget: button })
+  instance.disconnect()
+  assert.equal(button.hasAttribute('aria-label'), false)
+  assert.equal(instance.copyTimeout, null)
+  assert.equal(instance.timeout, null)
+  status.textContent = 'Reconnected status'
+  button.setAttribute('aria-label', 'Reconnected label')
+  t.mock.timers.tick(2000)
+  assert.equal(status.textContent, 'Reconnected status')
+  assert.equal(button.getAttribute('aria-label'), 'Reconnected label')
 })
 
-test('link_share_controller clears timeouts on disconnect', async () => {
+test('copying with another button restores the previous button immediately', async (t) => {
   const { instance } = createMockController()
-  instance.connect()
-  const button = createMockButton('Copy')
-
-  await instance.copy({ currentTarget: button })
-  assert.notEqual(instance.copyTimeout, null)
-  assert.notEqual(instance.timeout, null)
-
-  instance.disconnect()
+  const first = createMockButton('First')
+  const second = createMockButton('Second')
+  await instance.copy({ currentTarget: first })
+  await instance.copy({ currentTarget: second })
+  assert.equal(first.getAttribute('aria-label'), 'First')
+  assert.equal(second.getAttribute('aria-label'), 'Copied!')
+  t.mock.timers.tick(2000)
+  assert.equal(second.getAttribute('aria-label'), 'Second')
 })
