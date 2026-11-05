@@ -18,7 +18,7 @@ function fixture() {
   instance.previewCategoryValue = 'Movie'; instance.urlValue = '/@owner/shelf?category=Movie'
   instance.ownerValue = true; instance.element = { isConnected: true, querySelectorAll: () => [] }
   instance.applyTheme = () => {}
-  instance.statusTarget = { textContent: '' }; instance.altTextTarget = { value: '' }
+  instance.shareStatusTargets = [{ textContent: '' }]; instance.shareLinkTargets = []; instance.statusTarget = { textContent: '' }; instance.altTextTarget = { value: '' }
   instance.canvasTarget = { dataset: {}, setAttribute() {}, closest: () => ({ open: false }), getContext: () => ({ drawImage() {} }) }
   global.document = {
     createElement: () => ({ getContext: () => ({ drawImage() {} }), toBlob: callback => callback(new Blob(['png'])) }),
@@ -236,7 +236,10 @@ test('repeated appearance navigation opens and focuses the panel without duplica
   const panel = { open: false, scrollIntoView() { scroll++ } }
   const heading = { setAttribute() {}, focus() { focus++ } }
   instance.element.querySelector = selector => selector === '#shelf-appearance-heading' ? heading : panel
-  global.window = { location: { hash: '' }, history: { pushState(_state, _title, hash) { pushes++; window.location.hash = hash } } }
+  const restoration = { turbo: { restorationIdentifier: 'public-shelf' } }
+  global.window = { location: { hash: '' }, history: { state: restoration, pushState(state, _title, hash) {
+    assert.equal(state, restoration); pushes++; window.location.hash = hash
+  } } }
   const event = { preventDefault() { prevented++ } }
   instance.showAppearance(event); panel.open = false; instance.showAppearance(event)
   assert.equal(panel.open, true)
@@ -279,4 +282,74 @@ test('public shelf visitors can switch mascots repeatedly without saving owner s
   assert.ok(!instance.presentationDirty)
   assert.equal(await instance.savePresentation(),true)
  }
+})
+
+test('native sharing starts inside the gesture and ignores repeat clicks while pending', async () => {
+  const { instance } = fixture()
+  let finish, calls = 0
+  instance.profileUrl = () => 'https://trove.schweg.xyz/@owner'
+  instance.savePresentation = () => { throw Error('No asynchronous save inside share gesture') }
+  Object.defineProperty(global, 'navigator', { configurable: true, value: { share: () => { calls++; return new Promise(resolve => { finish = resolve }) } } })
+  const first = instance.nativeShare()
+  assert.equal(calls, 1)
+  await instance.nativeShare()
+  assert.equal(calls, 1)
+  finish(); await first
+  assert.equal(instance.shareStatusTargets[0].textContent, 'Profile link shared.')
+  delete global.navigator
+})
+
+test('unsupported native sharing visibly copies a profile and blocked clipboard selects a manual link', async () => {
+  const { instance } = fixture()
+  instance.profileUrl = () => 'https://trove.schweg.xyz/@owner'
+  const selected = []
+  const input = { hidden: true, parentElement: { contains: () => true }, focus: () => selected.push('focus'), select: () => selected.push('select') }
+  instance.shareLinkTargets = [input]
+  Object.defineProperty(global, 'navigator', { configurable: true, value: { clipboard: { writeText: async () => {} } } })
+  await instance.nativeShare()
+  assert.equal(instance.shareStatusTargets[0].textContent, 'Profile link copied.')
+  navigator.clipboard.writeText = async () => { throw Error('Denied') }
+  await instance.copyLink({ currentTarget: {} })
+  assert.equal(input.hidden, false)
+  assert.equal(input.value, instance.profileUrl())
+  assert.deepEqual(selected, ['focus', 'select'])
+  assert.match(instance.shareStatusTargets[0].textContent, /Clipboard unavailable/)
+  delete global.navigator
+})
+
+test('native cancel is visible and retryable; rejection offers a manual link without another permission request', async () => {
+  const { instance } = fixture()
+  instance.profileUrl = () => 'https://trove.schweg.xyz/@owner'
+  Object.defineProperty(global, 'navigator', { configurable: true, value: { share: async () => { throw Object.assign(Error('Canceled'), { name: 'AbortError' }) } } })
+  await instance.nativeShare()
+  assert.match(instance.shareStatusTargets[0].textContent, /canceled/)
+  assert.equal(instance.sharing, false)
+  navigator.share = async () => { throw Error('NotAllowedError') }
+  await instance.nativeShare()
+  assert.match(instance.shareStatusTargets[0].textContent, /Sharing unavailable.*https:/)
+  assert.equal(instance.sharing, false)
+  delete global.navigator
+})
+
+test('unsaved or saving state blocks profile sharing without persisting or changing picks', async () => {
+  const { instance } = fixture()
+  instance.savePresentation = () => { throw Error('Share must not save silently') }
+  for (const state of ['dirty', 'presentationDirty', 'presentationSaving']) {
+    instance[state] = true
+    await instance.nativeShare(); await instance.copyLink()
+    assert.match(instance.shareStatusTargets[0].textContent, /Save your shelf/)
+    instance[state] = false
+  }
+})
+
+
+test('a completed share failure cannot focus a detached page', async () => {
+  const { instance } = fixture()
+  let reject
+  Object.defineProperty(global, 'navigator', { configurable: true, value: { share: () => new Promise((_resolve, fail) => { reject = fail }) } })
+  const pending = instance.nativeShare()
+  instance.element.isConnected = false
+  reject(Error('Unavailable')); await pending
+  assert.equal(instance.sharing, false)
+  delete global.navigator
 })

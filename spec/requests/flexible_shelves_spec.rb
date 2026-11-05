@@ -24,7 +24,7 @@ RSpec.describe 'Flexible custom shelves', type: :request do
     expect(response).to have_http_status(:ok)
     page = Nokogiri::HTML(response.body)
     expect(page.css('.favorite-shelf-slots .shelf-slot').size).to eq(8)
-    expect(page.css('.shelf-action-bar button').map(&:text)).to eq(['Copy link', 'Share'])
+    expect(page.css('.shelf-action-bar button').map(&:text)).to eq(['Copy profile link', 'Share profile'])
     get shelf_path(owner.username)
     previews = Nokogiri::HTML(response.body).css('.shelf-collection-covers img, .shelf-missing-cover')
     expect(previews.size).to eq(2)

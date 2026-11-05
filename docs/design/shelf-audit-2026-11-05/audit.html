@@ -1,0 +1,592 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Trove Shelf audit</title><style>body{font:16px/1.65 system-ui,sans-serif;color:#173c35;background:#faf5e9;max-width:1100px;margin:40px auto;padding:0 24px}h1,h2,h3{font-family:Georgia,serif;line-height:1.2}h1{font-size:44px}h2{font-size:30px;margin-top:56px}a{color:#922c42}table{border-collapse:collapse;font-size:14px;display:block;overflow:auto}th,td{border:1px solid #c9c8ba;padding:12px;vertical-align:top;text-align:left;min-width:150px}th{background:#e6e8dd}pre{overflow:auto;padding:20px;background:#e6e8dd}code{overflow-wrap:anywhere}nav{padding:20px;background:#e6e8dd}p,li{max-width:90ch}@media print{body{margin:0;background:white;font-size:10pt}table{font-size:8pt}h2{break-after:avoid}a{color:inherit}}</style><nav><a href="#interactive-prototype">Open embedded interaction prototype</a> · <a href="prototype.html">Standalone prototype</a></nav><h1 id="trove-shelf-audit-and-proposed-experience">Trove Shelf: audit and proposed experience</h1>
+<p>November 5, 2026. Expert walkthrough and source review; no participant usability study. The prototype is a proposal with simulated content and persistence, not a production implementation.</p>
+<h2 id="1-executive-diagnosis">1. Executive diagnosis</h2>
+<p>Shelf's strongest job is <strong>expressing a person's taste through a deliberate arrangement of media</strong>. A good shelf says why these works belong together, makes their artwork inviting, and gives someone a reason to explore the curator. Named seasonal collections, mixed media, preserved artwork ratios, Mixtape, textures, approved mascots and shareable compositions already support that job. Keep them.</p>
+<p>The main problem is conceptual rather than a shortage of customization. “Shelf” currently describes a public directory, seven fixed favorite lists, named collections, parts of the library, an editing surface and an exported image. An Overall favorite list can wear a seasonal headline that also titles the whole directory. People cannot reliably infer which object they are viewing, changing, saving or sharing. A second problem is that sharing combines distinct promises: copy a profile URL, open a native share sheet, make an image, and publish a shelf-specific social preview. A third is that state and navigation responsibilities are spread across one large controller and several rendering systems.</p>
+<p>The direct Share report is reproducible. In deployed Chromium, native sharing is unavailable. The header Share button successfully copies the profile link but does not open a sharing interface. The toolbar Share link opens the lower details panel yet leaves the URL hash empty, the scroll at 0 and focus on the link; the sharing section remains 2,239px below the viewport. That is an observable blocked journey, not merely a styling preference. The screenshot's tiny ungrouped top links amplify the uncertainty.</p>
+<p><strong>Direction:</strong> keep the existing data identities, but present one owner workspace and one collection editor with Content, Appearance and Share sections. Public viewing is a finished exhibition. “Favorites” remains a separate concise expression of enduring taste; named shelves express a theme, season or project. Keep manual save until a coherent versioned draft contract can replace it. Do not introduce autosave piecemeal.</p>
+<p>The accompanying focused PR repairs navigation/focus, sharing feedback, manual recovery and toolbar consistency, and corrects misleading link copy. The complete redesign below is an isolated proposal. No schema changes, production writes, merge or deployment belong to this deliverable.</p>
+<h2 id="2-evidence-scope-and-baseline">2. Evidence scope and baseline</h2>
+<ul>
+<li>Source: <code>schwegler/media_inventory</code>, default branch <code>master</code>, inspected <code>8b810e3c9f526a173f91c9e0fb7c9296ba418144</code>. Original <code>/workspace/media_inventory</code> checkout was clean on branch <code>work</code> at <code>3e33fe7</code>; all work is isolated in <code>/workspace/shelf-fixes</code>, branch <code>fix/shelf-share-navigation</code>.</li>
+<li>Read <code>AGENTS.md</code>, README setup/test instructions, database configuration, Shelf source/specs and the supplied 204-line brief. No feature-specific <code>.agents/skills</code> directory exists in the checkout.</li>
+<li>GitHub confirms #707, #720 and #721 merged. #707 repaired editor palettes and overview navigation. #720 intentionally made copied/native/export links point to the profile and restored visitor mascot selection. #721 added explicit owner appearance entry, scope, undo and section navigation. These improvements are retained. Documentation predating them contains obsolete five-item collection and style-carrying-link claims.</li>
+<li>Parent's deployment evidence identifies deployment 2284603 at this revision, successful 18:15 UTC. Independent live inspection confirms the expected controls and behavior; no independent deployment identity endpoint was found, so matching HTML is not itself a commit attestation.</li>
+<li>Supplied screenshot <code>image(20261105-184544).png</code> was materialized and its actual pixels inspected. It shows signed-in owner navigation on a public <strong>Overall favorites</strong> view, global headline “x-mas picks...”, five mixed picks, Christmas paper/Mixtape, two Share controls, lower Story preview, and public export mascot selection. It does not show a named collection editor. This distinction matters: “2026 Faves” is a separate named shelf on the live overview.</li>
+<li>Live read-only Chromium: exact supplied URL at 1280×900; default <code>/@schwegler/shelf</code> at 390×844. No page JavaScript errors captured; mobile overview had no horizontal overflow. Native share was undefined, clipboard present. No social post was sent. Browser trust was restricted to the environment's configured CA keys.</li>
+<li>Production owner writes were not attempted. Owner, signed-in non-owner and anonymous authorization/interaction checks use disposable local fixtures and existing request/system specs. A visitor preview flag is not proof of authorization.</li>
+<li>Browser checks represent desktop Chromium emulation, not physical iOS/Safari/Android or every theme permutation. Screenshots of real content remain internal evidence, not exported deliverables. New designs use simulated jackets and titles. Test execution and limitations are recorded in <code>verification.md</code>; suggested tests below are not claims of execution.</li>
+</ul>
+<p>Evidence notation: <strong>O</strong> observed live/supplied pixels; <strong>C</strong> code-supported; <strong>I</strong> documented intent; <strong>H</strong> design hypothesis. Confidence describes evidence strength, not impact. Root-cause links below reference repository paths and symbols on the inspected baseline.</p>
+<h2 id="3-current-concepts-architecture-and-journeys">3. Current concepts, architecture and journeys</h2>
+<h3 id="product-purpose-and-boundaries">Product purpose and boundaries</h3>
+<p>A Shelf lets a curator select, order and present works that express something about their taste. Its primary outcome is a coherent public collection worth exploring and sharing. Secondary uses are concise favorites, seasonal recommendations, personal thematic lists and image compositions. Favorites and named shelves already exist; explicit context explanations, integrated editing and proposed starter templates are design changes. Shelf selection does not mean ownership, a rating, consumption progress or a private library record. Those remain separate systems. Public selections should never imply a private library item or disclose a review/progress state.</p>
+<h3 id="current-concept-map">Current concept map</h3>
+<pre><code class="language-text">Profile /@handle ── Shelf tab ── Public directory /@handle/shelf
+                                   ├─ FavoriteShelf overall (manual, mixed, ≤5)
+                                   ├─ FavoriteShelf media category ×6 (manual, ≤5 each)
+                                   └─ ShelfCollection ×N (stable slug, own metadata/presentation)
+Owner menu My Shelf ── /shelves workspace
+                        ├─ create / settings / archive / restore named shelf
+                        ├─ /shelves/:slug/edit → public template + owner controls
+                        └─ favorites editor / appearance editor → same public template
+Any exhibition ── copy/native → Profile URL
+               ├─ canvas download → local PNG, first five picks per rendered group
+               └─ owner publication → attached shelf-specific landscape preview
+Title pages ── PublicShelfMembership → eligible public selections
+Library / ratings / progress ── separate personal records, not required for picks
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Current label</th>
+<th>Actual meaning</th>
+<th>User-facing problem</th>
+<th>Recommended treatment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Shelf / All shelves</td>
+<td>Public directory of favorites and named collections</td>
+<td>Singular headline can imply one collection</td>
+<td>“Schwegler's shelves”; breadcrumb to profile</td>
+</tr>
+<tr>
+<td>Overall</td>
+<td>Independent mixed-media favorite list, not aggregate</td>
+<td>Sounds derived from category lists</td>
+<td>“All-time favorites”; explain independent selection</td>
+</tr>
+<tr>
+<td>Favorite shelves</td>
+<td>Seven fixed lists, each up to five</td>
+<td>Same weight as thematic collections, even when sparse</td>
+<td>Favorites section, one main list plus optional categories</td>
+</tr>
+<tr>
+<td>Custom shelves</td>
+<td>Named independent collections</td>
+<td>“Custom” describes implementation, not user purpose</td>
+<td>“Your shelves” in workspace; “Collections” on public directory</td>
+</tr>
+<tr>
+<td>Shelves workspace / My Shelf</td>
+<td>Owner-only management</td>
+<td>Different names for same destination</td>
+<td>“Manage shelves” consistently</td>
+</tr>
+<tr>
+<td>Shelf headline</td>
+<td>Account-wide heading for directory and favorites</td>
+<td>Seasonal title appears to name everything</td>
+<td>“Public introduction”; named shelf title is distinct</td>
+</tr>
+<tr>
+<td>Appearance &amp; share image</td>
+<td>Persistence controls plus export tooling</td>
+<td>Scope and outcome are mixed</td>
+<td>Appearance section with scope; separate Share section</td>
+</tr>
+<tr>
+<td>Copy link / Share</td>
+<td>Profile copy/native vs local sharing section</td>
+<td>Same label, different effects</td>
+<td>“Copy profile link”, “Share profile”, “Share &amp; export”</td>
+</tr>
+<tr>
+<td>Publish share preview</td>
+<td>Shelf-specific landscape attachment, plus discovery eligibility</td>
+<td>Sounds like publishing the shelf itself</td>
+<td>“Update shelf link preview”; explain shelf already public</td>
+</tr>
+<tr>
+<td>Profile library shelf</td>
+<td>Personal catalog presentation</td>
+<td>Shelf also means curation</td>
+<td>Label “Library” in navigation and instructional copy</td>
+</tr>
+</tbody>
+</table>
+<h3 id="current-technical-responsibilities">Current technical responsibilities</h3>
+<p>The profile Overview also reuses the first three Overall picks through <code>UsersController#profile_favorites</code>; it does not derive them from personal library membership. This is a useful existing connection to retain. A named collection does not replace that profile preview.</p>
+<p><code>ShelvesController#show/load_presentation</code> resolves identity, saved presentation, category/overview, picks and preview attachment. <code>ShelfWorkspaceController</code> adds owner context, creation nonce, settings/archive/version checks. <code>FavoriteShelf</code> validates manual unique picks (max five) across six media types; <code>ShelfCollection</code> allows 1,000, preserves existing oversized records, and has a 1–12 overview preview count. Its preview count is not export capacity: <code>shelf_image.js#renderShelfImage</code> renders at most five picks per group. <code>favorite_shelf_controller.js</code> owns picking/import, search, ordering, save/version, presentation, history, copy/native, preview rendering and publication. ERB/Sass and canvas have separate layout/theme rules. <code>PublicShelfMembership</code> and <code>ShelfPublicationLookup</code> implement bounded discovery lookup; direct named links do not require current preview publication.</p>
+<h3 id="journey-inventory">Journey inventory</h3>
+<table>
+<thead>
+<tr>
+<th>Journey / entry</th>
+<th>Actions, feedback and state</th>
+<th>Exit and recovery / evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Discover, anonymous profile</td>
+<td>Shelf tab opens directory; populated collections and favorites are public; “Make your own shelf” invites signup</td>
+<td>Profile remains an alternative; purpose copy exists, but favorites vs collections is unexplained (O/C)</td>
+</tr>
+<tr>
+<td>New owner, My Shelf</td>
+<td>Username gate if absent; workspace offers Create your first shelf; title/context/mood form creates a stable identity</td>
+<td>Redirect into empty editor, then add a title. Creation token handles repeat submit; invalid form retains errors (C, local specs)</td>
+</tr>
+<tr>
+<td>Existing owner curate</td>
+<td>Choose list; click empty slot/Replace/Add; search Trove catalog or external source by media type; select; reorder with earlier/later buttons; Save shelf</td>
+<td>Explicit saving/saved/error status. Dialog close restores opener. Failed catalog import preserves query. External import creates catalog media, not personal LibraryItem (C)</td>
+</tr>
+<tr>
+<td>Favorites vs named maintenance</td>
+<td>Workspace separates defaults and collections; settings changes mix/preview count; archive requires exact title; restore preserves slug/picks</td>
+<td>Archived public link unavailable until restore. Narrowing types retains existing picks. Concurrent settings detect version mismatch (C)</td>
+</tr>
+<tr>
+<td>Appearance from public owner view</td>
+<td>Customize appearance enters appropriate editor/deep link; choose theme/layout/advanced; save or undo</td>
+<td>#721 already provides section focus, guard and snapshot handling. Favorites/directory share appearance; each named shelf is independent (C)</td>
+</tr>
+<tr>
+<td>Public exhibition, any visitor</td>
+<td>Artwork and title links reach media pages; category links and All shelves navigate; profile context visible</td>
+<td>Empty named shelves hidden from directory; direct empty named URL still possible. No editing authorization granted to visitor mode (C)</td>
+</tr>
+<tr>
+<td>Share/export</td>
+<td>Header Share attempts native or clipboard; toolbar Share opens details; format/mascot/preview/download below</td>
+<td>Live toolbar did not navigate to opened panel. Copy/native destination intentionally profile. PNG and shelf-specific OG preview are separate products (O/C/I)</td>
+</tr>
+<tr>
+<td>Return later</td>
+<td>Saved metadata/order/presentation come from database. URL styles only win before saved presentation exists; localStorage written but not restored on connect</td>
+<td>Reload loses unsaved draft by design with navigation guard; hashes reopen sections. Arbitrary URLs should not be assumed saved (C)</td>
+</tr>
+<tr>
+<td>Recovery</td>
+<td>Save/version failures retain client picks/choices; import/search retry; image load timeout fallback; expired login returns unsuccessful fetch</td>
+<td>Need dedicated stale/edit-session guidance and conflict resolution beyond generic reload; no claim of recovery tested on real production data (C/H)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="4-prioritized-findings-and-root-causes">4. Prioritized findings and root causes</h2>
+<p>Severity: S1 blocked core task/access/data risk; S2 major recurring confusion; S3 friction; S4 polish. No confirmed data loss or authorization failure was observed.</p>
+<table>
+<thead>
+<tr>
+<th>ID / severity / confidence</th>
+<th>Scope and reproduction / expected → observed</th>
+<th>Consequence, cause and remedy / verification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SH-01 · S1 · high</td>
+<td>All public roles, desktop; click toolbar Share on exact live URL. Expected visible focused sharing controls → details opens, hash empty, scroll 0, section 2,239px below. O; controller <code>showSharing</code> only sets open.</td>
+<td>Core action looks dead. Reuse #721's <code>navigateAppearanceSection</code>, explicit hash/focus/scroll; label Share &amp; export. Verify repeated clicks after close, keyboard, Back/Forward and phone. <strong>Focused fix.</strong></td>
+</tr>
+<tr>
+<td>SH-02 · S2 · high</td>
+<td>Public header Share in Chromium; no native API → clipboard succeeds, global status changes. Native API path awaits saving before share; rejection triggers another clipboard request; cancel silent. C/O.</td>
+<td>No clear outcome or visible fallback; native activation may expire on network save. Immediate native invocation for saved state; block dirty/saving state with message; local status; cancel text; selectable manual URL. Unit-test promise rejection/repeat clicks and mocked browser capabilities. <strong>Focused fix.</strong></td>
+</tr>
+<tr>
+<td>SH-03 · S2 · high</td>
+<td>Public header Copy link vs lower Copy profile link; advanced help promises style-carrying copied links. C/I #720.</td>
+<td>Destination is deliberately profile, so current copy is false. Use profile-specific labels and explain image scope. Keep canonical profile URL. Verify actual clipboard/native payload has no query/collection. <strong>Focused fix.</strong></td>
+</tr>
+<tr>
+<td>SH-04 · S3 · high</td>
+<td>Screenshot owner toolbar: six small plain links beside separate outlined actions; overview link has special owner styling. O/C <code>_toolbar</code>, accumulated Sass rules.</td>
+<td>Weak grouping makes primary work hard to find. Uniform outlined nav links, 44px target, readable UI type/current/focus; reserve filled style for task action. Screenshot + keyboard checks across themes. <strong>Focused fix.</strong></td>
+</tr>
+<tr>
+<td>SH-05 · S2 · high</td>
+<td>“x-mas picks...” appears on Overall and whole directory; selected picks are manual independent favorites. O/C <code>show</code>, <code>FavoriteShelf</code>, header.</td>
+<td>A user may believe seasonal collection edits affect one named shelf. Separate public introduction from named title; rename Overall; show identity breadcrumb and scope. Preserve existing headline data; migrate labels only initially. Test distinct headings/routes.</td>
+</tr>
+<tr>
+<td>SH-06 · S2 · high</td>
+<td>Profile owner “Edit shelf selections” links public <code>category=overall</code>, which now intentionally displays visitor template. C <code>users/show:28</code>.</td>
+<td>Misleading edit entry requires another action. Point label at actual favorites editor or rename “View favorites”; proposed phase 1 fix, not silently bundled. Request test route/role and end-to-end profile entry.</td>
+</tr>
+<tr>
+<td>SH-07 · S2 · high</td>
+<td>Publication lives on shelf layout OG image, while copied/native link opens profile; application layout uses <code>yield(:meta_image)</code>, profile does not supply shelf preview. C <code>layouts/shelf</code>, <code>layouts/application</code>, users view.</td>
+<td>Updating a shelf preview does not establish what profile URL unfurl shows. Preserve profile default; explicitly explain shelf-link preview and its discovery role. Offer separately labeled direct shelf URL only as deliberate future capability. Test both destination metadata contracts; no claim of social cache refresh.</td>
+</tr>
+<tr>
+<td>SH-08 · S2 · high</td>
+<td>Collection supports 1,000 picks; settings overview count 1–12; canvas uses first five; its footer and alt text already disclose truncation, while the primary action does not. C.</td>
+<td>A full-shelf image expectation is unmet; preview length looks like export control. Label Overview covers separately and “Image includes first 5 of N”; preserve all content. Test N=0/1/5/6/12/1,000; never truncate stored picks.</td>
+</tr>
+<tr>
+<td>SH-09 · S2 · medium</td>
+<td>Editing uses combined public template; separate headline form, picks PATCH, presentation PATCH and settings submit have different save boundaries. C <code>show</code>, <code>save</code>, <code>savePresentation</code>, workspace form.</td>
+<td>“Save shelf” can mean less than users assume. Proposed single explicit Save changes with one versioned payload for content+appearance, metadata settings clearly scoped. Keep existing manual saves until API contract exists; race/stale tests before consolidation.</td>
+</tr>
+<tr>
+<td>SH-10 · S3 · high</td>
+<td><code>applyTheme</code> appends saved style parameters to every <code>data-shelf-link</code>, including workspace/settings; saved nonempty presentation entirely overrides URL. localStorage writes are unused on connect. C.</td>
+<td>URL implies control it may not have and leaks irrelevant presentation context. Typed link policy: identity in URL; section hash in editor; saved presentation from destination; legacy styles honored only as existing fallback. Remove unused storage later with compatibility tests.</td>
+</tr>
+<tr>
+<td>SH-11 · S3 · medium</td>
+<td>Up to 1,000 collection picks all rendered in public/editor DOM; custom collection membership <code>items</code> can resolve all items for selected shelf; preview lookup instantiates owner attachment history in helper. C risk, no benchmark.</td>
+<td>Large shelves may slow editing/preview and increase memory. Measure DB/DOM/render/cover requests at 100/1,000; add bounded pages/selection virtualization only if justified; never let canvas constrain public content. Performance budget is an acceptance hypothesis.</td>
+</tr>
+<tr>
+<td>SH-12 · S3 · medium</td>
+<td>Source has multiple cumulative shelf Sass blocks, separate canvas theme/layout normalization, broad controller; old docs still state both collections max five and copied links carry styles. C.</td>
+<td>Fixes drift across page/export/docs. Extract share interaction, versioned presentation normalization and export manifest; keep rendering implementations independent. Contract tests and update current docs; historical design alternatives clearly dated.</td>
+</tr>
+<tr>
+<td>SH-13 · S3 · medium</td>
+<td>Sparse favorites cards contain five placeholder jackets even when real selections fewer; overview has significant dead space around collection imagery in mobile observation. O/C.</td>
+<td>Empty placeholders can look like broken covers; density is uneven. Public cards show actual count/artwork only and explicit no-selection copy; owner editor keeps add slots. Validate missing art vs empty slot separately, long titles and 200%/400% zoom.</td>
+</tr>
+</tbody>
+</table>
+<p>Retain existing safeguards: server owner authorization; catalog imports independent of library; stable random-suffixed slugs on rename; archive rather than destructive delete; version checks and user locks; immutable snapshots during asynchronous saves; cover containment/fallback; reduced-effects handling; keyboard reorder; rendering work delayed until preview opened. Passing tests are counterevidence to broad claims that all customization is broken. The observed Share failure is specific.</p>
+<h2 id="5-recommended-model-and-flows">5. Recommended model and flows</h2>
+<p>Considered: (A) improve the exhibition editor in place; (B) a dedicated workspace with one cohesive editor; (C) a freeform visual canvas. A is cheap but preserves confusing mixed public/editor responsibilities. C offers flexibility at high keyboard/mobile/state cost and adds unnecessary layout machinery. <strong>Choose B</strong>, keeping public exhibitions and existing Rails/Stimulus architecture.</p>
+<p>The primary owner screen is <strong>Manage shelves</strong>. Main action: Create shelf. Show “Your shelves” first, then “All-time favorites” and optional media favorites, then archive. Each card has Edit and View; settings are inside the editor. New owner copy: “Make a shelf about something you love. Start with a title, add a few works, and make it yours.” Main action “Create your first shelf”; optional “Choose all-time favorites.” Creation asks title and optional context, with Everyday/Christmas/Halloween starting moods; media restrictions and overview cover counts remain advanced settings. No forced visual configuration.</p>
+<p>The editor breadcrumb names the exact shelf. Content is default: Add titles, search source/type, selected count, move earlier/later/remove, optional lead note later. Appearance contains a theme preset and layout first; background and approved mascot choices under More appearance. A sticky Save changes bar says exactly what is unsaved. Preview as visitor is separate and restores editor location. Share is available when saved and explains the profile URL, image count and separate preview publication. Public pages expose curator, title/context, content links, All shelves, profile and Share &amp; export; owner tools form a quiet authenticated management strip.</p>
+<pre><code class="language-text">CURRENT: Profile / menu → public overview OR workspace → editor OR settings
+         public/editor → combined appearance + export → profile URL / PNG / shelf preview
+         user must infer identity, save scope and sharing destination
+
+PROPOSED: Profile → public shelves → finished collection → media / curator
+          Manage shelves → Create(title + optional mood) → Content
+          Content ↔ Appearance ↔ Share (same identity and draft)
+          Save changes → saved public version → Preview as visitor → return to same editor
+          Share → Copy profile / Share profile / Download image / Update shelf link preview
+          Settings → rename/mix/overview count/archive → same stable identity
+</code></pre>
+<p>Christmas/Mixtape and Everyday/Gallery use the same controls and save model. The artwork and palette change, not the workflow. The prototype's visible annotations explain each design decision. Optional user notes, collaboratively maintained shelves and arbitrary canvas positioning are not essential to this model and are excluded from the core release.</p>
+<h2 id="6-annotated-designs-and-prototype">6. Annotated designs and prototype</h2>
+<p>Open <code>prototype.html</code> through a static server or directly as a local HTML file. Everything is simulated and isolated: no API calls, accounts, analytics or real media images. It contains mixed-ratio synthetic jackets, both Christmas/Mixtape and Everyday examples, persistent-in-memory saved/draft state, empty/new-user mode, add/remove/order, appearance controls, visitor preview, Share dialog, manual profile copy fallback and explicit publication state. Reload resets the demo. Browser history switches screens; Cancel/discard leaves saved state intact. Simulated save failure is recoverable. Buttons marked simulated never post anywhere.</p>
+<table>
+<thead>
+<tr>
+<th>Screen / annotation</th>
+<th>Desktop specification</th>
+<th>Mobile specification and transitions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Manage / 1</td>
+<td>Header + Create shelf; cards show title/count/theme, Edit and View; favorites below; new-user toggle demonstrates onboarding</td>
+<td>Single column; Create stays first; full-width card actions. Create → editor, empty Content tab</td>
+</tr>
+<tr>
+<td>Content / 2</td>
+<td>Breadcrumb identity, Content/Appearance/Share; count/capacity explanation; mixed-media tiles; visible ordered list and move buttons</td>
+<td>Two columns where space permits, single at 320px; title and move controls wrap; search dialog uses full available width</td>
+</tr>
+<tr>
+<td>Appearance / 3</td>
+<td>Live composition beside grouped presets; “Changes apply only to [title]”; advanced texture/mascot; sticky explicit Save/Undo</td>
+<td>Controls precede preview; no side-scrolling radio grid; preview is optional scroll target. Theme switch preserves picks and other settings</td>
+</tr>
+<tr>
+<td>Finished visitor / 4</td>
+<td>Curator → collection title/context → contained mixed art; quiet All shelves/Profile; one Share &amp; export</td>
+<td>Same hierarchy; actual sparse count, no fake media. Return to editing restores section and draft</td>
+</tr>
+<tr>
+<td>Share / 5</td>
+<td>Profile destination visibly distinct from image and shelf-link metadata; portrait/landscape; “First 5 of N”; saved/publication statuses</td>
+<td>Accessible dialog with close/Escape/focus return; actions stack; selectable URL if clipboard denied. Publication is independent of content visibility</td>
+</tr>
+<tr>
+<td>Save/error / 6</td>
+<td>Dirty status survives edits; error says “Your changes are still here. Try saving again”; stale state requires comparison/reload in production</td>
+<td>Sticky bar stays clear of content at zoom; error status announced. Retry saves existing draft; Undo restores saved content and presentation</td>
+</tr>
+</tbody>
+</table>
+<p>The prototype is interaction evidence for feasibility, not proof of usability or a production renderer substitute. Proposed captions can be evaluated against the real export renderer in engineering. Synthetic art deliberately demonstrates proportions and missing artwork without copying the owner's private editing screenshot into deliverables.</p>
+<h2 id="7-state-persistence-permissions-and-compatibility-contracts">7. State, persistence, permissions and compatibility contracts</h2>
+<h3 id="existing-baseline-verified-from-code">Existing baseline, verified from code</h3>
+<table>
+<thead>
+<tr>
+<th>State</th>
+<th>Authority / precedence / trigger</th>
+<th>Public effect and navigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Category / collection / overview</td>
+<td>URL: active collection takes priority; valid category selects fixed list; absent/invalid category on public show becomes overview</td>
+<td>Identity survives direct links; collection slug stable on rename; archived lookup unavailable</td>
+</tr>
+<tr>
+<td>Favorite picks</td>
+<td><code>FavoriteShelf.picks</code>, manual ≤5, type restrictions, Save shelf PATCH</td>
+<td>Public immediately after successful save; category and overall independent</td>
+</tr>
+<tr>
+<td>Collection picks / title / description</td>
+<td><code>ShelfCollection</code>, up to operational capacity ≥1,000; title≤80/context≤240; settings and picks separate saves</td>
+<td>Public immediately; archive hides, restore preserves identity; changing mix retains existing excluded types</td>
+</tr>
+<tr>
+<td>Theme/layout/texture/companion</td>
+<td>Entire nonempty saved collection presentation or account shelf presentation wins over URL; otherwise URL normalized; defaults midnight/exhibition/clean/auto</td>
+<td>Favorites share account presentation; named independent; no automatic seasonal time decision. Auto companion resolves from theme</td>
+</tr>
+<tr>
+<td>Client appearance</td>
+<td>Controller draft, writes localStorage but no connect restoration; owner Save appearance PATCH; visitor can alter mascot locally</td>
+<td>Unsaved editor choices guarded; visitor mascot not persisted; format is export-only and defaults portrait</td>
+</tr>
+<tr>
+<td>Published image</td>
+<td>Explicit owner landscape PNG attachment keyed by category/theme/style/signature</td>
+<td>Shelf-specific OG lookup; missing/stale gives site fallback. External crawlers may retain old URL/image caches beyond app invalidation</td>
+</tr>
+<tr>
+<td>Discovery</td>
+<td>Confirmed username + attachment candidates; named shelf needs matching signature; bounded recent candidates</td>
+<td>Editing invalidates matching named publication; republish restores eligibility, subject to candidate window. Direct active shelf stays public independently</td>
+</tr>
+</tbody>
+</table>
+<h3 id="proposed-contracts-for-the-complete-redesign">Proposed contracts for the complete redesign</h3>
+<table>
+<thead>
+<tr>
+<th>Domain</th>
+<th>Authoritative source / scope / precedence</th>
+<th>Write and navigation</th>
+<th>Visitor, failure and fallback</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Identity</td>
+<td>Existing record IDs/slugs; favorites keep category key</td>
+<td>Creation once; stable slug on rename; editor paths private context, public route unchanged</td>
+<td>Old direct links continue; archive returns unavailable without disclosing owner editor; restore revives same URL</td>
+</tr>
+<tr>
+<td>Picks/order</td>
+<td>Ordered typed IDs, no derived synchronization to library/favorites</td>
+<td>Draft Content edits; one versioned Save changes transaction for content+appearance</td>
+<td>Saved order only; removed catalog items render unavailable caption/count policy, do not silently reassign positions</td>
+</tr>
+<tr>
+<td>Metadata</td>
+<td>Named title/context on collection; account introduction separately labeled</td>
+<td>Explicit Save; settings version token; shared identity across title and preview</td>
+<td>Escaped text; long titles wrap; URL survives rename. Invalid form retains entered values</td>
+</tr>
+<tr>
+<td>Presentation</td>
+<td>Collection saved config, else documented legacy URL fallback; account defaults only for favorites</td>
+<td>Draft in editor; Save changes; defaults copied at creation rather than live-coupled inheritance</td>
+<td>Visitors see saved version; export-only changes labeled temporary; approved legacy themes/layout values retained</td>
+</tr>
+<tr>
+<td>Save status</td>
+<td>Saved revision + draft revision; one in-flight transaction; optimistic version</td>
+<td>Dirty → Saving → Saved or Error/Conflict. Edits during save stay dirty; saved snapshot is submitted snapshot</td>
+<td>Never mark newer draft saved; failed save retains draft; expired session offers sign-in and recovery, not blind resubmit</td>
+</tr>
+<tr>
+<td>Undo / reset / cancel</td>
+<td>Last successful snapshot; default preset is a separate explicit action</td>
+<td>Undo changes restores snapshot; Reset appearance previews defaults then requires Save; Cancel prompts only if dirty</td>
+<td>No destructive content reset hidden behind appearance. Navigation discard affects local draft only</td>
+</tr>
+<tr>
+<td>Permissions</td>
+<td>Server current user and record ownership on every write</td>
+<td>Public preview changes no authorization; CSRF on writes; owner-only editor noindex/cache policy</td>
+<td>Non-owner/anonymous cannot mutate, even forged IDs; requests test server behavior independently of absent buttons</td>
+</tr>
+<tr>
+<td>URLs/history</td>
+<td>Public identity only, optional legacy normalized style; section hash for editor navigation</td>
+<td>Back/Forward restores section; same-section click reopens/focuses without duplicate entry; leave guard for dirty draft</td>
+<td>Profile share URL remains canonical <code>/@handle</code>. No owner tokens/version/draft in links or PNGs. Invalid style falls back, never 500</td>
+</tr>
+<tr>
+<td>Share destination</td>
+<td>Profile for default Copy/Share and image footer, per #720</td>
+<td>No implicit save from native gesture; prompt to save first; call native in gesture; manual selectable link on rejection</td>
+<td>Native cancel leaves page usable; unsupported native copies with visible feedback; blocked clipboard never looks successful</td>
+</tr>
+<tr>
+<td>Export manifest</td>
+<td>Immutable saved identity, first five displayed picks, normalized presentation, requested format and canonical profile</td>
+<td>Portrait/landscape create downloadable image only; artwork timeouts caption fallback</td>
+<td>Count/truncation explicit; alt text matches exported subset; no fake picks; no CORS tainted export or hidden social posting</td>
+</tr>
+<tr>
+<td>Shelf preview publication</td>
+<td>Explicit shelf-specific landscape asset for saved revision</td>
+<td>“Update shelf link preview”; content remains public before publication; signature invalidates after edit</td>
+<td>Clearly not the profile URL unfurl. Cached social clients outside control; show last published revision/stale status and retry</td>
+</tr>
+<tr>
+<td>Renderer parity</td>
+<td>Shared normalized manifest/test fixtures, separate DOM and canvas layouts</td>
+<td>Golden contract fixtures and geometry checks; no new theme engine</td>
+<td>Preserve contained art and semantic captions; missing cover text and approved mascot choice consistent</td>
+</tr>
+</tbody>
+</table>
+<p>Required API change for consolidated editing: add a versioned payload accepting picks and presentation atomically, reject stale updates without partial writes, return new version plus submitted snapshot identity. No schema migration is inherently needed for that step. A durable server draft or conflict comparison UI would need a separately scoped design; do not store sensitive draft data in public URLs. Optional published-at/revision display can derive from attachments first; add schema only if history requirements demand it.</p>
+<p>Compatibility: keep old routes, keys, slugs, valid saved configurations, six media types, archive state and all picks. Introduce display labels before structural changes. Do not convert Overall into a derived list, rename slugs, or collapse category records. Old presentation URLs retain current fallback semantics; document that saved owner appearance wins. Republish can refresh app preview eligibility but cannot force an external service to evict a cached image. Renamed usernames remain a wider account-link compatibility concern; this audit proposes no unverified alias migration.</p>
+<h2 id="8-dependency-ordered-engineering-plan">8. Dependency-ordered engineering plan</h2>
+<p>Effort is relative: S 1–2 focused days, M several days, L roughly 1–2 weeks including review, not a commitment.</p>
+<table>
+<thead>
+<tr>
+<th>Phase / package</th>
+<th>Problem and intended result / code</th>
+<th>Dependencies, compatibility, effort</th>
+<th>Observable acceptance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1A immediate sharing + toolbar</td>
+<td>Repair SH-01–04; focused PR controller, shelf views/Sass/specs</td>
+<td>No migrations; preserve #720/#721; S</td>
+<td>Both actions produce the named result; section visible/focused; native/clipboard reject recoverably; top targets ≥44px</td>
+</tr>
+<tr>
+<td>1B identity and truthful entry labels</td>
+<td>SH-05/06/08; profile links, headings, workspace copy, export count</td>
+<td>Inventory current labels; no record or slug changes; S</td>
+<td>Owner reaches correct editor from profile; can state collection vs favorites; image subset disclosed</td>
+</tr>
+<tr>
+<td>1C preview contract and docs</td>
+<td>SH-07/10/12; shelf/profile metadata specs, current docs, typed link helper</td>
+<td>Preserve profile default; decide optional direct link only after design review; S/M</td>
+<td>Profile/shelf unfurls independently tested; no style-travel claim; irrelevant params absent from management links</td>
+</tr>
+<tr>
+<td>2A editor shell and responsive sections</td>
+<td>One identity + Content/Appearance/Share; small ERB components, Stimulus section controller</td>
+<td>After phase 1 labels; retain old routes as entry redirects; M</td>
+<td>New user creates and adds useful mixed picks; existing owner finds saved shelf and returns from visitor preview</td>
+</tr>
+<tr>
+<td>2B atomic save contract</td>
+<td>Combined versioned transaction; Rails update service and draft controller</td>
+<td>Before unified Save; no required schema; M</td>
+<td>Concurrent/stale test rejects whole update; pending edits remain dirty; retry/undo never lose selections</td>
+</tr>
+<tr>
+<td>2C curation and scalable overview</td>
+<td>Search/source context, capacity/truncation, actual sparse cards; models/services remain typed</td>
+<td>2A; benchmark before pagination; M</td>
+<td>Local/external add does not add ownership; ordering keyboard works; 1,000-pick shelf remains editable without truncation</td>
+</tr>
+<tr>
+<td>2D appearance and export parity</td>
+<td>Scoped presets + advanced controls; shared manifest normalizer; separated share controller</td>
+<td>2A/2B; keep legacy options/assets; M</td>
+<td>Christmas/Mixtape and Everyday produce coherent page/image/alt text; format/mascot do not cross-save scopes</td>
+</tr>
+<tr>
+<td>2E publication/recovery</td>
+<td>Saved vs stale preview; explicit retry and auth/stale handling</td>
+<td>2B/2D; optional attachment metadata only; M</td>
+<td>Public before publication; named discovery pauses/restores; profile URL promises remain accurate; error retains draft</td>
+</tr>
+<tr>
+<td>3A scale optimization</td>
+<td>SH-11 measured query/DOM/cover work</td>
+<td>Benchmark 100/1,000 first; no speculative virtualization; M/L</td>
+<td>Set measured regression bounds; bounded DB work and responsive controls at supported capacity</td>
+</tr>
+<tr>
+<td>3B expression enhancements</td>
+<td>Optional shelf notes, starter content prompts, image subset selection</td>
+<td>After core usability evidence; preserve order and links; M</td>
+<td>A test user can explain preserved identity and subset; no expansion ships without a clear task benefit</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Smallest coherent release:</strong> phase 1A plus truthful labels/counts and corrected entry destinations from 1B/1C. It fixes the dead-looking action and prevents the UI from misrepresenting destination or identity. The complete phase 2 should ship in independently reviewable changes behind an isolated preview until atomic save and parity tests pass. No speculative large redesign is included in the focused implementation.</p>
+<p>Verification plan uses existing RSpec request/model/system, Node tests and Chromium helpers. Request/model: forged non-owner update, stale token, media validation, archive/restore, preview invalidation, no LibraryItem side effect. Frontend: exact native invocation timing, copy fallback, cancellation, repeat click, detached responses, edits during save, manifest parity, hash history/focus. End-to-end: new owner→first mixed collection→save→public→share; existing favorites and named contexts; anonymous/non-owner read and forbidden mutation; search dialog Escape/focus; stale/error retry. Visual: 320/390/768/1280 widths, 200%/400% zoom, all palettes for contrast, representative Gallery/Feature/Mixtape, long headings, no/sparse/full art, portrait/square/landscape covers, missing/slow/CORS art, both PNG dimensions, approved mascots, reduced motion and keyboard reorder.</p>
+<p>Success criteria are tasks, not polish ratings: newcomer can find/create/add/save a meaningful shelf; owner can identify what Save changes affects; visitor recognizes curator/context and reaches media/profile; share output matches named destination/appearance. Expert walkthrough is not user research. A follow-up study should observe 5–8 new/existing users with both example moods, record task completion, mistaken destinations and recovery, then establish time baselines. Proposed targets such as ≥80% unaided first-shelf completion or fewer than one mistaken destination per session are hypotheses until measured. Return usage can be evaluated later with existing consent-respecting metrics; a new analytics platform is unnecessary.</p>
+<h2 id="9-verification-and-remaining-decisions">9. Verification and remaining decisions</h2>
+<p>See <code>verification.md</code> for actual commands, outcomes and final PR/CI head. No production writes, migrations, merge, deployment, social post or real account changes were performed. Live reproduction was anonymous; signed-in owner behavior is verified only to the extent listed in local fixture checks. Safari/iOS activation and actual social crawler caching remain unverified.</p>
+<p>No routine design choice needs to block the focused fix. Before any broader implementation, approve the proposed product contract as a concrete package: retain independent favorites and named shelves, keep profile default sharing, distinguish shelf preview publication, and unify saves only with a versioned transaction. An optional direct shelf-link action is a future decision, not a reversal of #720 hidden in this PR. Real usability results may change labels or hierarchy; preserve identities and content while iterating.</p><h2 id="interactive-prototype">Interactive prototype</h2><p>Simulated content and persistence. This embedded copy makes the report self-contained; no account or production calls.</p><iframe title="Isolated Shelf redesign prototype" sandbox="allow-scripts allow-modals allow-same-origin" style="width:100%;height:1000px;border:1px solid #c9c8ba;border-radius:12px" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;&lt;title&gt;Trove Shelf — proposed experience&lt;/title&gt;
+&lt;style&gt;
+:root{--ink:#183c36;--paper:#fbf4e4;--line:#c5c4b4;--accent:#aa2942;--panel:#fffaf0;font:16px/1.5 system-ui,sans-serif;color:var(--ink);background:var(--paper)}*{box-sizing:border-box}body{margin:0}button,input,select,textarea{font:inherit}button,a.button{min-height:44px;border:1px solid var(--line);border-radius:8px;padding:10px 16px;background:var(--panel);color:var(--ink);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px}button:hover{border-color:var(--ink)}button:disabled{opacity:.5;cursor:default}button.primary{background:var(--accent);color:white;border-color:var(--accent)}button.quiet{border-color:transparent;background:transparent}a{color:inherit}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:3px}h1,h2,h3{font-family:Georgia,serif;font-weight:500;line-height:1.15}h1{font-size:clamp(2rem,5vw,3.5rem);margin:16px 0}h2{font-size:1.8rem}h3{font-size:1.3rem}p{max-width:70ch}.banner{padding:10px 24px;background:#183c36;color:white;font-size:13px}.site{max-width:1200px;margin:auto;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line)}.brand{font-weight:800;font-size:24px}.site nav,.actions,.tabs,.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}main{max-width:1200px;margin:auto;padding:30px 28px 130px}.eyebrow{text-transform:uppercase;letter-spacing:.13em;font-size:12px;font-weight:700}.muted,small{color:#51645e}.annotation{font-size:13px;padding:12px 16px;border-left:3px solid var(--accent);background:var(--panel);margin:18px 0}.heading{display:flex;justify-content:space-between;gap:24px;align-items:center}.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}.card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:24px}.card h2{margin:14px 0}.mini{display:flex;align-items:flex-end;gap:12px;min-height:150px}.mini .jacket{width:24%;font-size:12px}.jacket{width:100%;aspect-ratio:2/3;display:flex;align-items:center;justify-content:center;text-align:center;padding:15px;background:var(--jacket,#27554e);color:white;font:600 clamp(13px,2vw,22px)/1.3 Georgia,serif;box-shadow:0 5px 12px #132b2726;overflow-wrap:anywhere}.jacket.square{aspect-ratio:1}.jacket.wide{aspect-ratio:4/3}.jacket.missing{background:repeating-linear-gradient(45deg,#dedfda,#dedfda 8px,#eaebe5 8px,#eaebe5 16px);color:#354e46;border:1px dashed #61736b}.tabs{border-bottom:1px solid var(--line);margin:24px 0;padding-bottom:12px}.tabs [aria-current=page]{background:var(--ink);color:var(--paper)}.editor-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(260px,1fr);gap:24px}.picks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;align-items:start}.pick{min-width:0}.pick h3{font:600 15px/1.4 system-ui;margin:12px 0 5px}.pick small{display:block;margin:8px 0}.pick .tools{gap:4px}.pick .tools button{padding:8px;min-width:44px;font-size:13px}.composition{border:1px solid var(--line);border-radius:12px;padding:28px;background:var(--paper)}.composition .picks{gap:24px}.composition.mixtape .pick:nth-child(odd) .jacket{transform:rotate(-2deg)}.composition.mixtape .pick:nth-child(even) .jacket{transform:rotate(2deg)}.composition.paper{background-image:radial-gradient(#183c3625 .6px,transparent .6px);background-size:7px 7px}.composition.stars{background-image:radial-gradient(#a4264055 1px,transparent 1px);background-size:25px 25px}.form-field{display:block;margin:0 0 20px}.form-field&gt;span{font-weight:600;display:block;margin-bottom:7px}input,textarea,select{display:block;width:100%;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);min-height:44px}input[type=checkbox]{width:auto;display:inline-block;min-height:0}fieldset{border:0;margin:0 0 20px;padding:0}legend{font-weight:600;margin-bottom:8px}.sticky{position:fixed;bottom:0;left:0;right:0;z-index:3;background:var(--panel);border-top:1px solid var(--line);box-shadow:0 -4px 16px #0001}.sticky&gt;div{max-width:1200px;margin:auto;padding:12px 28px;display:flex;gap:16px;align-items:center;justify-content:space-between}.sticky p{margin:0}.state{font-size:14px}.error{color:#a1233e;font-weight:600}.empty{text-align:center;padding:50px 22px;border:1px dashed var(--line);border-radius:12px;margin:20px 0}.empty p{margin-inline:auto}.visitor .composition{max-width:1000px;margin:28px auto}.visitor .picks{grid-template-columns:repeat(3,minmax(0,1fr))}.visitor .context{font-size:20px}.badge{font-size:12px;padding:5px 9px;border-radius:99px;background:#e3e8dd}.save-note{font-size:13px}.preview-card{max-width:250px;margin:18px auto;padding:24px 18px;background:var(--paper);border:1px solid var(--line);aspect-ratio:9/16;display:flex;flex-direction:column;justify-content:space-around}.preview-card.landscape{max-width:100%;aspect-ratio:1200/630}.preview-card h3{font-size:21px}.preview-card .mini{min-height:0;gap:8px}.preview-card .jacket{font-size:11px;min-height:60px}.preview-card footer{font-size:10px}.share-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}dialog{color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:14px;max-width:min(850px,calc(100vw - 24px));width:850px;padding:28px;max-height:90dvh;overflow:auto}dialog::backdrop{background:#10282499}.dialog-head{display:flex;justify-content:space-between;gap:20px;align-items:center}.dialog-head h2{margin:0}.results{display:grid;gap:10px;margin:18px 0}.result{display:flex;text-align:left;justify-content:space-between}.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}[hidden]{display:none!important}summary{cursor:pointer;padding:10px 0;min-height:44px}.example-bar{margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:13px}.companion{font-size:13px;padding:8px;border:1px dashed var(--line);border-radius:6px;display:inline-block}.caption{font-size:13px;max-width:50ch}.status{min-height:24px;overflow-wrap:anywhere}.back{margin:0 0 18px}.scope{font-size:14px;padding:12px;background:#dce6de}.favorite-row{display:flex;align-items:center;justify-content:space-between;gap:20px;border-top:1px solid var(--line);padding:16px 0}.favorite-row h3{margin:0}.editor-aside{position:sticky;top:20px;align-self:start}svg{max-width:100%}@media(max-width:760px){.site{padding:14px 16px}.site nav{font-size:13px}.site nav button{padding:8px}.heading{align-items:flex-start;flex-direction:column;gap:10px}main{padding:22px 16px 160px}.cards,.editor-grid,.share-grid{grid-template-columns:1fr}.picks,.visitor .picks{grid-template-columns:repeat(2,minmax(0,1fr))}.card,.panel,.composition{padding:18px}.mini{min-height:120px}.sticky&gt;div{padding:12px 16px;align-items:flex-start;flex-direction:column;gap:8px}.sticky .actions{width:100%}.editor-aside{position:static}.banner{padding:8px 16px}.tabs button{flex:1;padding:10px}.favorite-row{align-items:flex-start}.visitor .context{font-size:17px}.share-grid .panel{padding:14px}}@media(max-width:350px){.picks,.visitor .picks{grid-template-columns:1fr}.site{align-items:flex-start;flex-direction:column}.sticky .actions button{padding:9px}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+&lt;/style&gt;
+&lt;body&gt;&lt;div class=&quot;banner&quot;&gt;DESIGN PROTOTYPE · Simulated data and behavior · No Trove account or production writes · Reload resets the demo&lt;/div&gt;&lt;header class=&quot;site&quot;&gt;&lt;span class=&quot;brand&quot;&gt;◈ trove&lt;/span&gt;&lt;nav aria-label=&quot;Prototype&quot;&gt;&lt;button data-do=&quot;manage&quot;&gt;Manage shelves&lt;/button&gt;&lt;button data-do=&quot;public&quot;&gt;Public shelves&lt;/button&gt;&lt;span&gt;Design prototype&lt;/span&gt;&lt;/nav&gt;&lt;/header&gt;&lt;main id=&quot;main&quot; tabindex=&quot;-1&quot;&gt;&lt;/main&gt;&lt;div id=&quot;savebar&quot; class=&quot;sticky&quot; hidden&gt;&lt;/div&gt;&lt;dialog id=&quot;picker&quot; aria-labelledby=&quot;picker-title&quot;&gt;&lt;/dialog&gt;&lt;dialog id=&quot;share&quot; aria-labelledby=&quot;share-title&quot;&gt;&lt;/dialog&gt;&lt;dialog id=&quot;create&quot; aria-labelledby=&quot;create-title&quot;&gt;&lt;/dialog&gt;
+&lt;script&gt;
+const $=s=&gt;document.querySelector(s), esc=s=&gt;String(s).replace(/[&amp;&lt;&gt;&quot;&#x27;]/g,c=&gt;({&#x27;&amp;&#x27;:&#x27;&amp;amp;&#x27;,&#x27;&lt;&#x27;:&#x27;&amp;lt;&#x27;,&#x27;&gt;&#x27;:&#x27;&amp;gt;&#x27;,&#x27;&quot;&#x27;:&#x27;&amp;quot;&#x27;,&quot;&#x27;&quot;:&#x27;&amp;#39;&#x27;}[c]));
+const catalog=[{title:&#x27;Songs for the Longest Night&#x27;,type:&#x27;Album&#x27;,shape:&#x27;square&#x27;,color:&#x27;#227567&#x27;},{title:&#x27;A Very Unlikely Christmas&#x27;,type:&#x27;Movie&#x27;,shape:&#x27;&#x27;,color:&#x27;#a53646&#x27;},{title:&#x27;The House at Winter’s Edge&#x27;,type:&#x27;Book&#x27;,shape:&#x27;&#x27;,color:&#x27;#213953&#x27;},{title:&#x27;The Midnight Kitchen&#x27;,type:&#x27;TV show&#x27;,shape:&#x27;wide&#x27;,color:&#x27;#805731&#x27;},{title:&#x27;Lanterns in the Snow&#x27;,type:&#x27;Game&#x27;,shape:&#x27;&#x27;,color:&#x27;#57456c&#x27;},{title:&#x27;Small Everyday Wonders&#x27;,type:&#x27;Book&#x27;,shape:&#x27;&#x27;,color:&#x27;#aa653c&#x27;},{title:&#x27;Sunday, Side A&#x27;,type:&#x27;Album&#x27;,shape:&#x27;square&#x27;,color:&#x27;#3f6585&#x27;},{title:&#x27;An Ordinary Adventure&#x27;,type:&#x27;Comic&#x27;,shape:&#x27;&#x27;,color:&#x27;#55713b&#x27;},{title:&#x27;Artwork unavailable&#x27;,type:&#x27;Movie&#x27;,shape:&#x27;missing&#x27;,color:&#x27;#aaa&#x27;}].map((p,i)=&gt;({...p,id:i+1}));
+const clone=x=&gt;structuredClone(x);const examples={christmas:{id:&#x27;winter-demo&#x27;,title:&#x27;x-mas picks…&#x27;,description:&#x27;A few things that make a winter night feel like home.&#x27;,theme:&#x27;christmas&#x27;,layout:&#x27;mixtape&#x27;,texture:&#x27;paper&#x27;,companion:&#x27;auto&#x27;,picks:[1,2,3,4,5]},everyday:{id:&#x27;everyday-demo&#x27;,title:&#x27;Things I keep coming back to&#x27;,description:&#x27;Everyday comforts across books, music and stories.&#x27;,theme:&#x27;everyday&#x27;,layout:&#x27;exhibition&#x27;,texture:&#x27;clean&#x27;,companion:&#x27;facet&#x27;,picks:[6,7,8]}};
+let saved=clone(examples.christmas),draft=clone(saved),page=&#x27;manage&#x27;,tab=&#x27;content&#x27;,newUser=false,published=false,failed=false,status=&#x27;All changes saved.&#x27;,lastFocus,format=&#x27;portrait&#x27;,source=&#x27;local&#x27;;
+const dirty=()=&gt;JSON.stringify(draft)!==JSON.stringify(saved);const colors={christmas:[&#x27;#fbf4e4&#x27;,&#x27;#183c36&#x27;,&#x27;#aa2942&#x27;],everyday:[&#x27;#f0f2eb&#x27;,&#x27;#244239&#x27;,&#x27;#3c6654&#x27;],midnight:[&#x27;#19242d&#x27;,&#x27;#f3eee0&#x27;,&#x27;#b7d2cd&#x27;]};
+function palette(){const c=colors[draft.theme]||colors.everyday;document.documentElement.style.setProperty(&#x27;--paper&#x27;,c[0]);document.documentElement.style.setProperty(&#x27;--ink&#x27;,c[1]);document.documentElement.style.setProperty(&#x27;--accent&#x27;,c[2]);document.documentElement.style.setProperty(&#x27;--panel&#x27;,draft.theme===&#x27;midnight&#x27;?&#x27;#24333d&#x27;:&#x27;#fffaf0&#x27;)}
+function jacket(id){const p=catalog.find(x=&gt;x.id===id);return `&lt;div class=&quot;jacket ${p.shape}&quot; style=&quot;--jacket:${p.color}&quot; role=&quot;img&quot; aria-label=&quot;Synthetic ${p.type} cover: ${esc(p.title)}&quot;&gt;${esc(p.title)}&lt;/div&gt;`}
+function mini(state){return `&lt;div class=&quot;mini&quot;&gt;${state.picks.slice(0,4).map(jacket).join(&#x27;&#x27;)}&lt;/div&gt;`}
+function note(n,text){return `&lt;aside class=&quot;annotation&quot;&gt;&lt;strong&gt;${n} · Design note.&lt;/strong&gt; ${text}&lt;/aside&gt;`}
+function picks(edit=false){if(!draft.picks.length)return `&lt;div class=&quot;empty&quot;&gt;&lt;h2&gt;A shelf taking shape.&lt;/h2&gt;&lt;p&gt;${edit?&#x27;Add your first title. Pick something that belongs here; you can arrange it later.&#x27;:&#x27;No selections yet. Come back soon for a few discoveries.&#x27;}&lt;/p&gt;${edit?&#x27;&lt;button class=&quot;primary&quot; data-do=&quot;add&quot;&gt;Add a title&lt;/button&gt;&#x27;:&#x27;&#x27;}&lt;/div&gt;`;return `&lt;div class=&quot;picks&quot;&gt;${draft.picks.map((id,i)=&gt;{const p=catalog.find(x=&gt;x.id===id);return `&lt;article class=&quot;pick&quot;&gt;${jacket(id)}&lt;small&gt;${i+1} / ${p.type}&lt;/small&gt;&lt;h3&gt;${esc(p.title)}&lt;/h3&gt;${edit?`&lt;div class=&quot;tools&quot;&gt;&lt;button data-do=&quot;up&quot; data-id=&quot;${id}&quot; aria-label=&quot;Move ${esc(p.title)} earlier&quot; ${i===0?&#x27;disabled&#x27;:&#x27;&#x27;}&gt;←&lt;/button&gt;&lt;button data-do=&quot;down&quot; data-id=&quot;${id}&quot; aria-label=&quot;Move ${esc(p.title)} later&quot; ${i===draft.picks.length-1?&#x27;disabled&#x27;:&#x27;&#x27;}&gt;→&lt;/button&gt;&lt;button data-do=&quot;remove&quot; data-id=&quot;${id}&quot; aria-label=&quot;Remove ${esc(p.title)}&quot;&gt;Remove&lt;/button&gt;&lt;/div&gt;`:&#x27;&#x27;}&lt;/article&gt;`}).join(&#x27;&#x27;)}&lt;/div&gt;`}
+function bar(){const b=$(&#x27;#savebar&#x27;);b.hidden=page!==&#x27;edit&#x27;;if(b.hidden)return;b.innerHTML=`&lt;div&gt;&lt;div&gt;&lt;strong&gt;${dirty()?&#x27;Unsaved changes&#x27;:&#x27;Saved public version&#x27;}&lt;/strong&gt;&lt;p class=&quot;state ${failed?&#x27;error&#x27;:&#x27;&#x27;}&quot; role=&quot;status&quot;&gt;${esc(status)}&lt;/p&gt;&lt;/div&gt;&lt;div class=&quot;actions&quot;&gt;&lt;button data-do=&quot;undo&quot; ${!dirty()?&#x27;disabled&#x27;:&#x27;&#x27;}&gt;Undo changes&lt;/button&gt;&lt;button class=&quot;primary&quot; data-do=&quot;save&quot; ${!dirty()?&#x27;disabled&#x27;:&#x27;&#x27;}&gt;${failed?&#x27;Try saving again&#x27;:&#x27;Save changes&#x27;}&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;`}
+function nav(next,nextTab=&#x27;content&#x27;,push=true){if(next===&#x27;manage&#x27;&amp;&amp;page===&#x27;edit&#x27;&amp;&amp;dirty()&amp;&amp;!confirm(&#x27;Discard unsaved changes and return to Manage shelves?&#x27;))return;if(next===&#x27;manage&#x27;&amp;&amp;page===&#x27;edit&#x27;)draft=clone(saved);page=next;tab=nextTab;if(push)history.pushState({page,tab},&#x27;&#x27;,`${location.href.split(&#x27;#&#x27;)[0]}#${page}${page===&#x27;edit&#x27;?&#x27;-&#x27;+tab:&#x27;&#x27;}`);render();$(&#x27;#main&#x27;).focus()}
+function render(){palette();let html=&#x27;&#x27;;if(page===&#x27;manage&#x27;){html=`&lt;div class=&quot;heading&quot;&gt;&lt;div&gt;&lt;span class=&quot;eyebrow&quot;&gt;Your workspace&lt;/span&gt;&lt;h1&gt;Manage shelves&lt;/h1&gt;&lt;p&gt;Bring together the works that mean something to you.&lt;/p&gt;&lt;/div&gt;&lt;button class=&quot;primary&quot; data-do=&quot;create&quot;&gt;Create shelf&lt;/button&gt;&lt;/div&gt;${note(1,&#x27;Named shelves hold a theme or mood. Favorites are independent, concise lists. Neither changes library ownership or tracking.&#x27;)}&lt;div class=&quot;example-bar&quot;&gt;&lt;label&gt;&lt;input type=&quot;checkbox&quot; id=&quot;new-user&quot; ${newUser?&#x27;checked&#x27;:&#x27;&#x27;}&gt; Show new-owner state&lt;/label&gt;&lt;button data-do=&quot;christmas&quot;&gt;Christmas / Mixtape example&lt;/button&gt;&lt;button data-do=&quot;everyday&quot;&gt;Everyday example&lt;/button&gt;&lt;/div&gt;&lt;h2&gt;Your shelves&lt;/h2&gt;${newUser?&#x27;&lt;div class=&quot;empty&quot;&gt;&lt;h2&gt;Your first shelf starts here.&lt;/h2&gt;&lt;p&gt;Make a shelf about something you love. Start with a title and a few works; appearance can wait.&lt;/p&gt;&lt;button class=&quot;primary&quot; data-do=&quot;create&quot;&gt;Create your first shelf&lt;/button&gt;&lt;/div&gt;&#x27;:`&lt;div class=&quot;cards&quot;&gt;&lt;article class=&quot;card&quot;&gt;${mini(saved)}&lt;h2&gt;${esc(saved.title)}&lt;/h2&gt;&lt;p&gt;${esc(saved.description)}&lt;/p&gt;&lt;p class=&quot;muted&quot;&gt;${saved.picks.length} titles · ${saved.theme} · Public&lt;/p&gt;&lt;div class=&quot;actions&quot;&gt;&lt;button class=&quot;primary&quot; data-do=&quot;edit&quot;&gt;Edit shelf&lt;/button&gt;&lt;button data-do=&quot;view&quot;&gt;View public shelf&lt;/button&gt;&lt;/div&gt;&lt;/article&gt;&lt;article class=&quot;card&quot;&gt;&lt;span class=&quot;eyebrow&quot;&gt;Start something new&lt;/span&gt;&lt;h2&gt;A mood, a season, a part of your life.&lt;/h2&gt;&lt;p&gt;Films, books, albums, shows, comics and games can live together.&lt;/p&gt;&lt;button data-do=&quot;create&quot;&gt;Create shelf&lt;/button&gt;&lt;/article&gt;&lt;/div&gt;`}&lt;h2&gt;All-time favorites&lt;/h2&gt;&lt;p&gt;Up to five picks in each list. Your mixed favorites are chosen separately from media favorites.&lt;/p&gt;&lt;div class=&quot;favorite-row&quot;&gt;&lt;div&gt;&lt;h3&gt;Across all media&lt;/h3&gt;&lt;small&gt;${newUser?&#x27;No picks yet&#x27;:&#x27;Demo favorite list&#x27;} · independent from your named shelves&lt;/small&gt;&lt;/div&gt;&lt;button data-do=&quot;favorites&quot;&gt;Choose favorites&lt;/button&gt;&lt;/div&gt;&lt;details&gt;&lt;summary&gt;Media favorites and archive&lt;/summary&gt;&lt;p&gt;Movies · TV shows · Albums · Books · Comics · Games&lt;/p&gt;&lt;p class=&quot;caption&quot;&gt;In production each opens its existing five-pick editor. Archived collections retain their selections and stable URL. This prototype concentrates on the named-shelf journey.&lt;/p&gt;&lt;/details&gt;`}
+else if(page===&#x27;edit&#x27;){html=`&lt;button class=&quot;quiet back&quot; data-do=&quot;manage&quot;&gt;← Manage shelves&lt;/button&gt;&lt;div class=&quot;heading&quot;&gt;&lt;div&gt;&lt;span class=&quot;eyebrow&quot;&gt;Editing one shelf · Public after saving&lt;/span&gt;&lt;h1&gt;${esc(draft.title)}&lt;/h1&gt;&lt;p&gt;${esc(draft.description)}&lt;/p&gt;&lt;/div&gt;&lt;button data-do=&quot;view&quot;&gt;Preview as visitor&lt;/button&gt;&lt;/div&gt;&lt;nav class=&quot;tabs&quot; aria-label=&quot;Shelf editor&quot;&gt;${[&#x27;content&#x27;,&#x27;appearance&#x27;,&#x27;share&#x27;].map(t=&gt;`&lt;button data-do=&quot;tab&quot; data-tab=&quot;${t}&quot; ${tab===t?&#x27;aria-current=&quot;page&quot;&#x27;:&#x27;&#x27;}&gt;${t[0].toUpperCase()+t.slice(1)}&lt;/button&gt;`).join(&#x27;&#x27;)}&lt;/nav&gt;${tab===&#x27;content&#x27;?`&lt;div class=&quot;heading&quot;&gt;&lt;div&gt;&lt;h2&gt;Choose what belongs here&lt;/h2&gt;&lt;p&gt;${draft.picks.length} titles · Up to 1,000 in production · Your order, not a derived ranking&lt;/p&gt;&lt;/div&gt;&lt;button class=&quot;primary&quot; data-do=&quot;add&quot;&gt;Add titles&lt;/button&gt;&lt;/div&gt;${note(2,&#x27;Selection is separate from owning or tracking a work. Earlier/later controls provide a keyboard alternative to dragging.&#x27;)}&lt;div class=&quot;composition&quot;&gt;${picks(true)}&lt;/div&gt;&lt;details&gt;&lt;summary&gt;Shelf details and advanced settings&lt;/summary&gt;&lt;label class=&quot;form-field&quot;&gt;&lt;span&gt;Shelf title&lt;/span&gt;&lt;input name=&quot;title&quot; maxlength=&quot;80&quot; value=&quot;${esc(draft.title)}&quot;&gt;&lt;/label&gt;&lt;label class=&quot;form-field&quot;&gt;&lt;span&gt;A little context&lt;/span&gt;&lt;textarea name=&quot;description&quot; maxlength=&quot;240&quot;&gt;${esc(draft.description)}&lt;/textarea&gt;&lt;/label&gt;&lt;p class=&quot;caption&quot;&gt;Production settings keep allowed media types, overview cover count and archive separate from the first-use flow. Rename keeps the stable URL.&lt;/p&gt;&lt;/details&gt;`:tab===&#x27;appearance&#x27;?`&lt;p class=&quot;scope&quot;&gt;Changes apply only to “${esc(draft.title)}”. Your favorites and other shelves stay as saved.&lt;/p&gt;${note(3,&#x27;Start with a theme and layout. Keep advanced options available without forcing every decision. Save changes commits content and appearance together in the proposed API.&#x27;)}&lt;div class=&quot;editor-grid&quot;&gt;&lt;div class=&quot;composition ${draft.layout} ${draft.texture}&quot;&gt;&lt;h2&gt;${esc(draft.title)}&lt;/h2&gt;${picks()}&lt;p class=&quot;companion&quot;&gt;${draft.companion===&#x27;none&#x27;?&#x27;No mascot&#x27;:draft.companion===&#x27;auto&#x27;?&#x27;Mascot matches the theme&#x27;:esc(draft.companion)+&#x27; mascot&#x27;} · approved art in production&lt;/p&gt;&lt;/div&gt;&lt;div class=&quot;panel editor-aside&quot;&gt;&lt;label class=&quot;form-field&quot;&gt;&lt;span&gt;Theme&lt;/span&gt;&lt;select name=&quot;theme&quot;&gt;${[&#x27;everyday&#x27;,&#x27;christmas&#x27;,&#x27;midnight&#x27;].map(t=&gt;`&lt;option ${draft.theme===t?&#x27;selected&#x27;:&#x27;&#x27;} value=&quot;${t}&quot;&gt;${t[0].toUpperCase()+t.slice(1)}&lt;/option&gt;`).join(&#x27;&#x27;)}&lt;/select&gt;&lt;/label&gt;&lt;label class=&quot;form-field&quot;&gt;&lt;span&gt;Layout&lt;/span&gt;&lt;select name=&quot;layout&quot;&gt;&lt;option value=&quot;exhibition&quot; ${draft.layout===&#x27;exhibition&#x27;?&#x27;selected&#x27;:&#x27;&#x27;}&gt;Gallery — balanced covers&lt;/option&gt;&lt;option value=&quot;mixtape&quot; ${draft.layout===&#x27;mixtape&#x27;?&#x27;selected&#x27;:&#x27;&#x27;}&gt;Mixtape — a relaxed collage&lt;/option&gt;&lt;/select&gt;&lt;/label&gt;&lt;details&gt;&lt;summary&gt;More appearance&lt;/summary&gt;&lt;label class=&quot;form-field&quot;&gt;&lt;span&gt;Background&lt;/span&gt;&lt;select name=&quot;texture&quot;&gt;${[&#x27;clean&#x27;,&#x27;paper&#x27;,&#x27;stars&#x27;].map(t=&gt;`&lt;option ${draft.texture===t?&#x27;selected&#x27;:&#x27;&#x27;}&gt;${t}&lt;/option&gt;`).join(&#x27;&#x27;)}&lt;/select&gt;&lt;/label&gt;&lt;label class=&quot;form-field&quot;&gt;&lt;span&gt;Mascot&lt;/span&gt;&lt;select name=&quot;companion&quot;&gt;${[&#x27;auto&#x27;,&#x27;none&#x27;,&#x27;telly&#x27;,&#x27;facet&#x27;,&#x27;bat&#x27;].map(t=&gt;`&lt;option ${draft.companion===t?&#x27;selected&#x27;:&#x27;&#x27;}&gt;${t}&lt;/option&gt;`).join(&#x27;&#x27;)}&lt;/select&gt;&lt;/label&gt;&lt;p class=&quot;caption&quot;&gt;These placeholders represent existing approved assets. All legacy choices remain supported in the implementation.&lt;/p&gt;&lt;/details&gt;&lt;button data-do=&quot;reset&quot;&gt;Reset appearance to Everyday defaults&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;`:`&lt;h2&gt;Share something you’re proud of&lt;/h2&gt;&lt;p&gt;Choose a profile link or make an image. Your shelf is already public once saved.&lt;/p&gt;${note(5,&#x27;A profile link, an exported image and a published shelf-link preview have different destinations and persistence. Name each outcome explicitly.&#x27;)}&lt;div class=&quot;panel&quot;&gt;&lt;p&gt;&lt;strong&gt;${dirty()?&#x27;Save changes before sharing.&#x27;:&#x27;Saved and ready to share.&#x27;}&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;Images include the first ${Math.min(5,draft.picks.length)} of ${draft.picks.length} titles. The full shelf retains every selection.&lt;/p&gt;&lt;button class=&quot;primary&quot; data-do=&quot;share&quot; ${dirty()?&#x27;disabled&#x27;:&#x27;&#x27;}&gt;Open sharing options&lt;/button&gt;&lt;p&gt;Published shelf-link preview: &lt;strong&gt;${published?&#x27;Current&#x27;:&#x27;Not published / needs update&#x27;}&lt;/strong&gt;&lt;/p&gt;&lt;/div&gt;`}&lt;div class=&quot;example-bar&quot;&gt;&lt;label&gt;&lt;input type=&quot;checkbox&quot; id=&quot;fail-save&quot; ${failed?&#x27;checked&#x27;:&#x27;&#x27;}&gt; Simulate one failed save&lt;/label&gt;&lt;span&gt;Save status and changes live only in this demo.&lt;/span&gt;&lt;/div&gt;`}
+else if(page===&#x27;public&#x27;){html=`&lt;div class=&quot;heading&quot;&gt;&lt;div&gt;&lt;span class=&quot;eyebrow&quot;&gt;Demo curator / public shelves&lt;/span&gt;&lt;h1&gt;A few things worth sharing.&lt;/h1&gt;&lt;p&gt;Collections for a season, a mood, or the everyday.&lt;/p&gt;&lt;/div&gt;&lt;button data-do=&quot;manage&quot;&gt;Return to Manage shelves&lt;/button&gt;&lt;/div&gt;&lt;div class=&quot;cards&quot;&gt;&lt;article class=&quot;card&quot;&gt;${mini(saved)}&lt;h2&gt;${esc(saved.title)}&lt;/h2&gt;&lt;p&gt;${esc(saved.description)}&lt;/p&gt;&lt;button class=&quot;primary&quot; data-do=&quot;view&quot;&gt;Explore shelf&lt;/button&gt;&lt;/article&gt;&lt;/div&gt;&lt;h2&gt;All-time favorites&lt;/h2&gt;&lt;p&gt;Independent picks across media. Named collections keep their own identity.&lt;/p&gt;`}
+else{html=`&lt;div class=&quot;visitor&quot;&gt;&lt;div class=&quot;actions&quot;&gt;&lt;button data-do=&quot;public&quot;&gt;← All shelves&lt;/button&gt;&lt;button data-do=&quot;profile&quot;&gt;View curator profile&lt;/button&gt;&lt;button data-do=&quot;edit&quot;&gt;Return to editing&lt;/button&gt;&lt;button class=&quot;primary&quot; data-do=&quot;share&quot;&gt;Share &amp; export&lt;/button&gt;&lt;/div&gt;${note(4,&#x27;The finished work leads. Curator, collection title and context establish identity; editing stays a separate owner destination.&#x27;)}&lt;p class=&quot;eyebrow&quot;&gt;A shelf by Demo curator&lt;/p&gt;&lt;h1&gt;${esc(saved.title)}&lt;/h1&gt;&lt;p class=&quot;context&quot;&gt;${esc(saved.description)}&lt;/p&gt;&lt;p&gt;${saved.picks.length} selections · Mixed media · Saved public version${dirty()?&#x27; (the unsaved draft stays in the editor)&#x27;:&#x27;&#x27;}&lt;/p&gt;&lt;div class=&quot;composition ${saved.layout} ${saved.texture}&quot;&gt;${(()=&gt;{const d=draft;draft=saved;const out=picks();draft=d;return out})()}&lt;/div&gt;&lt;p class=&quot;caption&quot;&gt;Synthetic jackets demonstrate real-world square, portrait and landscape ratios. Production items link to their media detail pages.&lt;/p&gt;&lt;/div&gt;`}
+$(&#x27;#main&#x27;).innerHTML=html;bar()}
+function mark(){status=&#x27;Your changes are not saved yet.&#x27;;published=false;bar()}
+function openDialog(id,body){lastFocus=document.activeElement;$(id).innerHTML=body;$(id).showModal()}
+for(const d of document.querySelectorAll(&#x27;dialog&#x27;))d.addEventListener(&#x27;close&#x27;,()=&gt;lastFocus?.isConnected&amp;&amp;lastFocus.focus());
+function openPicker(){openDialog(&#x27;#picker&#x27;,`&lt;div class=&quot;dialog-head&quot;&gt;&lt;h2 id=&quot;picker-title&quot;&gt;Find a title&lt;/h2&gt;&lt;button data-do=&quot;close&quot;&gt;Close&lt;/button&gt;&lt;/div&gt;&lt;p&gt;Adds a selection to this shelf. It does not add ownership, ratings or tracking.&lt;/p&gt;&lt;div class=&quot;actions&quot;&gt;&lt;button data-do=&quot;source&quot; data-source=&quot;local&quot; aria-pressed=&quot;${source===&#x27;local&#x27;}&quot;&gt;Trove catalog&lt;/button&gt;&lt;button data-do=&quot;source&quot; data-source=&quot;external&quot; aria-pressed=&quot;${source===&#x27;external&#x27;}&quot;&gt;External catalog (simulated)&lt;/button&gt;&lt;/div&gt;&lt;label class=&quot;form-field&quot;&gt;&lt;span&gt;Search titles&lt;/span&gt;&lt;input id=&quot;query&quot; type=&quot;search&quot; placeholder=&quot;Try ‘night’ or ‘everyday’&quot; autofocus&gt;&lt;/label&gt;&lt;label class=&quot;form-field&quot;&gt;&lt;span&gt;Media type&lt;/span&gt;&lt;select id=&quot;type&quot;&gt;&lt;option&gt;All media&lt;/option&gt;${[&#x27;Movie&#x27;,&#x27;TV show&#x27;,&#x27;Book&#x27;,&#x27;Album&#x27;,&#x27;Comic&#x27;,&#x27;Game&#x27;].map(t=&gt;`&lt;option&gt;${t}&lt;/option&gt;`).join(&#x27;&#x27;)}&lt;/select&gt;&lt;/label&gt;&lt;div class=&quot;results&quot; id=&quot;results&quot;&gt;&lt;/div&gt;&lt;p class=&quot;caption&quot;&gt;External discovery is simulated. Production continues to use signed import selections and never adds a LibraryItem.&lt;/p&gt;`);results();$(&#x27;#query&#x27;).focus()}
+function results(){const q=($(&#x27;#query&#x27;)?.value||&#x27;&#x27;).toLowerCase(),type=$(&#x27;#type&#x27;)?.value;$(&#x27;#results&#x27;).innerHTML=catalog.filter(p=&gt;p.title.toLowerCase().includes(q)&amp;&amp;(!type||type===&#x27;All media&#x27;||p.type===type)).map(p=&gt;`&lt;button class=&quot;result&quot; data-do=&quot;select&quot; data-id=&quot;${p.id}&quot; ${draft.picks.includes(p.id)?&#x27;disabled&#x27;:&#x27;&#x27;}&gt;&lt;span&gt;${esc(p.title)}&lt;small&gt; · ${p.type}&lt;/small&gt;&lt;/span&gt;&lt;span&gt;${draft.picks.includes(p.id)?&#x27;Added&#x27;:&#x27;+ Add&#x27;}&lt;/span&gt;&lt;/button&gt;`).join(&#x27;&#x27;)||&#x27;&lt;p role=&quot;status&quot;&gt;No matches. Try a broader title or a different media type.&lt;/p&gt;&#x27;}
+function share(){if(page===&#x27;edit&#x27;&amp;&amp;dirty()){status=&#x27;Save changes before sharing your public version.&#x27;;bar();return}openDialog(&#x27;#share&#x27;,`&lt;div class=&quot;dialog-head&quot;&gt;&lt;h2 id=&quot;share-title&quot;&gt;Share “${esc(saved.title)}”&lt;/h2&gt;&lt;button data-do=&quot;close&quot;&gt;Close&lt;/button&gt;&lt;/div&gt;&lt;div class=&quot;share-grid&quot;&gt;&lt;div&gt;&lt;h3&gt;Invite someone to your profile&lt;/h3&gt;&lt;p&gt;Copied links and the image footer open your profile, where people can explore your shelves.&lt;/p&gt;&lt;label class=&quot;form-field&quot;&gt;&lt;span&gt;Profile link (demo)&lt;/span&gt;&lt;input id=&quot;profile-url&quot; readonly value=&quot;https://example.test/@demo-curator&quot;&gt;&lt;/label&gt;&lt;div class=&quot;actions&quot;&gt;&lt;button class=&quot;primary&quot; data-do=&quot;copy&quot;&gt;Copy profile link&lt;/button&gt;&lt;button data-do=&quot;native&quot;&gt;Share profile (simulated)&lt;/button&gt;&lt;/div&gt;&lt;p class=&quot;status&quot; id=&quot;share-status&quot; role=&quot;status&quot;&gt;&lt;/p&gt;&lt;hr&gt;&lt;h3&gt;Make an image&lt;/h3&gt;&lt;label class=&quot;form-field&quot;&gt;&lt;span&gt;Format&lt;/span&gt;&lt;select id=&quot;format&quot;&gt;&lt;option value=&quot;portrait&quot;&gt;Story · 1080 × 1920&lt;/option&gt;&lt;option value=&quot;landscape&quot;&gt;Landscape · 1200 × 630&lt;/option&gt;&lt;/select&gt;&lt;/label&gt;&lt;p&gt;First ${Math.min(saved.picks.length,5)} of ${saved.picks.length} titles. No changes to the shelf.&lt;/p&gt;&lt;button data-do=&quot;download&quot;&gt;Preview download outcome&lt;/button&gt;&lt;p class=&quot;caption&quot;&gt;This prototype explains the outcome; production uses Trove&#x27;s existing canvas renderer and approved artwork.&lt;/p&gt;&lt;/div&gt;&lt;div&gt;&lt;div id=&quot;image-preview&quot; class=&quot;preview-card&quot;&gt;&lt;span class=&quot;eyebrow&quot;&gt;Trove / ${esc(saved.theme)}&lt;/span&gt;&lt;h3&gt;${esc(saved.title)}&lt;/h3&gt;${mini(saved)}&lt;footer&gt;Demo curator · Visit the profile&lt;br&gt;example.test/@demo-curator&lt;/footer&gt;&lt;/div&gt;&lt;h3&gt;Shelf link preview&lt;/h3&gt;&lt;p&gt;This shelf is already public. Updating this landscape preview also refreshes its discovery eligibility; it does not change the profile link&#x27;s preview.&lt;/p&gt;&lt;p id=&quot;publication-status&quot; role=&quot;status&quot;&gt;${published?&#x27;Current for the saved version.&#x27;:&#x27;Not published / needs update.&#x27;}&lt;/p&gt;&lt;button data-do=&quot;publish&quot;&gt;Update shelf link preview (simulated)&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;`)}
+document.addEventListener(&#x27;click&#x27;,async e=&gt;{const b=e.target.closest(&#x27;[data-do]&#x27;);if(!b)return;const action=b.dataset.do,id=+b.dataset.id;
+if([&#x27;manage&#x27;,&#x27;public&#x27;].includes(action))nav(action);else if(action===&#x27;edit&#x27;)nav(&#x27;edit&#x27;);else if(action===&#x27;view&#x27;)nav(&#x27;view&#x27;);else if(action===&#x27;tab&#x27;)nav(&#x27;edit&#x27;,b.dataset.tab);else if(action===&#x27;create&#x27;)openDialog(&#x27;#create&#x27;,`&lt;div class=&quot;dialog-head&quot;&gt;&lt;h2 id=&quot;create-title&quot;&gt;Make room for something you love&lt;/h2&gt;&lt;button data-do=&quot;close&quot;&gt;Close&lt;/button&gt;&lt;/div&gt;&lt;form id=&quot;create-form&quot;&gt;&lt;label class=&quot;form-field&quot;&gt;&lt;span&gt;Shelf title&lt;/span&gt;&lt;input name=&quot;new-title&quot; maxlength=&quot;80&quot; required placeholder=&quot;Something for a winter night&quot; autofocus&gt;&lt;/label&gt;&lt;label class=&quot;form-field&quot;&gt;&lt;span&gt;A little context (optional)&lt;/span&gt;&lt;textarea name=&quot;new-description&quot; maxlength=&quot;240&quot;&gt;&lt;/textarea&gt;&lt;/label&gt;&lt;label class=&quot;form-field&quot;&gt;&lt;span&gt;Starting mood&lt;/span&gt;&lt;select name=&quot;new-theme&quot;&gt;&lt;option value=&quot;everyday&quot;&gt;Everyday&lt;/option&gt;&lt;option value=&quot;christmas&quot;&gt;Christmas&lt;/option&gt;&lt;/select&gt;&lt;/label&gt;&lt;p&gt;Create the shelf, then add titles. You can change its appearance any time.&lt;/p&gt;&lt;button class=&quot;primary&quot; type=&quot;submit&quot;&gt;Create shelf&lt;/button&gt;&lt;/form&gt;`);
+else if([&#x27;christmas&#x27;,&#x27;everyday&#x27;].includes(action)){saved=clone(examples[action]);draft=clone(saved);newUser=false;published=false;failed=false;status=&#x27;All changes saved.&#x27;;render()}
+else if(action===&#x27;add&#x27;)openPicker();else if(action===&#x27;close&#x27;)b.closest(&#x27;dialog&#x27;).close();else if(action===&#x27;select&#x27;){draft.picks.push(id);mark();results();render()}
+else if(action===&#x27;source&#x27;){source=b.dataset.source;$(&#x27;#picker&#x27;).close();openPicker()}
+else if(action===&#x27;remove&#x27;){draft.picks=draft.picks.filter(i=&gt;i!==id);mark();render();document.querySelector(&#x27;[data-do=add]&#x27;)?.focus()}
+else if([&#x27;up&#x27;,&#x27;down&#x27;].includes(action)){const i=draft.picks.indexOf(id),j=i+(action===&#x27;up&#x27;?-1:1);[draft.picks[i],draft.picks[j]]=[draft.picks[j],draft.picks[i]];mark();render();document.querySelector(`[data-do=${action}][data-id=&quot;${id}&quot;]:not(:disabled)`)?.focus()||document.querySelector(`[data-do=remove][data-id=&quot;${id}&quot;]`)?.focus()}
+else if(action===&#x27;save&#x27;){if(failed){failed=false;if($(&#x27;#fail-save&#x27;))$(&#x27;#fail-save&#x27;).checked=false;status=&#x27;Could not save. Your changes are still here. Try saving again.&#x27;;bar();$(&#x27;#savebar .state&#x27;).classList.add(&#x27;error&#x27;)}else{saved=clone(draft);status=&#x27;All changes saved. Visitors now see this version.&#x27;;bar()}}
+else if(action===&#x27;undo&#x27;){draft=clone(saved);failed=false;status=&#x27;Changes undone. Saved version restored.&#x27;;render()}
+else if(action===&#x27;reset&#x27;){Object.assign(draft,{theme:&#x27;everyday&#x27;,layout:&#x27;exhibition&#x27;,texture:&#x27;clean&#x27;,companion:&#x27;auto&#x27;});mark();render()}
+else if(action===&#x27;share&#x27;)share();else if(action===&#x27;copy&#x27;){try{await navigator.clipboard.writeText($(&#x27;#profile-url&#x27;).value);$(&#x27;#share-status&#x27;).textContent=&#x27;Profile link copied (demo URL).&#x27;}catch{$(&#x27;#profile-url&#x27;).focus();$(&#x27;#profile-url&#x27;).select();$(&#x27;#share-status&#x27;).textContent=&#x27;Clipboard unavailable. Select and copy the profile link above.&#x27;}}
+else if(action===&#x27;native&#x27;)$(&#x27;#share-status&#x27;).textContent=&#x27;Native share canceled (simulated). Try again or copy the profile link.&#x27;;
+else if(action===&#x27;download&#x27;)$(&#x27;#share-status&#x27;).textContent=`A ${format===&#x27;portrait&#x27;?&#x27;1080 × 1920 Story&#x27;:&#x27;1200 × 630 landscape&#x27;} image would download with the first ${Math.min(saved.picks.length,5)} titles and your profile footer. Simulated; no file generated.`;
+else if(action===&#x27;publish&#x27;){published=true;$(&#x27;#publication-status&#x27;).textContent=&#x27;Preview current for the saved version (simulated). The shelf was already public.&#x27;}
+else if(action===&#x27;profile&#x27;)alert(&#x27;The production action opens the curator’s canonical profile. This demo makes no external request.&#x27;);else if(action===&#x27;favorites&#x27;)alert(&#x27;Favorites remain a separate five-pick editor. This prototype demonstrates the named-collection flow; no favorite data is changed.&#x27;)});
+document.addEventListener(&#x27;input&#x27;,e=&gt;{if(e.target.id===&#x27;query&#x27;)results();if([&#x27;title&#x27;,&#x27;description&#x27;].includes(e.target.name)){draft[e.target.name]=e.target.value;mark()}});
+document.addEventListener(&#x27;change&#x27;,e=&gt;{if(e.target.id===&#x27;type&#x27;)results();else if(e.target.id===&#x27;format&#x27;){format=e.target.value;$(&#x27;#image-preview&#x27;).classList.toggle(&#x27;landscape&#x27;,format===&#x27;landscape&#x27;)}else if(e.target.id===&#x27;new-user&#x27;){newUser=e.target.checked;render()}else if(e.target.id===&#x27;fail-save&#x27;){failed=e.target.checked;bar()}else if([&#x27;theme&#x27;,&#x27;layout&#x27;,&#x27;texture&#x27;,&#x27;companion&#x27;].includes(e.target.name)){draft[e.target.name]=e.target.value;mark();render();document.querySelector(`[name=&quot;${e.target.name}&quot;]`)?.focus()}});
+document.addEventListener(&#x27;submit&#x27;,e=&gt;{if(e.target.id!==&#x27;create-form&#x27;)return;e.preventDefault();const data=new FormData(e.target);saved={id:&#x27;new-demo&#x27;,title:data.get(&#x27;new-title&#x27;),description:data.get(&#x27;new-description&#x27;),theme:data.get(&#x27;new-theme&#x27;),layout:&#x27;exhibition&#x27;,texture:&#x27;clean&#x27;,companion:&#x27;auto&#x27;,picks:[]};draft=clone(saved);newUser=false;published=false;failed=false;status=&#x27;Shelf created. Add your first title.&#x27;;$(&#x27;#create&#x27;).close();nav(&#x27;edit&#x27;)});
+window.addEventListener(&#x27;popstate&#x27;,e=&gt;{if(e.state){page=e.state.page;tab=e.state.tab;render();$(&#x27;#main&#x27;).focus()}});window.addEventListener(&#x27;beforeunload&#x27;,e=&gt;{if(dirty()){e.preventDefault();e.returnValue=&#x27;&#x27;}});history.replaceState({page,tab},&#x27;&#x27;,`${location.href.split(&#x27;#&#x27;)[0]}#manage`);render();
+&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;
+"></iframe><h2>Executed verification</h2><h1>Verification record</h1>
+<p>Baseline: <code>8b810e3c9f526a173f91c9e0fb7c9296ba418144</code> (<code>master</code>). Isolated branch: <code>fix/shelf-share-navigation</code>. No merge or deployment.</p>
+<h2>Executed locally</h2>
+<ul>
+<li>Ruby 3.4.12 built into a task-local toolchain; current locked gems installed in <code>/workspace/bundle34</code>. Dedicated disposable SQLite URLs were explicitly set to <code>/workspace/shelf-audit/isolated-test.sqlite3</code> and <code>isolated-browser.sqlite3</code>; no inherited development/production database, seed or migration was used.</li>
+<li><code>rails db:schema:load</code> and <code>rails dartsass:build</code>: passed against disposable test configuration.</li>
+<li>RSpec requests: <code>favorite_shelves_spec</code>, <code>shelf_workspace_spec</code>, <code>flexible_shelves_spec</code>, <code>media_public_shelves_spec</code>: <strong>43 examples, 0 failures</strong>. Includes anonymous, owner and signed-in non-owner visibility/authorization and persistence boundaries.</li>
+<li>Chromium system suite: <code>shelf_appearance_journey_system_spec</code>, <code>shelf_customization_system_spec</code>, <code>shelf_overview_theme_system_spec</code>, <code>shelf_workspace_system_spec</code>: <strong>13 examples, 0 failures</strong>. Includes new sharing section keyboard/focus, repeated reopen, cross-page Back/Forward, clipboard failure/manual selection, native cancel, owner appearance undo/save, independent named presentation, exports/mascots and responsive reflow.</li>
+<li>Node aggregate <code>node --test spec/javascript/*.test.cjs spec/javascript/*.test.mjs</code>: <strong>136 tests passed</strong>. New coverage: immediate native invocation, repeat-click suppression, unsupported native clipboard feedback, native cancel/reject/manual recovery, dirty/saving guard, Turbo restoration metadata retention and detached-page completion.</li>
+<li>RuboCop on the three changed Ruby spec files: <strong>3 inspected, no offenses</strong>. Public-email guard and <code>git diff --check</code>: passed.</li>
+<li>Inspected actual supplied screenshot pixels. Live anonymous Chromium reproduced both baseline Share behaviors at the exact supplied URL: header fallback copied profile; toolbar opened details but left hash empty/scroll at 0, with sharing section at y=2239.6. No captured page errors. Default overview at 390px had no horizontal overflow. Internal live screenshots contain real content and are not published as artifacts.</li>
+<li>Actual local synthetic screenshots inspected: desktop/mobile share feedback and consistent toolbar; mobile sharing destination; existing theme/appearance checks. Physical devices and non-Chromium engines not tested.</li>
+<li>Isolated HTML prototype tested in Chromium at 1280px, 768px, 390px and 320px: create/empty state, local search/add, missing-art item, Escape/focus restoration, undo, appearance change/save, simulated failure/retry, publication state, visitor preview, sharing dialog, Back. No captured JavaScript errors; checked 390px/320px paths had no horizontal overflow. Desktop and mobile design pixels inspected. Export/native/publication outcomes are explicitly simulated; no real social post or production write.</li>
+</ul>
+<h2>Development failures resolved</h2>
+<p>An initial RSpec command named a nonexistent <code>shelves_spec.rb</code>; corrected to the actual request suite. Old label assertions were updated for the intentional explicit destinations. Capybara path matching excludes fragments by default, so the hash assertion now reads <code>location.hash</code>. A real cross-page Back failure exposed lost Turbo history metadata; preserving history state fixed it. A trial Turbo.visit approach regressed existing appearance history and was removed. The final suite retains all existing appearance behavior. One spec line-length offense was corrected. Earlier failing outputs are not the final result.</p>
+<h2>CI and remaining limits</h2>
+<p>The draft PR's exact remote head and settled CI results are recorded in the PR description and handoff. CI is authoritative for its PostgreSQL/SQLite aggregate, browser, security, lint and image jobs; focused local passes do not imply those checks passed. No PostgreSQL suite, full Rails aggregate, actual Safari/iOS share sheet, physical phone, production owner writes, external social crawler cache refresh or load benchmark was run locally.</p>
+<p>The audit distinguishes source risks and hypotheses from observed defects. It is an expert walkthrough, not participant usability evidence. The complete redesign, atomic save API, label/entry fixes outside the immediate report, performance changes and optional direct shelf-link action are proposals only. Existing user content, routes, profile-sharing intent, valid presentation values and approved mascot assets are preserved by the implementation.</p></html>

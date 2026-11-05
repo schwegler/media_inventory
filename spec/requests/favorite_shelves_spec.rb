@@ -226,7 +226,7 @@ RSpec.describe 'Favorite shelves', type: :request do
                          else
                            ['All shelves']
                          end
-        expect(toolbar_links.map(&:text)).to eq(expected_links + ['View profile', 'Share'])
+        expect(toolbar_links.map(&:text)).to eq(expected_links + ['View profile', 'Share & export'])
         overview = toolbar_links.find { |link| link.text == 'All shelves' }
         expect(URI.parse(overview['href']).path).to eq(shelf_path(user.username))
         expect(Rack::Utils.parse_nested_query(URI.parse(overview['href']).query)).not_to have_key('category')
