@@ -3,6 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe MediaSearchService do
+  include ActiveSupport::Testing::TimeHelpers
+
   before do
     MediaSources::Registry::CACHE.clear
     stub_request(:get, /en.wikipedia.org/).to_return(body: { query: { pages: {} } }.to_json)
@@ -154,6 +156,45 @@ RSpec.describe MediaSearchService do
     } } }.to_json)
     expect(described_class.call('Portal', 'video_game').first[:source]).to eq('Wikipedia')
   end
+  it 'finds the specific game beyond Wikipedia’s first three franchise matches during an outage' do
+    stub_request(:get, /storesearch/).to_return(status: 503)
+    pages = ["Marvel's Spider-Man (video game)", "Marvel's Spider-Man 2", "Marvel's Spider-Man",
+             "Marvel's Spider-Man: Miles Morales"].each_with_index.to_h do |title, index|
+      [index.to_s, { title: title, pageid: index + 1, index: index + 1,
+                     thumbnail: { source: "https://upload.wikimedia.org/cover-#{index}.jpg" } }]
+    end
+    stub_request(:get, /en.wikipedia.org/).with(query: hash_including('gsrlimit' => '10')).to_return(
+      body: { query: { pages: pages } }.to_json
+    )
+    2.times do
+      expect(described_class.call('spider-man miles', 'video_game').first).to include(
+        title: "Marvel's Spider-Man: Miles Morales", source: 'Wikipedia'
+      )
+      expect(described_class.source_states('spider-man miles', 'video_game')).to include(
+        { source: 'Steam', state: 'unavailable' }, { source: 'RAWG', state: 'unconfigured' },
+        { source: 'Wikipedia', state: 'ready' }
+      )
+    end
+    expect(WebMock).to have_requested(:get, /en.wikipedia.org/).once
+    travel 61.seconds do
+      described_class.call('spider-man miles', 'video_game')
+    end
+    expect(WebMock).to have_requested(:get, /storesearch/).times(4)
+  end
+
+  it 'distinguishes disabled, rate limited and successful empty game sources' do
+    ApiConfiguration.create!(source_name: 'Wikipedia', media_type: 'VideoGame', is_active: false)
+    stub_request(:get, /storesearch/).to_return(status: 429)
+    described_class.call('Rate limited game', 'video_game')
+    expect(described_class.source_states('Rate limited game', 'video_game')).to include(
+      { source: 'Steam', state: 'rate_limited' }, { source: 'Wikipedia', state: 'disabled' }
+    )
+    MediaSources::Registry::CACHE.clear
+    stub_request(:get, /storesearch/).to_return(body: { items: [] }.to_json)
+    described_class.call('Empty game', 'video_game')
+    expect(described_class.source_states('Empty game', 'video_game')).to include(source: 'Steam', state: 'ready')
+  end
+
   it 'adds Internet Archive artwork for each supported media category' do
     stub_request(:get, %r{archive.org/advancedsearch}).to_return(body: { response: { docs: [
       { identifier: 'public-work', title: 'Public work', creator: ['An Author'], date: '2001-01-01' }

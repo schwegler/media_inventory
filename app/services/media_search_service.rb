@@ -11,6 +11,11 @@ class MediaSearchService
     MediaSources::Registry::CACHE.read(source_state_key(query, type)) || []
   end
 
+  def self.cache_expiry(query, type)
+    degraded = source_states(query, type).any? { |source| %w[unavailable rate_limited].include?(source[:state]) }
+    type == 'video_game' && degraded ? 1.minute : 15.minutes
+  end
+
   def self.source_state_key(query, type)
     ['discovery-sources-v1', type, query.to_s.strip.first(200).downcase,
      ApiConfiguration.order(:id).pluck(:source_name, :media_type, :is_active, :updated_at)]
@@ -23,7 +28,7 @@ class MediaSearchService
   # Browser polling releases Puma threads while background workers search.
   def self.request(query, type, client_id: nil)
     fingerprint = ApiConfiguration.order(:id).pluck(:source_name, :media_type, :is_active, :updated_at)
-    key = ['async-search-v3', Digest::SHA256.hexdigest([query.to_s.strip.first(200).downcase, type, fingerprint].to_json)]
+    key = ['async-search-v4', Digest::SHA256.hexdigest([query.to_s.strip.first(200).downcase, type, fingerprint].to_json)]
     cache = MediaSources::Registry::CACHE
     latest_key = ['search-client-v1', client_id] if client_id.to_s.match?(/\A[a-zA-Z0-9-]{16,64}\z/)
     REQUEST_LOCK.synchronize do
@@ -54,10 +59,11 @@ class MediaSearchService
     started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     @deadline = started_at + 12
     MediaSources::Registry::CACHE.fetch(
-      ['media-search-v10', @type, @query.downcase.strip,
+      ['media-search-v11', @type, @query.downcase.strip,
        ApiConfiguration.order(:id).pluck(:source_name, :media_type, :is_active, :updated_at)], expires_in: 15.minutes
-    ) do
+    ) do |_key, options|
       results = search_sources(&progress)
+      options.expires_in = self.class.cache_expiry(@query, @type)
       results = ComicSearchQuery.new(@query).rank(results).first(20) if @type == 'comic'
       # Games need bounded detail lookup to distinguish DLC and resolve real cover candidates.
       # Other media fetch details only after an explicit selection.
@@ -93,16 +99,25 @@ class MediaSearchService
     end
     @source_state_key = self.class.source_state_key(@query, @type)
     @state_lock = Mutex.new
-    @source_states = []
+    sources += [['InternetArchive', :fetch_internet_archive]]
     configurations = ApiConfiguration.order(:id).to_a
-    sources = MediaSources::Registry.with_snapshot(configurations) do
-      (sources + [['InternetArchive', :fetch_internet_archive]]).select do |source, _method|
-        MediaSources::Registry.enabled?(source, @type.camelize)
+    @source_states = MediaSources::Registry.with_snapshot(configurations) do
+      sources.map do |source, _method|
+        { source: source, state: initial_source_state(source) }
       end
     end
-    @source_states = sources.map { |source, _| { source: source, state: 'pending' } }
+    sources = sources.select do |source, _|
+      @source_states.any? { |entry| entry[:source] == source && entry[:state] == 'pending' }
+    end
     store_source_states
     collect_sources(sources, configurations) { |results| yield results if block_given? }
+  end
+
+  def initial_source_state(source)
+    return 'disabled' unless MediaSources::Registry.enabled?(source, @type.camelize)
+    return 'unconfigured' if source == 'RAWG' && !GameProviders::Rawg.new.enabled?
+
+    'pending'
   end
 
   def collect_sources(sources, configurations)
@@ -132,7 +147,8 @@ class MediaSearchService
         results = MediaSources::Registry.with_snapshot(configurations) do
           Thread.current[:media_search_failure] = false
           results = send(method, @query).map { |result| result.merge(source: source) }
-          record_source_state(source, Thread.current[:media_search_failure] ? 'unavailable' : 'ready')
+          failure = Thread.current[:media_search_failure]
+          record_source_state(source, failure == true ? 'unavailable' : failure.presence || 'ready')
           results
         end
         completed << [index, results]
@@ -440,12 +456,18 @@ class MediaSearchService
 
   def fetch_steam_video_games(query)
     GameProviders::Steam.new(deadline: @deadline).search(query)
+  rescue GameProviders::Base::RateLimited
+    Thread.current[:media_search_failure] = 'rate_limited'
+    []
   rescue GameProviders::Base::Unavailable
     source_unavailable
   end
 
   def fetch_rawg_video_games(query)
     GameProviders::Rawg.new(deadline: @deadline).search(query)
+  rescue GameProviders::Base::RateLimited
+    Thread.current[:media_search_failure] = 'rate_limited'
+    []
   rescue GameProviders::Base::Unavailable
     source_unavailable
   end
@@ -455,7 +477,7 @@ class MediaSearchService
                  'comic' => 'comic', 'video_game' => 'video game', 'book' => 'book' }.fetch(@type)
     uri = URI('https://en.wikipedia.org/w/api.php')
     uri.query = URI.encode_www_form(action: 'query', generator: 'search', gsrsearch: "#{query} #{category}",
-                                    gsrlimit: 3, prop: 'pageimages|info', piprop: 'thumbnail',
+                                    gsrlimit: @type == 'video_game' ? 10 : 3, prop: 'pageimages|info', piprop: 'thumbnail',
                                     pithumbsize: 500, pilicense: 'any',
                                     inprop: 'url', format: 'json')
     data = JSON.parse(MediaSources::Http.cached_get(uri, expires_in: 15.minutes, deadline: @deadline))

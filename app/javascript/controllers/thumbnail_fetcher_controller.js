@@ -205,14 +205,16 @@ export default class extends Controller {
       const signal = this.searchAbortController.signal
       let previousResults
       for (let attempt = 0; attempt < 80; attempt++) {
-        const response = await fetch(`/media/autocomplete?async=1&q=${encodeURIComponent(query)}&type=${encodeURIComponent(mediaType)}&search_client=${this.searchClient}`, { signal })
+        const response = await fetch(`/media/autocomplete?async=1&sources=1&q=${encodeURIComponent(query)}&type=${encodeURIComponent(mediaType)}&search_client=${this.searchClient}`, { signal })
         if (!response.ok) throw new Error(`Search failed: ${response.status}`)
-        const results = await response.json()
+        const payload = await response.json()
+        const results = payload.results
+        const sources = payload.sources || []
         if (signal.aborted || !this.searchStageActive || this.currentQuery !== query) return
         const pending = response.status === 202
-        const serialized = JSON.stringify(results)
+        const serialized = JSON.stringify(payload)
         if (serialized !== previousResults || !pending) {
-          this.renderResults(results, mediaType, pending)
+          this.renderResults(results, mediaType, pending, sources)
           previousResults = serialized
         }
         if (!pending) return
@@ -230,9 +232,17 @@ export default class extends Controller {
     }
   }
 
-  renderResults(results, mediaType, pending = false) {
+  sourceNotice(sources) {
+    return sources.filter(source => source.state !== "ready" && source.state !== "pending").map(source => {
+      const messages = { unavailable: "is temporarily unavailable", rate_limited: "is rate limited; try again shortly", disabled: "is disabled", unconfigured: "is not configured" }
+      return messages[source.state] ? `${source.source} ${messages[source.state]}.` : ""
+    }).filter(Boolean).join(" ")
+  }
+
+  renderResults(results, mediaType, pending = false, sources = []) {
     if (!this.searchStageActive) return
     this.optionsGridTarget.innerHTML = ""
+    const sourceNotice = this.sourceNotice(sources)
     if (results.length === 0) {
       if (pending) {
         this.statusTextTarget.textContent = "Searching web sources…"
@@ -241,12 +251,14 @@ export default class extends Controller {
       this.statusTextTarget.textContent = mediaType === "comic"
         ? "No matching series found. Try another start year, remove the year, or add manually."
         : "No matches found. Try another title or add manually."
+      if (sourceNotice) this.statusTextTarget.textContent += ` ${sourceNotice}`
       return
     }
 
     this.statusTextTarget.textContent = pending ? "Select a result, or wait for more web matches…" : mediaType === "comic"
       ? `${results.length} matching series. Select the run you want:`
       : "Select a result below:"
+    if (!pending && sourceNotice) this.statusTextTarget.textContent += ` ${sourceNotice}`
     this.optionsGridTarget.dataset.mediaType = mediaType
     this.optionsGridTarget.classList.toggle("comic-series-results", mediaType === "comic")
     this.optionsGridTarget.classList.toggle("game-search-results", mediaType === "video_game")
@@ -292,7 +304,7 @@ export default class extends Controller {
         title.textContent = option.title
         const details = document.createElement("span")
         details.className = "option-details"
-        details.textContent = [option.release_year || "Year unknown", option.platform, option.game_type || "Type unknown"].filter(Boolean).join(" · ")
+        details.textContent = [option.release_year || "Year unknown", option.platform, (option.game_type && option.game_type !== "unknown" ? option.game_type : null)].filter(Boolean).join(" · ")
         const coverStatus = document.createElement("span")
         coverStatus.className = "option-cover-status"
         coverStatus.textContent = option.artwork_status === "missing" ? "Cover unavailable" : option.artwork_source ? `Art: ${option.artwork_source}` : ""

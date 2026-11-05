@@ -31,8 +31,8 @@ export default class extends Controller {
         if (previous !== serialized) this.renderResults(results)
         previous = serialized
         const pending = response.status === 202
-        const unavailable = data.sources.some(source => source.state === "unavailable")
-        const noSources = !data.sources.length
+        const unavailable = data.sources.some(source => ["unavailable", "rate_limited", "unconfigured"].includes(source.state))
+        const noSources = !data.sources.some(source => source.state !== "disabled")
         this.statusTarget.textContent = pending ? "Searching catalogs. You can choose a result while more arrive…" : unavailable
           ? "Some catalogs could not be searched. Available matches are shown; try again or refine your search."
           : noSources ? "Catalog availability could not be confirmed. Refine your search or retry; these are only selected matches."

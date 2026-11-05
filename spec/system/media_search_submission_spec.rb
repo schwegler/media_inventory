@@ -21,6 +21,34 @@ RSpec.describe 'Media search submission', type: :system do
     end
   end
 
+  it 'shows the specific game and explains provider failures in the logging form' do
+    stub_request(:get, /storesearch/).to_return(status: 503)
+    titles = ["Marvel's Spider-Man", "Marvel's Spider-Man 2", "Marvel's Spider-Man (video game)",
+              "Marvel's Spider-Man: Miles Morales"]
+    pages = titles.each_with_index.to_h do |title, index|
+      [index.to_s, { title: title, pageid: index + 1, index: index + 1,
+                     thumbnail: { source: "https://upload.wikimedia.org/cover-#{index}.jpg" } }]
+    end
+    stub_request(:get, /en.wikipedia.org/).with(query: hash_including('gsrlimit' => '10')).to_return(
+      body: { query: { pages: pages } }.to_json
+    )
+    allow(GameSearchArtwork).to receive(:call) do |results|
+      results.map { |result| result.merge(thumbnail_url: nil, artwork_status: 'missing') }
+    end
+
+    visit new_video_game_path
+    expect(page).to have_css('[data-connected="true"]')
+    fill_in 'Title', with: 'spider-man miles'
+    find_field('Title').send_keys(:enter)
+    expect(page).to have_css('.thumbnail-option-card', count: 4)
+    expect(all('.thumbnail-option-card').first).to have_text("Marvel's Spider-Man: Miles Morales")
+    expect(page).to have_text('Steam is temporarily unavailable.')
+    expect(page).to have_text('RAWG is not configured.')
+    expect(page).not_to have_text('Year unknown · unknown')
+    expect(VideoGame.count).to eq(0)
+    expect(LibraryItem.count).to eq(0)
+  end
+
   it 'guards form submissions and year-field Enter, but allows deliberate manual creation' do
     visit new_comic_path
     expect(page).to have_css('[data-connected="true"]')
