@@ -413,5 +413,29 @@
   font-family: Impact, 'Arial Narrow', sans-serif; letter-spacing: .015em; line-height: 1.08;
 }
 
+.favorite-shelf {
+  .shelf-appearance-intro { max-width: 65ch; margin: 24px 0; }
+  .shelf-appearance-intro p { color: var(--shelf-muted); line-height: 1.6; }
+  .shelf-appearance-intro a { color: var(--shelf-text); text-decoration: underline; }
+  .shelf-appearance-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+  .shelf-appearance-actions p { flex-basis: 100%; min-height: 1.5em; }
+  #shelf-image-preview, #shelf-sharing { scroll-margin-top: 100px; }
+  .shelf-themes label:has(:focus-visible) { outline: 2px solid var(--shelf-text); outline-offset: 3px; }
+  .shelf-appearance-actions button:disabled { opacity: .65; cursor: wait; }
+}
+
+.favorite-shelf .shelf-theme-swatch {
+  display: inline-block; flex: 0 0 22px; width: 22px; height: 22px; border-radius: 50%;
+  border: 1px solid var(--shelf-muted); background: #101117;
+  @each $palette, $background, $accent in (
+    ('midnight', #101117, #c4b5fd), ('gallery', #f5f2eb, #685643),
+    ('electric', #181235, #c4b5fd), ('halloween', #140f1b, #ff9f43),
+    ('christmas', #faf2e2, #34664b), ('everyday', #f8f4eb, #806ca8),
+    ('telly', #e6f4ff, #2877a8), ('facet', #eee5fa, #8555b3),
+    ('midnight_feature', #0b090b, #c56a8d)
+  ) {
+    &[data-palette='#{$palette}'] { background: linear-gradient(135deg, $background 55%, $accent 55%); }
+  }
+}
 .favorite-shelf .shelf-export-artwork { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .favorite-shelf .shelf-export-artwork select { min-height: 44px; max-width: 100%; padding: 8px 12px; color: var(--shelf-text); background: var(--shelf-bg); border: 1px solid var(--shelf-line); border-radius: 8px; }
