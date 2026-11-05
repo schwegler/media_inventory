@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 import { renderShelfImage, shelfImageAltText, SHELF_THEMES, SHELF_STYLES, shelfCompanion, shelfPublicLink } from "controllers/shelf_image"
 
 export default class extends Controller {
-  static targets = ["slots", "dialog", "query", "results", "status", "canvas", "altText", "altTextDetails", "companion", "searchType", "appearanceStatus"]
+  static targets = ["slots", "dialog", "query", "results", "status", "canvas", "altText", "altTextDetails", "companion", "searchType", "appearanceStatus", "shareStatus", "shareLink"]
   static values = { style: Object, assets: Object, picks: Array, publicUrl: String, url: String, search: String, handle: String, category: String, shelves: Array, overview: Boolean, headline: String, owner: Boolean, previewCategory: String, previewSignature: String, editVersion: String, capacity: Number, flexible: Boolean, allowedTypes: Array, previewStored: Boolean, previewTheme: String }
 
   connect() {
@@ -221,7 +221,8 @@ export default class extends Controller {
   showPreview(event) { this.navigateAppearanceSection(event, 'shelf-image-preview') }
   navigateAppearanceSection(event, id) {
     event?.preventDefault()
-    if (window.location.hash !== `#${id}`) window.history.pushState(null, '', `#${id}`)
+    // Preserve Turbo restoration metadata so Back can restore the correct page.
+    if (window.location.hash !== `#${id}`) window.history.pushState(window.history.state, '', `#${id}`)
     this.openAppearanceSection(id)
   }
   openHashSection() {
@@ -279,20 +280,53 @@ export default class extends Controller {
       if (focusedControl?.isConnected && document.activeElement === document.body) focusedControl.focus()
     }
   }
-  showSharing() { const panel = this.element.querySelector(".shelf-image-settings"); if (panel) panel.open = true }
-  async nativeShare() {
-    if (this.dirty) { this.statusTarget.textContent = "Save your changes before sharing."; return }
-    if (!navigator.share) return this.copyLink()
-    if (!(await this.savePresentation())) return
-    try { await navigator.share({ title: this.headlineValue, url: this.profileUrl() }); this.statusTarget.textContent = "Shelf shared." }
-    catch (error) { if (error.name !== "AbortError") this.copyLink() }
+  showSharing(event) { this.navigateAppearanceSection(event, 'shelf-sharing') }
+  shareMessage(message) {
+    if (!this.element.isConnected) return
+    const feedback = this.shareStatusTargets.find(target => target.parentElement?.contains(this.shareTrigger)) || this.shareStatusTargets[0]
+    this.statusTarget.textContent = feedback ? "" : message
+    this.shareStatusTargets.forEach(target => { target.textContent = target === feedback ? message : "" })
   }
-  async copyLink() {
-    if (!(await this.savePresentation())) return
-    if (this.dirty) { this.statusTarget.textContent = "Save your changes before sharing your public shelf."; return }
+  readyToShare() {
+    if (this.dirty || this.presentationDirty || this.presentationSaving || this.picksSaving) {
+      this.shareMessage("Save your shelf and appearance changes before sharing, then try again.")
+      return false
+    }
+    return true
+  }
+  async nativeShare(event) {
+    if (this.sharing || this.copying) return
+    this.shareTrigger = event?.currentTarget
+    if (!this.readyToShare()) return
+    if (!navigator.share) return this.copyLink(event)
+    // Call within the click gesture. Saving first can consume native user activation.
+    this.sharing = true
+    this.shareMessage("Opening sharing…")
+    try {
+      await navigator.share({ title: this.headlineValue, url: this.profileUrl() })
+      this.shareMessage("Profile link shared.")
+    } catch (error) {
+      if (error.name === "AbortError") this.shareMessage("Sharing canceled. You can try again or copy the profile link.")
+      else this.manualShare(event, "Sharing unavailable.")
+    } finally { this.sharing = false }
+  }
+  async copyLink(event) {
+    if (this.copying || this.sharing) return
+    this.shareTrigger = event?.currentTarget
+    if (!this.readyToShare()) return
+    this.copying = true
+    try {
+      await navigator.clipboard.writeText(this.profileUrl())
+      this.shareMessage("Profile link copied.")
+    } catch { this.manualShare(event, "Clipboard unavailable.") }
+    finally { this.copying = false }
+  }
+  manualShare(event, reason) {
+    if (!this.element.isConnected) return
     const url = this.profileUrl()
-    try { await navigator.clipboard.writeText(url); this.statusTarget.textContent = "Profile link copied." }
-    catch { this.statusTarget.textContent = `Copy this profile link: ${url}` }
+    this.shareMessage(`${reason} Select and copy this profile link: ${url}`)
+    const input = this.shareLinkTargets.find(target => target.parentElement.contains(this.shareTrigger)) || this.shareLinkTargets[0]
+    if (input) { input.hidden = false; input.value = url; input.focus(); input.select() }
   }
   profileUrl() { return shelfPublicLink(this.handleValue, this.publicUrlValue).href }
   imageOptions() {

@@ -68,3 +68,69 @@ RSpec.describe 'Shelf appearance editing journey', type: :system do
     expect(page).to have_no_button('Save appearance')
   end
 end
+
+RSpec.describe 'Shelf sharing actions', type: :system do
+  it 'opens and focuses sharing from the toolbar repeatedly with keyboard and history navigation' do
+    user = create_and_login_user
+    user.update!(username: 'share_navigation')
+    visit shelf_path(user.username, category: 'overall')
+    expect(page).to have_css('.favorite-shelf[data-connected="true"]')
+    link = find('.shelf-toolbar a', text: 'Share & export', exact_text: true)
+    link.send_keys(:enter)
+    expect(page).to have_css('#shelf-appearance[open]')
+    expect(page).to have_css('#shelf-share-heading:focus')
+    expect(page.evaluate_script('location.hash')).to eq('#shelf-sharing')
+    sharing_visible = page.evaluate_script(<<~JS)
+      document.querySelector("#shelf-sharing").getBoundingClientRect().top < innerHeight
+    JS
+    expect(sharing_visible).to be(true)
+    find('#shelf-appearance > summary').click
+    within('.shelf-toolbar') { click_link 'Share & export' }
+    expect(page).to have_css('#shelf-share-heading:focus')
+    within('.shelf-toolbar') { click_link 'Customize appearance' }
+    expect(page).to have_css('#shelf-appearance-heading:focus')
+    page.go_back
+    expect(page).to have_css('#shelf-share-heading:focus')
+    page.go_forward
+    expect(page).to have_css('#shelf-appearance-heading:focus')
+    resize_browser_viewport(390, 844)
+    visit shelf_path(user.username, category: 'overall')
+    within('.shelf-toolbar') { click_link 'Share & export' }
+    expect(page).to have_css('#shelf-share-heading:focus')
+    expect(page.evaluate_script('document.documentElement.scrollWidth <= innerWidth')).to be(true)
+    capture_ui_screenshot('shelf-share-navigation-mobile')
+  end
+
+  it 'shows local clipboard recovery and native cancel feedback without posting or changing stored state' do
+    user = create_and_login_user
+    user.update!(username: 'share_feedback')
+    visit shelf_path(user.username, category: 'overall')
+    expect(page).to have_css('.favorite-shelf[data-connected="true"]')
+    page.execute_script(<<~JS)
+      Object.defineProperty(navigator, 'share', { configurable: true, value: undefined });
+      Object.defineProperty(navigator, 'clipboard', { configurable: true, value: {
+        writeText: () => Promise.reject(new Error('Clipboard blocked for test'))
+      }});
+    JS
+    within('.shelf-action-bar') do
+      click_button 'Share profile'
+      expect(page).to have_text('Clipboard unavailable. Select and copy this profile link:')
+      expect(page).to have_css('input[aria-label="Profile link to copy"]:focus')
+      expect(find('input[aria-label="Profile link to copy"]').value).to end_with('/@share_feedback')
+    end
+    page.execute_script(<<~JS)
+      Object.defineProperty(navigator, 'share', { configurable: true, value: () =>
+        Promise.reject(Object.assign(new Error('Canceled in test'), { name: 'AbortError' })) });
+    JS
+    within('.shelf-action-bar') do
+      click_button 'Share profile'
+      expect(page).to have_text('Sharing canceled. You can try again or copy the profile link.')
+    end
+    expect(user.reload.shelf_presentation).to be_blank
+    resize_browser_viewport(1280, 900)
+    capture_ui_screenshot('shelf-share-feedback-desktop')
+    resize_browser_viewport(390, 844)
+    expect(page.evaluate_script('document.documentElement.scrollWidth <= innerWidth')).to be(true)
+    capture_ui_screenshot('shelf-share-feedback-mobile')
+  end
+end
