@@ -3,6 +3,26 @@
 require 'rails_helper'
 
 RSpec.describe 'Shelf Story customization', type: :system do
+  it 'lets public visitors change export mascots without changing the saved shelf' do
+    user = User.create!(name: 'Export sample', username: 'export_sample', email: 'export@example.com', password: 'password')
+    user.update!(shelf_presentation: { theme: 'halloween', companion: 'bat' })
+    visit shelf_path(user.username)
+    expect(page).to have_css('.favorite-shelf[data-connected="true"]')
+    find('summary', text: 'Appearance & share image').click
+    %w[landscape portrait].each do |format|
+      find("input[name='shelf-format'][value='#{format}']").choose
+      ['Telly', 'Facet', 'None', 'Facet in bat costume', 'Telly'].each do |mascot|
+        select mascot, from: 'Mascot'
+        value = find('#shelf-companion').value
+        expect(page).to have_field('shelf-image-alt-text', with: /#{value} companion/, visible: :all)
+        expect(page).to have_css(".shelf-preview canvas[height='#{format == 'portrait' ? 1920 : 630}']")
+      end
+    end
+    expect(user.reload.shelf_presentation).to include('companion' => 'bat')
+    expect(page).to have_button('Copy profile link')
+    expect(page).to have_no_button('Save appearance')
+  end
+
   it 'applies character themes, shares curated choices and renders a Story-safe export on mobile' do
     user = create_and_login_user
     user.update!(username: 'story_preview')

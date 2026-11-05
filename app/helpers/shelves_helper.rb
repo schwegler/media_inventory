@@ -32,7 +32,7 @@ module ShelvesHelper
 
     shelves = user.favorite_shelves.order(:category)
     shelves = shelves.where(category: category) unless category == 'overview'
-    payload = ['shelf-image-v5-campaign', user.username, user.shelf_headline, shelves.pluck(:category, :picks)]
+    payload = ['shelf-image-v6-profile', user.username, user.shelf_headline, shelves.pluck(:category, :picks)]
     Digest::SHA256.hexdigest(payload.to_json)
   end
 

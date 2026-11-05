@@ -102,13 +102,20 @@ export function portraitShelfLayout(count, layout = "exhibition") {
   })
 }
 
-export function shelfPublicLink(handle, candidate, sharePath) {
-  const fallback = `https://trove.schweg.xyz/@${encodeURIComponent(handle)}/shelf`
+export function shelfPublicLink(handle, candidate) {
+  const path = `/@${encodeURIComponent(handle)}`
+  let origin = 'https://trove.schweg.xyz'
   try {
-    const url = new URL(candidate || sharePath || fallback, 'https://trove.schweg.xyz')
-    if (url.protocol === 'https:' && !url.username && !url.password && !['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)) return url
+    const url = new URL(candidate || origin, origin)
+    if (url.protocol === 'https:' && !url.username && !url.password &&
+        !['localhost', '127.0.0.1', '[::1]'].includes(url.hostname) && !url.hostname.endsWith('.localhost')) origin = url.origin
   } catch { /* Use the public canonical default. */ }
-  return new URL(fallback)
+  return new URL(path, origin)
+}
+
+export function shelfCompanion(name, theme) {
+  if (name === 'auto') return theme === 'halloween' ? 'bat' : ['telly', 'facet'].includes(theme) ? theme : 'none'
+  return SHELF_STYLES.companion.includes(name) ? name : 'none'
 }
 
 function seasonalFrame(ctx, theme, name, portrait) {
@@ -141,13 +148,13 @@ function seasonalFrame(ctx, theme, name, portrait) {
 }
 
 async function companionImage(name, theme, assets) {
-  const selected = name === "auto" ? (theme === "halloween" ? "bat" : ["telly", "facet"].includes(theme) ? theme : "none") : name
+  const selected = shelfCompanion(name, theme)
   if (selected === "none" || !assets?.[selected]) return null
   const image = await cover({ cover: assets[selected] })
   return image ? { image, selected } : null
 }
 
-export async function renderShelfImage(canvas, { picks = [], shelves = [], overview, theme: themeName, format, handle, category, headline, layout = "exhibition", texture = "clean", companion = "auto", assets = {}, siteHost = "trove.schweg.xyz", sharePath, canonicalUrl }) {
+export async function renderShelfImage(canvas, { picks = [], shelves = [], overview, theme: themeName, format, handle, category, headline, layout = "exhibition", texture = "clean", companion = "auto", assets = {}, canonicalUrl }) {
   const portrait = format === "portrait", theme = SHELF_THEMES[themeName] || SHELF_THEMES.midnight
   const source = overview ? shelves.filter(shelf => shelf.picks.length) : [{ label: category, picks }]
   await document.fonts?.load('700 48px "Instrument Sans"')
@@ -223,9 +230,9 @@ export async function renderShelfImage(canvas, { picks = [], shelves = [], overv
     }
     if (!n) { ctx.fillStyle = theme.muted; text(ctx, "A shelf taking shape. Room for your next favorite.", edge, 320, 1056, 32, 2) }
   }
-  const link = shelfPublicLink(handle, canonicalUrl, sharePath)
+  const link = shelfPublicLink(handle, canonicalUrl)
   ctx.strokeStyle = theme.line; ctx.beginPath(); ctx.moveTo(edge, portrait ? 1590 : h - 100); ctx.lineTo(w - edge, portrait ? 1590 : h - 100); ctx.stroke()
-  ctx.fillStyle = theme.accent; text(ctx, `${picks.length > 5 && !overview ? `${picks.length} SELECTIONS · FIRST 5 SHOWN · ` : ''}OPEN THE FULL SHELF  →`, edge, portrait ? 1624 : h - 72, w - edge * 2, portrait ? 20 : 15, 1, '"Instrument Sans", sans-serif', 600)
+  ctx.fillStyle = theme.accent; text(ctx, `${picks.length > 5 && !overview ? `${picks.length} SELECTIONS · FIRST 5 SHOWN · ` : ''}VISIT THE PROFILE  →`, edge, portrait ? 1624 : h - 72, w - edge * 2, portrait ? 20 : 15, 1, '"Instrument Sans", sans-serif', 600)
   ctx.fillStyle = theme.text; text(ctx, `${link.host}${link.pathname}${link.search}`, edge, portrait ? 1664 : h - 40, w - edge * 2, portrait ? 25 : 18, 1)
   canvas.width = w; canvas.height = h; canvas.getContext("2d").drawImage(output, 0, 0)
 }
