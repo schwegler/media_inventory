@@ -439,7 +439,7 @@ DEPENDENCIES
   propshaft
   psych (= 5.0.1)
   puma (>= 5.0)
-  rails (~> 8.1.4.1)
+  rails (~> 8.1.4)
   rdoc (>= 6.5.1.1)
   rspec-rails (~> 8.0)
   rubocop
