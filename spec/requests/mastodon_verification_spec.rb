@@ -16,7 +16,7 @@ RSpec.describe 'Site owner Mastodon verification', type: :request do
     user = User.create!(name: 'Another Curator', username: 'another_curator', email: 'curator@example.test',
                         password: 'password123', password_confirmation: 'password123', confirmed_at: Time.current)
 
-    [user_path(user), shelf_path(user.username), login_path].each do |path|
+    [handle_profile_path(user.username), shelf_path(user.username), login_path].each do |path|
       get path
 
       expect(response).to have_http_status(:success)
