@@ -17,6 +17,14 @@ module ShelvesHelper
     shelf_path(user.username, **shelf_image_style(style).symbolize_keys, category: category, theme: theme)
   end
 
+  def shelf_appearance_editor_path(collection: nil, category: nil)
+    options = { anchor: 'shelf-appearance' }
+    return edit_managed_shelf_path(collection.slug, **options) if collection
+    return edit_favorite_shelf_path(category, **options) if category
+
+    shelf_appearance_path(**options)
+  end
+
   def shelf_image_style(input)
     SHELF_IMAGE_STYLES.to_h do |key, choices|
       value = input[key]

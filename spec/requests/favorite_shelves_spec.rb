@@ -220,12 +220,21 @@ RSpec.describe 'Favorite shelves', type: :request do
         expect(page.at_css('button[data-action="favorite-shelf#copyAltText"]').text).to eq('Copy image alt text')
         expect(page.at_css('textarea[data-favorite-shelf-target="altText"]')['readonly']).to be_present
         toolbar_links = page.css('.shelf-toolbar-links a')
-        expected_links = signed_in ? ['Shelves workspace', 'Edit shelf', 'All shelves'] : ['All shelves']
+        expected_links = if signed_in
+                           ['Shelves workspace', 'Edit shelf', 'Customize appearance',
+                            'All shelves']
+                         else
+                           ['All shelves']
+                         end
         expect(toolbar_links.map(&:text)).to eq(expected_links + ['View profile', 'Share'])
         overview = toolbar_links.find { |link| link.text == 'All shelves' }
         expect(URI.parse(overview['href']).path).to eq(shelf_path(user.username))
         expect(Rack::Utils.parse_nested_query(URI.parse(overview['href']).query)).not_to have_key('category')
         if signed_in
+          appearance = toolbar_links.find { |link| link.text == 'Customize appearance' }
+          editor_path = category ? edit_favorite_shelf_path(category) : shelf_appearance_path
+          expect(URI.parse(appearance['href']).path).to eq(editor_path)
+          expect(URI.parse(appearance['href']).fragment).to eq('shelf-appearance')
           expect(page.at_css('[aria-label="Account menu"]')).to be_present
         else
           expect(page.at_css(".app-header a[href='#{login_path}']")).to be_present

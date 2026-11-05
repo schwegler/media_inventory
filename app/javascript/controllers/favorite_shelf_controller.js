@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 import { renderShelfImage, shelfImageAltText, SHELF_THEMES, SHELF_STYLES, shelfCompanion, shelfPublicLink } from "controllers/shelf_image"
 
 export default class extends Controller {
-  static targets = ["slots", "dialog", "query", "results", "status", "canvas", "altText", "altTextDetails", "companion", "searchType"]
+  static targets = ["slots", "dialog", "query", "results", "status", "canvas", "altText", "altTextDetails", "companion", "searchType", "appearanceStatus"]
   static values = { style: Object, assets: Object, picks: Array, publicUrl: String, url: String, search: String, handle: String, category: String, shelves: Array, overview: Boolean, headline: String, owner: Boolean, previewCategory: String, previewSignature: String, editVersion: String, capacity: Number, flexible: Boolean, allowedTypes: Array, previewStored: Boolean, previewTheme: String }
 
   connect() {
@@ -12,7 +12,12 @@ export default class extends Controller {
     this.imageTheme = this.element.dataset.shelfTheme
     if (!SHELF_THEMES[this.imageTheme]) this.imageTheme = "midnight"
     if (this.previewStoredValue && JSON.stringify(this.imageStyle) === serverStyle) this.storedPreview = `${this.previewSignatureValue}:${this.previewThemeValue}:${serverStyle}`
+    this.savedAppearance = { theme: this.imageTheme, style: { ...this.imageStyle } }
     this.applyTheme(); this.render()
+    this.onAppearanceHash = () => this.openHashSection()
+    window.addEventListener("hashchange", this.onAppearanceHash)
+    document.addEventListener("turbo:load", this.onAppearanceHash)
+    this.appearanceFrame = requestAnimationFrame(() => this.openHashSection())
     this.guard = event => { if (this.dirty || this.presentationDirty) { event.preventDefault(); event.returnValue = "" } }
     this.visitGuard = event => { if ((this.dirty || this.presentationDirty) && !window.confirm("Leave without saving your shelf?")) event.preventDefault() }
     this.onDialogClose = () => { if (this.dialogTarget.open) return; this.dialogGeneration = (this.dialogGeneration || 0) + 1; const opener = this.opener; this.opener = null; if (opener && typeof opener.focus === "function" && opener.isConnected) opener.focus(); else if (this.hasSlotsTarget) this.focusItem(this.slot) }
@@ -22,6 +27,9 @@ export default class extends Controller {
     this.element.dataset.connected = "true"
   }
   disconnect() {
+    cancelAnimationFrame(this.appearanceFrame)
+    document.removeEventListener("turbo:load", this.onAppearanceHash)
+    window.removeEventListener("hashchange", this.onAppearanceHash)
     clearTimeout(this.timer); this.abort?.abort(); window.removeEventListener("beforeunload", this.guard); document.removeEventListener("turbo:before-visit", this.visitGuard)
     if (this.hasDialogTarget) this.dialogTarget.removeEventListener("close", this.onDialogClose)
   }
@@ -155,19 +163,17 @@ export default class extends Controller {
   }
   theme(event) {
     if (!this.ownerValue) return
-    this.presentationDirty = true
     this.imageTheme = event.target.value
     try { localStorage.setItem("trove-shelf-theme", this.imageTheme) } catch { /* Presentation still works without storage. */ }
-    this.applyTheme(); this.revealPreview(); this.schedulePreview()
+    this.appearanceChanged(); this.applyTheme(); this.revealPreview(); this.schedulePreview()
   }
   customize(event) {
     const key = event.target.name
     if (!this.ownerValue && key !== "companion") return
-    if (this.ownerValue) this.presentationDirty = true
     if (!SHELF_STYLES[key]?.includes(event.target.value)) return
     this.imageStyle[key] = event.target.value
     if (this.ownerValue) { try { localStorage.setItem("trove-shelf-style", JSON.stringify(this.imageStyle)) } catch { /* Optional storage. */ } }
-    this.applyTheme(); this.revealPreview(); this.schedulePreview()
+    this.appearanceChanged(); this.applyTheme(); this.revealPreview(); this.schedulePreview()
   }
   applyTheme() {
     this.element.dataset.shelfTheme = this.imageTheme
@@ -185,19 +191,65 @@ export default class extends Controller {
     this.element.querySelectorAll('input[name="shelf-theme"]').forEach(input => { input.checked = input.value === this.imageTheme })
     const paletteSelect = this.element.querySelector('select[name="shelf-theme"]'); if (paletteSelect) paletteSelect.value = this.imageTheme
     this.element.querySelectorAll('[data-shelf-link]').forEach(link => {
-      const url = new URL(link.href); url.searchParams.set("theme", this.imageTheme); for (const [key, value] of Object.entries(this.imageStyle)) url.searchParams.set(key, value); link.href = url.href
+      const saved = this.savedAppearance || { theme: this.imageTheme, style: this.imageStyle }
+      const url = new URL(link.href); url.searchParams.set("theme", saved.theme); for (const [key, value] of Object.entries(saved.style)) url.searchParams.set(key, value); link.href = url.href
     })
   }
   revealPreview() { const preview = this.canvasTarget.closest("details"); if (preview) preview.open = true }
   format(event) { this.imageFormat = event.target.value; this.revealPreview(); this.schedulePreview() }
   presentationSnapshot() { return JSON.stringify({ theme: this.imageTheme, ...this.imageStyle }) }
+  appearanceMessage(message) {
+    if (this.hasAppearanceStatusTarget) {
+      this.statusTarget.textContent = ""
+      this.appearanceStatusTarget.textContent = message
+    } else this.statusTarget.textContent = message
+  }
+  appearanceChanged() {
+    if (!this.ownerValue) return
+    this.presentationDirty = this.presentationSnapshot() !== JSON.stringify({ theme: this.savedAppearance.theme, ...this.savedAppearance.style })
+    this.appearanceMessage(this.presentationDirty ? "Unsaved appearance changes. Save to update your public shelf." : "No unsaved appearance changes.")
+  }
+  cancelAppearance() {
+    if (this.presentationSaving) return
+    this.imageTheme = this.savedAppearance.theme
+    this.imageStyle = { ...this.savedAppearance.style }
+    this.presentationDirty = false
+    this.applyTheme(); this.schedulePreview()
+    this.appearanceMessage("Appearance changes undone. Your selections are unchanged.")
+  }
+  showAppearance(event) { this.navigateAppearanceSection(event, 'shelf-appearance') }
+  showPreview(event) { this.navigateAppearanceSection(event, 'shelf-image-preview') }
+  navigateAppearanceSection(event, id) {
+    event?.preventDefault()
+    if (window.location.hash !== `#${id}`) window.history.pushState(null, '', `#${id}`)
+    this.openAppearanceSection(id)
+  }
+  openHashSection() {
+    if (['#shelf-appearance', '#shelf-sharing', '#shelf-image-preview'].includes(window.location.hash)) {
+      this.openAppearanceSection(window.location.hash.slice(1))
+    }
+  }
+  openAppearanceSection(id) {
+    const panel = this.element.querySelector('.shelf-image-settings')
+    if (!panel) return
+    panel.open = true
+    if (id === 'shelf-image-preview') this.canvasTarget.closest('details').open = true
+    const destination = this.element.querySelector(`#${id}`)
+    const focus = id === 'shelf-appearance' ? this.element.querySelector('#shelf-appearance-heading') : destination?.querySelector('summary, h2')
+    if (focus) { focus.setAttribute('tabindex', '-1'); focus.focus({ preventScroll: true }) }
+    destination?.scrollIntoView({ block: 'start' })
+  }
   async savePresentation() {
     if (!this.ownerValue) return true
     if (this.presentationSaving) { this.statusTarget.textContent = "Appearance is saving. Please wait, then retry sharing."; return false }
-    if (!this.presentationDirty) { this.statusTarget.textContent = "Appearance saved. Visitors will see this presentation."; return true }
+    if (!this.presentationDirty) { this.appearanceMessage("Appearance saved. Visitors will see this presentation."); return true }
     const presentation = { theme: this.imageTheme, ...this.imageStyle }
     const snapshot = JSON.stringify(presentation)
     this.presentationSaving = true
+    this.appearanceMessage("Saving appearance…")
+    const controls = this.element.querySelectorAll('[data-shelf-appearance-save], [data-shelf-appearance-cancel]')
+    const focusedControl = [...controls].find(button => button === document.activeElement)
+    controls.forEach(button => { button.disabled = true })
     try {
       const response = await fetch(this.urlValue, { method: "PATCH", headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" }, body: JSON.stringify({ presentation, shelf_version: this.editVersionValue || this.previewSignatureValue }) })
       if (!response.ok) throw new Error("Appearance save failed. Reload if this shelf changed in another window.")
@@ -207,18 +259,25 @@ export default class extends Controller {
         this.editVersionValue = result.shelf_version || result.preview_signature
         this.element.querySelectorAll('input[name="shelf_version"]').forEach(input => { input.value = this.editVersionValue })
       }
+      this.savedAppearance = { theme: presentation.theme, style: { ...presentation } }
+      delete this.savedAppearance.style.theme
       if (snapshot !== this.presentationSnapshot()) {
         this.presentationDirty = true
-        this.statusTarget.textContent = "Your appearance changed during saving. Save again before sharing."
+        this.appearanceMessage("Your appearance changed during saving. Save again before sharing.")
         return false
       }
       this.presentationDirty = false
-      this.statusTarget.textContent = "Appearance saved. Visitors will see this presentation."
+      this.applyTheme()
+      this.appearanceMessage("Appearance saved. Visitors will see this presentation.")
       return true
     } catch {
-      this.statusTarget.textContent = "Could not save appearance. Your choices are preserved; retry before sharing."
+      this.appearanceMessage("Could not save appearance. Your choices are preserved; retry saving.")
       return false
-    } finally { this.presentationSaving = false }
+    } finally {
+      this.presentationSaving = false
+      controls.forEach(button => { button.disabled = false })
+      if (focusedControl?.isConnected && document.activeElement === document.body) focusedControl.focus()
+    }
   }
   showSharing() { const panel = this.element.querySelector(".shelf-image-settings"); if (panel) panel.open = true }
   async nativeShare() {

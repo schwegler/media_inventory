@@ -39,7 +39,7 @@ RSpec.describe 'Shelf Story customization', type: :system do
     select 'Telly', from: 'Mascot'
     expect(page).to have_css('.favorite-shelf[data-shelf-theme="telly"][data-shelf-texture="stars"]')
     expect(page).to have_css('.shelf-companion img[alt=""][src*="telly_shelf"]')
-    expect(find_link('View shelf overview')[:href]).to include('layout=reading', 'texture=stars', 'companion=telly')
+    expect(find_link('View shelf overview')[:href]).to include('layout=reading', 'texture=clean', 'companion=auto')
     find('input[name="shelf-format"][value="portrait"]').choose
     expect(page).to have_css('.shelf-preview canvas[width="1080"][height="1920"]')
     expect(page).to have_field('shelf-image-alt-text', with: /reading layout.*stars texture/m, visible: :all)

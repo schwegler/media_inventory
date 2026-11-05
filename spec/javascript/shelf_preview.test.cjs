@@ -16,7 +16,8 @@ function fixture() {
   instance.imageOptions = () => ({ picks: [], theme: 'midnight' })
   instance.imageTheme = 'midnight'; instance.previewSignatureValue = 'signature'
   instance.previewCategoryValue = 'Movie'; instance.urlValue = '/@owner/shelf?category=Movie'
-  instance.ownerValue = true; instance.element = { isConnected: true }
+  instance.ownerValue = true; instance.element = { isConnected: true, querySelectorAll: () => [] }
+  instance.applyTheme = () => {}
   instance.statusTarget = { textContent: '' }; instance.altTextTarget = { value: '' }
   instance.canvasTarget = { dataset: {}, setAttribute() {}, closest: () => ({ open: false }), getContext: () => ({ drawImage() {} }) }
   global.document = {
@@ -196,6 +197,64 @@ test('appearance changes during PNG encoding cannot upload mismatched preview me
   assert.equal(await publishing, false)
 })
 
+test('undo restores the last saved appearance without losing unsaved picks or issuing requests', () => {
+  const { instance } = fixture()
+  instance.savedAppearance = { theme: 'midnight', style: { layout: 'exhibition', texture: 'paper' } }
+  instance.imageTheme = 'gallery'; instance.imageStyle = { layout: 'mixtape', texture: 'stars' }
+  instance.presentationDirty = true; instance.dirty = true
+  instance.picks = [{ id: 42, type: 'Book' }]
+  instance.schedulePreview = () => {}
+  global.fetch = () => { throw new Error('Undo must stay local') }
+  instance.cancelAppearance()
+  assert.equal(instance.presentationDirty, false)
+  assert.equal(instance.dirty, true)
+  assert.equal(instance.imageTheme, 'midnight')
+  assert.deepEqual(instance.imageStyle, { layout: 'exhibition', texture: 'paper' })
+  assert.equal(instance.picks[0].id, 42)
+})
+
+test('undo during a save is ignored and undo after a concurrent edit restores the saved snapshot', async () => {
+  const { instance } = fixture()
+  instance.savedAppearance = { theme: 'midnight', style: { layout: 'exhibition' } }
+  instance.imageStyle = { layout: 'mixtape' }; instance.presentationDirty = true
+  let finish
+  global.fetch = () => new Promise(resolve => { finish = resolve })
+  const saving = instance.savePresentation()
+  instance.cancelAppearance()
+  assert.equal(instance.imageStyle.layout, 'mixtape')
+  instance.imageStyle.layout = 'collector'
+  finish({ ok: true })
+  assert.equal(await saving, false)
+  instance.schedulePreview = () => {}
+  instance.cancelAppearance()
+  assert.equal(instance.imageStyle.layout, 'mixtape')
+})
+
+test('repeated appearance navigation opens and focuses the panel without duplicate history entries', () => {
+  const { instance } = fixture()
+  let focus = 0, scroll = 0, pushes = 0, prevented = 0
+  const panel = { open: false, scrollIntoView() { scroll++ } }
+  const heading = { setAttribute() {}, focus() { focus++ } }
+  instance.element.querySelector = selector => selector === '#shelf-appearance-heading' ? heading : panel
+  global.window = { location: { hash: '' }, history: { pushState(_state, _title, hash) { pushes++; window.location.hash = hash } } }
+  const event = { preventDefault() { prevented++ } }
+  instance.showAppearance(event); panel.open = false; instance.showAppearance(event)
+  assert.equal(panel.open, true)
+  assert.equal(pushes, 1)
+  assert.equal(focus, 2)
+  assert.equal(scroll, 2)
+  assert.equal(prevented, 2)
+})
+
+
+test('visitor export choices never become persistent appearance edits', () => {
+  const { instance } = fixture()
+  instance.ownerValue = false
+  instance.imageStyle = { companion: 'facet' }
+  instance.appearanceChanged()
+  assert.equal(instance.presentationDirty, undefined)
+  assert.equal(instance.statusTarget.textContent, '')
+})
 
 test('copy and native share consistently use only the canonical profile', async () => {
  const {instance}=fixture()
