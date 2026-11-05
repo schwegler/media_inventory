@@ -173,7 +173,7 @@ export async function renderShelfImage(canvas, { picks = [], shelves = [], overv
     ctx.fillStyle = "#ffffff0a"
     for (let i = 0; i < 1800; i++) ctx.fillRect((i * 71 + 19) % w, (i * 137 + 31) % h, 1, 1)
     ctx.fillStyle = theme.accent
-    const ruleY = portrait ? 518 : 187
+    const ruleY = portrait ? 540 : 187
     for (let x = edge; x < w - edge; x += 31) ctx.fillRect(x, ruleY, Math.min(27, w - edge - x), 2)
   }
   if (texture !== "clean") {
@@ -192,7 +192,7 @@ export async function renderShelfImage(canvas, { picks = [], shelves = [], overv
   ctx.strokeStyle = theme.line; ctx.beginPath(); ctx.moveTo(edge, portrait ? 306 : 78); ctx.lineTo(w - edge, portrait ? 306 : 78); ctx.stroke()
   const heading = shelfImageHeading(headline)
   ctx.fillStyle = theme.text
-  text(ctx, heading, edge, portrait ? 395 : 122, portrait ? (mascot ? 780 : 936) : 936, portrait ? 80 : 36, 2, horror ? 'Impact, "Arial Narrow", sans-serif' : 'Georgia, serif')
+  text(ctx, heading, edge, portrait ? 375 : 122, portrait ? (mascot ? 780 : 936) : 936, portrait ? 72 : 36, 2, horror ? 'Impact, "Arial Narrow", sans-serif' : 'Georgia, serif')
   ctx.fillStyle = theme.muted
   text(ctx, `@${handle} / ${overview ? 'The shelf' : category || 'Selections'}`, edge, portrait ? 520 : 185, portrait ? 850 : 1056, portrait ? 26 : 19, 1)
   if (mascot) {

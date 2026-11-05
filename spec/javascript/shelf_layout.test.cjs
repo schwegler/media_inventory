@@ -132,3 +132,30 @@ test('repeated landscape and Story exports draw the selected mascot and profile 
   }
  } finally {delete global.Image;delete global.document}
 })
+
+
+test('two-line Story headings leave readable space above the identity and artwork', async () => {
+ const {renderShelfImage}=new Function(source+';return {renderShelfImage}')()
+ let output
+ global.document={fonts:{load:async()=>{}},createElement:()=>{
+  const words=[]
+  const ctx=new Proxy({
+   measureText(value){return {width:String(value).length*parseFloat(this.font.split(' ')[1])*0.55}},
+   fillText(value,x,y){words.push({value,x,y,size:parseFloat(this.font.split(' ')[1])})}
+  },{get:(target,key)=>target[key]||(()=>{})})
+  output={words,getContext:()=>ctx};return output
+ }}
+ try {
+  for(const theme of ['halloween','midnight_feature','christmas'])for(const overview of [false,true]){
+   await renderShelfImage({getContext:()=>({drawImage(){}})}, {format:'portrait',theme,overview,handle:'demo',category:'Movies',headline:'A collection worth sharing with friends and other curious people.'})
+   const identity=output.words.find(word=>word.value.startsWith('@demo'))
+   const heading=output.words.filter(word=>word.size===72)
+   assert.equal(heading.length,2,`${theme}: exercises a wrapped title`)
+   // Conservative glyph bounds: 20% descent and 80% ascent, plus a 16px gap.
+   const headingBottom=heading[1].y+heading[1].size*0.2
+   const identityTop=identity.y-identity.size*0.8
+   assert.ok(identityTop-headingBottom>=16,`${theme}: heading clears the identity`)
+   assert.ok(identity.y+identity.size*0.2<540,'Identity clears the accent rule and overview artwork')
+  }
+ } finally {delete global.document}
+})

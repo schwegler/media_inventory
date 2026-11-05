@@ -113,7 +113,8 @@ RSpec.describe 'Favorite shelves', type: :request do
     expect(public_url.host).to eq('trove.schweg.xyz')
     expect(public_url.path).to eq(handle_profile_path(user.username))
     expect(public_url.query).to be_nil
-    expect(page.css('select[name="companion"] option').map { |option| option['value'] }).to eq(%w[auto none telly facet bat])
+    companions = page.css('select[name="companion"] option').map { |option| option['value'] }
+    expect(companions).to eq(%w[auto none telly facet bat])
     picks = JSON.parse(page.at_css('.favorite-shelf')['data-favorite-shelf-picks-value'])
     expect(picks.first['url']).to eq(movie_path(movie))
     login
