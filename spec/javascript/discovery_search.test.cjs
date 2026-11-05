@@ -50,3 +50,14 @@ test('disconnect aborts pending discovery without clearing the visible results',
   assert.deepEqual(search.rendered, [])
   assert.equal(search.abort.signal.aborted, true)
 })
+
+for (const state of ['rate_limited', 'unconfigured', 'disabled']) {
+  test(`discovery reports ${state} catalogs instead of claiming a complete successful search`, async () => {
+    const search = controller(() => ({ ok: true, status: 200, json: async () => ({
+      results: [], sources: [{ source: 'Steam', state }]
+    }) }))
+    await search.search()
+    assert.equal(search.retryTarget.hidden, false)
+    assert.doesNotMatch(search.statusTarget.textContent, /No additional titles/)
+  })
+}

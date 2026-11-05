@@ -5,6 +5,7 @@
 class GameSearchQuery
   def initialize(query)
     @query = normalize(query)
+    @tokens = @query.split.uniq
   end
 
   def rank(results)
@@ -23,7 +24,7 @@ class GameSearchQuery
     ranked.sort_by do |result|
       title = normalize(result[:title])
       [title == @query ? 0 : 1, %w[dlc soundtrack bundle].include?(result[:game_type]) ? 1 : 0,
-       title.start_with?(@query) ? 0 : 1, result[:is_local] ? 0 : 1, title]
+       -(@tokens & title.split).size, title.start_with?(@query) ? 0 : 1, result[:is_local] ? 0 : 1, title]
     end
   end
 

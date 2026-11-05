@@ -80,7 +80,7 @@ class MediaController < ApplicationController
   end
 
   def autocomplete_payload(results, query, type)
-    return results unless params[:discovery] == '1'
+    return results unless params[:discovery] == '1' || params[:sources] == '1'
 
     { results: results, sources: MediaSearchService.source_states(query, type) }
   end

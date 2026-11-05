@@ -125,6 +125,16 @@ RSpec.describe 'Media Autocomplete', type: :request do
         )
       end
 
+      it 'optionally includes provider outcomes without changing legacy array responses' do
+        allow(MediaSearchService).to receive(:source_states).with('portal', 'video_game').and_return(
+          [{ source: 'Steam', state: 'unavailable' }, { source: 'RAWG', state: 'unconfigured' }]
+        )
+        get '/media/autocomplete', params: { q: 'portal', type: 'video_game', sources: '1' }
+        json = JSON.parse(response.body)
+        expect(json['results'].first).to include('title' => 'Portal 2', 'is_local' => true)
+        expect(json['sources']).to include('source' => 'Steam', 'state' => 'unavailable')
+      end
+
       it 'returns matching video games' do
         get '/media/autocomplete', params: { q: 'portal', type: 'video_game' }
         expect(response).to have_http_status(:ok)

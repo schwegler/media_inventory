@@ -18,7 +18,8 @@ class MediaSearchJob < ApplicationJob
       MediaSources::Registry::CACHE.write(key, { state: 'pending', results: partial }, expires_in: 45.seconds)
     end
     results = GameSearchArtwork.call(results) if type == 'video_game'
-    MediaSources::Registry::CACHE.write(key, { state: 'ready', results: results }, expires_in: 15.minutes)
+    MediaSources::Registry::CACHE.write(key, { state: 'ready', results: results },
+                                        expires_in: MediaSearchService.cache_expiry(query, type))
   rescue StandardError => e
     Rails.logger.warn("Media search failed: #{e.class}")
     MediaSources::Registry::CACHE.write(key, { state: 'failed', results: [] }, expires_in: 10.seconds)

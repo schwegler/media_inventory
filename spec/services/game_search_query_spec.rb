@@ -10,6 +10,15 @@ RSpec.describe GameSearchQuery do
     ]
     expect(described_class.new('Vampire Survivors').rank(results).first[:api_id]).to eq('steam_1')
   end
+  it 'ranks all query words ahead of related franchise titles despite prefixes and punctuation' do
+    results = [
+      { title: "Marvel's Spider-Man", api_id: 'wiki_1' },
+      { title: "Marvel's Spider-Man 2", api_id: 'wiki_2' },
+      { title: 'Marvel’s Spider-Man: Miles Morales', api_id: 'steam_1817190' }
+    ]
+    expect(described_class.new('spider-man miles').rank(results).first[:api_id]).to eq('steam_1817190')
+  end
+
   it 'keeps same-title games from different providers rather than merging by title' do
     results = [{ title: 'Prey', api_id: 'steam_1', release_year: 2006 },
                { title: 'Prey', api_id: 'rawg_1', release_year: 2006 }]
