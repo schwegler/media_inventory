@@ -412,3 +412,6 @@
 .favorite-shelf.shelf-workspace-editor[data-shelf-theme='midnight_feature'] .shelf-heading h1 {
   font-family: Impact, 'Arial Narrow', sans-serif; letter-spacing: .015em; line-height: 1.08;
 }
+
+.favorite-shelf .shelf-export-artwork { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.favorite-shelf .shelf-export-artwork select { min-height: 44px; max-width: 100%; padding: 8px 12px; color: var(--shelf-text); background: var(--shelf-bg); border: 1px solid var(--shelf-line); border-radius: 8px; }

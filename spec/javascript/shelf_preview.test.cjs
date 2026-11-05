@@ -4,11 +4,13 @@ const { readFileSync } = require('node:fs')
 const source = readFileSync('app/javascript/controllers/favorite_shelf_controller.js', 'utf8')
   .replace(/^import .*\n/gm, '').replace('export default class', 'return class')
 
+const imageSource = readFileSync('app/javascript/controllers/shelf_image.js', 'utf8').replace(/export /g, '')
+const {shelfCompanion, shelfPublicLink, SHELF_STYLES} = new Function(imageSource + ';return {shelfCompanion,shelfPublicLink,SHELF_STYLES}')()
 function fixture() {
   let renders = 0
   const renderOptions = []
-  const Controller = new Function('Controller', 'renderShelfImage', 'shelfImageAltText', 'SHELF_THEMES', source)(
-    class {}, async (_canvas, options) => { renders++; renderOptions.push(options) }, () => 'Shelf image description', { midnight: {} }
+  const Controller = new Function('Controller', 'renderShelfImage', 'shelfImageAltText', 'SHELF_THEMES', 'SHELF_STYLES', 'shelfCompanion', 'shelfPublicLink', source)(
+    class {}, async (_canvas, options) => { renders++; renderOptions.push(options) }, () => 'Shelf image description', { midnight: {} }, SHELF_STYLES, shelfCompanion, shelfPublicLink
   )
   const instance = Object.create(Controller.prototype)
   instance.imageOptions = () => ({ picks: [], theme: 'midnight' })
@@ -192,4 +194,30 @@ test('appearance changes during PNG encoding cannot upload mismatched preview me
   instance.imageStyle = { layout: 'collector' }; instance.presentationDirty = true
   encode(new Blob(['png']))
   assert.equal(await publishing, false)
+})
+
+
+test('copy and native share consistently use only the canonical profile', async () => {
+ const {instance}=fixture()
+ instance.handleValue='owner';instance.publicUrlValue='https://trove.schweg.xyz/@owner/shelf?collection=films&companion=bat'
+ instance.imageStyle={companion:'bat'}
+ const copied=[],shared=[]
+ Object.defineProperty(global,'navigator',{configurable:true,value:{clipboard:{writeText:async url=>copied.push(url)},share:async data=>shared.push(data)}})
+ await instance.copyLink();await instance.nativeShare()
+ assert.deepEqual(copied,['https://trove.schweg.xyz/@owner'])
+ assert.equal(shared[0].url,copied[0])
+ delete global.navigator
+})
+
+test('public shelf visitors can switch mascots repeatedly without saving owner settings', async () => {
+ const {instance}=fixture()
+ instance.ownerValue=false;instance.imageStyle={companion:'bat'}
+ instance.applyTheme=()=>{};instance.revealPreview=()=>{};instance.schedulePreview=()=>{}
+ global.fetch=()=>{throw Error('Visitors must never save appearance')}
+ for(const value of ['telly','facet','none','bat','telly']){
+  instance.customize({target:{name:'companion',value}})
+  assert.equal(instance.imageStyle.companion,value)
+  assert.ok(!instance.presentationDirty)
+  assert.equal(await instance.savePresentation(),true)
+ }
 })

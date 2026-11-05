@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { renderShelfImage, shelfImageAltText, SHELF_THEMES, SHELF_STYLES } from "controllers/shelf_image"
+import { renderShelfImage, shelfImageAltText, SHELF_THEMES, SHELF_STYLES, shelfCompanion, shelfPublicLink } from "controllers/shelf_image"
 
 export default class extends Controller {
   static targets = ["slots", "dialog", "query", "results", "status", "canvas", "altText", "altTextDetails", "companion", "searchType"]
@@ -161,12 +161,12 @@ export default class extends Controller {
     this.applyTheme(); this.revealPreview(); this.schedulePreview()
   }
   customize(event) {
-    if (!this.ownerValue) return
-    this.presentationDirty = true
     const key = event.target.name
+    if (!this.ownerValue && key !== "companion") return
+    if (this.ownerValue) this.presentationDirty = true
     if (!SHELF_STYLES[key]?.includes(event.target.value)) return
     this.imageStyle[key] = event.target.value
-    try { localStorage.setItem("trove-shelf-style", JSON.stringify(this.imageStyle)) } catch { /* Optional storage. */ }
+    if (this.ownerValue) { try { localStorage.setItem("trove-shelf-style", JSON.stringify(this.imageStyle)) } catch { /* Optional storage. */ } }
     this.applyTheme(); this.revealPreview(); this.schedulePreview()
   }
   applyTheme() {
@@ -176,7 +176,7 @@ export default class extends Controller {
     this.element.querySelectorAll('[name="layout"][type="radio"]').forEach(input => { input.checked = input.value === this.imageStyle.layout })
     for (const [key, value] of Object.entries(this.imageStyle)) { const input = this.element.querySelector(`select[name="${key}"]`); if (input) input.value = value }
     if (this.hasCompanionTarget) {
-      const selected = this.imageStyle.companion === "auto" ? (this.imageTheme === "halloween" ? "bat" : this.imageTheme) : this.imageStyle.companion
+      const selected = shelfCompanion(this.imageStyle.companion, this.imageTheme)
       const source = this.assetsValue[selected]
       this.companionTarget.parentElement.hidden = !source
       if (source) this.companionTarget.src = source
@@ -225,20 +225,21 @@ export default class extends Controller {
     if (this.dirty) { this.statusTarget.textContent = "Save your changes before sharing."; return }
     if (!navigator.share) return this.copyLink()
     if (!(await this.savePresentation())) return
-    try { await navigator.share({ title: this.headlineValue, url: this.publicUrlValue }); this.statusTarget.textContent = "Shelf shared." }
+    try { await navigator.share({ title: this.headlineValue, url: this.profileUrl() }); this.statusTarget.textContent = "Shelf shared." }
     catch (error) { if (error.name !== "AbortError") this.copyLink() }
   }
   async copyLink() {
     if (!(await this.savePresentation())) return
     if (this.dirty) { this.statusTarget.textContent = "Save your changes before sharing your public shelf."; return }
-    const url = new URL(this.publicUrlValue || this.urlValue, window.location.origin); url.searchParams.set("theme", this.imageTheme); for (const [key, value] of Object.entries(this.imageStyle)) url.searchParams.set(key, value)
-    try { await navigator.clipboard.writeText(url.href); this.statusTarget.textContent = "Shelf link copied, including your theme." }
-    catch { this.statusTarget.textContent = `Copy this shelf link: ${url.href}` }
+    const url = this.profileUrl()
+    try { await navigator.clipboard.writeText(url); this.statusTarget.textContent = "Profile link copied." }
+    catch { this.statusTarget.textContent = `Copy this profile link: ${url}` }
   }
+  profileUrl() { return shelfPublicLink(this.handleValue, this.publicUrlValue).href }
   imageOptions() {
     return { picks: [...this.picks], shelves: this.shelvesValue,
       overview: this.overviewValue, headline: this.headlineValue, ...this.imageStyle, assets: this.assetsValue, theme: this.imageTheme, format: this.imageFormat,
-      handle: this.handleValue, category: this.categoryValue, sharePath: this.urlValue, canonicalUrl: this.publicUrlValue }
+      handle: this.handleValue, category: this.categoryValue, canonicalUrl: this.profileUrl() }
   }
   async copyAltText() {
     if (!(await this.savePresentation())) return

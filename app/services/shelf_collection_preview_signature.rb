@@ -6,10 +6,10 @@ class ShelfCollectionPreviewSignature
     identity = [username, collection.title, collection.description, collection.picks]
     if collection.has_attribute?(:allowed_media_types) && collection.has_attribute?(:preview_length)
       identity += [collection.allowed_media_types, collection.preview_length, collection.presentation]
-      version = 'collection-v3-full-shelf'
+      version = 'collection-v4-profile'
     else
       # Supports the pre-display-settings schema during integration/rolling upgrades.
-      version = 'collection-v2-campaign'
+      version = 'collection-v2-profile'
     end
     Digest::SHA256.hexdigest([version, *identity].to_json)
   end

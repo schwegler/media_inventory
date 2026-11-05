@@ -72,13 +72,13 @@ test('all media artwork is contained with its original ratio',()=>{
 
 test('export links remain public and canonical when rendering from localhost',()=>{
  const {shelfPublicLink}=new Function(source+';return {shelfPublicLink}')()
- const expected='https://trove.schweg.xyz/@schwegler/shelf?category=overall'
- assert.equal(shelfPublicLink('schwegler',expected).href,expected)
+ const expected='https://trove.schweg.xyz/@schwegler'
+ assert.equal(shelfPublicLink('schwegler',expected+'/shelf?category=overall&companion=bat#preview').href,expected)
  assert.equal(shelfPublicLink('schwegler',undefined,'/@schwegler/shelf?category=overall').href,expected)
  for(const invalid of ['http://localhost:3129/shelf','https://127.0.0.1/shelf','https://user:password@example.com/shelf']){
   const result=shelfPublicLink('schwegler',invalid)
   assert.equal(result.origin,'https://trove.schweg.xyz')
-  assert.equal(result.pathname,'/@schwegler/shelf')
+  assert.equal(result.pathname,'/@schwegler')
  }
 })
 
@@ -94,4 +94,68 @@ test('large shelves feature five covers and disclose the full total in alt text'
  assert.match(alt, /first 5 of 12 selections/)
  assert.match(alt, /5\. Selection 5/)
  assert.doesNotMatch(alt, /6\. Selection 6/)
+})
+
+
+test('every mascot remains selectable independently of the theme', () => {
+ const {shelfCompanion}=new Function(source+';return {shelfCompanion}')()
+ for(const theme of Object.keys(SHELF_THEMES))for(const companion of ['telly','facet','bat','none']){
+  assert.equal(shelfCompanion(companion,theme),companion)
+ }
+ assert.equal(shelfCompanion('auto','halloween'),'bat')
+ assert.equal(shelfCompanion('auto','telly'),'telly')
+ assert.equal(shelfCompanion('auto','facet'),'facet')
+ assert.equal(shelfCompanion('auto','everyday'),'none')
+})
+
+
+test('repeated landscape and Story exports draw the selected mascot and profile URL', async () => {
+ const {renderShelfImage}=new Function(source+';return {renderShelfImage}')()
+ let output
+ global.Image=class {
+  constructor(){this.width=100;this.height=120}
+  set src(value){this.url=value;if(value)queueMicrotask(()=>this.onload())}
+ }
+ global.document={fonts:{load:async()=>{}},createElement:()=>{
+  const words=[],images=[]
+  const ctx=new Proxy({measureText:value=>({width:String(value).length*10}),fillText:value=>words.push(value),drawImage:image=>images.push(image.url)}, {get:(target,key)=>target[key]||(()=>{})})
+  output={words,images,getContext:()=>ctx};return output
+ }}
+ const canvas={getContext:()=>({drawImage(){}})}
+ try {
+  for(const format of ['landscape','portrait'])for(const companion of ['bat','telly','facet','none','telly']){
+   await renderShelfImage(canvas,{format,companion,theme:'halloween',handle:'demo',category:'Movies',assets:{bat:'/bat.png',telly:'/telly.png',facet:'/facet.png'},canonicalUrl:'https://trove.schweg.xyz/@demo/shelf?collection=film&theme=halloween'})
+   assert.deepEqual(output.images,companion==='none'?[]:[`/${companion}.png`])
+   assert.ok(output.words.includes('trove.schweg.xyz/@demo'))
+   assert.equal(canvas.width,format==='portrait'?1080:1200)
+   assert.equal(canvas.height,format==='portrait'?1920:630)
+  }
+ } finally {delete global.Image;delete global.document}
+})
+
+
+test('two-line Story headings leave readable space above the identity and artwork', async () => {
+ const {renderShelfImage}=new Function(source+';return {renderShelfImage}')()
+ let output
+ global.document={fonts:{load:async()=>{}},createElement:()=>{
+  const words=[]
+  const ctx=new Proxy({
+   measureText(value){return {width:String(value).length*parseFloat(this.font.split(' ')[1])*0.55}},
+   fillText(value,x,y){words.push({value,x,y,size:parseFloat(this.font.split(' ')[1])})}
+  },{get:(target,key)=>target[key]||(()=>{})})
+  output={words,getContext:()=>ctx};return output
+ }}
+ try {
+  for(const theme of ['halloween','midnight_feature','christmas'])for(const overview of [false,true]){
+   await renderShelfImage({getContext:()=>({drawImage(){}})}, {format:'portrait',theme,overview,handle:'demo',category:'Movies',headline:'A collection worth sharing with friends and other curious people.'})
+   const identity=output.words.find(word=>word.value.startsWith('@demo'))
+   const heading=output.words.filter(word=>word.size===72)
+   assert.equal(heading.length,2,`${theme}: exercises a wrapped title`)
+   // Conservative glyph bounds: 20% descent and 80% ascent, plus a 16px gap.
+   const headingBottom=heading[1].y+heading[1].size*0.2
+   const identityTop=identity.y-identity.size*0.8
+   assert.ok(identityTop-headingBottom>=16,`${theme}: heading clears the identity`)
+   assert.ok(identity.y+identity.size*0.2<540,'Identity clears the accent rule and overview artwork')
+  }
+ } finally {delete global.document}
 })
