@@ -89,7 +89,12 @@ RSpec.describe 'Series entries and review drawers', type: :system do
     expect(page).to have_css('.child-collection-toolbar[data-connected="true"]')
     select 'Season 0', from: 'Season'
     expect(page).to have_css('#series-entries .series-entry-title', text: 'Behind the scenes')
-    within("#tv_episode_#{extra.id}") { click_button 'Mark watched: 1. Behind the scenes' }
+    within("#tv_episode_#{extra.id}") do
+      click_button 'Mark watched: 1. Behind the scenes'
+      # Season 0 extras don't change the overall progress count, so wait for
+      # the Turbo frame response before submitting another season navigation.
+      expect(page).to have_button('Undo: 1. Behind the scenes')
+    end
     expect(page).to have_css('[data-child-collection-target="completed"]', text: '1 of 2')
     expect(LibraryItem.find_by!(user: user, item: extra)).to be_consumed
     expect(page).to have_css('.child-collection-toolbar[data-connected="true"]')
