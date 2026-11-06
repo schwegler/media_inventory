@@ -9,7 +9,13 @@ export default class extends Controller {
     if (!this.dialog) return
     this.dialog.setAttribute("role", "dialog")
     this.dialog.setAttribute("aria-modal", "true")
-    this.dialog.setAttribute("aria-label", this.dialog.querySelector("h2")?.textContent || "Add to library")
+    const heading = this.dialog.querySelector("h2")
+    if (heading) {
+      if (!heading.id) heading.id = `modal-heading-${Math.random().toString(36).slice(2, 9)}`
+      this.dialog.setAttribute("aria-labelledby", heading.id)
+    } else if (!this.dialog.getAttribute("aria-labelledby")) {
+      this.dialog.setAttribute("aria-label", "Add to library")
+    }
     document.body.style.overflow = "hidden"
     this.onKeydown = event => this.trap(event)
     this.element.addEventListener("keydown", this.onKeydown)
@@ -33,6 +39,10 @@ export default class extends Controller {
     return [...this.element.querySelectorAll("a[href], button, input:not([type='hidden']), select, textarea, [tabindex='0']")].filter(el => !el.disabled && el.getClientRects().length)
   }
   trap(event) {
+    if (event.key === "Escape") {
+      this.close(event)
+      return
+    }
     if (event.key !== "Tab") return
     const controls = this.focusables()
     const first = controls[0], last = controls[controls.length - 1]
