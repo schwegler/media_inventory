@@ -21,3 +21,7 @@
 ## 2026-11-05 - Focus Preservation on Disabled Stepping Controls
 **Learning:** Stepping buttons in paginated or tabbed navigation (such as TV show season controls) that become disabled (`disabled = true`) when reaching boundary limits automatically drop browser focus to `document.body`. This causes screen reader and keyboard users to lose their place on the page.
 **Action:** When updating button disabled states in Stimulus controllers, check if `document.activeElement` is disabled and immediately shift focus to an active fallback control (`previousTarget`, `nextTarget`, or selector dropdown).
+
+## 2026-11-06 - Modal Dialog Accessible Name and Escape Trap
+**Learning:** Custom modal containers (`role="dialog"`) should reference visible modal headings via `aria-labelledby` with an auto-assigned id rather than relying on static `aria-label` strings, ensuring dynamic title updates during multi-stage flows are communicated to screen readers. In addition, handling `Escape` directly inside the modal's internal keydown trap guarantees instant modal dismissal even when outer window bindings are bypassed.
+**Action:** On modal connection, assign a unique id to any `h2` heading and set `aria-labelledby`, falling back to `aria-label` only when no heading exists, and intercept `Escape` in `trap(event)` to close the modal.
