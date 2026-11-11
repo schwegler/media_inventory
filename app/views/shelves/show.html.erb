@@ -36,6 +36,13 @@
     <div class="favorite-shelf-slots" data-favorite-shelf-target="slots" data-owner="<%= @shelf_owner %>">
       <% @items.each_with_index do |item, index| %><%= render 'media_item', item: item, index: index %><% end %>
     </div>
+    <% if @shelf_owner %>
+      <section class="shelf-selection-actions" aria-label="Save or undo selections">
+        <p>Undo restores the selections and order from your last save. Appearance choices stay as they are.</p>
+        <div><button type="button" class="shelf-primary" data-selection-save data-action="favorite-shelf#save">Save selections</button><button type="button" class="shelf-secondary" data-selection-undo disabled data-action="favorite-shelf#undoSelections">Undo selection changes</button></div>
+        <p role="status" aria-live="polite" data-favorite-shelf-target="selectionStatus">No unsaved selection changes.</p>
+      </section>
+    <% end %>
     <noscript><ol><% @items.each do |item| %><li><%= link_to item.title, item %></li><% end %></ol><p>Enable JavaScript to edit your shelf and download its share image.</p></noscript>
     <% if @shelf_owner %>
 

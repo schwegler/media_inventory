@@ -2,11 +2,11 @@ import { Controller } from "@hotwired/stimulus"
 import { renderShelfImage, shelfImageAltText, SHELF_THEMES, SHELF_STYLES, shelfCompanion, shelfPublicLink } from "controllers/shelf_image"
 
 export default class extends Controller {
-  static targets = ["slots", "dialog", "query", "results", "status", "canvas", "altText", "altTextDetails", "companion", "searchType", "appearanceStatus", "shareStatus", "shareLink"]
+  static targets = ["slots", "dialog", "query", "results", "status", "canvas", "altText", "altTextDetails", "companion", "searchType", "appearanceStatus", "shareStatus", "shareLink", "selectionStatus"]
   static values = { style: Object, assets: Object, picks: Array, publicUrl: String, url: String, search: String, handle: String, category: String, shelves: Array, overview: Boolean, headline: String, owner: Boolean, previewCategory: String, previewSignature: String, editVersion: String, capacity: Number, flexible: Boolean, allowedTypes: Array, previewStored: Boolean, previewTheme: String }
 
   connect() {
-    this.picks = this.picksValue; this.dirty = false; this.imageFormat = this.element.querySelector('[name="shelf-format"]:checked')?.value || "portrait"
+    this.picks = this.picksValue; this.savedPicks = this.picks.map(pick => ({ ...pick })); this.dirty = false; this.imageFormat = this.element.querySelector('[name="shelf-format"]:checked')?.value || "portrait"
     this.imageStyle = { layout: "exhibition", texture: "clean", companion: "auto", ...this.styleValue }
     const serverStyle = JSON.stringify(this.imageStyle)
     this.imageTheme = this.element.dataset.shelfTheme
@@ -84,9 +84,33 @@ export default class extends Controller {
     const empty = this.element.querySelector(".shelf-empty-state"); if (empty) empty.hidden = this.picks.length > 0
     const count = this.element.querySelector('[data-shelf-count]')
     if (count) count.textContent = `${this.picks.length} ${this.picks.length === 1 ? "selection" : "selections"}`
+    this.updateSelectionControls()
     this.schedulePreview()
   }
-  changed() { this.dirty = true; this.statusTarget.textContent = "Unsaved changes"; this.render() }
+  selectionKey(picks) { return JSON.stringify(picks.map(({ id, type }) => ({ id, type }))) }
+  selectionMessage(message) {
+    if (this.hasSelectionStatusTarget) {
+      this.statusTarget.textContent = ""
+      this.selectionStatusTarget.textContent = message
+    } else this.statusTarget.textContent = message
+  }
+  updateSelectionControls() {
+    this.element.querySelectorAll('[data-selection-save]').forEach(button => { button.disabled = !!this.picksSaving })
+    this.element.querySelectorAll('[data-selection-undo]').forEach(button => { button.disabled = !!this.picksSaving || !this.dirty })
+  }
+  changed() {
+    this.dirty = this.selectionKey(this.picks) !== this.selectionKey(this.savedPicks || [])
+    this.selectionMessage(this.dirty ? "Unsaved selection changes. Save your shelf or undo below." : "No unsaved selection changes.")
+    this.render()
+  }
+  undoSelections(event) {
+    if (!this.ownerValue || this.picksSaving || !this.dirty) return
+    this.picks = this.savedPicks.map(pick => ({ ...pick }))
+    this.dirty = false
+    this.render()
+    this.selectionMessage("Selection changes undone. Your last saved selections and order are restored.")
+    if (event?.currentTarget) this.element.querySelector('.shelf-selection-actions [data-selection-save]')?.focus()
+  }
   move(index, direction) { [this.picks[index], this.picks[index + direction]] = [this.picks[index + direction], this.picks[index]]; this.changed(); this.focusItem(index + direction) }
   focusItem(index) {
     const target = this.slotsTarget.querySelectorAll(".shelf-slot")[Math.max(0, index)]?.querySelector("button, a") || this.slotsTarget.querySelector(".shelf-add-title")
@@ -143,10 +167,13 @@ export default class extends Controller {
   settingsSubmit(event) { if (this.dirty || this.picksSaving) { event.preventDefault(); this.statusTarget.textContent = "Save your selections before changing shelf settings." } }
   async save() {
     if (this.picksSaving) return false
-    const picks = this.picks.map(({ id, type }) => ({ id, type }))
+    const savedPicks = this.picks.map(pick => ({ ...pick }))
+    const picks = savedPicks.map(({ id, type }) => ({ id, type }))
     const snapshot = JSON.stringify(picks)
     this.picksSaving = true
-    this.statusTarget.textContent = "Saving…"
+    const focusedControl = [...this.element.querySelectorAll('[data-selection-save]')].find(button => button === document.activeElement)
+    this.updateSelectionControls()
+    this.selectionMessage("Saving selections…")
     try {
       const response = await fetch(this.urlValue, { method: "PATCH", headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || "" }, body: JSON.stringify({ picks, shelf_version: this.editVersionValue || this.previewSignatureValue }) })
       const result = await response.json().catch(() => ({}))
@@ -154,12 +181,17 @@ export default class extends Controller {
       this.previewSignatureValue = result.preview_signature
       this.editVersionValue = result.shelf_version || result.preview_signature
       this.element.querySelectorAll('input[name="shelf_version"]').forEach(input => { input.value = this.editVersionValue })
-      if (snapshot !== JSON.stringify(this.picks.map(({ id, type }) => ({ id, type })))) {
-        this.dirty = true; this.statusTarget.textContent = "Your picks changed during saving. Save again before sharing."; return false
+      this.savedPicks = savedPicks
+      if (snapshot !== this.selectionKey(this.picks)) {
+        this.dirty = true; this.selectionMessage("Your picks changed during saving. Save again before sharing."); return false
       }
-      this.dirty = false; this.render(); this.statusTarget.textContent = "Shelf saved. Your public shelf is ready to share."; return true
-    } catch (error) { this.statusTarget.textContent = error.message; return false }
-    finally { this.picksSaving = false }
+      this.dirty = false; this.render(); this.selectionMessage("Shelf saved. Your public shelf is ready to share."); return true
+    } catch (error) { this.selectionMessage(error.message); return false }
+    finally {
+      this.picksSaving = false
+      this.updateSelectionControls()
+      if (focusedControl?.isConnected && document.activeElement === document.body) focusedControl.focus()
+    }
   }
   theme(event) {
     if (!this.ownerValue) return
