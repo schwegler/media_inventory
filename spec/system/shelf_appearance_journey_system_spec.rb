@@ -60,6 +60,10 @@ RSpec.describe 'Shelf appearance editing journey', type: :system do
     expect(collection.reload.presentation).to include('theme' => 'christmas')
     expect(user.reload.shelf_presentation).to be_blank
     click_link 'View public shelf', exact: true
+    # The departing editor has the same link label but intercepts its click locally.
+    public_shelf = '.favorite-shelf[data-connected="true"][data-favorite-shelf-owner-value="false"]'
+    settled_page = 'html:not([aria-busy="true"]):not([data-turbo-preview]):not(:active-view-transition)'
+    expect(page).to have_css("#{settled_page}:has(#{public_shelf})", visible: :all)
     within('.shelf-toolbar') { click_link 'Customize appearance' }
     expect(page).to have_current_path(/#{Regexp.escape(edit_managed_shelf_path(collection.slug))}/)
     page.driver.browser.manage.delete_all_cookies
