@@ -16,6 +16,14 @@ RSpec.describe 'Artwork lightbox', type: :system do
     expect(page).to have_css('dialog[open][data-state="loaded"]')
   end
 
+  def expect_lightbox_closed
+    # Native close hides the dialog and restores focus before its queued close
+    # handler removes the node and releases scroll locks. Wait for that cleanup.
+    expect(page).to have_no_css('dialog.artwork-lightbox', visible: :all)
+    expect(page.evaluate_script('[document.documentElement.style.overflow, document.body.style.overflow]'))
+      .not_to include('hidden')
+  end
+
   it 'fits portrait and landscape art with accessible controls across themes and viewports' do
     user = create_and_login_user
     page.driver.browser.logs.get(:browser)
@@ -47,12 +55,11 @@ RSpec.describe 'Artwork lightbox', type: :system do
           page.driver.browser.switch_to.active_element.send_keys(:tab)
           expect(page).to have_css('dialog button:focus')
           find_button('Close image lightbox').send_keys(:escape)
-          expect(page).to have_no_css('dialog')
+          expect_lightbox_closed
           expect(page).to have_css('.artwork-zoom:focus')
-          expect(page.evaluate_script('document.documentElement.style.overflow')).not_to eq('hidden')
           open_artwork
           click_button 'Close image lightbox'
-          expect(page).to have_no_css('dialog')
+          expect_lightbox_closed
           expect(page.driver.browser.logs.get(:browser).select { |entry| entry.level == 'SEVERE' }).to be_empty
         end
       end
@@ -99,15 +106,14 @@ RSpec.describe 'Artwork lightbox', type: :system do
     %w[mousePressed mouseReleased].each do |type|
       page.driver.browser.execute_cdp('Input.dispatchMouseEvent', type: type, x: 2, y: 2, button: 'left', clickCount: 1)
     end
-    expect(page).to have_no_css('dialog')
+    expect_lightbox_closed
     open_artwork
     page.go_back
     expect(page).to have_current_path(comics_path)
-    expect(page).to have_no_css('dialog')
-    expect(page.evaluate_script('document.documentElement.style.overflow')).not_to eq('hidden')
+    expect_lightbox_closed
     page.go_forward
     expect(page).to have_current_path(comic_path(item))
-    expect(page).to have_no_css('dialog')
+    expect_lightbox_closed
     open_artwork
     full_size = window_opened_by { click_link 'Open full-size image in a new tab' }
     within_window(full_size) { expect(page).to have_css('img') }
