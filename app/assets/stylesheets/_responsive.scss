@@ -230,45 +230,6 @@
   }
 }
 
-.app-footer {
-  .footer-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-
-    @media (min-width: 768px) {
-      flex-direction: row;
-      justify-content: space-between;
-    }
-  }
-
-  .footer-attribution {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    max-width: 300px;
-
-    @media (min-width: 768px) {
-      align-items: flex-end;
-      text-align: right;
-    }
-
-    .tmdb-logo {
-      height: 16px;
-      width: auto;
-    }
-
-    .attribution-text {
-      font-size: 0.75rem;
-      color: $text-dim;
-      margin: 0;
-      line-height: 1.4;
-    }
-  }
-}
-
 .btn-unstyled {
   background: transparent;
   border: none;

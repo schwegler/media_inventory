@@ -77,22 +77,26 @@
   <%= yield %>
 </main>
 
-
 <footer class="app-footer">
   <div class="container">
-    <div class="footer-content">
-      <div class="footer-copyright">
-        <div class="footer-brand"><div class="footer-wordmark"><%= image_tag 'brand/trove_rounded_app_icon.png', width: 32, height: 32, alt: '', class: 'footer-logo', loading: 'lazy' %><strong>trove</strong></div><span>A library companion to taco ’bout it.</span></div>
+    <div class="footer-masthead">
+      <div class="footer-wordmark">
+        <%= image_tag 'brand/trove_rounded_app_icon.png', width: 32, height: 32, alt: '', class: 'footer-logo', loading: 'lazy' %>
+        <strong>trove</strong>
       </div>
+      <p class="footer-tagline">A library companion to taco ’bout it.</p>
       <a class="blog-link" href="https://tacobout.online/">Visit the blog <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></a>
     </div>
-    <p class="footer-affiliate-disclosure">Some links are paid links. As an Amazon Associate I earn from qualifying purchases.</p>
-    <div class="footer-details">
-      <%= render "shared/creator_credit" %>
-      <div class="footer-attribution">
-        <%= image_tag "tmdb_logo.svg", alt: "TMDB Logo", class: "tmdb-logo" %>
-        <p class="attribution-text">This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+    <div class="footer-notes">
+      <div>
+        <h2 class="footer-label">Affiliate disclosure</h2>
+        <p class="footer-affiliate-disclosure">Some links are paid links. As an Amazon Associate I earn from qualifying purchases.</p>
       </div>
+      <div>
+        <h2 class="footer-label">Catalog data <%= image_tag "tmdb_logo.svg", alt: "TMDB", width: 54, height: 7 %></h2>
+        <p>This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+      </div>
+      <%= render "shared/creator_credit" %>
     </div>
   </div>
 </footer>

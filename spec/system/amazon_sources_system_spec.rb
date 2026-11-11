@@ -72,6 +72,18 @@ RSpec.describe 'Amazon title searches', type: :system do
       expect(page).to have_no_link('Search Amazon (paid link)')
       page.execute_script("document.querySelector('.footer-affiliate-disclosure').scrollIntoView({block: 'center'})")
       expect(page.evaluate_script('document.documentElement.scrollWidth <= innerWidth')).to be true
+      # Measure the visible text: a centered paragraph can have a flush-left box.
+      disclosure_indent = page.evaluate_script(<<~JS)
+        (() => {
+          const text = document.querySelector('.footer-affiliate-disclosure').firstChild;
+          const firstLetter = document.createRange();
+          firstLetter.setStart(text, 0);
+          firstLetter.setEnd(text, 1);
+          const logo = document.querySelector('.app-footer .footer-logo');
+          return firstLetter.getBoundingClientRect().left - logo.getBoundingClientRect().left;
+        })()
+      JS
+      expect(disclosure_indent.abs).to be <= 1
       capture_ui_screenshot("affiliate-footer-#{size}-home")
       page.execute_script("document.documentElement.dataset.theme = 'dark'")
       capture_ui_screenshot("affiliate-footer-#{size}-dark")
