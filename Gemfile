@@ -32,7 +32,7 @@ gem 'sqlite3', '~> 2.10'
 group :development, :test do
   gem 'brakeman'
   gem 'bundler-audit'
-  gem 'rspec-rails', '~> 8.0'
+  gem 'rspec-rails', '~> 8.1'
   gem 'rubocop'
 end
 
