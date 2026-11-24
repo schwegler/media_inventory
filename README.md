@@ -67,7 +67,7 @@ By default, running locally on your host machine will use **SQLite3** for simpli
 
 ### Prerequisites
 
-*   **Ruby:** Version `3.4.12` (defined in `.ruby-version` and `Gemfile`, with the production image aligned in `Dockerfile`).
+*   **Ruby:** Version `3.4.13` (defined in `.ruby-version` and `Gemfile`, with the production image aligned in `Dockerfile`).
 *   **Node.js** with `node --test` support for the Rails JavaScript checks; **npm** for the Tauri desktop client.
 *   **ImageMagick** with WebP decoding for artwork processing/tests (CI installs it); native gem builds also need compiler tools and PostgreSQL client headers. Browser specs need Chrome and a matching ChromeDriver.
 
