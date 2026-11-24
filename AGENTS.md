@@ -2,7 +2,7 @@
 
 ## Project map
 
-- Rails 8.1 / Ruby 3.4.12 monolith. Check `.ruby-version`, `Gemfile.lock`, and `.github/workflows/rubyonrails.yml` before changing runtime assumptions.
+- Rails 8.1 / Ruby 3.4.13 monolith. Check `.ruby-version`, `Gemfile.lock`, and `.github/workflows/rubyonrails.yml` before changing runtime assumptions.
 - Server-rendered ERB in `app/views`, domain models in `app/models`, provider/import logic in `app/services`, Stimulus in `app/javascript/controllers`, Sass in `app/assets/stylesheets`. Assets use importmap, Propshaft, and dartsass; there is no root npm build.
 - `native/ios` contains incomplete Hotwire Native application source; `native/desktop` contains the Tauri wrapper. Read their READMEs before native work.
 - `docs/product-refinement.md` describes appearance and metadata maintenance. Read the relevant feature docs and nearby specs before editing.

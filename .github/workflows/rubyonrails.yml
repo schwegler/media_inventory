@@ -39,7 +39,7 @@ jobs:
       - name: Install Ruby and gems
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.4.12'
+          ruby-version: '3.4.13'
           bundler-cache: true
       # Add or replace database setup steps here
       - name: Set up database schema
@@ -142,7 +142,7 @@ jobs:
       - name: Install Ruby and gems
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.4.12'
+          ruby-version: '3.4.13'
           bundler-cache: true
       # Add or replace database setup steps here
       - name: Set up database schema
@@ -234,7 +234,7 @@ jobs:
       - name: Install Ruby and gems
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.4.12'
+          ruby-version: '3.4.13'
           bundler-cache: true
       - name: Generate binstubs
         run: bundle binstubs bundler-audit brakeman rubocop
@@ -258,5 +258,5 @@ jobs:
       - name: Check image runtime and native dependencies
         run: >-
           docker run --rm --entrypoint bundle trove-runtime-check exec ruby -e
-          'abort "Unexpected Ruby #{RUBY_VERSION}" unless RUBY_VERSION == "3.4.12";
+          'abort "Unexpected Ruby #{RUBY_VERSION}" unless RUBY_VERSION == "3.4.13";
           %w[sqlite3 pg openssl psych nokogiri csv].each { |library| require library }'
