@@ -34,8 +34,8 @@ RSpec.describe MediaArtworkDecoder do
         expect(status.success?).to be(true), error
         allow(Open3).to receive(:capture3).and_call_original
 
-        described_class.normalized(original.path) do |preview|
-          expect(described_class.validate!(preview.path)).to eq([80, 60])
+        described_class.normalized(original.path, dimensions: '40x30') do |preview|
+          expect(described_class.validate!(preview.path)).to eq([40, 30])
           expect(Marcel::MimeType.for(preview)).to eq('image/webp')
         end
         expect(Open3).to have_received(:capture3).with(
