@@ -9,6 +9,13 @@ RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y curl libjemalloc2 libvips imagemagick postgresql-client && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
+# Keep distro resource/path limits and add Trove's document/delegate restrictions.
+# These checks do not boot Rails or install Ghostscript when it is absent.
+COPY config/imagemagick/document-policy.xml ./config/imagemagick/document-policy.xml
+COPY scripts/install_imagemagick_policy.rb scripts/check_ghostscript.rb ./scripts/
+RUN ruby scripts/install_imagemagick_policy.rb && \
+    ruby scripts/check_ghostscript.rb
+
 # Set production environment
 ENV RAILS_ENV="production" \
     BUNDLE_DEPLOYMENT="1" \

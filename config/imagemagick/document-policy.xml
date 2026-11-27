@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<policymap>
+  <!-- Artwork processing must never launch external document converters. -->
+  <policy domain="delegate" rights="none" pattern="*"/>
+  <!-- Include the PostScript/PDF aliases reported by ImageMagick's format list. -->
+  <policy domain="coder" rights="none" pattern="{PS,PS2,PS3,EPS,EPS2,EPS3,EPSF,EPSI,EPI,EPT,EPT2,EPT3,PDF,PDFA,EPDF,AI,XPS}"/>
+</policymap>
