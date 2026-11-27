@@ -11,6 +11,20 @@ RSpec.describe GenerateMediaArtworkRenditionJob do
                                            filename: 'landscape.png', content_type: 'image/png')
   end
 
+  it 'fails a stored document with misleading raster metadata before starting ImageMagick' do
+    source = ActiveStorage::Blob.create_and_upload!(io: StringIO.new("%PDF-1.4\n%%EOF\n"),
+                                                    filename: 'legacy-cover.png', content_type: 'image/png',
+                                                    identify: false, metadata: { analyzed: true })
+    row = MediaArtworkRendition.create!(source_blob: source, requested_width: 180, requested_height: 270)
+    expect(Open3).not_to receive(:capture3)
+
+    described_class.perform_now(row)
+
+    expect(row.reload).to have_attributes(state: 'failed', failure_reason: 'MediaSources::Http::Error', blob_id: nil)
+    expect(source.reload.content_type).to eq('image/png')
+    expect(WebMock).not_to have_requested(:get, /.*/)
+  end
+
   it 'creates genuine bounded WebP derivatives from stored pixels without redownloading or stretching' do
     source = source_blob
     MediaArtworkRendition.request(source)

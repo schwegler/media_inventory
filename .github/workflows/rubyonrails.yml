@@ -41,6 +41,10 @@ jobs:
         with:
           ruby-version: '3.4.12'
           bundler-cache: true
+      - name: Apply artwork document and delegate policy
+        run: sudo "$(command -v ruby)" scripts/install_imagemagick_policy.rb
+      - name: Check Ghostscript inventory gate regressions
+        run: ruby spec/scripts/check_ghostscript_test.rb
       # Add or replace database setup steps here
       - name: Set up database schema
         run: bin/rails db:schema:load
@@ -144,6 +148,10 @@ jobs:
         with:
           ruby-version: '3.4.12'
           bundler-cache: true
+      - name: Apply artwork document and delegate policy
+        run: sudo "$(command -v ruby)" scripts/install_imagemagick_policy.rb
+      - name: Check Ghostscript inventory gate regressions
+        run: ruby spec/scripts/check_ghostscript_test.rb
       # Add or replace database setup steps here
       - name: Set up database schema
         run: bin/rails db:schema:load
@@ -260,3 +268,13 @@ jobs:
           docker run --rm --entrypoint bundle trove-runtime-check exec ruby -e
           'abort "Unexpected Ruby #{RUBY_VERSION}" unless RUBY_VERSION == "3.4.12";
           %w[sqlite3 pg openssl psych nokogiri csv].each { |library| require library }'
+      - name: Check final-image Ghostscript inventory and patch level
+        run: >-
+          docker run --rm --network none --read-only
+          --entrypoint ruby trove-runtime-check scripts/check_ghostscript.rb
+      - name: Check final-image artwork decoding and document rejection
+        run: >-
+          docker run --rm --network none --read-only
+          --tmpfs /tmp:rw,nosuid,nodev,size=320m
+          --entrypoint bundle trove-runtime-check
+          exec ruby scripts/check_image_processing.rb
